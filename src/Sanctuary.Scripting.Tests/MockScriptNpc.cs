@@ -114,4 +114,33 @@ internal class MockScriptNpc(IScriptableZone _zone) : IScriptableNpc
     {
         throw new NotImplementedException();
     }
+
+    public (float x, float y, float z) HomePosition => (5, 0, 5);
+
+    public List<IScriptablePlayer> Players { get; } = [];
+
+    public IReadOnlyList<IScriptablePlayer> GetNearbyPlayers(float radius) => Players;
+
+    public IScriptablePlayer? GetPlayer(ulong guid) => Players.Find(player => player.Guid == guid);
+
+    public List<(ulong Guid, string Message)> Whispers { get; } = [];
+
+    public void SayTo(IScriptablePlayer player, string message) => Whispers.Add((player.Guid, message));
+
+    public float Scale { get; private set; } = 1;
+
+    public void SetScale(float scale) => Scale = scale;
+
+    public void Rename(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<(string Name, string? Data, float Radius)> Signals { get; } = [];
+
+    public bool Signal(string name, string? data, float radius)
+    {
+        Signals.Add((name, data, radius));
+        return true;
+    }
 }

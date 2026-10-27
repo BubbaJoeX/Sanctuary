@@ -69,7 +69,7 @@ public sealed class ScriptRuntime
     #region Sandbox
 
     /// <summary>
-    /// Globals GM-authored scripts may use. Everything else (io, os, load, require, debug...) is left out.
+    /// Globals GM-authored scripts may use. Everything else (io, load, require, debug, most of os...) is left out.
     /// </summary>
     private static readonly string[] SandboxGlobals =
     [
@@ -103,8 +103,18 @@ public sealed class ScriptRuntime
 
         env["unpack"] = env["table"].Read<LuaTable>()["unpack"];
 
+        // Only the clock from os, so scripts can run day/night or dated events.
+        var os = new LuaTable();
+
+        foreach (var name in SandboxOsFunctions)
+            os[name] = _state.Environment["os"].Read<LuaTable>()[name];
+
+        env["os"] = os;
+
         return env;
     }
+
+    private static readonly string[] SandboxOsFunctions = ["time", "clock", "date", "difftime"];
 
     /// <summary>
     /// Compiles and runs a chunk, cancelling it if it runs longer than <paramref name="timeout"/>.

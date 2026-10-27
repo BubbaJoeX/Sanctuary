@@ -48,4 +48,37 @@ public interface IScriptableNpc : IScriptable
     void PlayEffect(int compositeEffectId);
 
     void Remove(int compositeEffectId);
+
+    /// <summary>
+    /// Where the NPC was placed, for scripts that wander off and come back.
+    /// </summary>
+    (float x, float y, float z) HomePosition { get; }
+
+    /// <summary>
+    /// Players this NPC can see within the radius.
+    /// </summary>
+    IReadOnlyList<IScriptablePlayer> GetNearbyPlayers(float radius);
+
+    /// <summary>
+    /// A player this NPC can see, or null.
+    /// </summary>
+    IScriptablePlayer? GetPlayer(ulong guid);
+
+    /// <summary>
+    /// Says something only the given player sees.
+    /// </summary>
+    void SayTo(IScriptablePlayer player, string message);
+
+    void SetScale(float scale);
+
+    /// <summary>
+    /// Changes the nameplate and chat name.
+    /// </summary>
+    void Rename(string name);
+
+    /// <summary>
+    /// Runs onSignal(name, data, fromGuid) on other scripted NPCs in the zone within the radius (0 for the
+    /// whole zone). Returns false if this NPC has already sent too many signals this second.
+    /// </summary>
+    bool Signal(string name, string? data, float radius);
 }
