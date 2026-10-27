@@ -22,6 +22,7 @@ var HOME_TOP = 132;
 var HOME_BOTTOM = 684;
 var HOME_PICK_TAG = "[[SANCTUARY_PICK]]";
 var HOME_NEWS_TAG = "[[SANCTUARY_NEWS]]";
+var HOME_NOTE_TAG = "[[SANCTUARY_NOTE]]";
 var HOME_NEWS_SECONDS = 7;
 var HOME_FRIENDS_PER_PAGE = 5;
 
@@ -35,7 +36,10 @@ var HOME_GREEN = 0x7CE046;
 var HOME_ICONS = {house:"sanctuaryIconHouse", bag:"sanctuaryIconBag", journal:"sanctuaryIconJournal",
    trophy:"sanctuaryIconTrophy", book:"sanctuaryIconBook", paw:"sanctuaryIconPaw", coin:"sanctuaryIconCoin",
    friends:"sanctuaryIconFriends", tree:"sanctuaryIconTree", referee:"sanctuaryIconRefereeTree",
-   wheel:"sanctuaryIconWheel"};
+   wheel:"sanctuaryIconWheel", scroll:"sanctuaryIconScroll"};
+
+var HOME_MONTHS = ["January","February","March","April","May","June","July","August","September","October",
+   "November","December"];
 
 var HOME_TIPS = [
    "Click a friend under Friends Online to teleport right to them.",
@@ -51,6 +55,7 @@ var homeNews = [];
 var homeNewsIndex = 0;
 var homeFriends = [];
 var homeFriendsPage = 0;
+var homeNotes = [];
 
 // --- drawing helpers ---------------------------------------------------------------
 
@@ -269,8 +274,41 @@ function homeDrawHeader()
    // No wallet: the coin amount and Shop button go (the Shop is a quick pick, What's New and the dock away).
    browser.sc_amount_txt._visible = false;
 
-   releaseNotes_mc._x = 1000;
-   releaseNotes_mc._y = 40;
+   // Patch Notes (the server's latest commits) instead of the stock Update Notes button.
+   releaseNotes_mc._visible = false;
+   var notes = home.createEmptyMovieClip("notesButton",home.getNextHighestDepth());
+   notes._x = 1010;
+   notes._y = 36;
+   notes.bg = notes.createEmptyMovieClip("bg",1);
+   notes.draw = function(over)
+   {
+      this.bg.clear();
+      this.bg.lineStyle(1,over ? 0xFFF4C2 : 0x9DB8FF,over ? 90 : 40);
+      this.bg.beginFill(over ? 0x3557C0 : 0x0A1440,over ? 80 : 45);
+      homeRoundRect(this.bg,0,0,246,62,31);
+      this.bg.endFill();
+   };
+   notes.draw(false);
+   homeIcon(notes,"icon","scroll",8,5,52);
+   homeText(notes,"title_txt","Patch Notes",66,8,170,26,19,HOME_WHITE,"left",false);
+   notes.date_txt = homeText(notes,"date_txt","",67,33,170,20,12,HOME_SOFT,"left",false);
+   notes.onRollOver = function()
+   {
+      this.draw(true);
+      fscommand("FR_event","PlaySound(DockOver)");
+      gs.TweenLite.to(this.icon,0.6,{_rotation:-8,ease:mx.transitions.easing.Elastic.easeOut});
+   };
+   notes.onRollOut = notes.onReleaseOutside = function()
+   {
+      this.draw(false);
+      gs.TweenLite.to(this.icon,0.6,{_rotation:0,ease:mx.transitions.easing.Elastic.easeOut});
+   };
+   notes.onRelease = function()
+   {
+      fscommand("FR_event","PlaySound(DockSelect)");
+      homeOpenNotes();
+   };
+   homeUpdateNotesButton();
 
    browser.donebtn._x = 1296;
    browser.donebtn._y = 18 - HOME_BROWSER_Y;
@@ -714,6 +752,147 @@ function homeDrawLinks(x, y, w, h)
    }
 }
 
+// --- Patch Notes ----------------------------------------------------------------------
+
+function homeLongDate(date)
+{
+   var parts = String(date).split("-");
+   var month = HOME_MONTHS[Number(parts[1]) - 1];
+   return month == undefined ? String(date) : month + " " + Number(parts[2]) + ", " + parts[0];
+}
+
+function homeUpdateNotesButton()
+{
+   browser.sanctuaryHome.notesButton.date_txt.text = homeNotes.length > 0 ? "Updated " + homeLongDate(homeNotes[0].date) : "Nothing new yet";
+}
+
+var homeNotesWheel = {onMouseWheel:function(delta)
+{
+   homeScrollNotes(delta * 30);
+}};
+
+function homeOpenNotes()
+{
+   var home = browser.sanctuaryHome;
+   home.notes.removeMovieClip();
+   var overlay = home.createEmptyMovieClip("notes",home.getNextHighestDepth());
+
+   // Dim the home screen; a click outside the panel closes it.
+   var dim = overlay.createEmptyMovieClip("dim",1);
+   dim.beginFill(0x050A24,70);
+   homeRoundRect(dim,6,6,HOME_W - 12,HOME_H - 12,28);
+   dim.endFill();
+   dim.useHandCursor = false;
+   dim.onRelease = homeCloseNotes;
+   dim._alpha = 0;
+   gs.TweenLite.to(dim,0.3,{_alpha:100});
+
+   var w = 780;
+   var h = 600;
+   var panel = overlay.panel = overlay.createEmptyMovieClip("panel",2);
+   panel._x = (HOME_W - w) / 2;
+   panel._y = (HOME_H - h) / 2;
+   homeGradientRect(panel,0,0,w,h,24,0x2D57C2,0x16296E,100,0xFFF4C2,80,3);
+   homeShadow(panel,8,24,70);
+   homeIcon(panel,"icon","scroll",22,16,60);
+   var title = homeText(panel,"title_txt","Patch Notes",94,14,w - 200,42,30,HOME_WHITE,"left",false);
+   title.filters = [new flash.filters.DropShadowFilter(2,90,0x0A1030,0.9,3,3,1,1)];
+   homeText(panel,"subtitle_txt","The latest changes to the Sanctuary server",96,54,w - 200,22,14,HOME_SOFT,"left",false);
+   homeButton(panel,"close","X",w - 64,18,44,44,"blue",18,homeCloseNotes);
+
+   var listX = 30;
+   var listY = 96;
+   var listW = w - 110;
+   var listH = h - listY - 26;
+   var list = panel.list = panel.createEmptyMovieClip("list",panel.getNextHighestDepth());
+   list._x = listX;
+   list._y = listY;
+   panel.listY = listY;
+   panel.listH = listH;
+
+   var y = 0;
+   var lastDate = "";
+   var i;
+   for(i = 0; i < homeNotes.length; i++)
+   {
+      var note = homeNotes[i];
+      if(note.date != lastDate)
+      {
+         lastDate = note.date;
+         y += i == 0 ? 0 : 10;
+         homeText(list,"date" + i,homeLongDate(note.date),0,y,listW,26,18,HOME_GOLD,"left",false);
+         list.lineStyle(1,HOME_GOLD,35);
+         list.moveTo(0,y + 28);
+         list.lineTo(listW,y + 28);
+         y += 36;
+      }
+      list.lineStyle();
+      homeDot(list,10,y + 10,4,0xFFFFFF,80);
+      var line = homeText(list,"note" + i,note.text,24,y,listW - 24,22,15,HOME_WHITE,"left",true);
+      line.autoSize = "left";
+      y += Math.max(22,line._height) + 6;
+   }
+   if(homeNotes.length == 0)
+   {
+      homeText(list,"empty_txt","No patch notes right now.",0,40,listW,30,18,HOME_SOFT,"center",false);
+   }
+   panel.contentH = y;
+
+   var mask = panel.createEmptyMovieClip("mask",panel.getNextHighestDepth());
+   mask.beginFill(0,100);
+   homeRoundRect(mask,listX - 4,listY,listW + 8,listH,0);
+   mask.endFill();
+   list.setMask(mask);
+
+   // Scroll buttons and a thumb when the notes don't fit.
+   if(y > listH)
+   {
+      homeButton(panel,"up","^",w - 64,listY,40,36,"blue",16,function()
+      {
+         homeScrollNotes(120);
+      });
+      homeButton(panel,"down","v",w - 64,listY + listH - 36,40,36,"blue",14,function()
+      {
+         homeScrollNotes(-120);
+      });
+      var track = panel.createEmptyMovieClip("track",panel.getNextHighestDepth());
+      track.beginFill(0x0A1440,50);
+      homeRoundRect(track,w - 50,listY + 44,12,listH - 88,6);
+      track.endFill();
+      panel.thumb = panel.createEmptyMovieClip("thumb",panel.getNextHighestDepth());
+      panel.thumbH = Math.max(30,(listH - 88) * listH / y);
+      homeGradientRect(panel.thumb,0,0,12,panel.thumbH,6,0xFFE066,0xE79A13,100);
+      panel.thumb._x = w - 50;
+      panel.thumb._y = listY + 44;
+      Mouse.addListener(homeNotesWheel);
+   }
+
+   panel._alpha = 0;
+   var top = panel._y;
+   panel._y = top + 30;
+   gs.TweenLite.to(panel,0.45,{_alpha:100,_y:top,ease:mx.transitions.easing.Strong.easeOut});
+}
+
+function homeScrollNotes(delta)
+{
+   var panel = browser.sanctuaryHome.notes.panel;
+   var lowest = panel.listY - Math.max(0,panel.contentH - panel.listH);
+   var y = Math.max(lowest,Math.min(panel.listY,panel.list._y + delta));
+   gs.TweenLite.to(panel.list,0.25,{_y:y,ease:mx.transitions.easing.Strong.easeOut});
+   if(panel.thumb != undefined && lowest < panel.listY)
+   {
+      var travel = panel.listH - 88 - panel.thumbH;
+      gs.TweenLite.to(panel.thumb,0.25,{_y:panel.listY + 44 + travel * (panel.listY - y) / (panel.listY - lowest)});
+   }
+}
+
+function homeCloseNotes()
+{
+   Mouse.removeListener(homeNotesWheel);
+   fscommand("FR_event","PlaySound(DockSelect)");
+   browser.sanctuaryHome.notes.removeMovieClip();
+}
+
 // --- bottom bar -----------------------------------------------------------------------
 
 function homeDrawBottom()
@@ -785,6 +964,12 @@ populateWnsData_lua = function(iconId, titleString, adText, buttonText, type, pa
 {
    var tag = String(string_param2);
    var item = {type:type == undefined ? "" : String(type),param1:param1,param2:param2,param3:param3};
+   if(tag.indexOf(HOME_NOTE_TAG) == 0)
+   {
+      var note = tag.split("|");
+      homeNotes.push({date:note[1],text:note[2]});
+      return;
+   }
    if(tag.indexOf(HOME_PICK_TAG) == 0 || tag.indexOf(HOME_NEWS_TAG) == 0)
    {
       var fields = tag.split("|");
@@ -818,6 +1003,7 @@ showWNS = function()
 {
    homeDrawNews();
    homeDrawPicks();
+   homeUpdateNotesButton();
 };
 
 // Lua's PopulateFriendsList sends the online friends' rows.

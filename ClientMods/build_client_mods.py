@@ -86,7 +86,7 @@ MODS = [
     ("ActivityPortal", "sanctuaryActivityPortal", "\\frame_1\\DoAction", [script_dir / "ActivityPortal" / NO_STATION_CASH], []),
     ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction", [script_dir / "HousingPreview" / NO_STATION_CASH], []),
     ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
-    ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "shop_tile.as"], []),
+    ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "main_menu.as"], []),
 ]
 
 # Stock movie -> [(external texture, texture to use instead)]. Station Cash no longer exists, so the
@@ -95,8 +95,6 @@ TEXTURE_SWAPS = {
     "gamedock": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
     # The welcome screen's header wallet, which now shows coins.
     "welcome": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
-    # The Main Menu's Store (now Shop) tile, with the 128x128 version of the same coin.
-    "MyStuffBrowser": [("img15767268884761079006.dds", "img12661814977694140028.dds")],
 }
 
 # Stock movie -> [(client texture, export name, size, hue shift in degrees)]. Each texture is cropped to
@@ -116,6 +114,20 @@ TEXTURE_SYMBOLS = {
         ("img7070878317473001703.dds", "sanctuaryIconTree", 64, 0),
         ("img7070878317473001703.dds", "sanctuaryIconRefereeTree", 64, 155),
         ("img16372258640993360071.dds", "sanctuaryIconWheel", 96, 0),
+        ("img3694898642873637100.dds", "sanctuaryIconScroll", 64, 0),
+    ],
+    # The Main Menu (MyStuffBrowser/main_menu.as): its own tile art, with the coin store coin for Shop.
+    "MyStuffBrowser": [
+        ("img12661814977694140028.dds", "sanctuaryMenuCoin", 96, 0),
+        ("img15906260194121039444.dds", "sanctuaryMenuTrophy", 96, 0),
+        ("img1837001925841496856.dds", "sanctuaryMenuJournal", 96, 0),
+        ("img3353027197221927245.dds", "sanctuaryMenuBag", 96, 0),
+        ("img1469495624995028744.dds", "sanctuaryMenuBook", 96, 0),
+        ("img5645809723664368221.dds", "sanctuaryMenuProfile", 96, 0),
+        ("img8405532797012043402.dds", "sanctuaryMenuPaw", 96, 0),
+        ("img6228164867429240843.dds", "sanctuaryMenuSaddle", 96, 0),
+        ("img11740438261774166106.dds", "sanctuaryMenuHouse", 96, 0),
+        ("img10946043591668366760.dds", "sanctuaryMenuPalette", 96, 0),
     ],
 }
 
@@ -124,6 +136,8 @@ TEXTURE_SYMBOLS = {
 TEXT_SYMBOLS = {
     # The home screen's Play button.
     "welcome": [("sanctuaryPlayLabel", "PLAY!", 40, (255, 246, 196), (255, 168, 36))],
+    # The Main Menu's title.
+    "MyStuffBrowser": [("sanctuaryMainMenuTitle", "Main Menu", 46, (255, 246, 196), (255, 168, 36))],
 }
 
 # Stock movie -> root timeline depths whose placements are dropped: plain shapes, which ActionScript can't hide.

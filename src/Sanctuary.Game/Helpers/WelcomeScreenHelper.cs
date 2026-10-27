@@ -43,13 +43,15 @@ public static class WelcomeScreenHelper
     private const int SandwichClaimCodeIconId = 949;
     private const int FirstLoginSecondsSinceLastLogin = -1;
 
-    // What's New items and Referee Picks are sent as announcements whose text is all in StringParam2:
-    // tag|title|text|button|icon. The welcome screen mod (ClientMods/welcome/home.as) shows them in its own
-    // What's New and Referee Picks panels.
+    // What's New items, Referee Picks and patch notes are sent as announcements whose text is all in
+    // StringParam2: tag|title|text|button|icon (a patch note's title is its date). The welcome screen mod
+    // (ClientMods/welcome/home.as) shows them in its own What's New, Referee Picks and Patch Notes panels.
     private const string WhatsNewTag = "[[SANCTUARY_NEWS]]";
     private const int WhatsNewAnnouncementId = 100;
     private const string RefereePickTag = "[[SANCTUARY_PICK]]";
     private const int RefereePickAnnouncementId = 1000;
+    private const string PatchNoteTag = "[[SANCTUARY_NOTE]]";
+    private const int PatchNoteAnnouncementId = 2000;
 
     public static AnnouncementDataSendPacket GetAnnouncementsPacket(IEnumerable<AnnouncementInfo>? announcements = null)
     {
@@ -79,7 +81,8 @@ public static class WelcomeScreenHelper
             Announcements =
             [
                 .. news,
-                .. RefereePicks.Current.Select((card, i) => GetCardAnnouncement(card, RefereePickTag, RefereePickAnnouncementId + i))
+                .. RefereePicks.Current.Select((card, i) => GetCardAnnouncement(card, RefereePickTag, RefereePickAnnouncementId + i)),
+                .. PatchNotes.Current.Select((note, i) => GetCardAnnouncement(new WelcomeCard(note.Date, note.Subject), PatchNoteTag, PatchNoteAnnouncementId + i))
             ]
         };
     }
