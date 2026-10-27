@@ -86,6 +86,8 @@ public static class PacketChatHandler
         packet.FromGuid = connection.Player.Guid;
         packet.FromName = connection.Player.Name;
 
+        SnoopHelper.Relay(_zoneManager, connection.Player, packet.Channel, packet.ToName?.FullName, packet.Message);
+
         switch (packet.Channel)
         {
             case ChatChannel.Tell:

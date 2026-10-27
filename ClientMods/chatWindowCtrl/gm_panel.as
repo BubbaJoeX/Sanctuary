@@ -58,22 +58,28 @@ var GM_TEXT = 0xFFFFFF;
 var GM_TEXT_DIM = 0xBFD7F5;
 var GM_TEXT_GOLD = 0xFFE68A;
 
-var gmTab = "items";
+var gmTab = "players";
 var gmMaximized = false;
 var gmScale = 1;
 var gmResults = [];
 var gmList = { kind: "", search: "", page: 1, pages: 1, total: 0 };
+// Live work first (people, events, getting around), then lookups, then authoring.
 var gmTabs = [
+   ["players", "Players"],
+   ["events", "Events"],
+   ["world", "World"],
    ["items", "Items"],
    ["npcs", "NPCs"],
-   ["players", "Players"],
    ["houses", "Houses"],
-   ["world", "World"],
    ["edit", "Edit"],
    ["script", "Script"],
    ["conv", "Dialogue"],
-   ["quests", "Quests"]
+   ["quests", "Quests"],
+   ["server", "Server"]
 ];
+var GM_TAB_STEP = 36;
+// Role the server opened the panel with ("Mod" or "Admin").
+var gmRole = "";
 // Entity selected for editing (god mode click), as sent by the server: ["npc"|"prop"|"none", fields...].
 var gmEdit = ["none"];
 // Emotes for the editor: [[animationId, label], ...]; the server may replace it with an "anims" line.
@@ -253,8 +259,13 @@ function gmBuild()
    var i;
    for(i = 0; i < gmTabs.length; i++)
    {
-      var tab = gmButton(root_mc, "tab" + i + "_mc", gmTabs[i][1], 12, GM_CONTENT_Y - 8 + i * 38, GM_SIDEBAR_W - 4, 32, function()
+      var tab = gmButton(root_mc, "tab" + i + "_mc", gmTabs[i][1], 12, GM_CONTENT_Y - 8 + i * GM_TAB_STEP, GM_SIDEBAR_W - 4, 30, function()
       {
+         // Players again from a player's card goes back to the list.
+         if(this.tabId == "players" && gmTab == "players")
+         {
+            gmPlayer = undefined;
+         }
          gmShowTab(this.tabId);
       });
       tab.tabId = gmTabs[i][0];
@@ -380,6 +391,21 @@ function gmShowTab(tabId)
       gmRenderWorld(content);
       return;
    }
+   if(tabId == "events")
+   {
+      gmRenderEvents(content);
+      return;
+   }
+   if(tabId == "server")
+   {
+      gmRenderServer(content);
+      return;
+   }
+   if(tabId == "players" && gmPlayer != undefined)
+   {
+      gmRenderPlayerCard(content);
+      return;
+   }
    if(tabId == "edit")
    {
       gmRenderEdit(content);
@@ -437,7 +463,7 @@ function gmToolbar(content, kind)
    });
    if(kind == "houses")
    {
-      gmButtonRow(content, 244, [
+      gmButtonRow(content, GM_CONTENT_H - 26, [
          ["My houses", "!house list"],
          ["Enter", "!house enter"],
          ["Leave", "!house leave"],
@@ -445,6 +471,59 @@ function gmToolbar(content, kind)
          ["Anywhere", "!house unbound"]
       ]);
    }
+   if(kind == "players")
+   {
+      // Offline players can't be inspected; these take a typed name.
+      gmPromptRow(content, GM_CONTENT_H - 26, [
+         ["Ban by name", "!mod ban "],
+         ["Unban by name", "!mod unban "],
+         ["Unmute by name", "!mod unmute "],
+         ["Promote", "!admin promote "],
+         ["Demote", "!admin demote "]
+      ]);
+   }
+}
+
+// Like gmButtonRow, but each button puts its command in the chat box to finish typing.
+function gmPromptRow(content, y, buttons)
+{
+   var width = Math.floor((GM_COLUMNS * (GM_CELL_W + 2)) / buttons.length) - 4;
+   var i;
+   for(i = 0; i < buttons.length; i++)
+   {
+      var b = gmButton(content, "prow" + y + "_" + i + "_mc", buttons[i][0], i * (width + 4), y, width, 22, function()
+      {
+         gmPrompt(this.prefix);
+      });
+      b.prefix = buttons[i][1];
+   }
+}
+
+// Button that needs a second click within three seconds; for kicks, bans and other things hard to undo.
+function gmConfirmButton(parent, name, label, x, y, w, h, onConfirm)
+{
+   var b = gmButton(parent, name, label, x, y, w, h, function()
+   {
+      if(!this.armed)
+      {
+         this.armed = true;
+         this.label_txt.text = "Sure?";
+         var self = this;
+         this.timer = setTimeout(function()
+         {
+            self.armed = false;
+            self.label_txt.text = self.label;
+         }, 3000);
+         return;
+      }
+      clearTimeout(this.timer);
+      this.armed = false;
+      this.label_txt.text = this.label;
+      this.onConfirm();
+   }, 0xC0392B);
+   b.label = label;
+   b.onConfirm = onConfirm;
+   return b;
 }
 
 // Single-line text input. Typing needs the chat window to own the keyboard, which Lua grants
@@ -668,38 +747,466 @@ function gmHouseCell(cell, r)
 function gmPlayerCell(cell, r)
 {
    gmCellText(cell, r[1], r[2], 6);
-   gmSmall(cell, "goto_mc", "Go to", 6, 48, "!gm goto " + r[1]);
-   gmSmall(cell, "summon_mc", "Summon", 57, 56, "!gm summon " + r[1]);
-   gmSmall(cell, "mute_mc", "Mute", 116, 44, "!mod mute " + r[1] + " ", true);
+   gmSmall(cell, "inspect_mc", "Inspect", 6, 62, "!gm player " + r[1]);
+   gmSmall(cell, "goto_mc", "Go to", 71, 52, "!gm goto " + r[1]);
+   gmSmall(cell, "summon_mc", "Summon", 126, 70, "!gm summon " + r[1]);
+}
+
+// --- shared card layout ------------------------------------------------------------
+// The live tabs (Players card, Events, World, Server) are stacks of titled cards with button rows.
+
+// Card with a gold heading; returns the card clip. Content goes from y = 26 inside it.
+function gmCard(content, name, title, x, y, w, h)
+{
+   var card = content.createEmptyMovieClip(name, content.getNextHighestDepth());
+   card._x = x;
+   card._y = y;
+   gmPanelShape(card, w, h, 8, GM_BLUE_CELL, GM_BLUE_BOTTOM, GM_GOLD_DARK, 1);
+   gmText(card, "h_txt", title, 10, 4, w - 20, 18, 12, GM_TEXT_GOLD, true).wordWrap = false;
+   return card;
+}
+
+// Evenly spaced buttons across a card row: [label, command] or [label, command, color].
+// A command of the form "?..." asks for a second click first (see gmConfirmButton).
+function gmCardRow(card, y, w, buttons)
+{
+   var bw = Math.floor((w - 20 - (buttons.length - 1) * 6) / buttons.length);
+   var i;
+   for(i = 0; i < buttons.length; i++)
+   {
+      var cmd = buttons[i][1];
+      var b;
+      if(cmd.charAt(0) == "?")
+      {
+         b = gmConfirmButton(card, "r" + y + "_" + i + "_mc", buttons[i][0], 10 + i * (bw + 6), y, bw, 22, function()
+         {
+            gmSendThen(this.cmd);
+         });
+         b.cmd = cmd.substr(1);
+         continue;
+      }
+      b = gmButton(card, "r" + y + "_" + i + "_mc", buttons[i][0], 10 + i * (bw + 6), y, bw, 22, function()
+      {
+         gmSendThen(this.cmd);
+      }, buttons[i][2]);
+      b.cmd = cmd;
+   }
+}
+
+// Sends a command, then whatever the current view needs to show its effect (the player card re-inspects).
+function gmSendThen(cmd)
+{
+   if(gmTab == "players" && gmPlayer != undefined)
+   {
+      gmQueueSend(cmd);
+      gmQueueSend("!gm player " + gmPlayer.name);
+      return;
+   }
+   gmSend(cmd);
+}
+
+// --- players: inspect card -----------------------------------------------------------
+// pinfo|guid|name|zone|x|y|z|role|coins|member|mutedUntil|frozen|godMode|snooped|packetLog
+
+var gmPlayer = undefined;
+
+function gmHandlePlayerInfo(parts)
+{
+   gmPlayer = { guid: parts[2], name: parts[3], zone: parts[4], x: parts[5], y: parts[6], z: parts[7], role: parts[8], coins: parts[9],
+      member: parts[10] == "1", muted: parts[11], frozen: parts[12] == "1", godMode: parts[13] == "1", snooped: parts[14] == "1", packetLog: parts[15] == "1" };
+   if(!_root.gm_mc._visible)
+   {
+      _root.gm_mc._visible = true;
+      gmFit();
+   }
+   gmShowTab("players");
+}
+
+function gmRenderPlayerCard(content)
+{
+   var p = gmPlayer;
+   var w = GM_CONTENT_W;
+   gmText(content, "name_txt", p.name + (p.role != "Player" ? "  (" + p.role + ")" : ""), 0, 0, w - 200, 22, 15, GM_TEXT_GOLD, true).wordWrap = false;
+   gmText(content, "where_txt", p.zone + "  at " + p.x + ", " + p.y + ", " + p.z + "   coins " + p.coins + (p.member ? "   member" : ""), 0, 22, w - 140, 18, 11, GM_TEXT_DIM, false).wordWrap = false;
+   gmButton(content, "refresh_mc", "Refresh", w - 136, 0, 66, 22, function()
+   {
+      gmSend("!gm player " + gmPlayer.name);
+   });
+   gmButton(content, "list_mc", "All players", w - 66, 0, 66, 22, function()
+   {
+      gmPlayer = undefined;
+      gmSend("!gm players 1");
+      gmShowTab("players");
+   });
+
+   // State chips: what's on for this player right now.
+   var chips = [];
+   if(p.muted != "")
+   {
+      chips.push("MUTED until " + p.muted);
+   }
+   if(p.frozen)
+   {
+      chips.push("FROZEN");
+   }
+   if(p.snooped)
+   {
+      chips.push("SNOOPED by you");
+   }
+   if(p.packetLog)
+   {
+      chips.push("PACKET LOG on");
+   }
+   if(p.godMode)
+   {
+      chips.push("god mode");
+   }
+   gmText(content, "chips_txt", chips.length == 0 ? "No restrictions." : chips.join("    "), 0, 40, w, 18, 11, chips.length == 0 ? 0x7CFC9A : 0xFFB0A0, true).wordWrap = false;
+
+   var n = p.name;
+   var col = Math.floor((w - 10) / 2);
+
+   var move = gmCard(content, "move_mc", "Move", 0, 62, col, 58);
+   gmCardRow(move, 28, col, [
+      ["Go to", "!gm goto " + n],
+      ["Summon", "!gm summon " + n],
+      [p.frozen ? "Unfreeze" : "Freeze", "!freeze " + n, p.frozen ? GM_BLUE_ACTIVE : undefined],
+      ["Back", "!gm back"]
+   ]);
+
+   var mod = gmCard(content, "mod_mc", "Chat", col + 10, 62, col, 58);
+   gmCardRow(mod, 28, col, [
+      ["Mute 15m", "!mod mute " + n + " 15"],
+      ["Mute 1h", "!mod mute " + n + " 60"],
+      ["Mute 1d", "!mod mute " + n + " 1440"],
+      ["Unmute", "!mod unmute " + n],
+      [p.snooped ? "Unsnoop" : "Snoop", "!snoop " + n, p.snooped ? GM_BLUE_ACTIVE : undefined]
+   ]);
+
+   var discipline = gmCard(content, "ban_mc", "Remove from the game", 0, 128, col, 58);
+   gmCardRow(discipline, 28, col, [
+      ["Kick", "?!kick " + n],
+      ["Ban 1d", "?!mod ban " + n + " 1440"],
+      ["Ban 7d", "?!mod ban " + n + " 10080"],
+      ["Ban", "?!mod ban " + n]
+   ]);
+
+   var help = gmCard(content, "help_mc", "Help out", col + 10, 128, col, 58);
+   gmCardRow(help, 28, col, [
+      ["Revive", "!kill revive " + n],
+      ["Coins +100", "!coins 100 " + n],
+      ["+1000", "!coins 1000 " + n],
+      [p.member ? "Member off" : "Member on", "!flags member " + (p.member ? "off " : "on ") + n]
+   ]);
+
+   var look = gmCard(content, "look_mc", "Look up", 0, 194, col, 58);
+   gmCardRow(look, 28, col, [
+      ["Quests", "!quest list " + n],
+      ["Pets", "!pet list " + n],
+      ["Collect.", "!collection status " + n],
+      ["Flags", "!flags " + n]
+   ]);
+
+   var debug = gmCard(content, "debug_mc", "Debug", col + 10, 194, col, 58);
+   gmCardRow(debug, 28, col, [
+      [p.packetLog ? "Packet log off" : "Packet log on", "!packetlog " + (p.packetLog ? "off " : "on ") + n],
+      ["Tutorials", "!tutorial seen " + n],
+      ["Kill", "?!kill " + n]
+   ]);
+
+   // Give an item (event prizes): id, quantity, tint 0.
+   var give = gmCard(content, "give_mc", "Give an item (find ids in the Items tab)", 0, 260, w, 58);
+   gmInput(give, "item_txt", 10, 28, 110, 22, "", "item id");
+   gmInput(give, "qty_txt", 126, 28, 50, 22, "", "qty");
+   gmButton(give, "give_mc", "Give to " + n, 182, 28, 160, 22, function()
+   {
+      var c = _root.gm_mc.content_mc.give_mc;
+      var item = gmFieldText(c.item_txt);
+      var qty = gmFieldText(c.qty_txt);
+      if(item == "")
+      {
+         gmStatus("Type an item id first.");
+         return;
+      }
+      gmSendThen("!give " + item + " " + (qty == "" ? "1" : qty) + " 0 " + gmPlayer.name);
+      fscommand("FR_event", "killFocus()");
+   }, 0x2E7D5B);
+
+   gmStatus("Inspecting " + n + ". Red buttons ask for a second click.");
+}
+
+// --- events tab -------------------------------------------------------------------
+
+// World events from "!gm events": [[key, on], ...].
+var gmEvents = [];
+var gmEventsAsked = false;
+
+function gmHandleEvents(parts)
+{
+   gmEvents = [];
+   var i;
+   for(i = 2; i < parts.length; i++)
+   {
+      if(String(parts[i]) == "")
+      {
+         continue;
+      }
+      var e = String(parts[i]).split(":");
+      gmEvents.push([e[0], e[1] == "1"]);
+   }
+   if(_root.gm_mc._visible && gmTab == "events")
+   {
+      gmShowTab("events");
+   }
+}
+
+// Message box text, or a status hint when it's empty.
+function gmEventMessage()
+{
+   var text = gmFieldText(_root.gm_mc.content_mc.say_mc.msg_txt);
+   if(text == "")
+   {
+      gmStatus("Type the message first.");
+   }
+   return text;
+}
+
+function gmRenderEvents(content)
+{
+   if(!gmEventsAsked)
+   {
+      gmEventsAsked = true;
+      gmSend("!gm events");
+   }
+   var w = GM_CONTENT_W;
+   var col = Math.floor((w - 10) / 2);
+
+   // Announcements: one message box, several ways to send it.
+   var say = gmCard(content, "say_mc", "Announce", 0, 0, w, 86);
+   gmInput(say, "msg_txt", 10, 28, w - 20, 22, "", "Message to players...");
+   var sends = [
+      ["Chat, everyone", ""],
+      ["Banner, everyone", "banner "],
+      ["Chat, this zone", "zone "],
+      ["Banner, this zone", "zone banner "],
+      ["Set as MOTD", "motd"]
+   ];
+   var bw = Math.floor((w - 20 - 4 * 6) / 5);
+   var i;
+   for(i = 0; i < sends.length; i++)
+   {
+      var b = gmButton(say, "send" + i + "_mc", sends[i][0], 10 + i * (bw + 6), 56, bw, 22, function()
+      {
+         var text = gmEventMessage();
+         if(text == "")
+         {
+            return;
+         }
+         gmSend(this.flags == "motd" ? "!motd " + text : "!broadcast " + this.flags + text);
+         fscommand("FR_event", "killFocus()");
+      }, i == 4 ? undefined : 0x2E7D5B);
+      b.flags = sends[i][1];
+   }
+
+   // Countdown on everyone's screen in this zone; the message box (if any) shows at zero.
+   var count = gmCard(content, "count_mc", "Countdown (this zone; the message shows at zero)", 0, 94, w, 58);
+   var steps = ["3", "5", "10", "30", "60", "300"];
+   for(i = 0; i < steps.length; i++)
+   {
+      var c = gmButton(count, "c" + i + "_mc", steps[i] == "300" ? "5 min" : steps[i] + "s", 10 + i * 78, 28, 72, 22, function()
+      {
+         var text = gmFieldText(_root.gm_mc.content_mc.say_mc.msg_txt);
+         gmSend("!countdown " + this.seconds + (text == "" ? "" : " " + text));
+      });
+      c.seconds = steps[i];
+   }
+   gmButton(count, "cancel_mc", "Cancel", w - 90, 28, 80, 22, function()
+   {
+      gmSend("!countdown cancel");
+   }, 0xC0392B);
+
+   // Crowd control for starts and finishes.
+   var crowd = gmCard(content, "crowd_mc", "Crowd (this zone, referees excluded)", 0, 160, col, 86);
+   gmCardRow(crowd, 28, col, [
+      ["Gather all", "!gm gather"],
+      ["Gather 30m", "!gm gather 30"],
+      ["Gather 100m", "!gm gather 100"]
+   ]);
+   gmCardRow(crowd, 56, col, [
+      ["Freeze all", "!freeze zone on"],
+      ["Unfreeze all", "!freeze zone off", 0x2E7D5B]
+   ]);
+
+   // World and server state (admin).
+   var server = gmCard(content, "state_mc", "World state (admin)", col + 10, 160, col, 86);
+   gmCardRow(server, 28, col, [
+      ["Lock", "!lock on"],
+      ["Lock + kick", "?!lock on kick"],
+      ["Unlock", "!lock off", 0x2E7D5B]
+   ]);
+   gmCardRow(server, 56, col, [
+      ["Show MOTD", "!motd"],
+      ["Clear MOTD", "!motd clear"],
+      ["Day speed x1", "!timescale 1"],
+      ["x10", "!timescale 10"]
+   ]);
+
+   // GM events: NPCs flagged with an event key spawn only while it's on.
+   var ev = gmCard(content, "ev_mc", "World events (NPCs tagged in Edit > Event spawn only while on)", 0, 254, w, GM_CONTENT_H - 254);
+   gmInput(ev, "key_txt", 10, 28, 150, 22, "", "new event key");
+   gmButton(ev, "evon_mc", "Turn on", 166, 28, 70, 22, function()
+   {
+      var key = gmFieldText(_root.gm_mc.content_mc.ev_mc.key_txt);
+      if(key != "")
+      {
+         gmQueueSend("!event on " + key);
+         gmQueueSend("!gm events");
+      }
+   }, 0x2E7D5B);
+   gmButton(ev, "evrefresh_mc", "Refresh", 242, 28, 70, 22, function()
+   {
+      gmSend("!gm events");
+   });
+   if(gmEvents.length == 0)
+   {
+      gmText(ev, "evnone_txt", "No events yet.", 324, 31, 300, 18, 11, GM_TEXT_DIM, false);
+   }
+   var perRow = 4;
+   var ew = Math.floor((w - 20 - (perRow - 1) * 6) / perRow);
+   for(i = 0; i < gmEvents.length && i < 12; i++)
+   {
+      var on = gmEvents[i][1];
+      var t = gmButton(ev, "ev" + i + "_mc", gmEvents[i][0] + (on ? "  ON" : "  off"), 10 + (i % perRow) * (ew + 6), 56 + Math.floor(i / perRow) * 26, ew, 22, function()
+      {
+         gmQueueSend("!event " + (this.on ? "off " : "on ") + this.key);
+         gmQueueSend("!gm events");
+      }, on ? 0x2E7D5B : undefined);
+      t.key = gmEvents[i][0];
+      t.on = on;
+   }
+   gmStatus("Events: announce, count down, gather and switch world events.");
+}
+
+// --- world tab -------------------------------------------------------------------
+
+// Bookmarks from "!gm marks": [[name, zoneId, x, y, z], ...].
+var gmBookmarks = [];
+var gmBookmarksAsked = false;
+var gmBookmarkPage = 0;
+var GM_BOOKMARKS_PER_PAGE = 8;
+
+function gmHandleBookmarks(parts)
+{
+   gmBookmarks = [];
+   var i;
+   for(i = 2; i < parts.length; i++)
+   {
+      if(String(parts[i]) != "")
+      {
+         gmBookmarks.push(String(parts[i]).split(":"));
+      }
+   }
+   if(_root.gm_mc._visible && gmTab == "world")
+   {
+      gmShowTab("world");
+   }
 }
 
 function gmRenderWorld(content)
 {
-   gmText(content, "props_txt", "World props", 0, 0, 300, 18, 12, GM_TEXT_GOLD, true);
-   gmButtonRow(content, 20, [
-      ["Nearby props", "!place list"],
-      ["Remove prop", "!place remove"],
-      ["Stop placing", "!place off"],
-      ["Despawn NPC", "!npc despawn"]
-   ]);
-   gmText(content, "move_txt", "Movement", 0, 54, 300, 18, 12, GM_TEXT_GOLD, true);
-   gmButtonRow(content, 74, [
-      ["God mode on", "!godmode on"],
+   if(!gmBookmarksAsked)
+   {
+      gmBookmarksAsked = true;
+      gmSend("!gm marks");
+   }
+   var w = GM_CONTENT_W;
+   var col = Math.floor((w - 10) / 2);
+
+   var move = gmCard(content, "move_mc", "Getting around", 0, 0, w, 58);
+   gmCardRow(move, 28, w, [
+      ["God mode on", "!godmode on", 0x2E7D5B],
       ["God mode off", "!godmode off"],
+      ["Back", "!gm back"],
       ["Where am I", "!gm pos"],
-      ["Zones", "!zone ls"],
-      ["Help", "!help"]
+      ["Area here", "!area here"],
+      ["Zone areas", "!area list"],
+      ["Zones", "!zone ls"]
    ]);
-   gmText(content, "admin_txt", "Prompts (type the rest in chat)", 0, 104, 400, 18, 12, GM_TEXT_GOLD, true);
-   var prompts = [
+
+   // Shared bookmarks: event stages, meeting points.
+   var marks = gmCard(content, "marks_mc", "Bookmarks (shared by every referee)", 0, 66, w, 150);
+   gmInput(marks, "mark_txt", 10, 28, 160, 22, "", "name for this spot");
+   gmButton(marks, "mark_mc", "Mark here", 176, 28, 80, 22, function()
+   {
+      var name = gmFieldText(_root.gm_mc.content_mc.marks_mc.mark_txt);
+      if(name == "")
+      {
+         gmStatus("Type a name for this spot first.");
+         return;
+      }
+      gmSend("!gm mark " + name);
+      fscommand("FR_event", "killFocus()");
+   }, 0x2E7D5B);
+   var pages = Math.max(1, Math.ceil(gmBookmarks.length / GM_BOOKMARKS_PER_PAGE));
+   gmBookmarkPage = Math.max(0, Math.min(gmBookmarkPage, pages - 1));
+   if(pages > 1)
+   {
+      gmButton(marks, "mprev_mc", "<", w - 128, 28, 26, 22, function()
+      {
+         gmBookmarkPage--;
+         gmShowTab("world");
+      });
+      gmText(marks, "mpage_txt", (gmBookmarkPage + 1) + " / " + pages, w - 100, 31, 62, 18, 11, GM_TEXT, true, "center");
+      gmButton(marks, "mnext_mc", ">", w - 36, 28, 26, 22, function()
+      {
+         gmBookmarkPage++;
+         gmShowTab("world");
+      });
+   }
+   if(gmBookmarks.length == 0)
+   {
+      gmText(marks, "mnone_txt", "No bookmarks yet. Stand somewhere, name it and press Mark here.", 10, 60, w - 20, 18, 11, GM_TEXT_DIM, false);
+   }
+   var mw = Math.floor((w - 20 - 6) / 2);
+   var i;
+   for(i = 0; i < GM_BOOKMARKS_PER_PAGE && gmBookmarkPage * GM_BOOKMARKS_PER_PAGE + i < gmBookmarks.length; i++)
+   {
+      var m = gmBookmarks[gmBookmarkPage * GM_BOOKMARKS_PER_PAGE + i];
+      var mx = 10 + (i % 2) * (mw + 6);
+      var my = 58 + Math.floor(i / 2) * 22;
+      var go = gmButton(marks, "go" + i + "_mc", m[0] + "   (zone " + m[1] + ")", mx, my, mw - 26, 20, function()
+      {
+         gmSend("!gm go " + this.markName);
+      });
+      go.markName = m[0];
+      var del = gmConfirmButton(marks, "del" + i + "_mc", "x", mx + mw - 22, my, 22, 20, function()
+      {
+         gmSend("!gm unmark " + this.markName);
+      });
+      del.markName = m[0];
+   }
+
+   var props = gmCard(content, "props_mc", "World props", 0, 224, col, 58);
+   gmCardRow(props, 28, col, [
+      ["Nearby", "!place list"],
+      ["Remove nearest", "?!place remove"],
+      ["Stop placing", "!place off"]
+   ]);
+
+   var mine = gmCard(content, "mine_mc", "My character", col + 10, 224, col, 58);
+   gmCardRow(mine, 28, col, [
+      ["My quests", "!quest list"],
+      ["My pets", "!pet list"],
+      ["Collections", "!collection status"],
+      ["Furniture", "!furniture"]
+   ]);
+
+   // Anything that needs typing goes through the chat box.
+   var prompts = gmCard(content, "prompts_mc", "Type the rest in chat", 0, 290, w, GM_CONTENT_H - 290);
+   var list = [
       ["Teleport x y z", "!teleport "],
+      ["Go to area", "!area goto "],
       ["Mount model", "!mount "],
-      ["Promote", "!admin promote "],
-      ["Demote", "!admin demote "],
-      ["Ban", "!mod ban "],
-      ["Unban", "!mod unban "],
-      ["Mute", "!mod mute "],
-      ["Unmute", "!mod unmute "],
       ["Find quest", "!quest find "],
       ["Start quest", "!quest start "],
       ["Skip goal", "!quest skip "],
@@ -708,27 +1215,91 @@ function gmRenderWorld(content)
       ["Find pet", "!pet find "],
       ["Give pet", "!pet give "],
       ["Grant collect.", "!collection grant "],
-      ["Reset collect.", "!collection reset "],
-      ["Go to area", "!area goto "]
+      ["Reset collect.", "!collection reset "]
    ];
-   var i;
-   for(i = 0; i < prompts.length; i++)
+   var pw = Math.floor((w - 20 - 5 * 6) / 6);
+   for(i = 0; i < list.length; i++)
    {
-      var b = gmButton(content, "prompt" + i + "_mc", prompts[i][0], (i % 6) * 106, 124 + Math.floor(i / 6) * 28, 100, 24, function()
+      var b = gmButton(prompts, "p" + i + "_mc", list[i][0], 10 + (i % 6) * (pw + 6), 28 + Math.floor(i / 6) * 26, pw, 22, function()
       {
          gmPrompt(this.prefix);
       });
-      b.prefix = prompts[i][1];
+      b.prefix = list[i][1];
    }
-   gmText(content, "game_txt", "Game systems", 0, 214, 300, 18, 12, GM_TEXT_GOLD, true);
-   gmButtonRow(content, 234, [
-      ["My quests", "!quest list"],
-      ["My pets", "!pet list"],
-      ["Collections", "!collection status"],
-      ["Area here", "!area here"],
-      ["Zone areas", "!area list"]
-   ]);
    gmStatus("World tools");
+}
+
+// --- server tab ------------------------------------------------------------------
+// Developer and admin tools: running zones, data reloads, and quick changes to yourself for testing.
+
+function gmRenderServer(content)
+{
+   var w = GM_CONTENT_W;
+   var col = Math.floor((w - 10) / 2);
+
+   var info = gmCard(content, "info_mc", "Server", 0, 0, w, 58);
+   gmCardRow(info, 28, w, [
+      ["Zones", "!zone ls"],
+      ["Out of bounds", "!oob"],
+      ["Packet logs", "!packetlog list"],
+      ["Snooping", "!snoop list"],
+      ["Stop snooping", "!snoop off"],
+      ["Commands", "!help"]
+   ]);
+
+   var reload = gmCard(content, "reload_mc", "Reload data from disk (admin)", 0, 66, w, 58);
+   gmCardRow(reload, 28, w, [
+      ["What can reload", "!reload list"],
+      ["Reload all", "?!reload all"],
+      ["Scripts", "!script reload"],
+      ["Activities", "!activities"]
+   ]);
+
+   var speed = gmCard(content, "speed_mc", "My speed and jump (reset on relog)", 0, 132, col, 86);
+   gmCardRow(speed, 28, col, [
+      ["Walk 8", "!stat MaxMovementSpeed 8"],
+      ["16", "!stat MaxMovementSpeed 16"],
+      ["32", "!stat MaxMovementSpeed 32"],
+      ["64", "!stat MaxMovementSpeed 64"]
+   ]);
+   gmCardRow(speed, 56, col, [
+      ["Jump normal", "!stat JumpHeight 0"],
+      ["Jump high", "!stat JumpHeight 20"],
+      ["Glide on", "!stat GlideEnabled 1"],
+      ["Glide off", "!stat GlideEnabled 0"]
+   ]);
+
+   var size = gmCard(content, "size_mc", "My size", col + 10, 132, col, 86);
+   gmCardRow(size, 28, col, [
+      ["x0.5", "!scale 0.5"],
+      ["Normal", "!scale reset", 0x2E7D5B],
+      ["x2", "!scale 2"],
+      ["x4", "!scale 4"]
+   ]);
+   gmCardRow(size, 56, col, [
+      ["Revive me", "!kill revive"],
+      ["Dismount", "!mount 0"],
+      ["Stat list", "!stat list"]
+   ]);
+
+   var time = gmCard(content, "time_mc", "Day / night speed (everyone)", 0, 226, w, 58);
+   gmCardRow(time, 28, w, [
+      ["Normal", "!timescale 1", 0x2E7D5B],
+      ["x10", "!timescale 10"],
+      ["x60", "!timescale 60"],
+      ["x500", "!timescale 500"],
+      ["Show", "!timescale"]
+   ]);
+
+   var test = gmCard(content, "test_mc", "Testing", 0, 292, w, 58);
+   gmCardRow(test, 28, w, [
+      ["Reward tables", "!reward list"],
+      ["Abilities", "!ability list"],
+      ["Clear ability", "!ability clear"],
+      ["Profiles", "!profile list"],
+      ["Titles", "!title list"]
+   ]);
+   gmStatus("Server and testing tools" + (gmRole == "Admin" ? "" : ". Some need admin."));
 }
 
 // --- editor --------------------------------------------------------------------
@@ -2485,6 +3056,7 @@ function gmHandleData(text)
 
    if(kind == "open")
    {
+      gmRole = parts[2];
       root_mc._visible = !root_mc._visible;
       if(root_mc._visible)
       {
@@ -2497,6 +3069,21 @@ function gmHandleData(text)
    {
       gmList = { kind: kind, search: parts[2], page: Number(parts[3]), pages: Number(parts[4]), total: Number(parts[5]) };
       gmResults = [];
+      return;
+   }
+   if(kind == "pinfo")
+   {
+      gmHandlePlayerInfo(parts);
+      return;
+   }
+   if(kind == "events")
+   {
+      gmHandleEvents(parts);
+      return;
+   }
+   if(kind == "bookmarks")
+   {
+      gmHandleBookmarks(parts);
       return;
    }
    if(kind == "item" || kind == "npc" || kind == "house" || kind == "player")
@@ -2625,8 +3212,40 @@ addSystemMessage = function(guid, charName, bubText, txtColor, bubColor, message
       gmHandleData(String(bubText));
       return undefined;
    }
+   gmEchoReply(String(bubText));
    return gmOriginalAddSystemMessage.apply(_root, arguments);
 };
+
+// Server replies (a command's result, usage or error) also show on the panel's status line, so the
+// referee sees what a button did without looking at chat. They still go to chat as well.
+function gmEchoReply(text)
+{
+   if(!_root.gm_mc._visible)
+   {
+      return;
+   }
+   var plain = "";
+   var inTag = false;
+   var i;
+   for(i = 0; i < text.length; i++)
+   {
+      var c = text.charAt(i);
+      if(c == "<")
+      {
+         inTag = true;
+      }
+      else if(c == ">")
+      {
+         inTag = false;
+      }
+      else if(!inTag)
+      {
+         plain += c == "\n" || c == "\r" ? "  " : c;
+      }
+   }
+   plain = gmUnescape(plain);
+   gmStatus(plain.length > 140 ? plain.substr(0, 137) + "..." : plain);
+}
 
 var gmOriginalAddChatMessege = addChatMessege;
 addChatMessege = function(guid, charName, bubText, txtSize, txtColor, bubColor, channelName, isWhispNum, isNPC, isRef, areaName, messageCount)
