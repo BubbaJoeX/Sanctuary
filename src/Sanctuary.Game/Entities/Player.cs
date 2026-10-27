@@ -99,6 +99,26 @@ public sealed class Player : ClientPcData, IEntity
     public float? FrozenMovementSpeed { get; set; }
 
     /// <summary>
+    /// Referees reading a copy of everything this player says (see !snoop).
+    /// </summary>
+    public ConcurrentSet<ulong> Snoopers { get; } = [];
+
+    /// <summary>
+    /// Where a referee stood before their last !gm goto/go/gather jump; !gm back returns there.
+    /// </summary>
+    public (int ZoneDefinitionId, ulong? OwnerId, Vector4 Position, Quaternion Rotation)? ReturnPoint { get; set; }
+
+    /// <summary>
+    /// The referee client tools (/lua, /dofile, ...) were loaded into this client (see ClientLuaHelper).
+    /// </summary>
+    public bool RefereeToolsLoaded { get; set; }
+
+    /// <summary>
+    /// Glide and jump stats to restore when !fly is turned off; null while not flying.
+    /// </summary>
+    public CharacterStat[]? FlyRestoreStats { get; set; }
+
+    /// <summary>
     /// NPC a referee last clicked; the target of !npc edits.
     /// </summary>
     public ulong? SelectedNpcGuid { get; set; }

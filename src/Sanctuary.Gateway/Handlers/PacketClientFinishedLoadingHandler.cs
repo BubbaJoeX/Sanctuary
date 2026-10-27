@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
 
@@ -43,6 +44,8 @@ public static class PacketClientFinishedLoadingHandler
         connection.Player.SendTunneled(connection.Player.GetWeaponFlairOverridePacket());
 
         connection.Player.SendToolbar();
+
+        ClientLuaHelper.OnClientFinishedLoading(connection.Player);
 
         return true;
     }
