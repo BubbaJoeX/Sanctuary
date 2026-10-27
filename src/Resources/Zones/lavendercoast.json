@@ -19,6 +19,9 @@
     -0.994,
     0
   ],
+  "Scripts": [
+    "lavendercoast"
+  ],
   "AreaDefinitions": [
     {
       "Comment": "Lavender Coast",
