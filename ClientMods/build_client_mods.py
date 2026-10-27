@@ -83,7 +83,8 @@ MODS = [
     ("PaidNameChange", "sanctuaryPaidNameChange", "\\frame_1\\DoAction", [script_dir / "PaidNameChange" / NO_STATION_CASH], []),
     ("UnifiedMessageWindow", "sanctuaryUnifiedMessageWindow", "\\frame_1\\DoAction",
      [script_dir / "UnifiedMessageWindow" / NO_STATION_CASH], []),
-    ("aboutme", "sanctuaryAboutMe", "\\frame_1\\DoAction", [script_dir / "aboutme" / NO_STATION_CASH], []),
+    ("aboutme", "sanctuaryAboutMe", "\\frame_1\\DoAction",
+     [script_dir / "aboutme" / NO_STATION_CASH, script_dir / "aboutme" / "profile_card.as"], []),
     ("welcome", "sanctuaryWelcome", "\\frame_1\\DoAction",
      [script_dir / "welcome" / NO_STATION_CASH, script_dir / "welcome" / "home.as"], []),
     ("ActivityPortal", "sanctuaryActivityPortal", "\\frame_1\\DoAction", [script_dir / "ActivityPortal" / NO_STATION_CASH], []),
@@ -128,6 +129,14 @@ TEXTURE_SYMBOLS = {
         ("img16372258640993360071.dds", "sanctuaryIconWheel", 96, 0),
         ("img3694898642873637100.dds", "sanctuaryIconScroll", 64, 0),
     ],
+    # The profile card (aboutme/profile_card.as): its stat tiles' icons and the portrait's placeholder.
+    "aboutme": [
+        ("img12661814977694140028.dds", "sanctuaryProfileCoin", 96, 0),
+        ("img15906260194121039444.dds", "sanctuaryProfileTrophy", 96, 0),
+        ("img1469495624995028744.dds", "sanctuaryProfileBook", 96, 0),
+        ("img1837001925841496856.dds", "sanctuaryProfileJournal", 96, 0),
+        ("img5645809723664368221.dds", "sanctuaryProfileSilhouette", 96, 0),
+    ],
     # The Main Menu (MyStuffBrowser/main_menu.as): its own tile art, with the coin store coin for Shop.
     "MyStuffBrowser": [
         ("img12661814977694140028.dds", "sanctuaryMenuCoin", 96, 0),
@@ -162,6 +171,8 @@ TEXT_SYMBOLS = {
 REMOVED_DEPTHS = {
     # The member badge's orange plate.
     "welcome": [115],
+    # The profile card's stock panels and stat icons.
+    "aboutme": [5, 82, 86, 88, 90, 92],
 }
 
 # Stock movie -> {client texture: hud/reskin.py recipe}. The texture is repainted at the size the movie draws
