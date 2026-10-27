@@ -39,6 +39,9 @@ builder.ConfigureAppConfiguration((hostBuilderContext, configurationBuilder) =>
 
     configurationBuilder.AddJsonFile("gateway.json", optional: false, reloadOnChange: true);
 
+    // Machine-specific settings and secrets (e.g. NpcChat:ApiKey); git-ignored.
+    configurationBuilder.AddJsonFile("gateway.local.json", optional: true);
+
     configurationBuilder.AddEnvironmentVariables();
 });
 
@@ -52,6 +55,8 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddOptions<GatewayServerOptions>()
         .BindConfiguration(ServerOptions.Section)
         .ValidateOnStart();
+
+    serviceCollection.AddSingleton(hostBuilderContext.Configuration.GetSection(NpcChatOptions.Section).Get<NpcChatOptions>() ?? new NpcChatOptions());
 
     // Database
     serviceCollection.AddDatabase(hostBuilderContext.Configuration);
@@ -110,6 +115,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<IServerSettings, ServerSettings>();
     serviceCollection.AddSingleton<IWorldEventManager, WorldEventManager>();
     serviceCollection.AddSingleton<INpcContentManager, NpcContentManager>();
+    serviceCollection.AddSingleton<INpcChatManager, NpcChatManager>();
     serviceCollection.AddSingleton<IScriptLibrary, ScriptLibrary>();
     serviceCollection.AddSingleton<ICustomQuestManager, CustomQuestManager>();
     serviceCollection.AddSingleton<ICustomItemManager, CustomItemManager>();

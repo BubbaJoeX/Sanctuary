@@ -32,6 +32,12 @@ public interface INpcContentManager
     void OnInteract(Npc npc, Player player);
 
     /// <summary>
+    /// A player said something near the NPC. Runs its script's onHear(player, message) hook and returns
+    /// whether it has one.
+    /// </summary>
+    bool OnHear(Npc npc, Player player, string message);
+
+    /// <summary>
     /// Called every second for NPCs with a script or conversation.
     /// </summary>
     void OnSecond(Npc npc);
