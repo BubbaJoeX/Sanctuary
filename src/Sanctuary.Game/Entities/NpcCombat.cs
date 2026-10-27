@@ -156,7 +156,8 @@ public sealed class NpcCombat
     }
 
     public static bool CanBeAttacked(Player player, IEntity mob) =>
-        player.Visible && !player.IsDead && !player.IsInGodMode && player.CanFight && ReferenceEquals(player.Zone, mob.Zone);
+        player.Visible && !player.IsDead && !player.IsReviveProtected && !player.IsInGodMode && player.CanFight
+        && ReferenceEquals(player.Zone, mob.Zone);
 
     public void Update()
     {

@@ -145,8 +145,8 @@ behavior per ability from the item's description (tiers from the item names), ma
 Helpers for the table: `heal`/`energy`/`replenish` (potions), `stats`/`coins`/`stars`/`speed`/`scale`/`aura`
 (timed buffs), `transform` (illusion forms), `cast` (fireworks), `frag`/`hold`/`blast`/`attack` (orbs and
 grenades against mobs), `scare` (transform the user and make nearby mobs flee), `shared` (also applies to
-other players within 15 m) and `loot` (rolls a `Rewards.json` table). Models are checked against
-`Models.txt`.
+other players within 15 m), `loot` (rolls a `Rewards.json` table) and `revive` (stands a knocked-out player
+within 10 m back up where they lie). Models are checked against `Models.txt`.
 
 ## How the panel talks to the server
 

@@ -1,10 +1,34 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using Sanctuary.Packet.Common;
 
 namespace Sanctuary.Game.Helpers;
+
+/// <param name="IsKnockedOut">Down and waiting to recover, so a revive can stand them back up.</param>
+public readonly record struct ReviveCandidate(ulong Guid, Vector3 Position, bool IsKnockedOut);
+
+public enum ReviveFailure
+{
+    None,
+
+    /// <summary>
+    /// No other player clicked, and no knocked-out player in range.
+    /// </summary>
+    NoFallenAlly,
+
+    /// <summary>
+    /// The clicked player is standing.
+    /// </summary>
+    NotKnockedOut,
+
+    /// <summary>
+    /// The clicked player is knocked out but out of range.
+    /// </summary>
+    TooFar
+}
 
 /// <summary>
 /// The numbers behind open-world combat, kept free of entities so they can be tested on their own.
@@ -17,6 +41,12 @@ public static class CombatRules
     public const int OutOfCombatSeconds = 6;
 
     public const int PlayerRespawnSeconds = 8;
+
+    /// <summary>
+    /// Seconds a revived player has to get clear before mobs notice them again, unless they attack first.
+    /// The client's own revive gave players "some time to get clear of the area" too.
+    /// </summary>
+    public const int ReviveProtectionSeconds = 5;
 
     /// <summary>
     /// Group members this close to a kill share its stars, coins and loot roll.
@@ -82,5 +112,66 @@ public static class CombatRules
             .OrderByDescending(profile => profile.Rank)
             .Select(profile => profile.Id)
             .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The health a revive stands a player back up with: <paramref name="percent"/> of their maximum, at least 1.
+    /// </summary>
+    public static int ReviveHitpoints(int maxHitpoints, float percent)
+    {
+        if (maxHitpoints <= 0)
+            return 1;
+
+        percent = float.IsFinite(percent) ? Math.Clamp(percent, 0f, 100f) : 0f;
+
+        return Math.Clamp((int)Math.Round(maxHitpoints * percent / 100d, MidpointRounding.AwayFromZero), 1, maxHitpoints);
+    }
+
+    /// <summary>
+    /// Who a revive (the Resurrection Scroll) stands back up: the clicked player, who has to be knocked out and
+    /// within <paramref name="range"/>, or with no other player clicked, the nearest knocked-out player in range.
+    /// The user never revives themself.
+    /// </summary>
+    public static ReviveFailure PickReviveTarget(ulong userGuid, Vector3 userPosition, ulong clickedGuid,
+        IReadOnlyList<ReviveCandidate> players, float range, out ulong targetGuid)
+    {
+        targetGuid = 0;
+
+        var rangeSquared = range * range;
+
+        // A clicked player is the one meant, so a standing or far-off one isn't swapped for someone else.
+        foreach (var player in players)
+        {
+            if (clickedGuid == 0 || player.Guid != clickedGuid || player.Guid == userGuid)
+                continue;
+
+            if (!player.IsKnockedOut)
+                return ReviveFailure.NotKnockedOut;
+
+            if (Vector3.DistanceSquared(userPosition, player.Position) > rangeSquared)
+                return ReviveFailure.TooFar;
+
+            targetGuid = player.Guid;
+
+            return ReviveFailure.None;
+        }
+
+        var nearestDistance = float.MaxValue;
+
+        foreach (var player in players)
+        {
+            if (player.Guid == userGuid || !player.IsKnockedOut)
+                continue;
+
+            var distance = Vector3.DistanceSquared(userPosition, player.Position);
+
+            if (distance > rangeSquared || distance >= nearestDistance)
+                continue;
+
+            nearestDistance = distance;
+            targetGuid = player.Guid;
+        }
+
+        return targetGuid == 0 ? ReviveFailure.NoFallenAlly : ReviveFailure.None;
     }
 }

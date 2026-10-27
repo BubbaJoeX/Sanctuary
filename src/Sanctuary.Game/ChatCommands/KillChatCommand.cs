@@ -10,6 +10,7 @@ namespace Sanctuary.Game.ChatCommands;
 /// <summary>
 /// Sets the player's tracked hitpoints (see <see cref="Player.Hitpoints"/>), which potions heal and regen tops up.
 /// Bypasses combat: a kill here doesn't knock them out or respawn them (mobs do, see <see cref="Player.TakeDamage"/>).
+/// Revive also stands up a player a mob knocked out, where they lie (see <see cref="Player.Revive"/>).
 /// </summary>
 public class KillChatCommand : IChatCommand
 {
@@ -61,7 +62,10 @@ public class KillChatCommand : IChatCommand
             }
         }
 
-        target.Hitpoints = hitpoints ?? target.MaxHitpoints;
+        if (hitpoints is { } newHitpoints)
+            target.Hitpoints = newHitpoints;
+        else if (!target.Revive(target.MaxHitpoints))
+            target.Hitpoints = target.MaxHitpoints;
 
         var current = target.Hitpoints;
         var maxHitpoints = target.MaxHitpoints;
