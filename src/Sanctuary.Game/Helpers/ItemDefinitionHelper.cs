@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using Sanctuary.Core.IO;
@@ -14,7 +15,27 @@ public static class ItemDefinitionHelper
     public const int PetUtilityItemType = 4;
     public const int MountItemType = 19;
 
+    /// <summary>
+    /// Placeholder in an item's texture alias for the wearer's skin tone texture (skintone1, skintone3, ...),
+    /// so one item can show bare skin that matches every character.
+    /// </summary>
+    public const string SkinToneToken = "<skintone>";
+
     private const int NoPurchasesLeftMaxStackSize = 0;
+
+    /// <summary>
+    /// The texture alias an attachment is sent with: <see cref="SkinToneToken"/> (any case) replaced with
+    /// <paramref name="skinTone"/>. Aliases without the token, or a character without a skin tone, are unchanged.
+    /// </summary>
+    public static string GetAttachmentTextureAlias(string textureAlias, string? skinTone)
+    {
+        if (string.IsNullOrEmpty(textureAlias)
+            || string.IsNullOrEmpty(skinTone)
+            || !textureAlias.Contains(SkinToneToken, StringComparison.OrdinalIgnoreCase))
+            return textureAlias;
+
+        return textureAlias.Replace(SkinToneToken, skinTone, StringComparison.OrdinalIgnoreCase);
+    }
 
     public static ClientItemDefinition GetPlayerItemDefinition(Player player, IResourceManager resourceManager, ClientItemDefinition clientItemDefinition)
     {

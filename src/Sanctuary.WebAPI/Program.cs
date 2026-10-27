@@ -42,6 +42,9 @@ builder.Services.AddDatabase(builder.Configuration);
 // Client asset delivery
 builder.Services.AddAssetEndpointServices();
 
+// Launcher client files
+builder.Services.AddClientEndpointServices();
+
 // Logging
 builder.Logging.ClearProviders();
 
@@ -75,5 +78,6 @@ app.UseHttpLogging();
 app.MapAuthEndpoints();
 app.MapPortraitEndpoints();
 app.MapAssetEndpoints();
+app.MapClientEndpoints();
 
 app.Run();

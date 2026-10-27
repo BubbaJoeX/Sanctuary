@@ -1186,7 +1186,7 @@ public sealed class Player : ClientPcData, IEntity
         return new CharacterAttachmentData
         {
             ModelName = clientItemDefinition.ModelName,
-            TextureAlias = clientItemDefinition.TextureAlias,
+            TextureAlias = ItemDefinitionHelper.GetAttachmentTextureAlias(clientItemDefinition.TextureAlias, SkinTone),
             TintAlias = clientItemDefinition.TintAlias,
             TintId = clientItem.Tint == 0 ? clientItemDefinition.Icon.TintId : clientItem.Tint,
             CompositeEffectId = compositeEffectId,

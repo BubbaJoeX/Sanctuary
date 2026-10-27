@@ -445,3 +445,6 @@ src/Resources/ClientMods/
 
 # Machine-specific gateway settings and secrets (NpcChat:ApiKey).
 gateway.local.json
+
+# Modified client files (laid out like the client folder) sent to launchers by the WebAPI.
+src/Resources/ClientPatches/

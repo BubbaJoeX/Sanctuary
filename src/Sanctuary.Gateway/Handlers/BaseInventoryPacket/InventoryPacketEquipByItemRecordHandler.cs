@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Game;
+using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
@@ -141,7 +142,7 @@ public static class InventoryPacketEquipByItemRecordHandler
         clientUpdatePacketEquipItem.Guid = clientItem.Id;
 
         clientUpdatePacketEquipItem.Attachment.ModelName = clientItemDefinition.ModelName;
-        clientUpdatePacketEquipItem.Attachment.TextureAlias = clientItemDefinition.TextureAlias;
+        clientUpdatePacketEquipItem.Attachment.TextureAlias = ItemDefinitionHelper.GetAttachmentTextureAlias(clientItemDefinition.TextureAlias, connection.Player.SkinTone);
         clientUpdatePacketEquipItem.Attachment.TintAlias = clientItemDefinition.TintAlias;
         clientUpdatePacketEquipItem.Attachment.TintId = clientItem.Tint == 0 ? clientItemDefinition.Icon.TintId : clientItem.Tint;
         clientUpdatePacketEquipItem.Attachment.CompositeEffectId = clientItemDefinition.CompositeEffectId;
