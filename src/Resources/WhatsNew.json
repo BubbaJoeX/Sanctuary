@@ -1,0 +1,49 @@
+[
+  {
+    "Title": "Quests are here!",
+    "Text": "Talk to the folks with a marker over their heads to pick up quests. Track your goals in the Hero's Journal and earn rewards when you're done.",
+    "Action": "OpenHerosJournal",
+    "Icon": "journal",
+    "Button": "Hero's Journal"
+  },
+  {
+    "Title": "Move into your own house",
+    "Text": "Houses are open! Pick one out, then decorate it with furniture and make it yours.",
+    "Action": "HouseBrowser",
+    "Icon": "house"
+  },
+  {
+    "Title": "Everything costs coins",
+    "Text": "Station Cash and memberships are gone. Everything in the Shop is bought with the coins you earn playing.",
+    "Action": "Marketplace",
+    "Icon": "coin",
+    "Button": "Shop"
+  },
+  {
+    "Title": "Spin the daily wheel",
+    "Text": "Find the daily wheel in the Games window and give it a spin for a prize.",
+    "Icon": "wheel"
+  },
+  {
+    "Title": "Potions, scrolls and treats",
+    "Text": "Potions, scrolls, buff foods and illusion masks work now. Try them out and see what happens!",
+    "Action": "gotoMyStuff",
+    "Icon": "bag",
+    "Button": "My Stuff"
+  },
+  {
+    "Title": "Pets and collections",
+    "Text": "Bring a pet along on your adventures, and look for sparkles in the world to fill out your collections.",
+    "Icon": "paw"
+  },
+  {
+    "Title": "Got a code?",
+    "Text": "Press Enter and type !redeem, or click the gold Redeem Code tree on your dock, to claim items and coins.",
+    "Icon": "tree"
+  },
+  {
+    "Title": "A fresh new look",
+    "Text": "A new loading screen and this new home screen, with Referee Picks and your friends who are online.",
+    "Icon": "referee"
+  }
+]

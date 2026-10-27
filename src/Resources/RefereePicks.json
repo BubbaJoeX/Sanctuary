@@ -1,0 +1,31 @@
+[
+  {
+    "Title": "Meet up in Sanctuary",
+    "Text": "The heart of Sacred Grove. Show off your look and find people to play with.",
+    "Action": "Teleport",
+    "Param1": 5,
+    "Icon": "tree",
+    "Button": "Teleport"
+  },
+  {
+    "Title": "Make a house a home",
+    "Text": "Pick out a house, then fill it with furniture from the Coin Shop.",
+    "Action": "HouseBrowser",
+    "Icon": "house"
+  },
+  {
+    "Title": "Fresh in the Coin Shop",
+    "Text": "Spend the coins you earn on outfits, mounts and pets.",
+    "Action": "Marketplace",
+    "Icon": "coin",
+    "Button": "Shop"
+  },
+  {
+    "Title": "Explore Briarwood",
+    "Text": "Adventure is waiting in the woods. Bring a friend!",
+    "Action": "Teleport",
+    "Param1": 4,
+    "Icon": "trophy",
+    "Button": "Teleport"
+  }
+]

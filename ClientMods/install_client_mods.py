@@ -63,10 +63,16 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndPaidNameChange.xml"), [("UI\\PaidNameChange.swf", "UI\\sanctuaryPaidNameChange.swf")]),
     (Path("UI/UiModules/Main/wndUnifiedMessageWindow.xml"), [("UI\\UnifiedMessageWindow.swf", "UI\\sanctuaryUnifiedMessageWindow.swf")]),
     (Path("UI/UiModules/Main/wndAboutMe.xml"), [("UI\\aboutme.swf", "UI\\sanctuaryAboutMe.swf")]),
-    (Path("UI/UiModules/Main/wndWelcomeHandler.xml"), [("UI\\welcome.swf", "UI\\sanctuaryWelcome.swf")]),
+    # The welcome screen is a wider home screen (welcome/home.as draws it 1:1, anchored top left); the
+    # window and its movie both. Its Lua centers the window from its size.
+    (Path("UI/UiModules/Main/wndWelcomeHandler.xml"), [
+        ("UI\\welcome.swf", "UI\\sanctuaryWelcome.swf"),
+        ('Width="1024" Height="768"', 'Width="1366" Height="768"'),
+    ]),
     (Path("UI/UiModules/Main/wndActivityPortal.xml"), [("UI\\ActivityPortal.swf", "UI\\sanctuaryActivityPortal.swf")]),
     (Path("UI/UiModules/Main/wndHousingPreview.xml"), [("UI\\HousingPreview.swf", "UI\\sanctuaryHousingPreview.swf")]),
     (Path("UI/UiModules/Main/wndStorage.xml"), [("UI\\storage.swf", "UI\\sanctuaryStorage.swf")]),
+    (Path("UI/UiModules/Main/wndMyStuffBrowser.xml"), [("UI\\MyStuffBrowser.swf", "UI\\sanctuaryMyStuffBrowser.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

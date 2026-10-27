@@ -164,5 +164,29 @@ def render(font_path):
     return image.resize((WIDTH, HEIGHT), Image.LANCZOS).convert("RGB")
 
 
+def render_word(font_path, text, size, top, bottom):
+    """Draws text on one line in the same lettering, with its shadow, cropped to the art.
+    The welcome screen's Play button label is drawn with it (build_client_mods.py, TEXT_SYMBOLS)."""
+    scale = SUPERSAMPLE
+    font = ImageFont.truetype(str(font_path), size * scale)
+    advances = [font.getlength(text[:i + 1]) - font.getlength(text[:i]) for i in range(len(text))]
+
+    pad = size * scale
+    layer = Image.new("RGBA", (round(sum(advances)) + pad * 2, pad * 3), (0, 0, 0, 0))
+    x, baseline = pad, pad * 2
+    for char, advance in zip(text, advances):
+        if char != " ":
+            glyph = render_glyph(char, font, top, bottom)
+            layer.alpha_composite(glyph, (round(x + advance / 2 - glyph.width / 2), round(baseline - glyph.height / 2)))
+        x += advance
+
+    shadow, (dx, dy) = soft_shadow(layer, (6, 2, 24), 0.75, 3 * scale, (0, 4 * scale))
+    image = Image.new("RGBA", shadow.size, (0, 0, 0, 0))
+    image.alpha_composite(shadow)
+    image.alpha_composite(layer, (-dx, -dy))
+    image = image.crop(image.getchannel("A").getbbox())
+    return image.resize((max(1, image.width // scale), max(1, image.height // scale)), Image.LANCZOS)
+
+
 if __name__ == "__main__":
     render(sys.argv[1]).save(sys.argv[2])

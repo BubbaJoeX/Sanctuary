@@ -43,11 +43,25 @@ public static class WelcomeScreenHelper
     private const int SandwichClaimCodeIconId = 949;
     private const int FirstLoginSecondsSinceLastLogin = -1;
 
-    public static AnnouncementDataSendPacket GetAnnouncementsPacket(IEnumerable<AnnouncementInfo>? announcements = null) => new()
+    // What's New items and Referee Picks are sent as announcements whose text is all in StringParam2:
+    // tag|title|text|button|icon. The welcome screen mod (ClientMods/welcome/home.as) shows them in its own
+    // What's New and Referee Picks panels.
+    private const string WhatsNewTag = "[[SANCTUARY_NEWS]]";
+    private const int WhatsNewAnnouncementId = 100;
+    private const string RefereePickTag = "[[SANCTUARY_PICK]]";
+    private const int RefereePickAnnouncementId = 1000;
+
+    public static AnnouncementDataSendPacket GetAnnouncementsPacket(IEnumerable<AnnouncementInfo>? announcements = null)
     {
-        Announcements = announcements?.ToList() ??
-        [
-            new()
+        if (announcements is not null)
+            return new AnnouncementDataSendPacket { Announcements = announcements.ToList() };
+
+        var news = WhatsNew.Current.Select((card, i) => GetCardAnnouncement(card, WhatsNewTag, WhatsNewAnnouncementId + i)).ToList();
+
+        // The stock Marketplace ad only when there's no news to show.
+        if (news.Count == 0)
+        {
+            news.Add(new AnnouncementInfo
             {
                 Id = MarketplaceAnnouncementId,
                 Priority = MarketplaceAnnouncementPriority,
@@ -57,8 +71,27 @@ public static class WelcomeScreenHelper
                 ButtonStringId = MarketplaceAnnouncementButtonStringId,
                 LuaCall = "Marketplace",
                 Param2 = MarketplaceAnnouncementParam2
-            }
-        ]
+            });
+        }
+
+        return new AnnouncementDataSendPacket
+        {
+            Announcements =
+            [
+                .. news,
+                .. RefereePicks.Current.Select((card, i) => GetCardAnnouncement(card, RefereePickTag, RefereePickAnnouncementId + i))
+            ]
+        };
+    }
+
+    private static AnnouncementInfo GetCardAnnouncement(WelcomeCard card, string tag, int id) => new()
+    {
+        Id = id,
+        Priority = id,
+        LuaCall = card.Action,
+        Param1 = card.Param1,
+        StringParam2 = tag + string.Concat(new[] { card.Title, card.Text, card.ButtonLabel, card.Icon }
+            .Select(field => "|" + field.Replace('|', '/')))
     };
 
     public static int SecondsSinceLastLogin(DateTimeOffset? previousLogin, DateTimeOffset loginTime) =>

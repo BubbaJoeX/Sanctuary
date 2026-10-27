@@ -81,10 +81,12 @@ MODS = [
     ("UnifiedMessageWindow", "sanctuaryUnifiedMessageWindow", "\\frame_1\\DoAction",
      [script_dir / "UnifiedMessageWindow" / NO_STATION_CASH], []),
     ("aboutme", "sanctuaryAboutMe", "\\frame_1\\DoAction", [script_dir / "aboutme" / NO_STATION_CASH], []),
-    ("welcome", "sanctuaryWelcome", "\\frame_1\\DoAction", [script_dir / "welcome" / NO_STATION_CASH], []),
+    ("welcome", "sanctuaryWelcome", "\\frame_1\\DoAction",
+     [script_dir / "welcome" / NO_STATION_CASH, script_dir / "welcome" / "home.as"], []),
     ("ActivityPortal", "sanctuaryActivityPortal", "\\frame_1\\DoAction", [script_dir / "ActivityPortal" / NO_STATION_CASH], []),
     ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction", [script_dir / "HousingPreview" / NO_STATION_CASH], []),
     ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
+    ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "shop_tile.as"], []),
 ]
 
 # Stock movie -> [(external texture, texture to use instead)]. Station Cash no longer exists, so the
@@ -93,6 +95,41 @@ TEXTURE_SWAPS = {
     "gamedock": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
     # The welcome screen's header wallet, which now shows coins.
     "welcome": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
+    # The Main Menu's Store (now Shop) tile, with the 128x128 version of the same coin.
+    "MyStuffBrowser": [("img15767268884761079006.dds", "img12661814977694140028.dds")],
+}
+
+# Stock movie -> [(client texture, export name, size, hue shift in degrees)]. Each texture is cropped to
+# its art, fitted into a size x size square and embedded as an exported sprite the patch scripts attach.
+TEXTURE_SYMBOLS = {
+    # The welcome screen (welcome/home.as): Main Menu tile art for the quick links and Referee Picks, the
+    # coin store coin, the friends icon, and the hub tree in the Referee Tools purple.
+    "welcome": [
+        ("img11740438261774166106.dds", "sanctuaryIconHouse", 96, 0),
+        ("img3353027197221927245.dds", "sanctuaryIconBag", 96, 0),
+        ("img1837001925841496856.dds", "sanctuaryIconJournal", 96, 0),
+        ("img15906260194121039444.dds", "sanctuaryIconTrophy", 96, 0),
+        ("img1469495624995028744.dds", "sanctuaryIconBook", 96, 0),
+        ("img8405532797012043402.dds", "sanctuaryIconPaw", 96, 0),
+        ("img12661814977694140028.dds", "sanctuaryIconCoin", 96, 0),
+        ("img1084093282544248052.dds", "sanctuaryIconFriends", 64, 0),
+        ("img7070878317473001703.dds", "sanctuaryIconTree", 64, 0),
+        ("img7070878317473001703.dds", "sanctuaryIconRefereeTree", 64, 155),
+        ("img16372258640993360071.dds", "sanctuaryIconWheel", 96, 0),
+    ],
+}
+
+# Stock movie -> [(export name, text, font size, gradient top, gradient bottom)]: text in the loading screen's
+# lettering (the client's Free Realms font, outlined and gradient filled), embedded like TEXTURE_SYMBOLS.
+TEXT_SYMBOLS = {
+    # The home screen's Play button.
+    "welcome": [("sanctuaryPlayLabel", "PLAY!", 40, (255, 246, 196), (255, 168, 36))],
+}
+
+# Stock movie -> root timeline depths whose placements are dropped: plain shapes, which ActionScript can't hide.
+REMOVED_DEPTHS = {
+    # The member badge's orange plate.
+    "welcome": [115],
 }
 
 LOADING_SCREEN = ("loadingscreen", "sanctuaryLoadingScreen")
@@ -232,12 +269,91 @@ def add_recolored_symbol(xml, stock, export_name, new_export_name, degrees):
     return xml[:insert_at] + "".join(copies) + xml[insert_at:]
 
 
+def signed_bits(*values):
+    return max(max(value.bit_length(), (~value).bit_length()) + 1 for value in values)
+
+
+def add_texture_symbol(xml, stock, file_name, export_name, size, degrees):
+    """Exports a sprite showing a client texture, top left at its origin, fitted into a size x size square."""
+    image = load_texture(stock, file_name)
+    image = image.crop(image.getchannel("A").getbbox())
+    if degrees:
+        image = hue_shift(image, degrees)
+    image.thumbnail((size, size), Image.LANCZOS)
+    square = Image.new("RGBA", (size, size))
+    square.alpha_composite(image, ((size - image.width) // 2, (size - image.height) // 2))
+    return add_image_symbol(xml, square, export_name)
+
+
+def add_image_symbol(xml, image, export_name):
+    """Exports a sprite showing image at its pixel size, top left at its origin."""
+    # 65535 is the "no bitmap" fill placeholder, not a character.
+    bitmap_id = max(int(x) for x in re.findall(r'(?:Id|ID)="(\d+)"', xml) if int(x) < 65535) + 1
+    shape_id, sprite_id = bitmap_id + 1, bitmap_id + 2
+    # Twips; the bitmap fill maps 1 pixel to 20.
+    width, height = image.width * 20, image.height * 20
+    edges = "".join(
+        f'\n          <item type="StraightEdgeRecord" {axis}="{delta}" generalLineFlag="false" '
+        f'numBits="{signed_bits(delta) - 2}" vertLineFlag="{str(axis == "deltaY").lower()}"/>'
+        for axis, delta in [("deltaX", width), ("deltaY", height), ("deltaX", -width), ("deltaY", -height)])
+    tags = [
+        lossless_tag(str(bitmap_id), image),
+        f'{TAG_PREFIX}"DefineShapeTag" forceWriteAsLong="true" shapeId="{shape_id}">\n'
+        f'      <shapeBounds type="RECT" Xmax="{width}" Xmin="0" Ymax="{height}" Ymin="0" '
+        f'nbits="{signed_bits(width, height)}"/>\n'
+        f'      <shapes type="SHAPEWITHSTYLE" numFillBits="1" numLineBits="0">\n'
+        f'        <fillStyles type="FILLSTYLEARRAY">\n          <fillStyles>\n'
+        f'            <item type="FILLSTYLE" bitmapId="{bitmap_id}" fillStyleType="65">\n'
+        f'              <bitmapMatrix type="MATRIX" hasRotate="false" hasScale="true" nRotateBits="0" nScaleBits="22" '
+        f'nTranslateBits="0" scaleX="20.0" scaleY="20.0" translateX="0" translateY="0"/>\n'
+        f'            </item>\n          </fillStyles>\n        </fillStyles>\n'
+        f'        <lineStyles type="LINESTYLEARRAY">\n          <lineStyles/>\n        </lineStyles>\n'
+        f'        <shapeRecords>\n'
+        f'          <item type="StyleChangeRecord" fillStyle1="1" moveBits="1" moveDeltaX="0" moveDeltaY="0" '
+        f'stateFillStyle0="false" stateFillStyle1="true" stateLineStyle="false" stateMoveTo="true" stateNewStyles="false"/>'
+        f'{edges}\n          <item type="EndShapeRecord" endOfShape="0"/>\n        </shapeRecords>\n      </shapes>\n    </item>',
+        f'{TAG_PREFIX}"DefineSpriteTag" forceWriteAsLong="true" frameCount="1" hasEndTag="true" spriteId="{sprite_id}">\n'
+        f'      <subTags>\n'
+        f'        <item type="PlaceObject2Tag" characterId="{shape_id}" depth="1" forceWriteAsLong="false" '
+        f'placeFlagHasCharacter="true" placeFlagHasClipActions="false" placeFlagHasClipDepth="false" '
+        f'placeFlagHasColorTransform="false" placeFlagHasMatrix="true" placeFlagHasName="false" placeFlagHasRatio="false" '
+        f'placeFlagMove="false">\n'
+        f'          <matrix type="MATRIX" hasRotate="false" hasScale="false" nRotateBits="0" nScaleBits="0" '
+        f'nTranslateBits="0" translateX="0" translateY="0"/>\n        </item>\n'
+        f'        <item type="ShowFrameTag" forceWriteAsLong="false"/>\n      </subTags>\n    </item>',
+        f'{TAG_PREFIX}"ExportAssetsTag" forceWriteAsLong="true">\n'
+        f'      <tags>\n        <item>{sprite_id}</item>\n      </tags>\n'
+        f'      <names>\n        <item>{export_name}</item>\n      </names>\n    </item>',
+    ]
+
+    # Defined before the first frame is shown, so attachMovie finds it from the first frame's script.
+    insert_at = xml.find(TAG_PREFIX + '"ShowFrameTag"')
+    return xml[:insert_at] + "".join(tags) + xml[insert_at:]
+
+
 def ffdec(java, jar, *args):
     result = subprocess.run([str(java), "-jar", str(jar), *map(str, args)], capture_output=True, text=True)
     if result.returncode != 0:
         print(result.stdout)
         print(result.stderr, file=sys.stderr)
         raise RuntimeError(f"ffdec failed: {' '.join(map(str, args))}")
+
+
+def export_font(java, jar, stock, temp):
+    """The client's Free Realms font (FreeRealmsDemiBold), exported from gfxfontlib.gfx; no game font is stored here."""
+    fontlib_path = temp / "gfxfontlib.gfx"
+    fontlib_path.write_bytes(stock.read("gfxfontlib.gfx"))
+    ffdec(java, jar, "-export", "font", temp / "fonts", fontlib_path)
+    font = next((temp / "fonts").rglob("*FreeRealmsDemiBold*.ttf"), None)
+    if font is None:
+        raise FileNotFoundError("FreeRealmsDemiBold not found in gfxfontlib.gfx")
+    return font
+
+
+def remove_root_depths(xml, depths):
+    head, tags, tail = split_tags(xml)
+    placement = re.escape(TAG_PREFIX) + r'"(?:PlaceObject|RemoveObject)\d?Tag"[^>]*\bdepth="(\d+)"'
+    return head + "".join(tag for tag in tags if not (re.match(placement, tag) and int(re.match(placement, tag).group(1)) in depths)) + tail
 
 
 def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols, output_path):
@@ -248,8 +364,11 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
         stock_path.write_bytes(stock.read(f"{stock_name}.gfx"))
 
         swaps = TEXTURE_SWAPS.get(stock_name, [])
+        textures = TEXTURE_SYMBOLS.get(stock_name, [])
+        texts = TEXT_SYMBOLS.get(stock_name, [])
+        removed = REMOVED_DEPTHS.get(stock_name, [])
 
-        if symbols or swaps:
+        if symbols or swaps or textures or texts or removed:
             ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
             xml = (temp / "stock.xml").read_text(encoding="utf-8")
             for symbol in symbols:
@@ -258,6 +377,14 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
                 if f'fileName="{old}"' not in xml:
                     raise ValueError(f"{old} not found in {stock_name}.gfx")
                 xml = xml.replace(f'fileName="{old}"', f'fileName="{new}"')
+            for texture in textures:
+                xml = add_texture_symbol(xml, stock, *texture)
+            if texts:
+                font = export_font(java, jar, stock, temp)
+                for export_name, text, size, top, bottom in texts:
+                    xml = add_image_symbol(xml, background.render_word(font, text, size, top, bottom), export_name)
+            if removed:
+                xml = remove_root_depths(xml, removed)
             (temp / "stock.xml").write_text(xml, encoding="utf-8")
             ffdec(java, jar, "-xml2swf", temp / "stock.xml", temp / "stock.gfx")
             stock_path = temp / "stock.gfx"
@@ -298,14 +425,7 @@ def build_loading_screen(java, jar, stock, stock_name, published_name, movie_pat
     with tempfile.TemporaryDirectory() as temp:
         temp = Path(temp)
 
-        # The art is drawn in the client's own font, so no game font is stored here.
-        fontlib_path = temp / "gfxfontlib.gfx"
-        fontlib_path.write_bytes(stock.read("gfxfontlib.gfx"))
-        ffdec(java, jar, "-export", "font", temp / "fonts", fontlib_path)
-        font = next((temp / "fonts").rglob("*FreeRealmsDemiBold*.ttf"), None)
-        if font is None:
-            raise FileNotFoundError("FreeRealmsDemiBold not found in gfxfontlib.gfx")
-        art = background.render(font)
+        art = background.render(export_font(java, jar, stock, temp))
 
         stock_path = temp / f"{stock_name}.gfx"
         stock_path.write_bytes(stock.read(f"{stock_name}.gfx"))
