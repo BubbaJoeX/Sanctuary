@@ -2631,6 +2631,13 @@
     ]
   },
   {
+    "AbilityId": 4161,
+    "Comment": "Party Popper",
+    "CooldownMs": 10000,
+    "AuraEffectId": 15813,
+    "DurationMs": 10000
+  },
+  {
     "AbilityId": 4694,
     "Comment": "Medium Energy Potion, Wheeler Energy Potion",
     "Group": "Energy",

@@ -169,5 +169,92 @@
                 "Weight": 1
             }
         ]
+    },
+    {
+        "Key": "party-crate",
+        "DropTable": [
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68908,
+                "Weight": 2,
+                "Quantity": 3
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68909,
+                "Weight": 1,
+                "Quantity": 5
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68910,
+                "Weight": 1,
+                "Quantity": 5
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68911,
+                "Weight": 1,
+                "Quantity": 5
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 67963,
+                "Weight": 1,
+                "Quantity": 5
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 62516,
+                "Weight": 1,
+                "Quantity": 5
+            }
+        ]
+    },
+    {
+        "Key": "five-million-party-pack",
+        "DropTable": [
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 62516,
+                "Weight": 3,
+                "Quantity": 5
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68908,
+                "Weight": 1,
+                "Quantity": 3
+            }
+        ]
+    },
+    {
+        "Key": "birthday-party-crate",
+        "DropTable": [
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 4972,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 4973,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 4974,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68908,
+                "Weight": 1,
+                "Quantity": 3
+            }
+        ]
     }
 ]

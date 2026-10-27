@@ -79,7 +79,8 @@ public class ConsumableCollection
                                 && entry.CooldownMs >= 0 && entry.LifetimeMs > 0 && entry.InteractCooldownMs >= 0
                                 && entry.SpawnEffectIds is not null && entry.TransformAbilityIds is not null
                                 && entry.ScareGroups is not null && entry.ScareGroups.All(group => group is not null)
-                                && entry.OneShotAnimationMs > 0 && entry.OneShotIntervalMs > 0,
+                                && entry.OneShotAnimationMs > 0 && entry.OneShotIntervalMs > 0
+                                && entry.BurstEffectIds is not null && entry.BurstIntervalMs > 0,
                             Cakes.TryAdd);
                         break;
                     case "foodeffects":

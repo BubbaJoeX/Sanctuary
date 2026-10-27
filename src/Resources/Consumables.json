@@ -93,6 +93,42 @@
       "ItemId": 48100, "Type": "GiftCake", "CooldownMs": 3600000, "InteractCooldownMs": 5000, "ModelId": 897, "NameId": 139461,
       "SpawnEffectIds": [21], "LifetimeMs": 60000, "GrantItemId": 48104, "GrantItemQuantity": 1,
       "Comment": "Mystery Cake (sg_pretty_cake)"
+    },
+    {
+      "ItemId": 67888, "Type": "PartyCrate", "CooldownMs": 300000, "InteractCooldownMs": 3000, "ModelId": 1646, "NameId": 407352,
+      "SpawnEffectIds": [21, 16441], "LifetimeMs": 180000, "RewardTableKey": "party-crate",
+      "BurstEffectIds": [16441, 16417], "BurstIntervalMs": 8000,
+      "Comment": "Party Crate (5m_crate_01): confetti; hands out silly string and party poppers"
+    },
+    {
+      "ItemId": 68932, "Type": "PartyCrate", "CooldownMs": 300000, "InteractCooldownMs": 3000, "ModelId": 1646, "NameId": 407352,
+      "SpawnEffectIds": [21, 16441], "LifetimeMs": 180000, "RewardTableKey": "party-crate",
+      "BurstEffectIds": [16441, 16417], "BurstIntervalMs": 8000,
+      "Comment": "Party Crate (5m_crate_01): confetti; hands out silly string and party poppers"
+    },
+    {
+      "ItemId": 62515, "Type": "PartyCrate", "CooldownMs": 30000, "InteractCooldownMs": 3000, "ModelId": 1646, "NameId": 407348,
+      "SpawnEffectIds": [21, 16518], "LifetimeMs": 300000, "RewardTableKey": "five-million-party-pack",
+      "BurstEffectIds": [16441, 16517, 16518], "BurstIntervalMs": 10000,
+      "Comment": "5M GM Crate (5m_crate_01): the GM crate from the 5 million player event; hands out blue silly string"
+    },
+    {
+      "ItemId": 4829, "Type": "PartyCrate", "CooldownMs": 300000, "InteractCooldownMs": 3000, "ModelId": 1836, "NameId": 5664,
+      "SpawnEffectIds": [21, 16517], "LifetimeMs": 180000, "RewardTableKey": "birthday-party-crate",
+      "BurstEffectIds": [16517, 16516, 16441], "BurstIntervalMs": 8000,
+      "Comment": "Birthday Party Crate (hsg_crate_01): blue-orange birthday fireworks; hands out balloons"
+    },
+    {
+      "ItemId": 15915, "Type": "PartyCrate", "CooldownMs": 120000, "InteractCooldownMs": 2000, "ModelId": 1836, "NameId": 394790,
+      "SpawnEffectIds": [21], "LifetimeMs": 60000,
+      "BurstEffectIds": [15656, 15657, 15658, 15661, 15664, 15717, 15727, 15729, 15731], "BurstIntervalMs": 4000,
+      "Comment": "Fireworks Crate (hsg_crate_01): sets off a firework every few seconds, and on each click"
+    },
+    {
+      "ItemId": 57013, "Type": "PartyCrate", "CooldownMs": 120000, "InteractCooldownMs": 2000, "ModelId": 1836, "NameId": 394790,
+      "SpawnEffectIds": [21], "LifetimeMs": 60000,
+      "BurstEffectIds": [15656, 15657, 15658, 15661, 15664, 15717, 15727, 15729, 15731], "BurstIntervalMs": 4000,
+      "Comment": "Fireworks Crate (hsg_crate_01): sets off a firework every few seconds, and on each click"
     }
   ],
 

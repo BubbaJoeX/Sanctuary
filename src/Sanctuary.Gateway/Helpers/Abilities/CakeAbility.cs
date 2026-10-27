@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -98,6 +99,38 @@ public sealed class CakeAbility(AbilityServices services) : ConsumableAbility(se
                 ApplyTransformOrFoodEffect(player, abilityId, cakeDefinition.NameId);
             };
         }
+        else if (cakeDefinition.Type == CakeItemType.PartyCrate)
+        {
+            var supplied = new HashSet<ulong>();
+
+            cakeNpc.InteractAction = player =>
+            {
+                // The burst is shared, but the supplies aren't: a crowd clicking at once all get theirs.
+                if (DateTimeOffset.UtcNow >= interactReadyTime)
+                {
+                    interactReadyTime = DateTimeOffset.UtcNow.AddMilliseconds(cakeDefinition.InteractCooldownMs);
+                    PlayBurst(cakeNpc, cakeDefinition);
+                }
+
+                if (string.IsNullOrEmpty(cakeDefinition.RewardTableKey))
+                    return;
+
+                if (!supplied.Add(player.Guid))
+                {
+                    player.SendTunneled(new ChatPacketDebugChat
+                    {
+                        Message = "<font color=\"#FFFF00\">You already took your party supplies from this crate.</font>",
+                        PrintToChat = true
+                    });
+                    return;
+                }
+
+                // A failed grant (full bag, bad table) leaves the roll for another click.
+                if (!_rewardManager.TryRollReward(cakeDefinition.RewardTableKey, out var drop) || drop is null
+                    || !_rewardManager.TryGrantReward(player, drop, cakeNpc.Guid))
+                    supplied.Remove(player.Guid);
+            };
+        }
         else
         {
             var lastRoll = -1;
@@ -156,6 +189,7 @@ public sealed class CakeAbility(AbilityServices services) : ConsumableAbility(se
         var despawnTime = DateTimeOffset.UtcNow.AddMilliseconds(cakeDefinition.LifetimeMs);
         var nextOneShotTime = NextOneShotTime(cakeDefinition);
         DateTimeOffset? oneShotEndTime = null;
+        var nextBurstTime = DateTimeOffset.UtcNow.AddMilliseconds(cakeDefinition.BurstIntervalMs);
 
         cakeNpc.UpdateEverySecondAction = () =>
         {
@@ -165,6 +199,12 @@ public sealed class CakeAbility(AbilityServices services) : ConsumableAbility(se
             {
                 DespawnNpc(cakeNpc, 0);
                 return;
+            }
+
+            if (cakeDefinition.BurstEffectIds.Length > 0 && now >= nextBurstTime)
+            {
+                PlayBurst(cakeNpc, cakeDefinition);
+                nextBurstTime = now.AddMilliseconds(cakeDefinition.BurstIntervalMs);
             }
 
             if (cakeDefinition.OneShotAnimation == 0)
@@ -189,6 +229,23 @@ public sealed class CakeAbility(AbilityServices services) : ConsumableAbility(se
 
     private static DateTimeOffset NextOneShotTime(CakeItemDefinition cakeDefinition) =>
         DateTimeOffset.UtcNow.AddMilliseconds(cakeDefinition.OneShotIntervalMs + Random.Shared.Next(cakeDefinition.OneShotIntervalMs + 1));
+
+    private static void PlayBurst(Npc cakeNpc, CakeItemDefinition cakeDefinition)
+    {
+        if (cakeDefinition.BurstEffectIds.Length == 0)
+            return;
+
+        var packet = new PlayerUpdatePacketPlayCompositeEffect
+        {
+            Guid = cakeNpc.Guid,
+            CompositeEffectId = cakeDefinition.BurstEffectIds[Random.Shared.Next(cakeDefinition.BurstEffectIds.Length)],
+            Position = cakeNpc.Position,
+            Clear = false
+        };
+
+        foreach (var viewer in cakeNpc.VisiblePlayers.Values)
+            viewer.SendTunneled(packet);
+    }
 
     private static void SetCakeAnimation(Npc cakeNpc, int animationId)
     {

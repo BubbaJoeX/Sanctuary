@@ -239,6 +239,7 @@ ABILITIES = {
     345: cast(16517),                       # Birthday Firework
     346: cast(16519),                       # Anniversary Firework
     347: cast(16518),                       # Free Realms Firework: "It really says, "Free Realms"."
+    4161: cast(15813),                      # Party Popper: "blasts confetti into the air." (hand loop, so a timed aura)
 }
 
 # Families matched on the description. The stats are the ones AbilityEffectTypeSettings.txt shows for

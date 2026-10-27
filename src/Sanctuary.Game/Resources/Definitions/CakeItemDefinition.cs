@@ -25,11 +25,19 @@ public class CakeItemDefinition
 
     public int GrantItemId { get; set; }
     public int GrantItemQuantity { get; set; } = 1;
+
+    // PartyCrate: every player can take one roll of this Rewards.json table per crate.
+    public string? RewardTableKey { get; set; }
+
+    // One of these plays at the cake every BurstIntervalMs, and on clicks (PartyCrate).
+    public int[] BurstEffectIds { get; set; } = [];
+    public int BurstIntervalMs { get; set; } = 10000;
 }
 
 public enum CakeItemType
 {
     ScaredyCake,
     BossCake,
-    GiftCake
+    GiftCake,
+    PartyCrate
 }
