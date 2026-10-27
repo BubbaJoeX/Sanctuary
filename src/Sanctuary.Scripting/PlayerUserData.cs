@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 
 using Lua;
@@ -175,6 +176,105 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
         return new ValueTask<int>(context.Return());
     });
 
+    private const int MaxGiveStars = 10_000;
+
+    private static readonly LuaFunction ItemCountFunction = new("itemCount", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var itemDefinitionId = context.GetArgument<int>(1);
+
+        return new ValueTask<int>(context.Return(self._player.CountItem(itemDefinitionId)));
+    });
+
+    private static readonly LuaFunction HasItemFunction = new("hasItem", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var itemDefinitionId = context.GetArgument<int>(1);
+        var quantity = context.ArgumentCount > 2 ? context.GetArgument<int>(2) : 1;
+
+        return new ValueTask<int>(context.Return(self._player.CountItem(itemDefinitionId) >= quantity));
+    });
+
+    private static readonly LuaFunction TakeItemFunction = new("takeItem", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var itemDefinitionId = context.GetArgument<int>(1);
+        var quantity = context.ArgumentCount > 2 ? context.GetArgument<int>(2) : 1;
+
+        if (quantity is < 1 or > MaxGiveQuantity)
+            throw new LuaRuntimeException(context.State, $"takeItem quantity must be between 1 and {MaxGiveQuantity}.");
+
+        return new ValueTask<int>(context.Return(self._player.TakeItem(itemDefinitionId, quantity)));
+    });
+
+    private static readonly LuaFunction TakeCoinsFunction = new("takeCoins", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var amount = context.GetArgument<int>(1);
+
+        if (amount is < 1 or > MaxGiveCoins)
+            throw new LuaRuntimeException(context.State, $"takeCoins amount must be between 1 and {MaxGiveCoins}.");
+
+        return new ValueTask<int>(context.Return(self._player.TakeCoins(amount)));
+    });
+
+    private static readonly LuaFunction GiveStarsFunction = new("giveStars", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var amount = context.GetArgument<int>(1);
+
+        if (amount is < 1 or > MaxGiveStars)
+            throw new LuaRuntimeException(context.State, $"giveStars amount must be between 1 and {MaxGiveStars}.");
+
+        return new ValueTask<int>(context.Return(self._player.GiveStars(amount)));
+    });
+
+    private static readonly LuaFunction WarpFunction = new("warp", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var zoneId = context.GetArgument<int>(1);
+        (float x, float y, float z)? position = null;
+        float? heading = null;
+
+        if (context.ArgumentCount > 4)
+        {
+            var x = context.GetArgument<float>(2);
+            var y = context.GetArgument<float>(3);
+            var z = context.GetArgument<float>(4);
+
+            if (!float.IsFinite(x) || !float.IsFinite(y) || !float.IsFinite(z))
+                throw new LuaRuntimeException(context.State, "warp needs real coordinates.");
+
+            position = (x, y, z);
+
+            if (context.ArgumentCount > 5)
+                heading = context.GetArgument<float>(5);
+        }
+
+        return new ValueTask<int>(context.Return(self._player.Warp(zoneId, position, heading)));
+    });
+
+    private static readonly LuaFunction IsGroupedWithFunction = new("isGroupedWith", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var other = context.GetArgument<PlayerUserData>(1);
+
+        var grouped = self._player.GroupId != 0 && self._player.GroupId == other._player.GroupId;
+
+        return new ValueTask<int>(context.Return(grouped));
+    });
+
+    private static LuaTable ToGuidTable(IEnumerable<ulong> guids)
+    {
+        var guidTable = new LuaTable();
+        var index = 1;
+
+        foreach (var guid in guids)
+            guidTable[index++] = guid.ToString(CultureInfo.InvariantCulture);
+
+        return guidTable;
+    }
+
     #endregion
 
     private static readonly LuaTable SharedMetatable = BuildMetatable();
@@ -215,6 +315,25 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
                 "transform" => TransformFunction,
                 "clearTransform" => ClearTransformFunction,
                 "resize" => ResizeFunction,
+                "zoneId" => new LuaValue(self._player.ZoneId),
+                "zoneName" => new LuaValue(self._player.ZoneName),
+                "health" => new LuaValue(self._player.Health),
+                "maxHealth" => new LuaValue(self._player.MaxHealth),
+                "isKnockedOut" => new LuaValue(self._player.IsKnockedOut),
+                "inCombat" => new LuaValue(self._player.IsInCombat),
+                "job" => new LuaValue(self._player.Job),
+                "jobRank" => new LuaValue(self._player.JobRank),
+                "coins" => new LuaValue(self._player.Coins),
+                "groupId" => new LuaValue(self._player.GroupId),
+                "isGroupLeader" => new LuaValue(self._player.IsGroupLeader),
+                "groupMembers" => new LuaValue(ToGuidTable(self._player.GroupMemberGuids)),
+                "isGroupedWith" => IsGroupedWithFunction,
+                "itemCount" => ItemCountFunction,
+                "hasItem" => HasItemFunction,
+                "takeItem" => TakeItemFunction,
+                "takeCoins" => TakeCoinsFunction,
+                "giveStars" => GiveStarsFunction,
+                "warp" => WarpFunction,
                 _ => LuaValue.Nil
             };
 

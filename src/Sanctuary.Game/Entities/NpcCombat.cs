@@ -5,6 +5,7 @@ using System.Numerics;
 
 using Sanctuary.Core.Extensions;
 using Sanctuary.Core.IO;
+using Sanctuary.Game.Conversations;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions.Combat;
 using Sanctuary.Game.Resources.Definitions.Rewards;
@@ -96,6 +97,11 @@ public sealed class NpcCombat
         public int TicksLeft { get; set; }
         public long NextTickAt { get; set; }
     }
+
+    /// <summary>
+    /// Where onHurt, onDeath and onRespawn go: the NPC's script and the zone's. Tests build mobs without a zone.
+    /// </summary>
+    private INpcContentManager? NpcScripts => _npc.Zone?.NpcContent;
 
     public NpcCombat(Npc npc, MobDefinition definition, IRewardManager rewardManager)
     {
@@ -302,9 +308,16 @@ public sealed class NpcCombat
                 _npc.PlayAnimation(Definition.DeathAnimationId, loop: false);
 
             GrantKillRewards();
+
+            NpcScripts?.OnMobDied(_npc, attacker);
         }
-        else if (Definition.HitAnimationId != 0)
-            _npc.PlayAnimation(Definition.HitAnimationId, loop: false);
+        else
+        {
+            if (Definition.HitAnimationId != 0)
+                _npc.PlayAnimation(Definition.HitAnimationId, loop: false);
+
+            NpcScripts?.OnMobHurt(_npc, attacker, damage);
+        }
 
         return damage;
     }
@@ -615,6 +628,8 @@ public sealed class NpcCombat
         _npc.UpdatePosition(_npc.SpawnPosition, _npc.SpawnRotation);
 
         Show();
+
+        NpcScripts?.OnMobRespawned(_npc);
     }
 
     private void Show()

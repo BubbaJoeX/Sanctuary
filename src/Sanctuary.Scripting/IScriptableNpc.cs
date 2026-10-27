@@ -81,4 +81,27 @@ public interface IScriptableNpc : IScriptable
     /// whole zone). Returns false if this NPC has already sent too many signals this second.
     /// </summary>
     bool Signal(string name, string? data, float radius);
+
+    /// <summary>
+    /// A hostile world NPC that fights (see Mobs.json). The rest of the mob members are 0 or false otherwise.
+    /// </summary>
+    bool IsMob { get; }
+    int Health { get; }
+    int MaxHealth { get; }
+    bool IsDead { get; }
+
+    /// <summary>
+    /// The player the mob is fighting, or 0.
+    /// </summary>
+    ulong TargetGuid { get; }
+
+    /// <summary>
+    /// The mob takes damage from the player, as if they'd hit it. Returns what it took.
+    /// </summary>
+    int Hurt(IScriptablePlayer attacker, int damage);
+
+    /// <summary>
+    /// The NPC hits the player (mitigated like a mob's hit). Returns what the player took.
+    /// </summary>
+    int Attack(IScriptablePlayer player, int damage);
 }

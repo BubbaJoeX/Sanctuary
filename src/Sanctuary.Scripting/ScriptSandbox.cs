@@ -15,8 +15,8 @@ namespace Sanctuary.Scripting;
 /// </summary>
 /// <remarks>
 /// Scripts define optional global hooks: onSpawn(), onSecond(), onInteract(player), onProximity(player),
-/// onLeave(player), onArrive(), onHear(player, message), onChoice(player, hook) and
-/// onSignal(name, data, fromGuid). The NPC is the global <c>npc</c>; <c>after</c>, <c>every</c> and
+/// onLeave(player), onArrive(), onHear(player, message), onChoice(player, hook),
+/// onSignal(name, data, fromGuid), and for mobs onHurt(player, amount), onDeath(killer) and onRespawn(). The NPC is the global <c>npc</c>; <c>after</c>, <c>every</c> and
 /// <c>cancel</c> schedule callbacks on the one-second tick, and <see cref="Prelude"/> adds a few helpers.
 /// </remarks>
 public sealed class ScriptSandbox
@@ -168,6 +168,19 @@ public sealed class ScriptSandbox
         };
 
         return await InvokeAsync(function, args);
+    }
+
+    /// <summary>
+    /// Calls a hook that takes a player and a number, like onHurt(player, amount).
+    /// </summary>
+    public async ValueTask<string?> CallAsync(string hook, IScriptablePlayer player, double number)
+    {
+        var function = _environment[hook];
+
+        if (function.Type != LuaValueType.Function)
+            return null;
+
+        return await InvokeAsync(function, [new LuaValue(new PlayerUserData(player)), number]);
     }
 
     private async ValueTask<string?> InvokeAsync(LuaValue function, LuaValue[] args)

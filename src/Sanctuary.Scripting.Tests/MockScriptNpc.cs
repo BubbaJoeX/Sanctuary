@@ -143,4 +143,29 @@ internal class MockScriptNpc(IScriptableZone _zone) : IScriptableNpc
         Signals.Add((name, data, radius));
         return true;
     }
+
+    public bool IsMob { get; set; }
+
+    public int Health { get; set; }
+
+    public int MaxHealth { get; set; }
+
+    public bool IsDead => IsMob && Health <= 0;
+
+    public ulong TargetGuid { get; set; }
+
+    public int Hurt(IScriptablePlayer attacker, int damage)
+    {
+        var taken = Math.Min(damage, Health);
+        Health -= taken;
+        return taken;
+    }
+
+    public List<(ulong Guid, int Damage)> Attacks { get; } = [];
+
+    public int Attack(IScriptablePlayer player, int damage)
+    {
+        Attacks.Add((player.Guid, damage));
+        return damage;
+    }
 }

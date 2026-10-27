@@ -57,6 +57,56 @@ public class ScriptSandboxTests
         public (float Scale, int Seconds)? Resized { get; private set; }
 
         public void Resize(float scale, int seconds) => Resized = (scale, seconds);
+
+        public int ZoneId => 1036;
+        public string ZoneName => "lavendercoast";
+        public int Health => 80;
+        public int MaxHealth => 100;
+        public bool IsKnockedOut => false;
+        public bool IsInCombat => true;
+        public int Job => 5;
+        public int JobRank => 3;
+        public int GroupId { get; init; } = 9;
+        public bool IsGroupLeader => true;
+        public IReadOnlyList<ulong> GroupMemberGuids => [42, 43];
+
+        public Dictionary<int, int> Inventory { get; } = new() { [10] = 3 };
+
+        public int CountItem(int itemDefinitionId) => Inventory.GetValueOrDefault(itemDefinitionId);
+
+        public bool TakeItem(int itemDefinitionId, int quantity)
+        {
+            if (CountItem(itemDefinitionId) < quantity)
+                return false;
+
+            Inventory[itemDefinitionId] -= quantity;
+            return true;
+        }
+
+        public bool TakeCoins(int amount)
+        {
+            if (Coins < amount)
+                return false;
+
+            Coins -= amount;
+            return true;
+        }
+
+        public int Stars { get; private set; }
+
+        public bool GiveStars(int amount)
+        {
+            Stars += amount;
+            return true;
+        }
+
+        public (int Zone, (float x, float y, float z)? Position, float? Heading)? WarpedTo { get; private set; }
+
+        public bool Warp(int zoneId, (float x, float y, float z)? position, float? heading)
+        {
+            WarpedTo = (zoneId, position, heading);
+            return zoneId == 1036;
+        }
     }
 
     private static MockScriptNpc CreateNpc() => new(new MockScriptZone(NullLogger.Instance));
@@ -85,6 +135,119 @@ public class ScriptSandboxTests
         CollectionAssert.AreEqual(new[] { "Hi Tester" }, player.Messages);
         Assert.AreEqual((7, 2), player.Given[0]);
         Assert.AreEqual((3333, false), npc.Emotes[0]);
+    }
+
+    [TestMethod]
+    public async Task PlayerApi_CoversCombatJobsGroupsAndInventory()
+    {
+        var npc = CreateNpc();
+        var player = new MockScriptPlayer();
+
+        var (sandbox, error) = await ScriptSandbox.CompileAsync(npc, """
+            function onInteract(player)
+                player:message(player.zoneId .. " " .. player.zoneName)
+                player:message(player.health .. "/" .. player.maxHealth .. " " .. tostring(player.inCombat) .. " " .. tostring(player.isKnockedOut))
+                player:message(player.job .. " " .. player.jobRank)
+                player:message(player.groupId .. " " .. #player.groupMembers .. " " .. player.groupMembers[2] .. " " .. tostring(player.isGroupLeader))
+                player:message(tostring(player:isGroupedWith(player)))
+                player:message(player:itemCount(10) .. " " .. tostring(player:hasItem(10, 4)))
+                player:message(tostring(player:takeItem(10, 2)) .. " " .. tostring(player:takeItem(10, 2)))
+                player:giveCoins(50)
+                player:message(tostring(player:takeCoins(30)) .. " " .. tostring(player:takeCoins(30)) .. " " .. player.coins)
+                player:message(tostring(player:giveStars(25)))
+                player:message(tostring(player:warp(1036, 1, 2, 3, 90)) .. " " .. tostring(player:warp(1)))
+            end
+            """, "test");
+
+        Assert.IsNull(error);
+        Assert.IsNotNull(sandbox);
+        Assert.IsNull(await sandbox.CallAsync("onInteract", player));
+
+        CollectionAssert.AreEqual(new[]
+        {
+            "1036 lavendercoast",
+            "80/100 true false",
+            "5 3",
+            "9 2 43 true",
+            "true",
+            "3 false",
+            "true false",
+            "true false 20",
+            "true",
+            "true false"
+        }, player.Messages);
+
+        Assert.AreEqual(1, player.Inventory[10]);
+        Assert.AreEqual(25, player.Stars);
+        Assert.AreEqual(1, player.WarpedTo?.Zone);
+        Assert.IsNull(player.WarpedTo?.Position);
+    }
+
+    [TestMethod]
+    public async Task PlayerApi_RejectsOutOfRangeAmounts()
+    {
+        foreach (var call in new[] { "player:takeItem(10, 0)", "player:takeCoins(-1)", "player:giveStars(0)", "player:warp(1036, 0/0, 0, 0)" })
+        {
+            var (sandbox, _) = await ScriptSandbox.CompileAsync(CreateNpc(), $"function onInteract(player) {call} end", "range");
+
+            Assert.IsNotNull(sandbox);
+            Assert.IsNotNull(await sandbox.CallAsync("onInteract", new MockScriptPlayer()), call);
+        }
+    }
+
+    [TestMethod]
+    public async Task MobApi_HurtsAttacksAndRunsOnHurt()
+    {
+        var npc = CreateNpc();
+        npc.IsMob = true;
+        npc.Health = npc.MaxHealth = 50;
+        npc.TargetGuid = 42;
+
+        var player = new MockScriptPlayer();
+
+        var (sandbox, error) = await ScriptSandbox.CompileAsync(npc, """
+            function onHurt(player, amount)
+                player:message(amount .. " " .. tostring(npc.isMob) .. " " .. npc.health .. "/" .. npc.maxHealth .. " " .. npc.target)
+                npc:attack(player, 7)
+                if npc:hurt(player, 100) == 50 and npc.isDead then
+                    player:message("dead")
+                end
+            end
+            """, "mob");
+
+        Assert.IsNull(error);
+        Assert.IsNotNull(sandbox);
+        Assert.IsNull(await sandbox.CallAsync("onHurt", player, 12));
+
+        CollectionAssert.AreEqual(new[] { "12 true 50/50 42", "dead" }, player.Messages);
+        Assert.AreEqual((42UL, 7), npc.Attacks[0]);
+    }
+
+    [TestMethod]
+    public async Task ZoneApi_ListsAndFindsPlayers()
+    {
+        var zone = new MockScriptZone(NullLogger.Instance);
+        var npc = new MockScriptNpc(zone);
+        var player = new MockScriptPlayer();
+        zone.Players.Add(player);
+
+        var (sandbox, error) = await ScriptSandbox.CompileAsync(npc, """
+            function onSpawn()
+                local zone = npc.zone
+                for _, p in ipairs(zone:getPlayers()) do
+                    p:message(zone.playerCount .. " " .. zone:getPlayer("Tester").name .. " " .. zone:getPlayer(p.guid).name)
+                end
+                if zone:getPlayer("Nobody") == nil then
+                    zone:getPlayer(42):message("missing is nil")
+                end
+            end
+            """, "zone");
+
+        Assert.IsNull(error);
+        Assert.IsNotNull(sandbox);
+        Assert.IsNull(await sandbox.CallAsync("onSpawn"));
+
+        CollectionAssert.AreEqual(new[] { "1 Tester Tester", "missing is nil" }, player.Messages);
     }
 
     [TestMethod]
