@@ -16,6 +16,7 @@ using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Conversations;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Quests;
+using Sanctuary.Game.Trading;
 using Sanctuary.Gateway;
 using Sanctuary.Scripting;
 using Sanctuary.UdpLibrary.Configuration;
@@ -113,6 +114,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<IQuestManager, QuestManager>();
     serviceCollection.AddSingleton<IRewardManager, RewardManager>();
     serviceCollection.AddSingleton<IGroupManager, GroupManager>();
+    serviceCollection.AddSingleton<ITradeManager, TradeManager>();
     serviceCollection.AddSingleton<IHousingManager, HousingManager>();
     serviceCollection.AddSingleton<IServerSettings, ServerSettings>();
     serviceCollection.AddSingleton<IWorldEventManager, WorldEventManager>();

@@ -263,6 +263,31 @@ public sealed class Player : ClientPcData, IEntity
 
     public void CancelScheduledSlotPacket(int actionBarId, int slotIndex) => _delayedSlotPackets.TryRemove((actionBarId, slotIndex), out _);
 
+    /// <summary>
+    /// Empties every action bar slot holding <paramref name="itemId"/>, after the item left the inventory.
+    /// </summary>
+    public void RemoveItemFromActionBars(int itemId)
+    {
+        foreach (var (actionBarId, slotItemGuids) in ActionBarItemGuids)
+        {
+            foreach (var slot in slotItemGuids.Where(entry => entry.Value == itemId).Select(entry => entry.Key).ToList())
+            {
+                slotItemGuids.Remove(slot);
+                CancelScheduledSlotPacket(actionBarId, slot);
+
+                var slotPacket = new ClientUpdatePacketUpdateActionBarSlot { Data = { Id = actionBarId, Slot = slot } };
+                slotPacket.Slot.IsEmpty = true;
+
+                SendTunneled(slotPacket);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether any job has <paramref name="itemId"/> equipped.
+    /// </summary>
+    public bool IsItemEquipped(int itemId) => Profiles.Any(profile => profile.Items.Values.Any(item => item.Id == itemId));
+
     public Vector4 StartingZonePosition { get; set; }
     public Quaternion StartingZoneRotation { get; set; }
 
@@ -1073,6 +1098,9 @@ public sealed class Player : ClientPcData, IEntity
         commandPacketInteractionList.List.Guid = Guid;
 
         commandPacketInteractionList.List.Interactions.Add(InspectInteraction.Data);
+
+        if (!player.Ignores.Any(x => x.Guid == Guid))
+            commandPacketInteractionList.List.Interactions.Add(TradeInteraction.Data);
 
         if (Friends.Any(x => x.Guid == player.Guid))
         {
