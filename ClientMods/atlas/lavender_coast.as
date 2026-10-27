@@ -5,13 +5,13 @@
 // where the stock pages place theirs, and markers use mapOffsets.lavendercoast, so the warpstone, friends and the
 // "You are here" flag land on it.
 //  - The Sacred Grove page's "Lavender Coast" label, hidden in the stock movie, opens the page.
-//  - Opening the atlas while south of the Sacred Grove painting opens the page straight away.
+//  - Opening the atlas anywhere on the coast opens the page straight away.
 //  - On the page, the Sacred Grove button goes back without asking Lua (the atlas Lua opened is still Sacred Grove).
 
 mapOffsets.lavendercoast = {zoomScaleX:0.413,zoomScaleY:0.413,mapOffsetX:552.4,mapOffsetY:-862};
 
-// Ground south of this (world x) is past the Sacred Grove painting's bottom edge.
-var LAVENDER_COAST_SOUTH = -2940;
+// Ground south of this (world x) is Lavender Coast: FabledRealms has nothing to walk on past its Pass at -2125.
+var LAVENDER_COAST_SOUTH = -2450;
 var lavenderCoastAuto = false;
 var lavenderCoastListening = false;
 
@@ -42,40 +42,48 @@ function showLavenderCoast()
    controls._visible = true;
 }
 
-// The Sacred Grove page's frame script hides its label on every attach, so a watcher shows it again once it has run.
+function openLavenderCoast()
+{
+   this._xscale = this._yscale = 100;
+   _root.showLavenderCoast();
+}
+function growLavenderCoastLabel()
+{
+   this._xscale = this._yscale = 110;
+}
+function shrinkLavenderCoastLabel()
+{
+   this._xscale = this._yscale = 100;
+}
+
+// The Sacred Grove page's frame script hides its label and gives it the stock "coming soon" rollover, whenever it runs,
+// and Lua's removeAllClipsFromStage() removes every clip made on _root. So the watcher lives in base (placed on the
+// timeline, which that leaves alone) and puts the label back every frame.
 function watchLavenderCoastLabel()
 {
-   if(_root.lavenderCoastWatch == undefined)
+   if(base.lavenderCoastWatch == undefined)
    {
-      _root.createEmptyMovieClip("lavenderCoastWatch",9000);
+      base.createEmptyMovieClip("lavenderCoastWatch",9000);
    }
-   _root.lavenderCoastWatch.onEnterFrame = function()
+   base.lavenderCoastWatch.onEnterFrame = function()
    {
       var label = _root.base.sacredgrove.lavendercoast;
-      if(label == undefined || label.lavenderCoastLinked)
+      if(label == undefined)
       {
          return;
       }
-      label.lavenderCoastLinked = true;
       label._visible = true;
-      label.onRollOver = function()
+      if(label.onRelease != _root.openLavenderCoast)
       {
-         this._xscale = this._yscale = 110;
-      };
-      label.onRollOut = label.onDragOut = function()
-      {
-         this._xscale = this._yscale = 100;
-      };
-      label.onRelease = function()
-      {
-         this._xscale = this._yscale = 100;
-         _root.showLavenderCoast();
-      };
+         label.onRelease = _root.openLavenderCoast;
+         label.onRollOver = _root.growLavenderCoastLabel;
+         label.onRollOut = label.onDragOut = _root.shrinkLavenderCoastLabel;
+      }
    };
 }
 
-// Opens the page once per atlas opening if the player is south of the Sacred Grove painting, whichever of the map
-// and the player's position Lua sends first.
+// Opens the page once per atlas opening if the player is on the coast, whichever of the map and the player's
+// position Lua sends first.
 function autoShowLavenderCoast()
 {
    var player = indicators["URHere"];
@@ -99,6 +107,7 @@ var stockSetPlayerPosition = SetPlayerPosition;
 SetPlayerPosition = function(gameX, gameZ)
 {
    stockSetPlayerPosition.call(_root,gameX,gameZ);
+   watchLavenderCoastLabel();
    autoShowLavenderCoast();
 };
 
