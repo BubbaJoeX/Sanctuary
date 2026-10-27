@@ -1089,5 +1089,16 @@
     "Stats": {
       "MaxMovementSpeed": 12.5
     }
+  },
+  {
+    "Comment": "fr_maya_mcp: FR MCP Hover-Car",
+    "Id": 20000,
+    "NameId": 9100006,
+    "ImageSetId": 20003,
+    "TextureAlias": "classic-saucer",
+    "ModelId": 1272,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
   }
 ]
