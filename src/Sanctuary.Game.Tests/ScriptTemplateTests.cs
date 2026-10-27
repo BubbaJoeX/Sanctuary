@@ -198,6 +198,8 @@ public sealed class ScriptTemplateTests
             await Run("onInteract", player);
             await Run("onChoice", player, "right");
             await Run("onChoice", player, "wrong");
+            await Run("onHear", player, "Howdy there");
+            await Run("onHear", player, "something else");
 
             for (var second = 0; second < 200; second++)
             {

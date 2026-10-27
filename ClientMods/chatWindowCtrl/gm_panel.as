@@ -2090,7 +2090,7 @@ var gmScriptLibAsked = false;
 var gmScriptForm = false;
 var GM_LIB_ROWS = 8;
 
-var GM_SCRIPT_HELP = "Hooks: onSpawn()  onSecond()  onInteract(player)  onProximity(player)  onChoice(player, hook)\r" +
+var GM_SCRIPT_HELP = "Hooks: onSpawn()  onSecond()  onInteract(player)  onProximity(player)  onHear(player, message)  onChoice(player, hook)\r" +
    "npc: guid name position  say(text)  sayLocalized(id)  moveTo(x,y,z[,direct])  emote(animId[,loop])  face(player)  startConversation(player[,nodeId])\r" +
    "player: name guid position  message(text)  giveItem(itemId[,qty])  acceptQuest(id)  hasCompletedQuest(id)\r" +
    "Lua: math string table pairs ipairs next select type tostring tonumber pcall error assert unpack print.  16 KB, 100 ms per hook.\r" +

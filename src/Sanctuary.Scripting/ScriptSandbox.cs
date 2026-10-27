@@ -14,8 +14,8 @@ namespace Sanctuary.Scripting;
 /// <see cref="CallTimeout"/> so a runaway script can't stall the zone's runtime.
 /// </summary>
 /// <remarks>
-/// Scripts define optional global hooks: onSpawn(), onSecond(), onInteract(player), onProximity(player)
-/// and onChoice(player, hook). The NPC is the global <c>npc</c>.
+/// Scripts define optional global hooks: onSpawn(), onSecond(), onInteract(player), onProximity(player),
+/// onHear(player, message) and onChoice(player, hook). The NPC is the global <c>npc</c>.
 /// </remarks>
 public sealed class ScriptSandbox
 {

@@ -134,6 +134,15 @@ public class NpcContentManager : INpcContentManager
         StartConversation(player, npc);
     }
 
+    public bool OnHear(Npc npc, Player player, string message)
+    {
+        if (npc.GmScript?.HasHook("onHear") != true)
+            return false;
+
+        FireHook(npc, "onHear", player, message);
+        return true;
+    }
+
     public void OnSecond(Npc npc)
     {
         FireHook(npc, "onSecond");

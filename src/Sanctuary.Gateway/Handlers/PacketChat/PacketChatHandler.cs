@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using Sanctuary.Database;
 using Sanctuary.Game;
+using Sanctuary.Game.Conversations;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
@@ -23,6 +24,7 @@ public static class PacketChatHandler
     private static IZoneManager _zoneManager = null!;
     private static IDbContextFactory<DatabaseContext> _dbContextFactory = null!;
     private static IChatCommandManager _chatCommandManager = null!;
+    private static INpcChatManager _npcChatManager = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
@@ -33,6 +35,7 @@ public static class PacketChatHandler
         _zoneManager = serviceProvider.GetRequiredService<IZoneManager>();
         _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
         _chatCommandManager = serviceProvider.GetRequiredService<IChatCommandManager>();
+        _npcChatManager = serviceProvider.GetRequiredService<INpcChatManager>();
     }
 
     private static void SendMuteNotice(GatewayConnection connection)
@@ -240,6 +243,9 @@ public static class PacketChatHandler
 
                         visiblePlayer.Value.SendTunneled(packet);
                     }
+
+                    if (packet.Channel == ChatChannel.WorldSay)
+                        _npcChatManager.OnPlayerSay(connection.Player, packet.Message);
                 }
                 break;
         }
