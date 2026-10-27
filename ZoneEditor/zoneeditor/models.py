@@ -56,11 +56,14 @@ class MaterialLibrary:
                 self.names.setdefault(definition, node.attrib.get("Name", ""))
 
     def alpha(self, definition_hash: int) -> str | None:
-        """How a material uses alpha: "test" (cutout leaves and fences), "blend" (water, glass) or None."""
+        """How a material uses alpha: "test" (cutout leaves and fences), "blend" (glass), "water" (the client's
+        water shader, whose textures are wave normal maps) or None."""
         name = self.names.get(definition_hash, "").lower()
         if "alphatest" in name:
             return "test"
-        if any(word in name for word in ("alphablend", "alphascreen", "water", "glass", "ghost", "hologram", "dualtexturerigidalpha")):
+        if "water" in name:
+            return "water"
+        if any(word in name for word in ("alphablend", "alphascreen", "glass", "ghost", "hologram", "dualtexturerigidalpha")):
             return "blend"
         return None
 
@@ -151,10 +154,13 @@ def parse_dme(blob: bytes, library: MaterialLibrary) -> dict:
 
         raw = np.frombuffer(vertex_data, np.uint8).reshape(vertex_count, stride)
         positions = raw[:, :12].copy().view("<f4").reshape(-1, 3)
+        normals = None
         uvs = None
         for offset, kind, usage, usage_index in layout:
             if usage == "Position" and kind == "Float3":
                 positions = raw[:, offset : offset + 12].copy().view("<f4").reshape(-1, 3)
+            elif usage == "Normal" and kind == "Float3" and normals is None:
+                normals = raw[:, offset : offset + 12].copy().view("<f4").reshape(-1, 3)
             elif usage == "Texcoord" and usage_index == 0 and uvs is None:
                 if kind == "Float2":
                     uvs = raw[:, offset : offset + 8].copy().view("<f4").reshape(-1, 2)
@@ -163,8 +169,11 @@ def parse_dme(blob: bytes, library: MaterialLibrary) -> dict:
                 elif kind == "Short2":
                     uvs = raw[:, offset : offset + 4].copy().view("<i2").reshape(-1, 2).astype(np.float32) / 2048
         indices = np.frombuffer(index_data, "<u2" if index_size == 2 else "<u4").astype(np.uint32)
+        # Front faces wind clockwise (Direct3D); the viewport's are counter-clockwise.
+        indices = indices[: len(indices) // 3 * 3].reshape(-1, 3)[:, [0, 2, 1]].ravel()
         meshes.append({
             "positions": positions.astype(np.float32),
+            "normals": normals.astype(np.float32) if normals is not None else None,
             "uvs": uvs if uvs is not None else np.zeros((vertex_count, 2), np.float32),
             "indices": indices,
             "texture": _diffuse(candidates, textures),

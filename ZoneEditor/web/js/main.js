@@ -4,6 +4,8 @@ import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { getJson, postJson, save } from "./api.js";
 import { CHUNK, TerrainManager, environmentColour } from "./terrain.js";
 import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform } from "./props.js";
+import { parseSky, sampleSky } from "./sky.js";
+import { gradientColours, initTextures } from "./textures.js";
 
 const $ = (selector) => document.querySelector(selector);
 const canvas = $("#canvas");
@@ -12,41 +14,60 @@ const panel = $("#panel");
 // --- scene ---------------------------------------------------------------------------------------------
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+initTextures(renderer);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, 1, 0.5, 6000);
 camera.rotation.order = "YXZ";
-const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-const hemisphere = new THREE.HemisphereLight(0xffffff, 0x666655, 0.9);
+
+// Lit like the client: a sun that casts shadows around the camera, sky and ground light from the sky's
+// ambient gradient, its fog, and the zone's own point lights nearest the camera.
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -180, right: 180, top: 180, bottom: -180, near: 1, far: 1600 });
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.6;
+const sunDirection = new THREE.Vector3(-0.45, 0.8, -0.4).normalize();
+const hemisphere = new THREE.HemisphereLight(0xdde8ff, 0x6b5f4a, 1.1);
 scene.add(sun, sun.target, hemisphere);
+scene.fog = new THREE.Fog(0x9fc6e8, 600, 1500);
+const pointLights = Array.from({ length: 8 }, () => {
+  const light = new THREE.PointLight(0xffffff, 0, 20, 1);
+  scene.add(light);
+  return light;
+});
+
+const skyDome = new THREE.Mesh(new THREE.SphereGeometry(5000, 32, 16), new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { top: { value: new THREE.Color(0x3d7fd6) }, horizon: { value: new THREE.Color(0x9fc6e8) } },
+  vertexShader: "varying vec3 vDir; void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+  fragmentShader: `uniform vec3 top; uniform vec3 horizon; varying vec3 vDir;
+    void main() { float t = pow(clamp(vDir.y, 0.0, 1.0), 0.6); gl_FragColor = vec4(mix(horizon, top, t), 1.0);
+      #include <colorspace_fragment>
+    }`,
+}));
+skyDome.renderOrder = -1;
+scene.add(skyDome);
 
 const terrain = new TerrainManager(scene, {
   onChunkLoaded: (chunk) => { props.addChunk(chunk); drawMinimap(); },
   onChunkUnloaded: (chunk) => { props.removeChunk(chunk); if (selected?.userData.chunk === chunk) select(null); },
   status,
 });
+terrain.anisotropy = renderer.capabilities.getMaxAnisotropy();
 const library = new PropLibrary();
 const props = new PropLayer(scene, library);
-scene.background = terrain.uniforms.fogColor.value;
 
-// The client's world is left-handed: mirror x in the projection, so the scene graph stays in its coordinates.
-// Mirroring flips every triangle's winding on screen, so front faces are clockwise from here on.
-{
-  const gl = renderer.getContext();
-  const frontFace = gl.frontFace.bind(gl);
-  gl.frontFace = (mode) => frontFace(mode === gl.CW ? gl.CCW : gl.CW);
-  renderer.state.setFlipSided(true);
-  renderer.state.setFlipSided(false);
-}
-
+// The client shows its coordinates as they are (x, y up, z), so the scene uses them directly.
 function updateProjection() {
   const { clientWidth: w, clientHeight: h } = canvas;
   renderer.setSize(w, h, false);
   camera.aspect = w / Math.max(h, 1);
   camera.updateProjectionMatrix();
-  camera.projectionMatrix.elements[0] *= -1;
-  camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
 }
 new ResizeObserver(updateProjection).observe(canvas);
 
@@ -74,6 +95,7 @@ const state = {
   sky: undefined,
   customSky: null,
   zoneDirty: false,
+  time: 12,
 };
 let selected = null;
 let ghost = null;
@@ -137,7 +159,7 @@ async function openZone(name, keepCamera = false) {
   try { localStorage.setItem("zone-editor-zone", zone.name); } catch { /* private mode */ }
   $("#zone-search").value = zone.name;
   const editable = zone.chunks.filter((c) => c.editable).length;
-  $("#zone-title").textContent = `${zone.name} · ${zone.stock ? "stock zone: " + editable + " of " + zone.chunks.length + " chunks editable" : "custom zone"}${zone.definition ? " · " + zone.definition.Type + " " + zone.definition.Id : " · no Sanctuary definition"}`;
+  $("#zone-title").textContent = `${zone.name} · ${zone.stock ? "stock zone" : "custom zone"} · ${zone.chunks.length} chunks${zone.definition ? " · " + zone.definition.Type + " " + zone.definition.Id : " · no Sanctuary definition"}`;
   if (!keepCamera) {
     const spawn = zone.definition?.SpawnPosition;
     if (spawn) camera.position.set(spawn[0], spawn[1] + 40, spawn[2] - 60);
@@ -149,12 +171,15 @@ async function openZone(name, keepCamera = false) {
     look.pitch = -0.4;
   }
   buildMarkers();
-  if (zone.stock && !keepCamera) {
-    const stockCount = zone.chunks.length - editable;
-    toast(`${zone.name} is a stock zone: its ${stockCount} stock chunks are read-only (the client won't take replacements).\n` +
-      (editable ? `${editable} chunk(s) you added are editable. ` : "") + "Add new chunks in empty cells with the Chunks tool (K) and build there.");
+  if (zone.installed && !keepCamera) {
+    toast(`${zone.name}'s files are in the pack install_client_mods.py wrote, which the client can't update.\n` +
+      "Run install_client_mods.py again (it now leaves zone files out) before testing edits to it in game.");
+  } else if (zone.stock && !keepCamera) {
+    toast(`${zone.name} is a stock zone. Saving a stock chunk also hides the client's own copy so it downloads yours; ` +
+      "that needs the client closed, which Test in game does for you.");
   }
   updateLightingFromSky(zone.definition?.Sky);
+  status(`${zone.name}: ${zone.chunks.length} chunks`);
   setTool(state.tool);
 }
 
@@ -204,32 +229,88 @@ function buildMarkers() {
 
 // --- lighting preview ----------------------------------------------------------------------------------
 
+// The sky in use, parsed; the zone's own (Sky), the one picked in the Zone tool, or the client's default.
+let skyTracks = null;
+let skyName = null;
+const ambientGradients = new Map();
+
 async function updateLightingFromSky(sky, xml) {
-  const u = terrain.uniforms;
+  skyName = xml ? null : sky || "sky.xml";
   try {
-    if (!xml && sky) xml = await (await fetch(`/api/sky?name=${encodeURIComponent(sky)}`)).text();
+    if (!xml) xml = await (await fetch(`/api/sky?name=${encodeURIComponent(skyName)}`)).text();
   } catch { xml = null; }
-  const noon = (section) => {
-    const block = xml?.match(new RegExp(`<${section}>([\\s\\S]*?)</${section}>`))?.[1] || "";
-    const colours = [...block.matchAll(/<Color[^>]*Time="(\d+):\d+"[^>]*R="([\d.]+)"[^>]*G="([\d.]+)"[^>]*B="([\d.]+)"[^>]*Brightness="([\d.]+)"/g)];
-    const pick = colours.find((m) => +m[1] === 12) || colours[0];
-    return pick ? [pick[2] / 255, pick[3] / 255, pick[4] / 255, +pick[5]] : null;
-  };
-  const sunColour = noon("SunLight");
-  const ambientColour = noon("Ambient");
-  if (sunColour) u.sunColor.value.setRGB(...sunColour.slice(0, 3)).multiplyScalar(Math.min(sunColour[3], 2) * 0.9);
-  else u.sunColor.value.setRGB(0.85, 0.85, 0.8);
-  if (ambientColour) u.ambient.value.setRGB(...ambientColour.slice(0, 3)).multiplyScalar(Math.min(ambientColour[3], 2.5) * 0.45);
-  else u.ambient.value.setRGB(0.55, 0.57, 0.62);
-  if (u.ambient.value.r + u.ambient.value.g + u.ambient.value.b < 0.9) u.ambient.value.addScalar(0.25);
-  const dir = xml?.match(/<Direction Time="12:00" Heading="([\d.-]+)" Pitch="([\d.-]+)"/);
-  if (dir) {
-    const heading = THREE.MathUtils.degToRad(+dir[1]), pitch = THREE.MathUtils.degToRad(+dir[2]);
-    u.sunDir.value.set(Math.sin(heading) * Math.cos(pitch), Math.sin(pitch), Math.cos(heading) * Math.cos(pitch)).normalize();
+  skyTracks = xml ? parseSky(xml) : null;
+  applyTimeOfDay();
+}
+
+// Without a zone sky the client lights each tile by its environment's sky (Seaside, Briarwood, ...).
+function updateEnvironmentSky() {
+  const zoneSky = state.customSky || (state.sky !== undefined ? state.sky : state.zone?.definition?.Sky);
+  if (zoneSky || !state.zone) return;
+  const chunk = terrain.chunkAt(camera.position.x, camera.position.z);
+  if (!chunk) return;
+  const tile = Math.floor((camera.position.z - chunk.z0) / 64) * 4 + Math.floor((camera.position.x - chunk.x0) / 64);
+  const environment = state.zone.environments.find((e) => e.id === chunk.tiles[tile]?.environment);
+  const sky = environment?.sky || "sky.xml";
+  if (sky.toLowerCase() !== skyName?.toLowerCase()) updateLightingFromSky(sky);
+}
+
+// Lights the scene for state.time (hours) from the sky's keyframes.
+function applyTimeOfDay() {
+  const sample = skyTracks ? sampleSky(skyTracks, state.time) : {};
+  if (sample.sun) {
+    // The client multiplies by the sky's sun colour as it is, so it isn't decoded from sRGB.
+    sun.color.setRGB(...sample.sun.rgb, THREE.LinearSRGBColorSpace);
+    sun.intensity = 2.4 * Math.min(sample.sun.brightness, 2.5);
+  } else {
+    sun.color.set(0xfff4e0);
+    sun.intensity = 2.2;
   }
-  sun.color.copy(u.sunColor.value);
-  sun.position.copy(u.sunDir.value).multiplyScalar(100);
-  hemisphere.color.copy(u.ambient.value).multiplyScalar(1.4);
+  if (sample.direction) {
+    const heading = THREE.MathUtils.degToRad(sample.direction.heading), pitch = THREE.MathUtils.degToRad(Math.max(sample.direction.pitch, 8));
+    sunDirection.set(Math.sin(heading) * Math.cos(pitch), Math.sin(pitch), Math.cos(heading) * Math.cos(pitch)).normalize();
+  }
+  if (sample.fog) {
+    scene.fog.color.setRGB(...sample.fog, THREE.SRGBColorSpace);
+    skyDome.material.uniforms.horizon.value.copy(scene.fog.color);
+    skyDome.material.uniforms.top.value.copy(scene.fog.color).lerp(new THREE.Color(0x1d4fa0), 0.55);
+  }
+  if (sample.range) {
+    // The client's fog starts close; the editor keeps the near half clear so there's something to edit.
+    scene.fog.far = Math.max(sample.range.far, 500) * 1.4;
+    scene.fog.near = scene.fog.far * 0.45;
+  }
+  const ambient = sample.ambient;
+  if (ambient?.file) {
+    const apply = (colours) => {
+      hemisphere.color.copy(colours.sky).lerp(new THREE.Color(1, 1, 1), 0.35);
+      hemisphere.groundColor.copy(colours.ground).lerp(new THREE.Color(1, 1, 1), 0.2);
+      hemisphere.intensity = 1.6 * ambient.brightness;
+    };
+    if (ambientGradients.has(ambient.file)) apply(ambientGradients.get(ambient.file));
+    else gradientColours(ambient.file).then((colours) => { ambientGradients.set(ambient.file, colours); apply(colours); }).catch(() => {});
+  }
+}
+
+// The zone's lights nearest the camera become real point lights.
+function updatePointLights() {
+  const nearby = [];
+  for (const chunk of terrain.chunks.values()) {
+    for (const record of chunk.lights) {
+      const [x, y, z] = record.position;
+      nearby.push([camera.position.distanceToSquared(new THREE.Vector3(x, y, z)), record]);
+    }
+  }
+  nearby.sort((a, b) => a[0] - b[0]);
+  pointLights.forEach((light, i) => {
+    const record = nearby[i]?.[0] < 300 * 300 ? nearby[i][1] : null;
+    light.visible = !!record;
+    if (!record) return;
+    light.position.set(...record.position);
+    light.color.setRGB(record.color[0] / 255, record.color[1] / 255, record.color[2] / 255, THREE.SRGBColorSpace);
+    light.intensity = 60 * Math.max(record.intensity, 0.1);
+    light.distance = record.range * 2;
+  });
 }
 
 // --- tools and panels ----------------------------------------------------------------------------------
@@ -291,7 +372,7 @@ function renderPanel() {
   if (!zone) return noZonePanel();
   const editableCount = [...terrain.chunks.values()].filter((c) => c.editable).length;
   const noEditable = !editableCount && BRUSH_TOOLS.has(state.tool)
-    ? `<p class="warn">No editable chunk is loaded here. ${zone.stock ? "Stock chunks are read-only; add a chunk with the Chunks tool (K)." : ""}</p>` : "";
+    ? `<p class="warn">No chunk is loaded here yet.</p>` : "";
 
   if (state.tool === "select") {
     panel.innerHTML = `<h3>Select</h3><p class="hint">Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus.</p><div id="inspector"></div>`;
@@ -299,7 +380,7 @@ function renderPanel() {
   } else if (state.tool === "sculpt") {
     panel.innerHTML = `<h3>Sculpt</h3>${noEditable}${brushControls(["raise", "lower", "smooth", "flatten", "level", "noise"])}
       <label id="level-row" style="${state.brush.mode === "level" ? "" : "display:none"}">Level height <input id="level-height" type="number" step="0.5" value="${state.brush.level ?? 0}"></label>
-      <p class="hint">Hold the left button to sculpt; Shift swaps raise/lower. Flatten levels to the height where the stroke started. Edges shared with stock chunks stay pinned so the seams don't open.</p>`;
+      <p class="hint">Hold the left button to sculpt; Shift swaps raise/lower. Flatten levels to the height where the stroke started. Edges shared with chunks that aren't loaded stay pinned so the seams don't open.</p>`;
     bindBrush();
     panel.querySelector("#level-height").addEventListener("input", (e) => { state.brush.level = +e.target.value; });
   } else if (state.tool === "eco") {
@@ -308,7 +389,7 @@ function renderPanel() {
       <label>Tint amount <input id="eco-tint-amount" type="range" min="0" max="1" step="0.05" value="${state.ecoTintAmount}"></label>
       <h4>${zone.name}'s ecos</h4>
       <div class="list" id="eco-list">${zone.ecos.map((e) => `<div data-eco="${e.index}" class="${e.index === state.eco ? "active" : ""}">${ecoSwatch(e.index)}${escape(e.name)} <small>${escape(e.texture)}${e.floras.length ? " · " + e.floras.length + " flora" : ""}</small></div>`).join("")}</div>
-      <p class="hint">The highlighted area shows where the selected eco is. A tile holds up to 5 ecos; past that the lightest are dropped on save. ${zone.stock ? "A stock zone's eco list is fixed." : "Add more ecos in the Zone tool."}</p>`;
+      <p class="hint">The highlighted area shows where the selected eco is. A tile holds up to 5 ecos; past that the lightest are dropped on save. Add more ecos in the Zone tool.</p>`;
     bindBrush();
     panel.querySelector("#eco-tint").addEventListener("change", (e) => { state.ecoTint = e.target.checked; });
     panel.querySelector("#eco-tint-amount").addEventListener("input", (e) => { state.ecoTintAmount = +e.target.value; });
@@ -370,7 +451,7 @@ function renderPanel() {
     const b = zone.bounds;
     panel.innerHTML = `<h3>Chunks</h3>
       <p class="hint">Click an empty cell (in the view or on the minimap) to add a 256 x 256 chunk. Its edges join the chunks around it and the inside is smoothed between them; sculpt from there.</p>
-      <p class="hint">${zone.stock ? `${zone.name} is a stock zone: new chunks have to fit its bounds (x ${b.startX * 64}…${b.endX * 64}, z ${b.startZ * 64}…${b.endZ * 64}).` : "The zone grows to fit new chunks."}</p>
+      <p class="hint">The zone grows to fit new chunks (now x ${b.startX * 64}…${b.endX * 64}, z ${b.startZ * 64}…${b.endZ * 64}).</p>
       <label>Ground height where there's no neighbour <input id="chunk-height" type="number" step="1" value="${state.newChunk.height}"></label>
       <label>Eco <select id="chunk-eco">${options}</select></label>
       <label>Environment <select id="chunk-env">${envs}</select></label>`;
@@ -401,7 +482,7 @@ function renderZonePanel() {
       <label>Sky XML (sun, ambient, fog and dome by time of day)<textarea id="custom-sky-xml">${escape(state.customSky?.xml || "")}</textarea></label>
       <p class="hint">Saved to ClientMods/sky and copied into your client's Resources/SKY (skies aren't streamed, so other clients need it installed too).</p>
     </div>
-    ${zone.stock ? "" : `<h4>Ecos</h4>
+    ${`<h4>Ecos</h4>
       <label>Add from FabledRealms<select id="add-eco-fabled"><option value="">…</option></select></label>
       ${zone.ecoDefinitions.length ? `<label>Add from a client .eco<select id="add-eco-def"><option value="">…</option>${zone.ecoDefinitions.map((d) => `<option>${escape(d)}</option>`).join("")}</select></label>` : ""}`}
     ${state.houses.length ? `<h4>Houses</h4>${state.houses.map((h, i) => `
@@ -714,8 +795,7 @@ canvas.addEventListener("pointermove", (event) => {
   updatePointer(event);
   pointer.inside = true;
   if (pointer.buttons & 2) {
-    // Mirrored view: dragging right turns right.
-    look.yaw += event.movementX * 0.003;
+    look.yaw -= event.movementX * 0.003;
     look.pitch = Math.max(-1.55, Math.min(1.55, look.pitch - event.movementY * 0.003));
   }
 });
@@ -936,7 +1016,16 @@ async function saveAll() {
     const result = await save({ zone: state.zone.name, chunks: entries, settings }, blobs);
     const files = [...result.chunks.flatMap((c) => c.files), ...result.zone.files];
     const unique = [...new Set(files)];
-    toast(`Saved ${unique.length} file(s):\n${unique.map((f) => f.split(/[\\/]/).slice(-2).join("/")).join("\n")}${result.zone.mirrored.length ? `\n…and copied ${result.zone.mirrored.length} into the built servers.` : ""}\nRestart the servers (Gateway, WebAPI) to serve them.`, "ok");
+    const zone = result.zone;
+    if (zone.serverData) $("#play-servers").checked = true;
+    const unlock = zone.unlock;
+    const notes = [
+      zone.mirrored.length ? `Copied ${zone.mirrored.length} into the running servers' folders; the asset server serves them now.` : "",
+      zone.overrides.length && unlock?.applied ? `Hid the client's stock copy of ${zone.overrides.length} file(s), so it downloads yours.` : "",
+      zone.overrides.length && !unlock?.applied ? "The client is running, so it still reads its stock copies: Test in game closes it and fixes that." : "",
+      zone.serverData ? "Zone or house data changed: Test in game with + servers to load it." : "Test in game restarts the client to load it.",
+    ].filter(Boolean);
+    toast(`Saved ${unique.length} file(s):\n${unique.slice(0, 12).map((f) => f.split(/[\\/]/).slice(-2).join("/")).join("\n")}${unique.length > 12 ? "\n…" : ""}\n${notes.join("\n")}`, "ok");
     const position = camera.position.clone(), yaw = look.yaw, pitch = look.pitch;
     await openZone(state.zone.name, true);
     camera.position.copy(position);
@@ -954,7 +1043,7 @@ async function saveAll() {
 // --- minimap -------------------------------------------------------------------------------------------
 
 // The area the minimap covers, in tiles: the zone's bounds and every chunk, plus a ring of empty cells
-// around a custom zone to grow it into.
+// around it to grow the zone into.
 function minimapArea() {
   const b = state.zone.bounds;
   let [x0, z0, x1, z1] = [b.startX, b.startZ, b.endX, b.endZ];
@@ -962,7 +1051,7 @@ function minimapArea() {
     x0 = Math.min(x0, c.col); z0 = Math.min(z0, c.row);
     x1 = Math.max(x1, c.col + 4); z1 = Math.max(z1, c.row + 4);
   }
-  return state.zone.stock ? { x0, z0, x1, z1 } : { x0: x0 - 4, z0: z0 - 4, x1: x1 + 4, z1: z1 + 4 };
+  return { x0: x0 - 4, z0: z0 - 4, x1: x1 + 4, z1: z1 + 4 };
 }
 
 function minimapTransform() {
@@ -970,7 +1059,7 @@ function minimapTransform() {
   const size = 220, pad = 8;
   const width = (a.x1 - a.x0) * 64, depth = (a.z1 - a.z0) * 64;
   const scale = (size - pad * 2) / Math.max(width, depth);
-  // Mirrored like the view: +x to the left, +z up.
+  // As the view looks from above with +z ahead: +x to the left, +z up.
   return {
     scale,
     toMap: (x, z) => [size - pad - (x - a.x0 * 64) * scale, size - pad - (z - a.z0 * 64) * scale],
@@ -1055,11 +1144,10 @@ const clock = new THREE.Clock();
 let minimapTimer = 0;
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1);
-  // Fly: the view is mirrored, so screen-right is the camera's -x.
   camera.rotation.set(look.pitch, look.yaw, 0, "YXZ");
   const forward = new THREE.Vector3(), right = new THREE.Vector3();
   camera.getWorldDirection(forward);
-  right.crossVectors(forward, camera.up).normalize().negate();
+  right.crossVectors(forward, camera.up).normalize();
   const speed = look.speed * (keys.has("shift") ? 4 : 1) * dt;
   if (!document.activeElement?.closest?.("input, textarea, select")) {
     if (keys.has("w")) camera.position.addScaledVector(forward, speed);
@@ -1085,13 +1173,20 @@ function frame() {
       const chunk = hover.chunk;
       const tile = chunk ? Math.floor((hover.z - chunk.z0) / 64) * 4 + Math.floor((hover.x - chunk.x0) / 64) : null;
       $("#status-cell").textContent = chunk
-        ? `chunk ${chunk.key}${chunk.editable ? (chunk.isNew ? " (new)" : "") : " (stock, read-only)"} · tile ${tile} env ${chunk.tiles[tile]?.environment} · ground ${hover.y.toFixed(1)}`
+        ? `chunk ${chunk.key}${chunk.isNew ? " (new)" : ""} · tile ${tile} env ${chunk.tiles[tile]?.environment} · ground ${hover.y.toFixed(1)}`
         : "";
     }
     $("#status-pos").textContent = `x ${camera.position.x.toFixed(0)}  y ${camera.position.y.toFixed(0)}  z ${camera.position.z.toFixed(0)}`;
     minimapTimer += dt;
-    if (minimapTimer > 0.25) { minimapTimer = 0; drawMinimap(); }
+    if (minimapTimer > 0.25) { minimapTimer = 0; drawMinimap(); updatePointLights(); updateEnvironmentSky(); }
   }
+  // The shadowed area follows the ground ahead of the camera, snapped to shadow texels so it doesn't shimmer.
+  const focus = camera.position.clone().addScaledVector(new THREE.Vector3(forward.x, 0, forward.z).normalize(), 120);
+  const texel = (sun.shadow.camera.right - sun.shadow.camera.left) / sun.shadow.mapSize.x;
+  focus.set(Math.round(focus.x / texel) * texel, terrain.heightAt(focus.x, focus.z) ?? camera.position.y - 50, Math.round(focus.z / texel) * texel);
+  sun.target.position.copy(focus);
+  sun.position.copy(focus).addScaledVector(sunDirection, 700);
+  skyDome.position.copy(camera.position);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
@@ -1102,8 +1197,33 @@ for (const button of document.querySelectorAll("#toolbar button")) button.addEve
 $("#open-zone").addEventListener("click", () => openZone($("#zone-search").value.trim()).then(buildWalls));
 $("#zone-search").addEventListener("keydown", (e) => { if (e.key === "Enter") openZone(e.target.value.trim()).then(buildWalls); });
 $("#save").addEventListener("click", saveAll);
+$("#play").addEventListener("click", async () => {
+  if (dirtyChunks().length || state.zoneDirty) await saveAll();
+  const servers = $("#play-servers").checked;
+  $("#play").disabled = true;
+  toast(servers ? "Restarting the servers and the client…" : "Restarting the client…");
+  try {
+    const result = await postJson("/api/play", { servers });
+    const unlock = result.unlock?.applied
+      ? (result.unlock.hidden.length ? `\nHid ${result.unlock.hidden.length} stock file(s) from the client's packs.` : "")
+      : `\n${result.unlock?.message || ""}`;
+    toast(`${result.ok ? (servers ? "Servers and client restarted." : "Client restarted.") : "launch.ps1 failed:"}${unlock}\n${result.output.split("\n").slice(-4).join("\n")}`, result.ok ? "ok" : "error");
+    if (result.ok && servers) $("#play-servers").checked = false;
+  } catch (error) {
+    toast(`Test in game failed: ${error.message}`, "error");
+  } finally {
+    $("#play").disabled = false;
+  }
+});
 $("#undo").addEventListener("click", undo);
-$("#view-radius").addEventListener("input", (e) => { terrain.radius = +e.target.value; terrain.uniforms.fogFar.value = 500 + 400 * terrain.radius; terrain.uniforms.fogNear.value = terrain.uniforms.fogFar.value * 0.6; });
+$("#view-radius").addEventListener("input", (e) => { terrain.radius = +e.target.value; });
+$("#time-of-day").addEventListener("input", (e) => {
+  state.time = +e.target.value;
+  $("#time-label").textContent = `${String(Math.floor(state.time)).padStart(2, "0")}:${String(Math.round(state.time % 1 * 60)).padStart(2, "0")}`;
+  applyTimeOfDay();
+});
+$("#show-details").addEventListener("change", (e) => { terrain.uniforms.detailStrength.value = e.target.checked ? 1 : 0; });
+$("#show-shadows").addEventListener("change", (e) => { sun.castShadow = e.target.checked; });
 $("#show-grid").addEventListener("change", (e) => { terrain.uniforms.showGrid.value = e.target.checked ? 1 : 0; });
 $("#show-lights").addEventListener("change", (e) => props.setLightsVisible(e.target.checked));
 window.addEventListener("beforeunload", (e) => { if (dirtyChunks().length || state.zoneDirty) e.preventDefault(); });

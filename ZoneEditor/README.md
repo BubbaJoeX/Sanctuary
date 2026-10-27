@@ -1,75 +1,87 @@
 # Zone editor
 
 A browser-based editor for Free Realms zones. Open FabledRealms (or any zone) straight from your client,
-add new chunks of land, sculpt terrain, paint eco layers and the colour map, place props and point lights,
-set the sky and spawn, and save. Saving writes the client files the WebAPI streams to players and the
-Sanctuary data that makes the zone playable.
+sculpt terrain, paint eco layers and the colour map, place props and point lights, add chunks, set the sky
+and spawn, save, and test it in game with one click. Saving writes the client files the WebAPI streams to
+players and the Sanctuary data that makes the zone playable.
 
 ```
 pip install numpy pillow
-python ZoneEditor/zone_editor.py
+python ZoneEditor/zone_editor.py --sanctuary D:\Sanctuary
 ```
 
 It indexes the client (default `%LOCALAPPDATA%/OSFRLauncher/Servers/OSFR Public Server/Client`, or `--client`),
-opens http://127.0.0.1:7050 and saves into the Sanctuary checkout it lives in (`--sanctuary` for another one).
-Assets the client doesn't ship are read from `--assets` (default `<sanctuary>/assets`, the local copy of the
-asset server) and then from the upstream asset server (`--upstream`, `''` to stay offline). The viewport
-loads three.js from jsDelivr.
+opens http://127.0.0.1:7050 and saves into the Sanctuary checkout given by `--sanctuary` (default: the one it
+lives in). Assets the client doesn't ship are read from `--assets` (default `<sanctuary>/assets`, the local
+copy of the asset server) and then from the upstream asset server (`--upstream`, `''` to stay offline). The
+viewport loads three.js from jsDelivr.
 
-## Stock zones and new zones
+## Editing any zone, stock ones included
 
-The client won't take a replacement for a file it ships in its read-only packs: it downloads the new crc,
-fails with "Attempt to update data that already exists in a non-writeable pack file", and a replaced
-`.gzne` leaves the zone hanging on load. Only new file names stream. So:
+Every zone is editable, FabledRealms too. A new zone (New zone…, blank or a copy of one such as a housing
+lot) saves under new names; a Housing zone also gets a Houses.json entry, and a copied lot keeps the
+original's spawn, exit door and build areas. Zones grow when chunks are added outside them.
 
-- **In a stock zone such as FabledRealms**, the stock chunks are read-only (shown greyed). Use the Chunks
-  tool to add chunks in the empty cells inside the zone's bounds (FabledRealms' run to x 6144 and z 5120;
-  stock land stops well short of that) and build there. A new chunk's edges are copied from the stock
-  land around it and stay pinned while you sculpt, so the seams don't open. The zone's eco list and bounds
-  are fixed, because its `.gzne` can't be replaced.
-- **A new zone** (New zone…) is all new names, so all of it is editable and it grows when you add chunks
-  outside it. Start from blank terrain or from a copy of an existing zone, such as a housing lot. A Housing
-  zone also gets a Houses.json entry; a copied lot keeps the original's spawn, exit door and build areas.
+Edits to a stock zone replace stock files, and the client won't update a file it holds in its read-only
+`Assets_NNN` packs: it fails with "Attempt to update data that already exists in a non-writeable pack file",
+and a replaced `FabledRealms.gzne` (which is in one) leaves the zone hanging on load. Most FabledRealms chunks
+were streamed into the client's writable `AssetsW` packs and update normally. For the rest, a save hides the
+client's stock copy (`install_client_mods.sync_stock_overrides`: the entry's name in the pack index starts
+with `~` instead, recorded in `sanctuary_stock_overrides.txt`), so the client downloads the edited file like
+any new one. That needs the client closed; Test in game does it, and `install_client_mods.py` applies it to
+other clients (`--uninstall` puts the names back).
 
-## What a save writes
+## Saving and testing
 
 | File | What it is |
 | --- | --- |
 | `src/Resources/ClientMods/<zone>_<row>_<col>.gcnk` | Terrain chunk: mesh, collision, eco blend map, props, lights, tile environments |
 | `src/Resources/ClientMods/<zone>_<row>_<col>.gck2` | The chunk's colour map |
-| `src/Resources/ClientMods/<zone>.gzne.z` | A new zone's eco list, flora, bounds and walls |
+| `src/Resources/ClientMods/<zone>.gzne.z` | The zone's eco list, flora, bounds and walls, when they change |
 | `src/Resources/Zones/<zone>.json` | Sanctuary's zone definition: id, type, bounds, spawn, sky |
 | `src/Resources/Zones/Environments/<zone>.json` | The server's per-tile environment grid, where the zone has one (FabledRealms) |
 | `src/Resources/Houses.json` | The house for a housing zone |
 | `ClientMods/sky/<sky>.xml` | A custom sky, also copied into your client's `Resources/SKY` |
 
-Only files that changed are written, and Sanctuary's hand-laid-out JSON (FabledRealms.json, Houses.json)
-is patched in place rather than reflowed. If the servers have been built, the same files are copied into `src/Sanctuary.WebAPI/bin/*/*/ClientMods` and
-`src/Sanctuary.Gateway/bin/*/*/Resources`. Restart the servers (`launch.ps1`) to load new zones; the WebAPI
-adds the client files to the manifest it serves and clients download them when they need them.
+Only files that changed are written. Sanctuary's JSON is read again at save time and only the editor's
+changes applied, so edits made meanwhile by other tools stay, and hand-laid-out files (FabledRealms.json,
+Houses.json) are patched in place rather than reflowed. Each save also copies the files into the built
+servers' folders (`src/Sanctuary.WebAPI/bin/*/*/ClientMods`, `src/Sanctuary.Gateway/bin/*/*/Resources`): the
+WebAPI rebuilds the manifest it serves as soon as they change, so the asset server has them right away.
 
-Getting there in game: `!moveplayer zone <zone id> <your name>` for a world zone; for a housing zone,
-`!house grant <house id>` and then `!house enter`. Skies don't stream, so other players need
-`ClientMods/install_client_mods.py` to install a custom one (it leaves zone files out of its pack, since
-they stream).
+**Test in game** saves, closes the client, hides replaced stock files and starts it again with
+`launch.ps1 -ClientOnly`, which loads your terrain, props and lights. Zone definitions, spawns and houses
+load when the Gateway starts, so a save that changes them ticks **+ servers**, which restarts everything
+with `launch.ps1 -NoBuild` instead. Getting there: `!moveplayer zone <zone id> <your name>` for a world zone;
+for a housing zone, `!house grant <house id>` and then `!house enter`.
 
 ## Tools
 
 | Tool | Key | |
 | --- | --- | --- |
-| Select | V | Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus. A prop dragged into another editable chunk moves into it. |
+| Select | V | Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus. A prop dragged into another chunk moves into it. |
 | Sculpt | B | Raise, lower (Shift swaps them), smooth, flatten (to where the stroke started), level (to a set height), noise. |
 | Eco | E | Paint one of the zone's ecos; the highlight shows where the selected eco is. Also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). A tile holds up to 5 ecos. |
 | Colour | C | Paint the colour map directly; Alt+click picks a colour. |
 | Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. |
 | Props | P | Search the client's actors, click to place. Shift+wheel turns the preview. |
 | Lights | L | Click the ground to add a point light; edit colour, range and intensity. |
-| Chunks | K | Click an empty cell, in the view or on the minimap, to add a chunk. |
-| Zone | Z | Spawn point and heading, zone sky or a custom sky XML, adding ecos to a new zone (from FabledRealms' list or a client `.eco`), house exit door and build areas. |
+| Chunks | K | Click an empty cell, in the view or on the minimap, to add a chunk. Its edges join the land around it. |
+| Zone | Z | Spawn point and heading, zone sky or a custom sky XML, adding ecos (from FabledRealms' list or a client `.eco`), house exit door and build areas. |
 
 Fly with the right mouse button and WASD/QE (Shift for speed, the wheel changes speed; in brush tools the
-wheel sizes the brush and Ctrl+wheel sets strength). Ctrl+Z undoes, Ctrl+S saves. The minimap shows stock
-chunks grey, editable ones green and unsaved ones gold; click it to fly there.
+wheel sizes the brush and Ctrl+wheel sets strength). Ctrl+Z undoes, Ctrl+S saves. The minimap shows chunks
+green and unsaved ones gold; click it to fly there.
+
+## The viewport
+
+It draws the world as the client does, with its coordinates as they are. The ground is the colour map with
+each eco's detail texture blended in by the eco weights (up to 4 per chunk). Props use their own normals and
+diffuse textures, uploaded as the client's DDS files with their mipmaps; cutout foliage, glass and water
+follow their material definitions. Lighting comes from the sky file in use, by time of day (the Time slider):
+sun colour, brightness and direction, fog, and sky and ground light from its ambient gradient. Without a zone
+sky it follows the environment of the tile under the camera, like the client. The sun casts shadows near the
+camera, and the zone's own point lights nearest the camera light the scene.
 
 ## How it works
 
@@ -80,6 +92,5 @@ stock meshes' own grid; saving rebuilds only the tiles whose heights changed, wi
 trees (`ClientMods/zone_terrain.py`), and keeps the rest as they were. The eco blend map's channel order
 and layering were matched against the stock colour maps.
 
-Not covered yet: chunks older than version 5 (a few minigame zones) don't load, flora and
-eco detail textures aren't drawn in the viewport (the colour map is), and invisible walls, client areas
-and groups are kept as they are but not editable.
+Not covered yet: chunks older than version 5 (a few minigame zones) don't load, flora isn't drawn, and
+invisible walls, client areas and groups are kept as they are but not editable.

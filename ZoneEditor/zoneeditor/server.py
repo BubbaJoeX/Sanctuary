@@ -110,11 +110,19 @@ class Handler(BaseHTTPRequestHandler):
         self.send(200, json.dumps({
             "min": model["min"], "max": model["max"],
             "meshes": [{"texture": m["texture"], "alpha": m["alpha"], "positions": b64(m["positions"]), "uvs": b64(m["uvs"]),
+                        "normals": b64(m["normals"]) if m["normals"] is not None else None,
                         "indices": b64(m["indices"])} for m in model["meshes"]],
         }).encode(), "application/json", cache=True)
 
     def get_texture(self, query, body):
         self.send(200, self.workspace.texture(query["name"], int(query.get("size", 512))), "image/png", cache=True)
+
+    def get_dds(self, query, body):
+        """A texture as the client has it, for the viewport to upload compressed with its own mipmaps."""
+        data = self.workspace.assets.read(query["name"])
+        if data[:4] != b"DDS ":
+            raise ValueError(f"{query['name']} is not a DDS texture")
+        self.send(200, data, "application/octet-stream", cache=True)
 
     def get_eco_colour(self, query, body):
         self.send_json(self.workspace.project(query["zone"]).eco_colour(int(query["index"])))
@@ -135,6 +143,9 @@ class Handler(BaseHTTPRequestHandler):
             data["name"], data.get("type", "World"), data.get("source") or None, int(data.get("width", 2)),
             int(data.get("depth", 2)), float(data.get("height", 0)), data.get("ecoZone"), data.get("ecoIndex"))
         self.send_json(project.meta())
+
+    def post_play(self, query, body):
+        self.send_json(self.workspace.play(bool(json.loads(body or b"{}").get("servers"))))
 
     def post_zone_eco(self, query, body):
         data = json.loads(body)

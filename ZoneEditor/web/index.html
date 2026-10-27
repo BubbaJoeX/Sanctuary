@@ -24,10 +24,15 @@
     <span id="zone-title"></span>
     <span class="spacer"></span>
     <label class="inline">View <input id="view-radius" type="range" min="1" max="5" value="2"></label>
+    <label class="inline" title="Time of day for the sky's lighting">Time <input id="time-of-day" type="range" min="0" max="23.75" step="0.25" value="12"> <span id="time-label">12:00</span></label>
+    <label class="inline"><input id="show-details" type="checkbox" checked> Detail</label>
+    <label class="inline"><input id="show-shadows" type="checkbox" checked> Shadows</label>
     <label class="inline"><input id="show-grid" type="checkbox" checked> Grid</label>
     <label class="inline"><input id="show-lights" type="checkbox" checked> Lights</label>
     <button id="undo" title="Ctrl+Z">Undo</button>
     <button id="save" class="primary" title="Ctrl+S">Save</button>
+    <button id="play" title="Save, then restart the game client so it loads your changes">Test in game</button>
+    <label class="inline" title="Also restart the servers (needed for zone, spawn and house changes)"><input id="play-servers" type="checkbox"> + servers</label>
   </header>
 
   <nav id="toolbar">

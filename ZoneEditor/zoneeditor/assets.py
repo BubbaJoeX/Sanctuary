@@ -83,7 +83,8 @@ class AssetSource:
         self.unavailable = set()
         self._lock = threading.Lock()
 
-        # Stock manifest: lowercase plain name -> (listed name, crc of the uncompressed asset).
+        # The client's manifest: lowercase plain name -> (listed name, crc of the uncompressed asset). It's the
+        # copy the server last served, so once the client has met Sanctuary it lists the client mods too.
         self.manifest = {}
         manifest = client_dir / "Assets_manifest.txt"
         if manifest.exists():
@@ -102,19 +103,22 @@ class AssetSource:
                     for entry in os.scandir(bucket.path):
                         self.mirror[entry.name.removesuffix(".z").lower()] = Path(entry.path)
 
+    def _mods(self) -> dict:
+        """ClientMods by lowercase plain name, re-listed whenever the folder changes."""
+        stamp = self.mods_dir.stat().st_mtime_ns if self.mods_dir.is_dir() else None
+        if getattr(self, "_mods_stamp", object()) != stamp:
+            self._mods_index = {path.name.lower().removesuffix(".z"): path for path in self.mods_dir.iterdir()} if stamp else {}
+            self._mods_stamp = stamp
+        return self._mods_index
+
     def mod_path(self, name: str) -> Path | None:
-        for candidate in (self.mods_dir / name, self.mods_dir / (name + ".z")):
-            if candidate.exists():
-                return candidate
-        if self.mods_dir.is_dir():
-            lower = name.lower()
-            for path in self.mods_dir.iterdir():
-                if path.name.lower().removesuffix(".z") == lower:
-                    return path
-        return None
+        path = self._mods().get(name.lower())
+        return path if path and path.exists() else None
 
     def is_stock(self, name: str) -> bool:
-        return name.lower() in self.manifest
+        """A name the client had before Sanctuary's mods (listed, and not published from ClientMods), or one
+        it ships in a read-only pack: neither can be replaced from the server."""
+        return self.in_readonly_pack(name) or (name.lower() in self.manifest and self.mod_path(name) is None)
 
     def in_readonly_pack(self, name: str) -> bool:
         """True when the client ships this name in a read-only pack, so a server copy can never replace it."""
@@ -128,9 +132,7 @@ class AssetSource:
 
     def names(self, suffix: str = "") -> set:
         """Lowercase names of every known asset, optionally only those ending with suffix."""
-        names = set(self.manifest) | set(self.packs) | set(self.mirror)
-        if self.mods_dir.is_dir():
-            names |= {path.name.lower().removesuffix(".z") for path in self.mods_dir.iterdir()}
+        names = set(self.manifest) | set(self.packs) | set(self.mirror) | set(self._mods())
         return {name for name in names if name.endswith(suffix)} if suffix else names
 
     def read(self, name: str, stock: bool = False) -> bytes:

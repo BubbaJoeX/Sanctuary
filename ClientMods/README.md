@@ -80,7 +80,9 @@ zone editor saved in `sky/` to `Resources/SKY`.
 
 Zone files in `src/Resources/ClientMods` (`.gzne`, `.gcnk`, `.gck2`, minimap tiles, from `fork_zone.py`,
 `zone_terrain.py` or the [zone editor](../ZoneEditor/README.md)) are left out of the pack: they stream, and
-in a read-only pack the client couldn't take a later edit of them.
+in a read-only pack the client couldn't take a later edit of them. Where a mod replaces a stock asset the
+client keeps in a read-only pack (an edited FabledRealms file), the installer hides that pack entry (its name
+starts with `~` instead, recorded in `sanctuary_stock_overrides.txt`) so the client downloads the mod.
 
 Undo it with `--uninstall`.
 

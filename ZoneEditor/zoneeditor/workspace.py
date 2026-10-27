@@ -130,6 +130,28 @@ def write_json(path: Path, data, keys: list | None = None) -> bool:
     return True
 
 
+def _set_environments(env: dict, cells: dict):
+    """Sets tiles of a zone's environment grid, Rows[x tile - start][z tile - start], growing it (with
+    out-of-bounds, -1) to fit."""
+    rows = env["Rows"]
+    xs = [x for x, _ in cells]
+    zs = [z for _, z in cells]
+    while min(xs) < env["StartLongitude"]:
+        rows.insert(0, [-1] * len(rows[0]))
+        env["StartLongitude"] -= 1
+    while min(zs) < env["StartLatitude"]:
+        for r in rows:
+            r.insert(0, -1)
+        env["StartLatitude"] -= 1
+    while env["StartLongitude"] + len(rows) <= max(xs):
+        rows.append([-1] * len(rows[0]))
+    while env["StartLatitude"] + len(rows[0]) <= max(zs):
+        for r in rows:
+            r.append(-1)
+    for (x, z), environment in cells.items():
+        rows[x - env["StartLongitude"]][z - env["StartLatitude"]] = environment
+
+
 def png(rgb: np.ndarray) -> bytes:
     from PIL import Image
 
@@ -173,10 +195,11 @@ class Workspace:
             name = lower[: -len(".gzne")]
             listed = self.assets.manifest.get(lower, (None,))[0]
             mod = self.assets.mod_path(name + ".gzne")
-            display = (listed.removesuffix(".z")[: -len(".gzne")] if listed
-                       else mod.name.removesuffix(".z")[: -len(".gzne")] if mod else name)
+            display = (mod.name.removesuffix(".z")[: -len(".gzne")] if mod
+                       else listed.removesuffix(".z")[: -len(".gzne")] if listed else name)
+            stock = self.assets.is_stock(name + ".gzne")
             definition = definitions.get(name, (None, {}))[1]
-            zones.append({"name": display, "stock": listed is not None, "custom": mod is not None and listed is None,
+            zones.append({"name": display, "stock": stock, "custom": not stock,
                           "type": definition.get("Type"), "id": definition.get("Id")})
         return zones
 
@@ -369,6 +392,42 @@ class Workspace:
         path = self.resources / "Houses.json"
         return json.loads(path.read_text(encoding="utf-8-sig")) if path.exists() else []
 
+    # --- the game ------------------------------------------------------------------------------------
+
+    def unlock_client(self) -> dict:
+        """Hides the stock assets the client mods replace from the client's read-only packs, so it downloads
+        the edited ones (install_client_mods.sync_stock_overrides). Needs the client closed."""
+        import install_client_mods
+
+        try:
+            hidden, restored = install_client_mods.sync_stock_overrides(self.client_dir, self.mods_dir)
+            return {"applied": True, "hidden": hidden, "restored": restored}
+        except RuntimeError as error:
+            return {"applied": False, "message": str(error)}
+
+    def play(self, servers: bool) -> dict:
+        """Closes the client, hides replaced stock assets and starts it again with launch.ps1: the servers
+        too when servers is set, since zone definitions and houses load at startup."""
+        import subprocess
+        import time
+
+        import install_client_mods
+
+        subprocess.run(["taskkill", "/IM", "FreeRealms.exe", "/F"], capture_output=True)
+        for _ in range(40):
+            if not install_client_mods.client_running():
+                break
+            time.sleep(0.25)
+        unlock = self.unlock_client()
+        script = self.root / "launch.ps1"
+        if not script.exists():
+            raise FileNotFoundError(f"{script} not found; start the client yourself")
+        arguments = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
+                     "-NoBuild" if servers else "-ClientOnly"]
+        result = subprocess.run(arguments, capture_output=True, text=True, timeout=300, cwd=self.root)
+        return {"ok": result.returncode == 0, "servers": servers, "unlock": unlock,
+                "output": (result.stdout + result.stderr).strip()[-1500:]}
+
     # --- output folders ------------------------------------------------------------------------------
 
     def mirror(self, paths: list) -> list:
@@ -401,15 +460,16 @@ class ZoneProject:
         assets = workspace.assets
         listed = assets.manifest.get(name.lower() + ".gzne")
         mod = assets.mod_path(name + ".gzne")
-        if listed:
-            self.name = listed[0].removesuffix(".z")[: -len(".gzne")]
-        elif mod:
+        if mod:
             self.name = mod.name.removesuffix(".z")[: -len(".gzne")]
+        elif listed:
+            self.name = listed[0].removesuffix(".z")[: -len(".gzne")]
         else:
             raise KeyError(f"No zone named {name}")
-        self.stock = listed is not None
+        self.stock = assets.is_stock(self.name + ".gzne")
         self.zone = Zone.read(assets.read(self.name + ".gzne"))
         self.zone_dirty = False
+        self.environment_cells = {}            # (x tile, z tile) -> environment, for the server's grid
         self.lock = threading.RLock()
         self.written = []
 
@@ -432,7 +492,8 @@ class ZoneProject:
     # --- reading -------------------------------------------------------------------------------------
 
     def editable(self, row: int, col: int) -> bool:
-        return self.chunk_cells.get((row, col)) != "stock"
+        # Every chunk: a saved stock chunk is hidden from the client's read-only packs (Workspace.unlock_client).
+        return True
 
     def in_bounds(self, row: int, col: int) -> bool:
         z = self.zone
@@ -468,6 +529,8 @@ class ZoneProject:
             houses = [h for h in self.ws._houses() if h.get("ZoneId") == self.definition.get("Id")]
         return {
             "name": self.name, "stock": self.stock, "version": z.version,
+            # A Sanctuary zone that install_client_mods.py put in the client's read-only pack: locked like stock.
+            "installed": self.stock and self.ws.assets.mod_path(self.name + ".gzne") is not None,
             "bounds": {"startX": z.start_x, "startZ": z.start_z, "endX": z.end_x, "endZ": z.end_z},
             "ecos": [{"index": e.index, "name": e.name, "texture": e.texture, "repeat": e.repeat,
                       "floras": [f.name for f in e.floras]} for e in z.ecos],
@@ -478,7 +541,7 @@ class ZoneProject:
             "definition": self.definition, "houses": houses,
             "environments": self.ws.terrain_environments(),
             "skies": self.ws.skies(),
-            "ecoDefinitions": self.ws.eco_definitions() if not self.stock else [],
+            "ecoDefinitions": self.ws.eco_definitions(),
         }
 
     def chunk_payload(self, row: int, col: int, lite: bool = False):
@@ -583,11 +646,7 @@ class ZoneProject:
         """
         if row % CHUNK_STEP or col % CHUNK_STEP:
             raise ValueError("Chunk rows and columns are multiples of 4")
-        if not self.editable(row, col):
-            raise PermissionError(f"{self.name}_{row}_{col} is a stock chunk; the client can't take a replacement")
         new = (row, col) not in self.chunk_cells
-        if new and self.stock and not self.in_bounds(row, col):
-            raise ValueError(f"{row}_{col} is outside {self.name}'s bounds, which a stock zone can't grow")
 
         with self.lock:
             record, version = self._template()
@@ -604,8 +663,10 @@ class ZoneProject:
                 terrain.rebuild_tiles(chunk, row, col, heights, padded, dirty, record)
 
             for t, environment in enumerate(meta.get("environments") or []):
-                if t < len(chunk.tiles) and environment is not None:
+                if t < len(chunk.tiles) and environment is not None and chunk.tiles[t].environment != int(environment):
                     chunk.tiles[t].environment = int(environment)
+                    if self.environments is not None:
+                        self.environment_cells[(chunk.tiles[t].col, chunk.tiles[t].row)] = int(environment)
 
             if weights is not None:
                 formats.encode_eco_weights(chunk, [int(e) for e in meta["ecos"]], weights)
@@ -697,38 +758,19 @@ class ZoneProject:
                 tile.lights = formats.write_lights(tile_lights)
 
     def _grow(self, row: int, col: int, environment: int):
-        """A new chunk widens a custom zone's bounds and fills its cells in the server's environment grid."""
+        """A new chunk widens the zone's bounds and fills its cells in the server's environment grid."""
         z = self.zone
-        if not self.stock:
-            grown = (min(z.start_x, col), min(z.start_z, row), max(z.end_x, col + CHUNK_TILES), max(z.end_z, row + CHUNK_TILES))
-            if grown != (z.start_x, z.start_z, z.end_x, z.end_z):
-                z.start_x, z.start_z, z.end_x, z.end_z = grown
-                self.zone_dirty = True
+        grown = (min(z.start_x, col), min(z.start_z, row), max(z.end_x, col + CHUNK_TILES), max(z.end_z, row + CHUNK_TILES))
+        if grown != (z.start_x, z.start_z, z.end_x, z.end_z):
+            z.start_x, z.start_z, z.end_x, z.end_z = grown
+            self.zone_dirty = True
         if self.environments is not None:
-            env = self.environments
-            rows = env["Rows"]
-            # Rows[longitude (x tile) - start][latitude (z tile) - start]; pad with out of bounds (-1).
-            while col < env["StartLongitude"]:
-                rows.insert(0, [-1] * len(rows[0]))
-                env["StartLongitude"] -= 1
-            while row < env["StartLatitude"]:
-                for r in rows:
-                    r.insert(0, -1)
-                env["StartLatitude"] -= 1
-            while env["StartLongitude"] + len(rows) < col + CHUNK_TILES:
-                rows.append([-1] * len(rows[0]))
-            while env["StartLatitude"] + len(rows[0]) < row + CHUNK_TILES:
-                for r in rows:
-                    r.append(-1)
             for x in range(col, col + CHUNK_TILES):
                 for zt in range(row, row + CHUNK_TILES):
-                    rows[x - env["StartLongitude"]][zt - env["StartLatitude"]] = environment
-            self.zone_dirty = True
+                    self.environment_cells[(x, zt)] = environment
 
     def add_eco(self, source_zone: str | None, source_index: int | None, definition: str | None) -> dict:
-        """Adds an eco to a custom zone's list, from another zone's list or from a client .eco file."""
-        if self.stock:
-            raise PermissionError(f"{self.name} is a stock zone; its eco list can't change")
+        """Adds an eco to the zone's list, from another zone's list or from a client .eco file."""
         index = max([e.index for e in self.zone.ecos] + [-1]) + 1
         if definition:
             flora_textures = {}
@@ -752,10 +794,14 @@ class ZoneProject:
                 "floras": [f.name for f in eco.floras]}
 
     def save_zone(self, settings: dict) -> dict:
-        """Writes the zone file (custom zones), the Sanctuary zone definition, environments and house."""
+        """Writes the zone file, the Sanctuary zone definition, environments and house.
+
+        Sanctuary's JSON is read again here and only the editor's changes applied to it, so whatever else
+        changed it since the zone was opened (another tool, another session) stays.
+        """
         written = []
         with self.lock:
-            if not self.stock and self.zone_dirty:
+            if self.zone_dirty:
                 path = self.ws.mods_dir / f"{self.name}.gzne.z"
                 plain = self.ws.mods_dir / f"{self.name}.gzne"
                 if plain.exists():
@@ -764,7 +810,8 @@ class ZoneProject:
                 written.append(path)
 
             if self.definition is not None:
-                definition = self.definition
+                self.definition_path, definition = self.ws.definitions().get(self.name.lower(), (self.definition_path, self.definition))
+                self.definition = definition
                 if "spawnPosition" in settings:
                     x, y, z = settings["spawnPosition"]
                     definition["SpawnPosition"] = [round(x, 3), round(y, 3), round(z, 3)]
@@ -776,7 +823,7 @@ class ZoneProject:
                         definition["Sky"] = settings["sky"]
                     else:
                         definition.pop("Sky", None)
-                if not self.stock:
+                if self.zone_dirty or not self.stock:
                     z = self.zone
                     definition.update({"StartLatitude": z.start_z, "StartLongitude": z.start_x,
                                        "EndLatitude": z.end_z, "EndLongitude": z.end_x})
@@ -785,10 +832,14 @@ class ZoneProject:
                     written.append(path)
                 self.definition_path = path
 
-            if self.environments is not None and self.zone_dirty:
-                path = self.ws.zones_dir / "Environments" / f"{self.name}.json"
-                if write_json(path, self.environments):
+            path = self.ws.zones_dir / "Environments" / f"{self.name}.json"
+            if self.environment_cells and path.exists():
+                environments = json.loads(path.read_text(encoding="utf-8-sig"))
+                _set_environments(environments, self.environment_cells)
+                if write_json(path, environments):
                     written.append(path)
+                self.environments = environments
+                self.environment_cells = {}
 
             if settings.get("houses") is not None and self.definition is not None:
                 houses = self.ws._houses()
@@ -812,4 +863,9 @@ class ZoneProject:
             written += self.written
             self.written = []
         copies = self.ws.mirror(written)
-        return {"files": [str(p) for p in written], "mirrored": copies}
+        # Stock assets this save replaced: the client has to stop reading them from its read-only packs.
+        overrides = sorted({p.name.removesuffix(".z") for p in written if self.ws.assets.in_readonly_pack(p.name.removesuffix(".z"))})
+        unlock = self.ws.unlock_client() if overrides else None
+        server_data = any(self.ws.resources in p.parents and self.ws.mods_dir not in p.parents for p in written)
+        return {"files": [str(p) for p in written], "mirrored": copies, "overrides": overrides, "unlock": unlock,
+                "serverData": server_data}

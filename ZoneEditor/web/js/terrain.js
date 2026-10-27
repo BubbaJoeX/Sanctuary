@@ -1,10 +1,14 @@
 // Terrain chunks in the viewport: streaming, drawing, picking and the sculpt and paint brushes.
 //
-// Everything here is in Free Realms coordinates (x, y up, z). The camera's projection mirrors x so the
-// client's left-handed world doesn't show up mirrored. A chunk is 256 x 256 units: heights every 2 units
-// (129 x 129, [i along x][j along z]), eco weights 512 x 512 and its colour map 1024 x 1024, both [x][z].
+// Everything here is in Free Realms coordinates (x, y up, z), which the viewport shows as they are. A chunk
+// is 256 x 256 units: heights every 2 units (129 x 129, [i along x][j along z]), eco weights 512 x 512 and its
+// colour map 1024 x 1024, both [x][z].
+//
+// The ground is drawn like the client's: the colour map tints it, and each eco's detail texture (tiled every
+// 256 / repeat units) adds its texture, blended by the eco weights. Up to 4 ecos per chunk are drawn.
 import * as THREE from "three";
 import { loadChunk } from "./api.js";
+import { loadTexture } from "./textures.js";
 
 export const SAMPLES = 129;
 export const STEP = 2;
@@ -12,71 +16,73 @@ export const CHUNK = 256;
 export const TILE = 64;
 export const ECO = 512;
 export const COLOUR = 1024;
+const DETAILS = 4;
 
-const vertexShader = /* glsl */ `
-  varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec2 vWorld;
-  varying float vDepth;
-  void main() {
-    vUv = uv;
-    vNormal = normal;
-    vWorld = position.xz;
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    vDepth = -mv.z;
-    gl_Position = projectionMatrix * mv;
-  }`;
+const vertexPrelude = /* glsl */ `
+  varying vec2 vWorldXZ;`;
 
-const fragmentShader = /* glsl */ `
-  uniform sampler2D map;
+const vertexWorld = /* glsl */ `
+  vWorldXZ = (modelMatrix * vec4(transformed, 1.0)).xz;`;
+
+const fragmentPrelude = /* glsl */ `
+  varying vec2 vWorldXZ;
+  uniform sampler2D detailWeights;
+  uniform sampler2D detail0, detail1, detail2, detail3;
+  uniform vec3 detailMean0, detailMean1, detailMean2, detailMean3;
+  uniform vec4 detailPeriod;
+  uniform float detailStrength;
   uniform sampler2D ecoMap;
-  uniform sampler2D envMap;
+  uniform sampler2D tileEnvMap;
   uniform float ecoOverlay;
   uniform float envOverlay;
-  uniform float locked;
   uniform float pending;
   uniform float showGrid;
-  uniform vec3 sunDir;
-  uniform vec3 sunColor;
-  uniform vec3 ambient;
-  uniform vec3 fogColor;
-  uniform float fogNear;
-  uniform float fogFar;
   uniform vec3 brush;          // x, z, radius; radius 0 hides it
   uniform vec3 brushColor;
-  varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec2 vWorld;
-  varying float vDepth;
+
+  vec3 detailSample(sampler2D tex, vec3 mean, float period) {
+    return texture2D(tex, vWorldXZ / period).rgb / max(mean, vec3(0.02));
+  }
 
   float gridLine(vec2 p, float spacing, float width) {
     vec2 d = abs(fract(p / spacing + 0.5) - 0.5) * spacing;
     vec2 w = fwidth(p) * width;
     vec2 l = 1.0 - smoothstep(vec2(0.0), w, d);
     return max(l.x, l.y);
-  }
-
-  void main() {
-    vec3 base = texture2D(map, vUv).rgb;
-    base = mix(base, vec3(1.0, 0.2, 0.85), texture2D(ecoMap, vUv).r * ecoOverlay * 0.65);
-    base = mix(base, texture2D(envMap, vUv).rgb, envOverlay * 0.5);
-    vec3 n = normalize(vNormal);
-    vec3 colour = base * (ambient + sunColor * max(dot(n, sunDir), 0.0));
-    if (locked > 0.5) colour = mix(colour, vec3(dot(colour, vec3(0.3, 0.59, 0.11))) * vec3(0.78, 0.84, 1.0), 0.3);
-    if (pending > 0.5) colour = mix(colour, vec3(1.0, 0.85, 0.3), 0.12);
-    if (showGrid > 0.5) {
-      colour = mix(colour, vec3(1.0), gridLine(vWorld, 64.0, 1.0) * 0.18);
-      colour = mix(colour, vec3(1.0, 0.9, 0.4), gridLine(vWorld, 256.0, 1.5) * 0.55);
-    }
-    if (brush.z > 0.0) {
-      float d = length(vWorld - brush.xy);
-      float px = fwidth(d);
-      float ring = 1.0 - smoothstep(0.0, px * 2.0, abs(d - brush.z));
-      float inner = (1.0 - smoothstep(brush.z * 0.98, brush.z, d)) * 0.08;
-      colour = mix(colour, brushColor, clamp(ring + inner, 0.0, 1.0));
-    }
-    gl_FragColor = vec4(mix(colour, fogColor, smoothstep(fogNear, fogFar, vDepth)), 1.0);
   }`;
+
+// After the colour map: the eco detail textures, each divided by its mean so the colour map keeps the tint.
+const detailBlend = /* glsl */ `
+  vec4 dw = texture2D(detailWeights, vMapUv);
+  float dsum = dw.r + dw.g + dw.b + dw.a;
+  if (dsum > 0.001 && detailStrength > 0.0) {
+    vec3 detail = dw.r * detailSample(detail0, detailMean0, detailPeriod.x)
+                + dw.g * detailSample(detail1, detailMean1, detailPeriod.y)
+                + dw.b * detailSample(detail2, detailMean2, detailPeriod.z)
+                + dw.a * detailSample(detail3, detailMean3, detailPeriod.w);
+    diffuseColor.rgb *= mix(vec3(1.0), clamp(detail / dsum, 0.0, 3.0), detailStrength);
+  }`;
+
+// After lighting, before fog: what the editor draws over the ground.
+const overlays = /* glsl */ `
+  vec3 shown = gl_FragColor.rgb;
+  shown = mix(shown, vec3(1.0, 0.05, 0.7), texture2D(ecoMap, vMapUv).r * ecoOverlay * 0.6);
+  shown = mix(shown, texture2D(tileEnvMap, vMapUv).rgb, envOverlay * 0.5);
+  if (pending > 0.5) shown = mix(shown, vec3(1.0, 0.7, 0.1), 0.1);
+  if (showGrid > 0.5) {
+    shown = mix(shown, vec3(1.0), gridLine(vWorldXZ, 64.0, 1.0) * 0.15);
+    shown = mix(shown, vec3(1.0, 0.8, 0.2), gridLine(vWorldXZ, 256.0, 1.5) * 0.5);
+  }
+  if (brush.z > 0.0) {
+    float d = length(vWorldXZ - brush.xy);
+    float ring = 1.0 - smoothstep(0.0, fwidth(d) * 2.0, abs(d - brush.z));
+    float inner = (1.0 - smoothstep(brush.z * 0.98, brush.z, d)) * 0.08;
+    shown = mix(shown, brushColor, clamp(ring + inner, 0.0, 1.0));
+  }
+  gl_FragColor.rgb = shown;`;
+
+const blankTexture = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+blankTexture.needsUpdate = true;
 
 const ENV_PALETTE = [
   [230, 90, 90], [90, 200, 110], [90, 140, 240], [240, 200, 70], [200, 110, 230], [80, 210, 210],
@@ -126,35 +132,80 @@ export class TerrainChunk {
     this.dirty = { heights: this.isNew, ecos: this.isNew, colour: this.isNew, objects: this.isNew, lights: this.isNew, environment: this.isNew };
 
     this.colourTexture = new THREE.DataTexture(this.colour, this.colourSize, this.colourSize, THREE.RGBAFormat);
+    this.colourTexture.colorSpace = THREE.SRGBColorSpace;
     this.colourTexture.magFilter = THREE.LinearFilter;
     this.colourTexture.minFilter = THREE.LinearMipmapLinearFilter;
     this.colourTexture.generateMipmaps = true;
+    this.colourTexture.anisotropy = manager.anisotropy;
     this.colourTexture.needsUpdate = true;
     this.ecoPixels = new Uint8Array(ECO * ECO);
     this.ecoTexture = new THREE.DataTexture(this.ecoPixels, ECO, ECO, THREE.RedFormat);
     this.ecoTexture.magFilter = THREE.LinearFilter;
     this.ecoTexture.needsUpdate = true;
+    this.detailPixels = new Uint8Array(ECO * ECO * 4);
+    this.detailTexture = new THREE.DataTexture(this.detailPixels, ECO, ECO, THREE.RGBAFormat);
+    this.detailTexture.magFilter = THREE.LinearFilter;
     this.envPixels = new Uint8Array(16 * 4);
     this.envTexture = new THREE.DataTexture(this.envPixels, 4, 4, THREE.RGBAFormat);
     this.envTexture.magFilter = this.envTexture.minFilter = THREE.NearestFilter;
     this.updateEnvironmentTexture();
 
-    this.material = new THREE.ShaderMaterial({
-      vertexShader, fragmentShader, side: THREE.DoubleSide,
-      uniforms: {
-        ...manager.uniforms,
-        map: { value: this.colourTexture },
-        ecoMap: { value: this.ecoTexture },
-        envMap: { value: this.envTexture },
-        locked: { value: this.editable ? 0 : 1 },
-        pending: { value: this.isNew ? 1 : 0 },
-      },
-    });
+    this.uniforms = {
+      detailWeights: { value: this.detailTexture },
+      ecoMap: { value: this.ecoTexture },
+      tileEnvMap: { value: this.envTexture },
+      pending: { value: this.isNew ? 1 : 0 },
+      detailPeriod: { value: new THREE.Vector4(32, 32, 32, 32) },
+    };
+    for (let k = 0; k < DETAILS; k++) {
+      this.uniforms[`detail${k}`] = { value: blankTexture };
+      this.uniforms[`detailMean${k}`] = { value: new THREE.Color(1, 1, 1) };
+    }
+    this.updateDetailWeights();
+
+    this.material = new THREE.MeshLambertMaterial({ map: this.colourTexture });
+    this.material.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, manager.uniforms, this.uniforms);
+      shader.vertexShader = shader.vertexShader
+        .replace("#include <common>", "#include <common>\n" + vertexPrelude)
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\n" + vertexWorld);
+      shader.fragmentShader = shader.fragmentShader
+        .replace("#include <common>", "#include <common>\n" + fragmentPrelude)
+        .replace("#include <map_fragment>", "#include <map_fragment>\n" + detailBlend)
+        .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n" + overlays);
+    };
+    this.material.customProgramCacheKey = () => "fr-terrain";
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.material);
     this.mesh.userData.chunk = this;
-    this.mesh.frustumCulled = true;
+    this.mesh.castShadow = this.mesh.receiveShadow = true;
     this.group = new THREE.Group();
     this.group.add(this.mesh);
+  }
+
+  // The chunk's 4 heaviest ecos as the detail textures it draws, with their weights renormalized among them.
+  updateDetailWeights() {
+    const count = this.ecos.length;
+    const totals = this.ecos.map((_, k) => {
+      let sum = 0;
+      for (let t = k; t < this.weights.length; t += count * 97) sum += this.weights[t];
+      return sum;
+    });
+    const chosen = totals.map((total, k) => [total, k]).sort((a, b) => b[0] - a[0]).slice(0, DETAILS).map(([, k]) => k);
+    for (let t = 0; t < ECO * ECO; t++) {
+      let sum = 0;
+      for (const k of chosen) sum += this.weights[t * count + k];
+      for (let slot = 0; slot < DETAILS; slot++) {
+        const k = chosen[slot];
+        this.detailPixels[t * 4 + slot] = k === undefined || !sum ? 0 : Math.round(this.weights[t * count + k] * 255 / sum);
+      }
+    }
+    for (let slot = 0; slot < DETAILS; slot++) {
+      const detail = chosen[slot] === undefined ? null : this.manager.detail(this.ecos[chosen[slot]]);
+      this.uniforms[`detail${slot}`].value = detail?.texture ?? blankTexture;
+      this.uniforms[`detailMean${slot}`].value = detail?.mean ?? new THREE.Color(1, 1, 1);
+      this.uniforms.detailPeriod.value.setComponent(slot, detail?.period ?? 32);
+    }
+    this.detailTexture.needsUpdate = true;
   }
 
   get anyDirty() {
@@ -179,7 +230,8 @@ export class TerrainChunk {
       for (let j = 0; j < n - 1; j++) {
         const a = i * n + j, b = a + 1, c = a + n, d = c + 1;
         if ([a, b, c, d].some((k) => Number.isNaN(this.heights[k]))) continue;
-        indices.push(a, c, b, b, c, d);
+        // Counter-clockwise seen from above (+y), so the ground's front faces point up.
+        indices.push(a, b, c, b, d, c);
       }
     }
     const geometry = new THREE.BufferGeometry();
@@ -266,6 +318,7 @@ export class TerrainChunk {
     this.material.dispose();
     this.colourTexture.dispose();
     this.ecoTexture.dispose();
+    this.detailTexture.dispose();
     this.envTexture.dispose();
   }
 }
@@ -280,16 +333,13 @@ export class TerrainManager {
     this.zone = null;
     this.radius = 2;
     this.selectedEco = null;
+    this.anisotropy = 1;
+    this.details = new Map();      // eco index -> { texture, mean, period }
     this.uniforms = {
       ecoOverlay: { value: 0 },
       envOverlay: { value: 0 },
       showGrid: { value: 1 },
-      sunDir: { value: new THREE.Vector3(-0.45, 0.8, -0.4).normalize() },
-      sunColor: { value: new THREE.Color(0.85, 0.85, 0.8) },
-      ambient: { value: new THREE.Color(0.55, 0.57, 0.62) },
-      fogColor: { value: new THREE.Color(0.62, 0.74, 0.86) },
-      fogNear: { value: 900 },
-      fogFar: { value: 1500 },
+      detailStrength: { value: 1 },
       brush: { value: new THREE.Vector3(0, 0, 0) },
       brushColor: { value: new THREE.Color(1, 0.85, 0.2) },
     };
@@ -300,8 +350,22 @@ export class TerrainManager {
     this.chunks.clear();
     this.loading.clear();
     this.cells.clear();
+    this.details.clear();
     this.zone = zone;
     for (const cell of zone.chunks) this.cells.set(`${cell.row}_${cell.col}`, cell);
+  }
+
+  // An eco's detail texture, its mean colour (linear, filled in when known) and how many units one repeat covers.
+  detail(ecoIndex) {
+    if (!this.details.has(ecoIndex)) {
+      const eco = this.zone.ecos.find((e) => e.index === ecoIndex);
+      if (!eco) return null;
+      const entry = { texture: loadTexture(eco.texture), mean: new THREE.Color(0.5, 0.5, 0.5), period: 256 / Math.max(eco.repeat || 8, 1) };
+      fetch(`/api/eco-colour?zone=${encodeURIComponent(this.zone.name)}&index=${ecoIndex}`).then((r) => r.json())
+        .then(([r, g, b]) => entry.mean.setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace)).catch(() => {});
+      this.details.set(ecoIndex, entry);
+    }
+    return this.details.get(ecoIndex);
   }
 
   cellAt(x, z) {
@@ -345,10 +409,9 @@ export class TerrainManager {
 
   async load(cell) {
     const zoneName = this.zone.name;
-    const lite = !cell.editable;
     let data;
     try {
-      data = await loadChunk(zoneName, cell.row, cell.col, lite);
+      data = await loadChunk(zoneName, cell.row, cell.col, false);
     } catch (error) {
       this.events.status(`Chunk ${cell.row}_${cell.col}: ${error.message}`);
       cell.failed = true;
@@ -547,6 +610,7 @@ export class TerrainManager {
       if (tint) this.paintColourIn(chunk, tint, x, z, radius, a * tintAmount);
       chunk.dirty.ecos = true;
       if (this.selectedEco !== null) chunk.updateEcoTexture(this.selectedEco);
+      chunk.updateDetailWeights();
       count++;
     }
     return count;
@@ -614,8 +678,6 @@ export class TerrainManager {
   createChunk(row, col, baseHeight, ecoIndex, environment, tint) {
     const key = `${row}_${col}`;
     if (this.cells.has(key)) throw new Error(`There's already a chunk at ${key}`);
-    // A stock zone's .gzne can't be replaced, so its bounds are fixed; a custom zone grows when saved.
-    if (this.zone.stock && !this.inBounds(row, col)) throw new Error(`${key} is outside ${this.zone.name}'s bounds, which a stock zone can't grow`);
     const heights = new Float32Array(SAMPLES * SAMPLES).fill(baseHeight);
     const fixed = new Uint8Array(SAMPLES * SAMPLES);
     const x0 = col * TILE, z0 = row * TILE;

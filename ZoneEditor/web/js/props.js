@@ -3,9 +3,8 @@
 // A prop record is what the server sends and gets back: { uid?, copyOf?, file, position, rotation, scale, tile? }.
 // Rotation is (yaw, pitch, roll) in radians, applied like D3DXMatrixRotationYawPitchRoll: three's 'YXZ' order.
 import * as THREE from "three";
-import { decodeBase64, getJson } from "./api.js";
-
-const textureLoader = new THREE.TextureLoader();
+import { ASSET_VERSION, decodeBase64, getJson } from "./api.js";
+import { loadTexture } from "./textures.js";
 
 export class PropLibrary {
   constructor() {
@@ -15,23 +14,21 @@ export class PropLibrary {
     this.placeholderMaterial = new THREE.MeshLambertMaterial({ color: 0xff44aa, wireframe: true });
   }
 
-  // alpha is the material's use of its texture's alpha: "test" (cutout), "blend" (water, glass) or null (a mask, ignored).
+  // alpha is the material's use of its texture's alpha: "test" (cutout), "blend" (glass), "water" (drawn as
+  // tinted water: the client's water shader takes wave normal maps) or null (a mask, ignored).
   material(texture, alpha) {
     const key = `${texture || ""}|${alpha || ""}`;
+    if (alpha === "water" && !this.materials.has(key)) {
+      this.materials.set(key, new THREE.MeshPhongMaterial({
+        color: 0x2b7d9c, specular: 0x9fd4ff, shininess: 80, transparent: true, opacity: 0.62, depthWrite: false, side: THREE.DoubleSide,
+      }));
+    }
     if (!this.materials.has(key)) {
       const material = new THREE.MeshLambertMaterial({
-        color: texture ? 0xffffff : 0xb0b0b0, side: THREE.DoubleSide,
+        color: texture ? 0xffffff : 0xb0b0b0, side: alpha ? THREE.DoubleSide : THREE.FrontSide,
         alphaTest: alpha === "test" ? 0.4 : 0, transparent: alpha === "blend", opacity: alpha === "blend" ? 0.75 : 1,
-        depthWrite: alpha !== "blend",
+        depthWrite: alpha !== "blend", map: texture ? loadTexture(texture) : null,
       });
-      if (texture) {
-        textureLoader.load(`/api/texture?name=${encodeURIComponent(texture)}`, (map) => {
-          map.wrapS = map.wrapT = THREE.RepeatWrapping;
-          map.colorSpace = THREE.NoColorSpace;
-          material.map = map;
-          material.needsUpdate = true;
-        }, undefined, () => material.color.set(0xb0b0b0));
-      }
       this.materials.set(key, material);
     }
     return this.materials.get(key);
@@ -41,16 +38,20 @@ export class PropLibrary {
   model(file) {
     const key = file.toLowerCase();
     if (!this.models.has(key)) {
-      this.models.set(key, getJson(`/api/model?name=${encodeURIComponent(file)}`).then((data) => {
+      this.models.set(key, getJson(`/api/model?name=${encodeURIComponent(file)}&v=${ASSET_VERSION}`).then((data) => {
         const group = new THREE.Group();
         for (const mesh of data.meshes) {
           const geometry = new THREE.BufferGeometry();
           geometry.setAttribute("position", new THREE.BufferAttribute(decodeBase64(mesh.positions, Float32Array), 3));
           geometry.setAttribute("uv", new THREE.BufferAttribute(decodeBase64(mesh.uvs, Float32Array), 2));
           geometry.setIndex(new THREE.BufferAttribute(decodeBase64(mesh.indices, Uint32Array), 1));
-          geometry.computeVertexNormals();
+          if (mesh.normals) geometry.setAttribute("normal", new THREE.BufferAttribute(decodeBase64(mesh.normals, Float32Array), 3));
+          else geometry.computeVertexNormals();
           geometry.computeBoundingSphere();
-          group.add(new THREE.Mesh(geometry, this.material(mesh.texture, mesh.alpha)));
+          const part = new THREE.Mesh(geometry, this.material(mesh.texture, mesh.alpha));
+          part.castShadow = mesh.alpha !== "blend" && mesh.alpha !== "water";
+          part.receiveShadow = true;
+          group.add(part);
         }
         return group;
       }).catch(() => {
