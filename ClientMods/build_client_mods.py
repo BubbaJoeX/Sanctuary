@@ -18,6 +18,9 @@ Mods:
                                            OSFR tree (loadingscreen/background.py), keeping the tip and bar.
   sanctuaryAtlas.gfx (+ .lst.z)          - the atlas with a Lavender Coast page (atlas/lavendercoast.png), opened from
                                            the Sacred Grove page's Lavender Coast label (atlas/lavender_coast.as).
+  sanctuaryLavenderCoastNotification.gfx (+ .lst.z) - the "Now entering" badge for Lavender Coast: Merry Vale's with
+                                           its art repainted (notifications/badges.py) and the region's name, played
+                                           by the client extensions (lua/client_extensions.lua).
 
   Station Cash and membership no longer exist:
   sanctuaryGameDock.gfx                  - the Marketplace icon is labelled Coin Shop (gamedock/coin_shop_button.as).
@@ -54,6 +57,7 @@ from PIL import Image
 
 from hud import reskin
 from loadingscreen import background
+from notifications import badges
 
 script_dir = Path(__file__).resolve().parent
 output_dir = script_dir.parent / "src" / "Resources" / "ClientMods"
@@ -198,6 +202,17 @@ RESKINS = {
         "img12455688932877814193.dds": "glass", "img1810748524064661009.dds": "glass",
     },
 }
+
+# Region badges, the emblem notifications.swf drops in with "Now entering ...", for Sanctuary's own areas
+# (lua/client_extensions.lua plays them): (stock badge, published name, region name, font height in twips,
+# {stock name colour: colour}, notifications/badges.py painter). Each keeps the stock badge's animation, with its
+# art repainted and the region's name in place of the stock one's (a localized string key).
+REGION_BADGES = [
+    # Merry Vale's: its name in cream with an orange outline over an orange shadow outlined in purple becomes
+    # lavender white over purple and plum, at Seaside Village's smaller size, which fits the longer name.
+    ("merryvale_notification", "sanctuaryLavenderCoastNotification", "Lavender Coast", 1500,
+     {(254, 243, 199): (250, 244, 255), (198, 79, 0): (112, 58, 176), (102, 0, 153): (48, 22, 82)}, "lavender_coast"),
+]
 
 LOADING_SCREEN = ("loadingscreen", "sanctuaryLoadingScreen")
 # Root timeline depths of loadingscreen.gfx that stay: the backdrop, its twinkle, the tip text and the
@@ -423,18 +438,28 @@ def remove_root_depths(xml, depths):
     return head + "".join(tag for tag in tags if not (re.match(placement, tag) and int(re.match(placement, tag).group(1)) in depths)) + tail
 
 
+def replace_textures(xml, paint):
+    """Embeds paint(texture, drawn size) in place of each external image it returns a picture for."""
+    def replace(match):
+        attributes = dict(re.findall(r'(\w+)="([^"]*)"', match.group(0)))
+        size = (int(attributes["targetWidth"]), int(attributes["targetHeight"]))
+        image = paint(attributes["fileName"], size)
+        if image is None:
+            return match.group(0)
+        return lossless_tag(attributes["characterID"], image).lstrip("\n ")
+
+    return re.sub(r'<item type="DefineExternalImage"[^>]*/>', replace, xml)
+
+
 def apply_reskins(xml, stock, recipes):
     """Embeds a repainted copy of each listed texture in place of the external image, at its drawn size."""
-    def repaint(match):
-        attributes = dict(re.findall(r'(\w+)="([^"]*)"', match.group(0)))
-        recipe = recipes.get(attributes["fileName"])
+    def repaint(file_name, size):
+        recipe = recipes.get(file_name)
         if recipe is None:
-            return match.group(0)
-        size = (int(attributes["targetWidth"]), int(attributes["targetHeight"]))
-        image = load_texture(stock, attributes["fileName"]).resize(size, Image.LANCZOS)
-        return lossless_tag(attributes["characterID"], reskin.RECIPES[recipe](image)).lstrip("\n ")
+            return None
+        return reskin.RECIPES[recipe](load_texture(stock, file_name).resize(size, Image.LANCZOS))
 
-    return re.sub(r'<item type="DefineExternalImage"[^>]*/>', repaint, xml)
+    return replace_textures(xml, repaint)
 
 
 def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols, output_path):
@@ -574,6 +599,50 @@ def build_loading_screen(java, jar, stock, stock_name, published_name, movie_pat
     list_path.write_bytes(compress(text.replace(f"{stock_name}.gfx", f"{published_name}.gfx").encode("latin-1")))
 
 
+def build_region_badge(java, jar, stock, stock_name, published_name, name, font_height, colors, painter,
+                       movie_path, list_path):
+    """A stock region badge with its art repainted (notifications/badges.py) and the region's name for its own."""
+    art = badges.PAINTERS[painter](lambda file_name: load_texture(stock, file_name))
+
+    with tempfile.TemporaryDirectory() as temp:
+        temp = Path(temp)
+
+        stock_path = temp / f"{stock_name}.gfx"
+        stock_path.write_bytes(stock.read(f"{stock_name}.gfx"))
+        ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
+        xml = (temp / "stock.xml").read_text(encoding="utf-8")
+
+        xml = replace_textures(xml, lambda file_name, size: art[file_name].resize(size, Image.LANCZOS)
+                               if file_name in art else None)
+
+        # The name is in two text fields, a shadow and the name over it.
+        def rename(match):
+            tag = re.sub(r'initialText="[^"]*"', f'initialText="{name}"', match.group(0))
+            return re.sub(r'fontHeight="\d+"', f'fontHeight="{font_height}"', tag)
+
+        xml, count = re.subn(r'<item type="DefineEditTextTag"[^>]*initialText="S##[^"]*"[^>]*>', rename, xml)
+        if count == 0:
+            raise ValueError(f"No region name in {stock_name}.gfx")
+
+        def recolor(match):
+            color = colors.get((int(match.group("red")), int(match.group("green")), int(match.group("blue"))))
+            if color is None:
+                return match.group(0)
+            red, green, blue = color
+            return f'<{match.group("tag")} type="RGBA" alpha="{match.group("alpha")}" blue="{blue}" green="{green}" red="{red}"/>'
+
+        xml = re.sub(r'<(?P<tag>textColor|glowColor) type="RGBA" alpha="(?P<alpha>\d+)" blue="(?P<blue>\d+)" '
+                     r'green="(?P<green>\d+)" red="(?P<red>\d+)"/>', recolor, xml)
+
+        (temp / "badge.xml").write_text(xml, encoding="utf-8")
+        ffdec(java, jar, "-xml2swf", temp / "badge.xml", movie_path)
+
+    # The repainted textures are embedded now, so the list doesn't preload them.
+    lines = stock.read(f"{stock_name}.lst").decode("latin-1").split("\r\n")
+    text = "\r\n".join(line for line in lines if line not in art)
+    list_path.write_bytes(compress(text.replace(f"{stock_name}.gfx", f"{published_name}.gfx").encode("latin-1")))
+
+
 def main():
     parser = ArgumentParser(description=__doc__.splitlines()[0])
     source = parser.add_mutually_exclusive_group(required=True)
@@ -596,6 +665,16 @@ def main():
 
         build_movie(args.java, args.ffdec, stock, stock_name, script_name, patch_paths, symbols, movie_path)
         build_list(stock, stock_name, published_name, list_path)
+
+        print(f"Built {movie_path.name} ({movie_path.stat().st_size} bytes) and {list_path.name}")
+
+    for stock_name, published_name, *badge in REGION_BADGES:
+        if args.only and published_name not in args.only:
+            continue
+        movie_path = output_dir / f"{published_name}.gfx"
+        list_path = output_dir / f"{published_name}.lst.z"
+
+        build_region_badge(args.java, args.ffdec, stock, stock_name, published_name, *badge, movie_path, list_path)
 
         print(f"Built {movie_path.name} ({movie_path.stat().st_size} bytes) and {list_path.name}")
 

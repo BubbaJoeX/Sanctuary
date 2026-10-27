@@ -17,6 +17,13 @@ public static class ClientLuaHelper
     /// </summary>
     public const int RefereeToolsScript = 1;
 
+    /// <summary>
+    /// ClientMods/lua/client_extensions.lua, installed as Resources/Scripts/2: what Sanctuary adds to the client's
+    /// own scripts for everyone (the "Now entering" badges of Sanctuary's own regions). A client without it logs
+    /// the failed dofile to its LuaErrors.log and carries on.
+    /// </summary>
+    public const int ClientExtensionsScript = 2;
+
     public static void Call(Player player, string functionName, float x = 0f, float y = 0f, float z = 0f)
     {
         player.SendTunneled(new AbilityPacketExecuteClientLua
@@ -36,11 +43,18 @@ public static class ClientLuaHelper
     }
 
     /// <summary>
-    /// Loads the referee client tools the first time a referee finishes loading into the world this session
-    /// (the client's Lua state lasts as long as the client, so once is enough).
+    /// Loads the client extensions, and for referees the referee client tools, the first time the player finishes
+    /// loading into the world this session (the client's Lua state lasts as long as the client, so once is enough).
     /// </summary>
     public static void OnClientFinishedLoading(Player player)
     {
+        if (!player.ClientExtensionsLoaded)
+        {
+            Call(player, "dofileInternalOnlyCommand", ClientExtensionsScript);
+
+            player.ClientExtensionsLoaded = true;
+        }
+
         if (player.RefereeToolsLoaded || player.ChatCommandRole < ChatCommandRole.Mod)
             return;
 

@@ -53,6 +53,7 @@ What gets built:
 | `sanctuaryFRUtilNavigation.gfx`, `sanctuaryMiniMap.gfx`, `sanctuarySocial.gfx` (and the dock) | `FRUtilNavigation.gfx`, `mini_map.gfx`, `social.gfx`, `gamedock.gfx` | The HUD repainted in one theme (`RESKINS`, `hud/reskin.py`): the top bar, the friends panel and the dock's plates and slots become navy glass, frosted glass and gold, and the minimap gets a new gold ring. Each texture is repainted at its drawn size from the client's own art, so the layout doesn't change |
 | `sanctuaryLoadingScreen.gfx` | `loadingscreen.gfx` | Characters, logo and vines removed, leaving the tip text and loading bar over new art: "Open Source Free Realms" curved around the OSFR tree (`loadingscreen/osfr_logo.png`). `loadingscreen/background.py` draws it at build time in the FreeRealmsDemiBold font exported from the client's `gfxfontlib.gfx` |
 | `sanctuaryAtlas.gfx` | `atlas.gfx` | `atlas/lavender_coast.as` appended: a Lavender Coast page (the `lavendercoast` zone south of Merry Vale). The Sacred Grove page's Lavender Coast label, hidden in the stock movie, opens it, and so does opening the atlas south of the Sacred Grove painting. The page is `atlas/lavendercoast.png`, a map drawn from the zone's own chunks by the Maya MCP's `examples/lavender_coast/atlas_map.py` and embedded at build time (`IMAGE_SYMBOLS`) |
+| `sanctuaryLavenderCoastNotification.gfx` | `merryvale_notification.gfx` | The "Now entering" badge for Lavender Coast (`REGION_BADGES`): Merry Vale's animation with its disc, emblem, silhouette and glow repainted by `notifications/badges.py` (a bunch of lavender tied with a ribbon, over the sea) and "Lavender Coast" in place of its localized name. The client extensions play it (see below) |
 
 Mods are published under new names because the client only downloads assets that are missing
 from its local packs.
@@ -81,7 +82,8 @@ is what lets the Referee Tools panel be dragged anywhere and resized (bottom-rig
 maximize). The client's Lua bottom-aligns the chat window, and the mod draws the chat movie 1:1
 anchored bottom-left, so chat itself stays where it always was.
 
-It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` (see below).
+It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` and `lua/client_extensions.lua` to
+`Resources/Scripts/2` (see below).
 
 Undo it with `--uninstall`.
 
@@ -106,6 +108,16 @@ gives the referee:
 function, e.g. `!lua call CuteMode:Big`. Both commands need the admin role.
 
 The retail client also binds `/var <name>` and `/listvars`, which print `Client.*` variables.
+
+## Client extensions (Lua)
+
+The same way, every player gets `dofileInternalOnlyCommand(2)` the first time they finish loading into the world,
+which runs `lua/client_extensions.lua` installed as `Resources/Scripts/2`: what Sanctuary adds to the client's own
+scripts for everyone. A client without it logs the failed `dofile` to `Logs/LuaErrors.log` and carries on.
+
+- Region badges: walking into a region plays its "Now entering" badge (`notifications.swf`'s `playZoneAnimation`),
+  but the stock scripts only know area ids 2 to 10. `SanctuaryClient.RegionBadges` maps Sanctuary's own area ids
+  (a zone's `AreaDefinitions` `Id`) to badges built by `REGION_BADGES`: 13 is Lavender Coast.
 
 The client must be launched against a Sanctuary WebAPI that serves the same build
 (`AssetDelivery:IndirectServerAddress=http://127.0.0.1:20040/assets`, which is the default in

@@ -7,8 +7,9 @@ matches the asset manifest the client downloaded from the asset server. So insta
   - switches the UI window definitions (and LoadingScreen.xml) to the renamed mod movies.
 Sanctuary's WebAPI publishes the same files in the manifest it serves, which keeps them "current".
 
-It also copies the referee client tools (lua/referee_tools.lua) to Resources/Scripts/1, which the
-server runs for referees through the client's dofileInternalOnlyCommand (see ClientLuaHelper).
+It also copies the referee client tools (lua/referee_tools.lua) to Resources/Scripts/1 and the client
+extensions (lua/client_extensions.lua, e.g. Sanctuary's region badges) to Resources/Scripts/2, which the
+server runs (for referees, and for everyone) through the client's dofileInternalOnlyCommand (see ClientLuaHelper).
 
 Originals are backed up next to each file as <name>.sanctuary-backup.
 
@@ -30,8 +31,10 @@ BACKUP_SUFFIX = ".sanctuary-backup"
 MARKER_FILE = "sanctuary_client_mods.txt"
 
 # dofileInternalOnlyCommand(n) runs Client.PathScripts .. n, and the server can only pass it a number,
-# so the file is named after one (ClientLuaHelper.RefereeToolsScript).
+# so the files are named after one (ClientLuaHelper.RefereeToolsScript, ClientLuaHelper.ClientExtensionsScript).
 REFEREE_LUA = (script_dir / "lua" / "referee_tools.lua", Path("Resources/Scripts/1"))
+CLIENT_EXTENSIONS_LUA = (script_dir / "lua" / "client_extensions.lua", Path("Resources/Scripts/2"))
+CLIENT_LUA = [(REFEREE_LUA, "referee client tools"), (CLIENT_EXTENSIONS_LUA, "client extensions")]
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
 PACK_DATA_ALIGNMENT = 8192
@@ -174,11 +177,11 @@ def install(client_dir):
         path.write_text(text, encoding="utf-8-sig")
         print(f"{relative_path}: patched ({len(replacements)} change(s))")
 
-    source, relative_path = REFEREE_LUA
-    target = client_dir / relative_path
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, target)
-    print(f"{relative_path}: referee client tools")
+    for (source, relative_path), description in CLIENT_LUA:
+        target = client_dir / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        print(f"{relative_path}: {description}")
 
 
 def uninstall(client_dir):
@@ -194,10 +197,10 @@ def uninstall(client_dir):
         backup.unlink()
         print(f"{relative_path}: restored")
 
-    _, relative_path = REFEREE_LUA
-    if (client_dir / relative_path).exists():
-        (client_dir / relative_path).unlink()
-        print(f"{relative_path}: removed")
+    for (_, relative_path), _ in CLIENT_LUA:
+        if (client_dir / relative_path).exists():
+            (client_dir / relative_path).unlink()
+            print(f"{relative_path}: removed")
 
     marker = client_dir / MARKER_FILE
     if marker.exists():
