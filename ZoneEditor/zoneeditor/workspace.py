@@ -133,25 +133,26 @@ def write_json(path: Path, data, keys: list | None = None) -> bool:
 
 
 def _set_environments(env: dict, cells: dict):
-    """Sets tiles of a zone's environment grid, Rows[x tile - start][z tile - start], growing it (with
-    out-of-bounds, -1) to fit."""
+    """Sets tiles of a zone's environment grid from {(x tile, z tile): environment}. The grid is
+    Rows[z tile - StartLongitude][x tile - StartLatitude] (longitude is z); it grows, with out-of-bounds
+    (-1), to fit."""
     rows = env["Rows"]
     xs = [x for x, _ in cells]
     zs = [z for _, z in cells]
-    while min(xs) < env["StartLongitude"]:
+    while min(zs) < env["StartLongitude"]:
         rows.insert(0, [-1] * len(rows[0]))
         env["StartLongitude"] -= 1
-    while min(zs) < env["StartLatitude"]:
+    while min(xs) < env["StartLatitude"]:
         for r in rows:
             r.insert(0, -1)
         env["StartLatitude"] -= 1
-    while env["StartLongitude"] + len(rows) <= max(xs):
+    while env["StartLongitude"] + len(rows) <= max(zs):
         rows.append([-1] * len(rows[0]))
-    while env["StartLatitude"] + len(rows[0]) <= max(zs):
+    while env["StartLatitude"] + len(rows[0]) <= max(xs):
         for r in rows:
             r.append(-1)
     for (x, z), environment in cells.items():
-        rows[x - env["StartLongitude"]][z - env["StartLatitude"]] = environment
+        rows[z - env["StartLongitude"]][x - env["StartLatitude"]] = environment
 
 
 def png(rgb: np.ndarray) -> bytes:
@@ -431,7 +432,7 @@ class Workspace:
                 (self.mods_dir / target).write_bytes(blob)
             definition = dict(source_project.definition or {})
         else:
-            zone = Zone(start_x=0, start_z=0, end_x=width * CHUNK_TILES, end_z=depth * CHUNK_TILES)
+            zone = Zone(start_z=0, start_x=0, size_z=depth * CHUNK_TILES, size_x=width * CHUNK_TILES)
             source_zone = self.project(eco_source).zone if eco_source else None
             if eco_key:
                 entry = self.palette()[eco_key]
@@ -455,8 +456,9 @@ class Workspace:
         spawn = definition.get("SpawnPosition") or [width * CHUNK_TILES * TILE_SIZE / 2, height + 2, depth * CHUNK_TILES * TILE_SIZE / 2]
         definition.update({
             "$type": kind, "Id": zone_id, "Name": name, "Type": kind, "TileSize": TILE_SIZE,
-            "StartLatitude": zone.start_z, "StartLongitude": zone.start_x,
-            "EndLatitude": zone.end_z, "EndLongitude": zone.end_x,
+            # Sanctuary's latitude is x and longitude z (BaseZone.GetTileFromPosition); End is exclusive.
+            "StartLatitude": zone.start_x, "StartLongitude": zone.start_z,
+            "EndLatitude": zone.end_x, "EndLongitude": zone.end_z,
             "SpawnPosition": spawn, "SpawnRotation": definition.get("SpawnRotation", [-1, 0, 0, 0]),
         })
         for key in ("AreaDefinitions", "EnabledClientAreaIds", "SeasonalClientAreas", "Scripts"):
@@ -868,14 +870,25 @@ class ZoneProject:
     def _grow(self, row: int, col: int, environment: int):
         """A new chunk widens the zone's bounds and fills its cells in the server's environment grid."""
         z = self.zone
-        grown = (min(z.start_x, col), min(z.start_z, row), max(z.end_x, col + CHUNK_TILES), max(z.end_z, row + CHUNK_TILES))
-        if grown != (z.start_x, z.start_z, z.end_x, z.end_z):
-            z.start_x, z.start_z, z.end_x, z.end_z = grown
+        if z.cover(row, col, CHUNK_TILES):
             self.zone_dirty = True
         if self.environments is not None:
             for x in range(col, col + CHUNK_TILES):
                 for zt in range(row, row + CHUNK_TILES):
                     self.environment_cells[(x, zt)] = environment
+
+    def restore_ecos(self, ecos: list):
+        """Re-adds ecos the editor added to the zone (from the palette) that this server doesn't hold, after a
+        restart before they were saved, so the saved chunks' eco indices still point at them."""
+        for item in sorted(ecos, key=lambda e: e["index"]):
+            if any(e.index == item["index"] for e in self.zone.ecos):
+                continue
+            key = f"{item['name'].lower()}|{item['texture'].lower()}"
+            if key not in self.ws.palette():
+                raise ValueError(f"eco {item['name']} ({item['texture']}) isn't in the client's palette")
+            added = self.add_eco(palette=key)
+            if added["index"] != item["index"]:
+                raise ValueError(f"{self.name}'s eco list changed since the editor loaded it; reload the zone")
 
     def add_eco(self, source_zone: str | None = None, source_index: int | None = None, definition: str | None = None,
                 palette: str | None = None) -> dict:
@@ -942,8 +955,13 @@ class ZoneProject:
                         definition.pop("Sky", None)
                 if self.zone_dirty or not self.stock:
                     z = self.zone
-                    definition.update({"StartLatitude": z.start_z, "StartLongitude": z.start_x,
-                                       "EndLatitude": z.end_z, "EndLongitude": z.end_x})
+                    # Latitude is x and longitude z; bounds only ever grow (FabledRealms' run past its chunks).
+                    definition.update({
+                        "StartLatitude": min(z.start_x, definition.get("StartLatitude", z.start_x)),
+                        "StartLongitude": min(z.start_z, definition.get("StartLongitude", z.start_z)),
+                        "EndLatitude": max(z.end_x, definition.get("EndLatitude", z.end_x)),
+                        "EndLongitude": max(z.end_z, definition.get("EndLongitude", z.end_z)),
+                    })
                 path = self.definition_path or self.ws.zones_dir / f"{self.name}.json"
                 if write_json(path, definition, DEFINITION_KEYS):
                     written.append(path)

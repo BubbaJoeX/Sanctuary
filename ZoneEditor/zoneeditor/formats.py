@@ -5,7 +5,8 @@ their point lights, parsed from the raw records a Tile keeps, and the eco blend 
 
 <zone>.gzne (version 2 and 3):
     "GZNE", u32 version, [u32 0 in version 3], u32 512, u32 128, f32 tile size (64), u32 8,
-    i32 start x, start z, end x, end z (in tiles), u32 seed, then
+    i32 start z, start x, size z, size x (in tiles: the zone covers start to start + size, the rows and
+    columns of its chunk names; a wrong size and no chunks load), u32 seed, then
     u32 eco count, eco { u32 index, cstring name, cstring detail texture, u32 detail repeat,
                          u32 flora count, flora { f32 density, min scale, max scale; u8 min alpha; cstring name } }
     u32 flora count, flora { cstring name, cstring texture, u8 flag }
@@ -83,15 +84,33 @@ class Zone:
     sizes: tuple = (512, 128)
     tile_size: float = 64.0
     unknown: int = 8
+    start_z: int = 0                 # in tiles; chunk names are <zone>_<z tile>_<x tile>
     start_x: int = 0
-    start_z: int = 0
-    end_x: int = 16
-    end_z: int = 16
+    size_z: int = 16
+    size_x: int = 16
     seed: int = 5239
     ecos: list = field(default_factory=list)
     floras: list = field(default_factory=list)
     walls: list = field(default_factory=list)      # [[bottom xyz, top xyz, bottom xyz, ...], ...]
     tail: bytes = b""
+
+    @property
+    def end_z(self) -> int:
+        return self.start_z + self.size_z
+
+    @property
+    def end_x(self) -> int:
+        return self.start_x + self.size_x
+
+    def cover(self, row: int, col: int, tiles: int):
+        """Grows the zone to cover tiles x tiles from tile (row = z, col = x); True if it grew."""
+        z0, x0 = min(self.start_z, row), min(self.start_x, col)
+        z1, x1 = max(self.end_z, row + tiles), max(self.end_x, col + tiles)
+        grown = (z0, x0, z1 - z0, x1 - x0)
+        if grown == (self.start_z, self.start_x, self.size_z, self.size_x):
+            return False
+        self.start_z, self.start_x, self.size_z, self.size_x = grown
+        return True
 
     @classmethod
     def read(cls, blob: bytes) -> "Zone":
@@ -105,7 +124,7 @@ class Zone:
             zone.lead = r.unpack("I")
         zone.sizes = r.unpack("II")
         zone.tile_size, zone.unknown = r.unpack("fI")
-        zone.start_x, zone.start_z, zone.end_x, zone.end_z = r.unpack("4i")
+        zone.start_z, zone.start_x, zone.size_z, zone.size_x = r.unpack("4i")
         zone.seed = r.unpack("I")
         for _ in range(r.unpack("I")):
             eco = Eco(r.unpack("I"), r.cstring(), r.cstring(), r.unpack("I"))
@@ -134,7 +153,7 @@ class Zone:
         if self.version >= 3:
             out += struct.pack("<I", self.lead)
         out += struct.pack("<IIfI4iI", *self.sizes, self.tile_size, self.unknown,
-                           self.start_x, self.start_z, self.end_x, self.end_z, self.seed)
+                           self.start_z, self.start_x, self.size_z, self.size_x, self.seed)
         out += struct.pack("<I", len(self.ecos))
         for eco in self.ecos:
             out += struct.pack("<I", eco.index) + cstring(eco.name) + cstring(eco.texture)

@@ -1114,7 +1114,9 @@ async function saveAll() {
   $("#save").disabled = true;
   status(`Saving ${chunks.length} chunk(s)… (rebuilding terrain collision takes a few seconds per chunk)`);
   try {
-    const result = await save({ zone: state.zone.name, chunks: entries, settings }, blobs);
+    // The zone's eco list as this page knows it, so a restarted server can re-add palette ecos it lost.
+    const ecos = state.zone.ecos.map(({ index, name, texture }) => ({ index, name, texture }));
+    const result = await save({ zone: state.zone.name, chunks: entries, settings, ecos }, blobs);
     const files = [...result.chunks.flatMap((c) => c.files), ...result.zone.files];
     const unique = [...new Set(files)];
     const zone = result.zone;

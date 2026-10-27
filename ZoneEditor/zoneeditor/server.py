@@ -191,6 +191,7 @@ class Handler(BaseHTTPRequestHandler):
             if "colour" in parts:
                 colour = np.frombuffer(parts["colour"], np.uint8).reshape(1024, 1024, 4)[..., :3]
             saves.append((chunk["row"], chunk["col"], chunk["meta"], heights, weights, colour))
+        project.restore_ecos(meta.get("ecos") or [])
         results = project.save_chunks(saves)
         zone = project.save_zone(meta.get("settings") or {})
         self.send_json({"chunks": results, "zone": zone})

@@ -20,7 +20,10 @@ viewport loads three.js from jsDelivr.
 
 Every zone is editable, FabledRealms too. A new zone (New zone…, blank or a copy of one such as a housing
 lot) saves under new names; a Housing zone also gets a Houses.json entry, and a copied lot keeps the
-original's spawn, exit door and build areas. Zones grow when chunks are added outside them.
+original's spawn, exit door and build areas. Zones grow when chunks are added outside them: the `.gzne`
+holds each zone's start and size in tiles (z, then x, like chunk names `<zone>_<z>_<x>`), and a size that
+doesn't cover a chunk keeps it from loading. FabledRealms' 480 chunks fill its bounds exactly, so new land
+there always grows its zone file.
 
 Edits to a stock zone replace stock files, and the client won't update a file it holds in its read-only
 `Assets_NNN` packs: it fails with "Attempt to update data that already exists in a non-writeable pack file",
