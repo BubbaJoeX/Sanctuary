@@ -14,6 +14,9 @@ using Sanctuary.Core.Configuration;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Zones;
+using Sanctuary.Packet;
+using Sanctuary.Packet.Common;
+using Sanctuary.Packet.Common.Chat;
 
 namespace Sanctuary.Game.Conversations;
 
@@ -55,8 +58,14 @@ public partial class NpcChatManager : INpcChatManager
     {
         message = message.Trim();
 
-        if (message.Length == 0 || FindListener(player) is not { } npc)
+        if (message.Length == 0)
             return;
+
+        if (FindListener(player) is not { } npc)
+        {
+            _logger.LogDebug("No NPC within {Range} m heard {Player}.", _options.HearRange, player.Name.FullName);
+            return;
+        }
 
         // A script that listens decides for itself what to say.
         if (npc.Zone.NpcContent.OnHear(npc, player, message))
@@ -71,11 +80,62 @@ public partial class NpcChatManager : INpcChatManager
             return;
 
         if (_waiting.ContainsKey(player.Guid) || !TryTakeReplySlot(now) || !_waiting.TryAdd(player.Guid, 0))
+        {
+            _logger.LogInformation("{Npc} ignored {Player}: still answering, or over {Max} replies a minute.",
+                GetName(npc), player.Name.FullName, _options.MaxRepliesPerMinute);
             return;
+        }
 
         _lastHeard[player.Guid] = now;
 
-        _ = ReplyAsync(npc, player, message);
+        _ = ReplyAsync(npc, player, message, null);
+    }
+
+    public string[] Describe(Player player)
+    {
+        var lines = new List<string>
+        {
+            !BotConfigured ? "Chat bot: no API key (NpcChat:ApiKey in gateway.local.json)."
+                : $"Chat bot: {(BotEnabled ? "on" : "off")}, {_conversations.Count} conversation(s), NPCs hear within {_options.HearRange:0.#} m."
+        };
+
+        var listener = FindListener(player);
+        var nearby = player.VisibleNpcs.Values
+            .Select(npc => (Npc: npc, Distance: Distance(npc.Position, player.Position)))
+            .Where(x => x.Distance <= _options.HearRange * 3)
+            .OrderBy(x => x.Distance)
+            .Take(8)
+            .ToList();
+
+        if (nearby.Count == 0)
+            lines.Add($"No NPCs within {_options.HearRange * 3:0} m.");
+
+        foreach (var (npc, distance) in nearby)
+        {
+            var why = npc == listener ? "hears you"
+                : !CanHear(npc) ? (GetName(npc) is null ? "has no name, so it can't hear" : "a prop, mount or node, so it can't hear")
+                : distance > _options.HearRange ? "too far"
+                : "farther than the one that hears you";
+
+            var script = npc.GmScript?.HasHook("onHear") == true ? "; its script's onHear answers" : "";
+
+            lines.Add($"  {GetName(npc) ?? "(unnamed)"} ({npc.Guid}) {distance:0.0} m: {why}{script}");
+        }
+
+        return lines.ToArray();
+    }
+
+    public Task<string> TestAsync(Player player, string message)
+    {
+        if (_client is null)
+            return Task.FromResult("No API key, so there's nothing to test.");
+
+        if (FindListener(player) is not { } npc)
+            return Task.FromResult($"No NPC within {_options.HearRange:0.#} m can hear you; stand closer to a named NPC.");
+
+        var done = new TaskCompletionSource<string>();
+        _ = ReplyAsync(npc, player, message, done);
+        return done.Task;
     }
 
     public void Reset() => _conversations.Clear();
@@ -120,7 +180,8 @@ public partial class NpcChatManager : INpcChatManager
         }
     }
 
-    private async Task ReplyAsync(Npc npc, Player player, string message)
+    /// <param name="result">For !npcchat test: completed with what happened, for the referee.</param>
+    private async Task ReplyAsync(Npc npc, Player player, string message, TaskCompletionSource<string>? result)
     {
         var name = GetName(npc)!;
         var playerName = player.Name.FullName;
@@ -145,19 +206,59 @@ public partial class NpcChatManager : INpcChatManager
             var reply = await _client!.SendAsync(conversationId, content);
 
             if (reply is null || CleanReply(reply, _options.MaxReplyLength) is not { Length: > 0 } line)
+            {
+                _logger.LogWarning("NPC {Npc} ({NpcGuid}) got no usable reply for {Player}.", name, npc.Guid, playerName);
+                result?.TrySetResult($"{name} got no usable reply from the chat bot.");
                 return;
+            }
 
             npc.FaceTowards(player.Position);
-            npc.Say(line);
+            var heard = Speak(npc, name, player, line);
+
+            _logger.LogInformation("NPC {Npc} ({NpcGuid}) answered {Player} ({Heard} heard it): {Line}", name, npc.Guid, playerName, heard, line);
+            result?.TrySetResult($"{name} answered ({heard} player(s) heard it): {line}");
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
+        catch (Exception ex)
         {
-            _logger.LogWarning("NPC {Npc} ({NpcGuid}) couldn't answer {Player}: {Error}", name, npc.Guid, playerName, ex.Message);
+            // Nothing awaits this task, so anything not caught here would vanish without a trace.
+            _logger.LogWarning(ex, "NPC {Npc} ({NpcGuid}) couldn't answer {Player}: {Error}", name, npc.Guid, playerName, ex.Message);
+            result?.TrySetResult($"{name} couldn't answer: {ex.GetType().Name}: {ex.Message}");
         }
         finally
         {
             _waiting.TryRemove(player.Guid, out _);
         }
+    }
+
+    /// <summary>
+    /// Says the line as the NPC under the name the bot was given (Npc.Say uses Name, which NPCs named from the
+    /// locale leave empty), to everyone who can see the NPC and always to the player it answers.
+    /// </summary>
+    private static int Speak(Npc npc, string name, Player player, string line)
+    {
+        var packet = new PacketChat
+        {
+            Channel = ChatChannel.WorldSay,
+            FromGuid = npc.Guid,
+            FromName = new NameData { FirstName = name },
+            Message = line
+        };
+
+        var heard = 0;
+
+        foreach (var visiblePlayer in npc.VisiblePlayers.Values)
+        {
+            visiblePlayer.SendTunneled(packet);
+            heard++;
+        }
+
+        if (!npc.VisiblePlayers.ContainsKey(player.Guid))
+        {
+            player.SendTunneled(packet);
+            heard++;
+        }
+
+        return heard;
     }
 
     /// <summary>
