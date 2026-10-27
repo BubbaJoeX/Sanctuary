@@ -3,7 +3,7 @@
 
 UI movies are loaded synchronously from the local asset packs, and only when their crc
 matches the asset manifest the client downloaded from the asset server. So installing:
-  - writes the built mods (src/Resources/ClientMods) into a new Assets_NNN.pack, and
+  - writes the built mods (src/Resources/ClientMods) into a new Assets_NNN.pack (zone files stream instead), and
   - switches the UI window definitions (and LoadingScreen.xml) to the renamed mod movies.
 Sanctuary's WebAPI publishes the same files in the manifest it serves, which keeps them "current".
 
@@ -17,6 +17,7 @@ Examples:
   python install_client_mods.py --client "..." --uninstall
 """
 
+import re
 import shutil
 import struct
 import zlib
@@ -35,6 +36,12 @@ REFEREE_LUA = (script_dir / "lua" / "referee_tools.lua", Path("Resources/Scripts
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
 PACK_DATA_ALIGNMENT = 8192
+
+# Terrain chunks, colour maps, zone files and minimap tiles (fork_zone.py, the zone editor).
+ZONE_ASSET = re.compile(r"(\.gzne|\.gcnk|\.gck2|_tile_.+\.dds|_tileinfo\.txt)(\.z)?$", re.IGNORECASE)
+
+# Skies the zone editor wrote (ClientMods/sky). The client reads Resources/SKY from disk; they don't stream.
+SKY_DIR = script_dir / "sky"
 
 # (client file, [(original text, modded text), ...]), applied to the original file.
 WINDOW_PATCHES = [
@@ -100,6 +107,10 @@ def load_mods():
     for path in sorted(mods_dir.iterdir()):
         data = path.read_bytes()
         name = path.name
+        # Zone files stream from the WebAPI like any new asset. In this read-only pack the client couldn't
+        # take a later edit of them ("Attempt to update data that already exists in a non-writeable pack").
+        if ZONE_ASSET.search(name):
+            continue
         if name.endswith(".z"):
             magic, _ = struct.unpack(">II", data[:8])
             if magic != COMPRESSED_MAGIC:
@@ -175,6 +186,10 @@ def install(client_dir):
     shutil.copyfile(source, target)
     print(f"{relative_path}: referee client tools")
 
+    for sky in sorted(SKY_DIR.glob("*.xml")):
+        shutil.copyfile(sky, client_dir / "Resources" / "SKY" / sky.name)
+        print(f"Resources/SKY/{sky.name}: sky")
+
 
 def uninstall(client_dir):
     for relative_path, _ in WINDOW_PATCHES:
@@ -193,6 +208,11 @@ def uninstall(client_dir):
     if (client_dir / relative_path).exists():
         (client_dir / relative_path).unlink()
         print(f"{relative_path}: removed")
+
+    for sky in sorted(SKY_DIR.glob("*.xml")):
+        if (client_dir / "Resources" / "SKY" / sky.name).exists():
+            (client_dir / "Resources" / "SKY" / sky.name).unlink()
+            print(f"Resources/SKY/{sky.name}: removed")
 
     marker = client_dir / MARKER_FILE
     if marker.exists():

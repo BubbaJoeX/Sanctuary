@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sanctuary Zone Editor</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header id="topbar">
+    <span class="brand">Zone Editor</span>
+    <input id="zone-search" list="zone-list" placeholder="Open a zone (FabledRealms, hsg_…)" autocomplete="off">
+    <datalist id="zone-list"></datalist>
+    <button id="open-zone">Open</button>
+    <button id="new-zone">New zone…</button>
+    <span id="zone-title"></span>
+    <span class="spacer"></span>
+    <label class="inline">View <input id="view-radius" type="range" min="1" max="5" value="2"></label>
+    <label class="inline"><input id="show-grid" type="checkbox" checked> Grid</label>
+    <label class="inline"><input id="show-lights" type="checkbox" checked> Lights</label>
+    <button id="undo" title="Ctrl+Z">Undo</button>
+    <button id="save" class="primary" title="Ctrl+S">Save</button>
+  </header>
+
+  <nav id="toolbar">
+    <button data-tool="select" title="Select and move props, lights and markers (V)">Select<kbd>V</kbd></button>
+    <button data-tool="sculpt" title="Sculpt terrain (B)">Sculpt<kbd>B</kbd></button>
+    <button data-tool="eco" title="Paint eco layers (E)">Eco<kbd>E</kbd></button>
+    <button data-tool="colour" title="Paint the colour map (C)">Colour<kbd>C</kbd></button>
+    <button data-tool="environment" title="Paint tile environments: sky and minimap (N)">Env<kbd>N</kbd></button>
+    <button data-tool="props" title="Place props (P)">Props<kbd>P</kbd></button>
+    <button data-tool="lights" title="Place point lights (L)">Lights<kbd>L</kbd></button>
+    <button data-tool="chunks" title="Add chunks (K)">Chunks<kbd>K</kbd></button>
+    <button data-tool="zone" title="Spawn, sky, houses and ecos (Z)">Zone<kbd>Z</kbd></button>
+  </nav>
+
+  <main id="viewport">
+    <canvas id="canvas"></canvas>
+    <canvas id="minimap" width="220" height="220" title="Click to fly there"></canvas>
+    <div id="help">RMB drag: look · WASD/QE: fly · Shift: fast · Wheel: speed (brush size in brush tools, Ctrl+wheel strength) · F: focus · G/R/T: move/rotate/scale · Del · Ctrl+D duplicate</div>
+    <div id="toast"></div>
+  </main>
+
+  <aside id="panel"></aside>
+
+  <footer id="statusbar">
+    <span id="status-pos"></span>
+    <span id="status-cell"></span>
+    <span id="status-dirty"></span>
+    <span class="spacer"></span>
+    <span id="status-text">Pick a zone to open.</span>
+  </footer>
+
+  <dialog id="new-zone-dialog">
+    <form method="dialog">
+      <h3>New zone</h3>
+      <p class="hint">A new zone saves under new names, so every chunk of it is editable and streams to clients.</p>
+      <label>Name <input name="name" required pattern="[a-z][a-z0-9_]{2,47}" placeholder="my_meadow"></label>
+      <label>Type <select name="type"><option>World</option><option>Housing</option></select></label>
+      <label>Start from <select name="source"><option value="">Blank terrain</option></select></label>
+      <fieldset class="blank-only">
+        <label>Width (chunks) <input name="width" type="number" min="1" max="16" value="2"></label>
+        <label>Depth (chunks) <input name="depth" type="number" min="1" max="16" value="2"></label>
+        <label>Ground height <input name="height" type="number" value="0" step="1"></label>
+        <label>Ground eco (from FabledRealms) <select name="eco"></select></label>
+      </fieldset>
+      <menu>
+        <button value="cancel" formnovalidate>Cancel</button>
+        <button value="create" class="primary">Create</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+:root {
+  --bg: #16191f;
+  --panel: #1e222a;
+  --panel-2: #262b35;
+  --line: #333a47;
+  --text: #d9dee7;
+  --muted: #8a93a3;
+  --accent: #e8b84a;
+  --accent-text: #1a1408;
+  --danger: #e2675f;
+  --ok: #67c587;
+  font: 13px/1.4 "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  height: 100vh;
+  display: grid;
+  grid-template: "top top top" 40px "tools view panel" 1fr "status status status" 26px / 64px 1fr 300px;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+button.danger { border-color: var(--danger); color: var(--danger); }
+button:disabled { opacity: 0.45; cursor: default; }
+input[type="range"] { padding: 0; }
+input[type="checkbox"] { width: auto; }
+
+#topbar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-weight: 700; color: var(--accent); margin-right: 6px; }
+#zone-search { width: 260px; }
+#zone-title { color: var(--muted); }
+.spacer { flex: 1; }
+label.inline { display: flex; align-items: center; gap: 4px; color: var(--muted); }
+
+#toolbar {
+  grid-area: tools;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+}
+#toolbar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 2px;
+  font-size: 11px;
+}
+#toolbar button.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+kbd { font-size: 9px; opacity: 0.7; }
+
+#viewport { grid-area: view; position: relative; overflow: hidden; }
+#canvas { width: 100%; height: 100%; display: block; }
+#minimap {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  background: rgba(10, 12, 16, 0.82);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: crosshair;
+}
+#help {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+  max-width: 60%;
+  text-align: right;
+}
+#toast {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 22, 28, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 14px;
+  max-width: 70%;
+  white-space: pre-wrap;
+  display: none;
+}
+#toast.error { border-color: var(--danger); }
+#toast.ok { border-color: var(--ok); }
+
+#panel {
+  grid-area: panel;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  overflow-y: auto;
+  padding: 10px 12px 40px;
+}
+#panel h3 { margin: 4px 0 8px; font-size: 14px; }
+#panel h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+#panel label { display: block; margin: 6px 0; color: var(--muted); }
+#panel label > input, #panel label > select, #panel label > textarea { display: block; width: 100%; margin-top: 2px; }
+#panel label.check { display: flex; align-items: center; gap: 6px; }
+#panel .row { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
+#panel .row > * { flex: 1; }
+#panel .hint { color: var(--muted); font-size: 12px; margin: 6px 0; }
+#panel .warn { color: var(--accent); font-size: 12px; }
+#panel .seg { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+#panel .seg button.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+#panel .list { max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: 4px; }
+#panel .list div { padding: 3px 8px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#panel .list div:hover { background: var(--panel-2); }
+#panel .list div.active { background: var(--accent); color: var(--accent-text); }
+#panel .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin-right: 6px; border: 1px solid #0006; }
+#panel textarea { min-height: 220px; font: 11px/1.35 Consolas, monospace; }
+#panel .xyz { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+#panel .xyz input { width: 100%; }
+
+#statusbar {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 10px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+dialog {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  width: 400px;
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+dialog label { display: block; margin: 8px 0; color: var(--muted); }
+dialog label > input, dialog label > select { display: block; width: 100%; margin-top: 2px; }
+dialog fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 8px 0; }
+dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; }
+dialog .hint { color: var(--muted); font-size: 12px; }

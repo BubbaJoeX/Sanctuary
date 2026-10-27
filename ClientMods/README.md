@@ -75,7 +75,12 @@ is what lets the Referee Tools panel be dragged anywhere and resized (bottom-rig
 maximize). The client's Lua bottom-aligns the chat window, and the mod draws the chat movie 1:1
 anchored bottom-left, so chat itself stays where it always was.
 
-It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` (see below).
+It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` (see below), and any custom skies the
+zone editor saved in `sky/` to `Resources/SKY`.
+
+Zone files in `src/Resources/ClientMods` (`.gzne`, `.gcnk`, `.gck2`, minimap tiles, from `fork_zone.py`,
+`zone_terrain.py` or the [zone editor](../ZoneEditor/README.md)) are left out of the pack: they stream, and
+in a read-only pack the client couldn't take a later edit of them.
 
 Undo it with `--uninstall`.
 

@@ -1,0 +1,815 @@
+"""The zones the editor opens and everything a save writes.
+
+A save writes client assets to src/Resources/ClientMods (the WebAPI patches them into the manifest it
+serves) and Sanctuary's own data to src/Resources: Zones/<zone>.json, Zones/Environments/<zone>.json and
+Houses.json. When the servers have been built, the same files are copied into their output folders
+(src/Sanctuary.WebAPI/bin/*/*/ClientMods, src/Sanctuary.Gateway/bin/*/*/Resources) so a restart
+picks them up without a rebuild.
+
+Stock names can't be replaced (see assets.py), so in a stock zone such as FabledRealms the stock
+chunks are read-only and only new chunks, in the empty cells inside the zone's bounds, are editable.
+A new zone (or a copy of one) is all new names and entirely editable.
+"""
+
+from __future__ import annotations
+
+import copy
+import io
+import json
+import re
+import shutil
+import threading
+from pathlib import Path
+
+import numpy as np
+
+from . import formats, models, terrain
+from .assets import AssetSource, compress
+from .formats import CHUNK_TILES, ECO_MAP_SIZE, TILE_SIZE, Chunk, ColourMap, Light, Object, Zone
+
+NAME = re.compile(r"^[a-z][a-z0-9_]{2,47}$")
+CHUNK_STEP = CHUNK_TILES                       # chunk names step 4 tiles in row and col
+# What the editor changes in a zone definition; the rest of the file is left as it is.
+DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky"]
+
+
+INLINE_NUMBERS = re.compile(r"\[\s*(-?[\d.eE+-]+(?:,\s*-?[\d.eE+-]+)*)\s*\]")
+
+
+def _json_styles(data) -> list:
+    """The ways Sanctuary's resource files lay JSON out: expanded, short number lists inline, and an
+    environment grid with one row per line."""
+    expanded = json.dumps(data, indent=2, ensure_ascii=False)
+    styles = [expanded, INLINE_NUMBERS.sub(lambda m: "[" + ", ".join(v.strip() for v in m.group(1).split(",")) + "]", expanded)]
+    if isinstance(data, dict) and isinstance(data.get("Rows"), list):
+        head = {k: v for k, v in data.items() if k != "Rows"}
+        rows = ",\n".join("    [" + ", ".join(map(str, row)) + "]" for row in data["Rows"])
+        styles.append(json.dumps(head, indent=2, ensure_ascii=False)[:-2] + ',\n  "Rows": [\n' + rows + "\n  ]\n}")
+    return styles
+
+
+def _render(value, multiline: bool, indent: int) -> str:
+    return _json_styles(value)[0 if multiline else 1].replace("\n", "\n" + " " * indent)
+
+
+def _patch_keys(text: str, old: dict, new: dict, keys: list) -> str:
+    """Replaces, adds or removes only the top-level keys whose values changed, each in its old layout."""
+    decoder = json.JSONDecoder()
+    for key in keys:
+        if old.get(key) == new.get(key):
+            continue
+        match = re.search(r'\n  "' + re.escape(key) + r'":\s*', text)
+        if match:
+            _, end = decoder.raw_decode(text, match.end())
+            if key in new:
+                multiline = "\n" in text[match.end() : end]
+                text = text[: match.end()] + _render(new[key], multiline, 2) + text[end:]
+            else:
+                text = text[: match.start()].rstrip(",") + text[end:]
+        elif key in new:
+            close = text.rstrip().rfind("}")
+            text = text[:close].rstrip() + f',\n  "{key}": {_render(new[key], False, 2)}\n' + text[close:]
+    return text
+
+
+def _patch_items(text: str, old: list, new: list) -> str | None:
+    """A top-level list of objects with ids (Houses.json): unchanged entries keep their text, changed ones
+    are rewritten and new ones appended. None if the list isn't laid out one entry after another."""
+    decoder = json.JSONDecoder()
+    spans = []
+    position = text.index("[") + 1
+    while True:
+        position = len(text) - len(text[position:].lstrip(" \n,"))
+        if text[position] == "]":
+            break
+        value, end = decoder.raw_decode(text, position)
+        spans.append(text[position:end])
+        position = end
+    rebuilt = lambda items: "[\n" + ",\n".join("  " + item for item in items) + "\n]"
+    if rebuilt(spans) != text or any(not isinstance(item, dict) or "Id" not in item for item in old + new):
+        return None
+    originals = {item["Id"]: (item, span) for item, span in zip(old, spans)}
+    items = []
+    for item in new:
+        before = originals.get(item["Id"])
+        items.append(before[1] if before and before[0] == item else _render(item, False, 2))
+    return rebuilt(items)
+
+
+def write_json(path: Path, data, keys: list | None = None) -> bool:
+    """Writes data in the layout the file already has, keeping its line endings; True if anything changed.
+
+    Hand-laid-out files are patched rather than rewritten, so a save doesn't reflow them: a dict gets only
+    its changed top-level `keys` replaced (FabledRealms.json's tile lists stay as they are), and a list of
+    entries with ids (Houses.json) only its changed entries.
+    """
+    original = None
+    if path.exists():
+        with path.open(encoding="utf-8-sig", newline="") as f:
+            original = f.read()
+    old = json.loads(original) if original is not None else None
+    if original is not None and old == data:
+        return False
+    crlf = original is not None and "\r\n" in original
+    ending = "\n" if original is None or original.endswith("\n") else ""
+    plain = original.replace("\r\n", "\n").rstrip("\n") if original is not None else None
+    styles = [i for i, text in enumerate(_json_styles(old)) if text == plain] if plain is not None else [0]
+    text = None
+    if styles:
+        text = _json_styles(data)[styles[0]]
+    elif isinstance(old, dict) and isinstance(data, dict) and keys:
+        text = _patch_keys(plain, old, data, keys)
+    elif isinstance(old, list) and isinstance(data, list):
+        text = _patch_items(plain, old, data)
+    if text is None:
+        text = _json_styles(data)[1]
+    text += ending
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as f:
+        f.write(text.replace("\n", "\r\n") if crlf else text)
+    return True
+
+
+def png(rgb: np.ndarray) -> bytes:
+    from PIL import Image
+
+    out = io.BytesIO()
+    Image.fromarray(rgb).save(out, "PNG", compress_level=1)
+    return out.getvalue()
+
+
+class Workspace:
+    def __init__(self, sanctuary_root: Path, client_dir: Path, mirror_dir: Path | None, upstream: str | None):
+        self.root = sanctuary_root
+        self.resources = sanctuary_root / "src" / "Resources"
+        self.mods_dir = self.resources / "ClientMods"
+        self.zones_dir = self.resources / "Zones"
+        self.client_dir = client_dir
+        self.assets = AssetSource(client_dir, self.mods_dir, mirror_dir, upstream, sanctuary_root / "ZoneEditor" / ".cache")
+        self.library = models.MaterialLibrary(client_dir)
+        self.projects = {}
+        self.lock = threading.RLock()
+        self._model_cache = {}
+        self._actor_names = None
+
+    # --- listings ------------------------------------------------------------------------------------
+
+    def definitions(self) -> dict:
+        """Sanctuary zone definitions by lowercase zone name."""
+        result = {}
+        for path in sorted(self.zones_dir.glob("*.json")):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8-sig"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if isinstance(data, dict) and "Name" in data:
+                result[data["Name"].lower()] = (path, data)
+        return result
+
+    def zones(self) -> list:
+        definitions = self.definitions()
+        zones = []
+        for lower in sorted(self.assets.names(".gzne")):
+            name = lower[: -len(".gzne")]
+            listed = self.assets.manifest.get(lower, (None,))[0]
+            mod = self.assets.mod_path(name + ".gzne")
+            display = (listed.removesuffix(".z")[: -len(".gzne")] if listed
+                       else mod.name.removesuffix(".z")[: -len(".gzne")] if mod else name)
+            definition = definitions.get(name, (None, {}))[1]
+            zones.append({"name": display, "stock": listed is not None, "custom": mod is not None and listed is None,
+                          "type": definition.get("Type"), "id": definition.get("Id")})
+        return zones
+
+    def actor_names(self) -> list:
+        if self._actor_names is None:
+            self._actor_names = sorted(self.assets.names(".adr"))
+        return self._actor_names
+
+    def eco_definitions(self) -> list:
+        return sorted(name[:-4] for name in self.assets.names(".eco"))
+
+    def skies(self) -> list:
+        sky_dir = self.client_dir / "Resources" / "SKY"
+        skies = {path.name for path in sky_dir.glob("*.xml")} if sky_dir.is_dir() else set()
+        skies |= {path.name for path in (self.root / "ClientMods" / "sky").glob("*.xml")}
+        return sorted(skies, key=str.lower)
+
+    def sky(self, name: str) -> str:
+        if "/" in name or "\\" in name or not name.lower().endswith(".xml"):
+            raise ValueError(f"{name} is not a sky file name")
+        for folder in (self.root / "ClientMods" / "sky", self.client_dir / "Resources" / "SKY"):
+            path = folder / name
+            if path.exists():
+                return path.read_text(encoding="utf-8-sig", errors="replace")
+        raise KeyError(name)
+
+    def terrain_environments(self) -> list:
+        """ObjectTerrainData.xml rows: a tile's environment id picks its sky, atlas and minimap."""
+        path = self.client_dir / "Resources" / "ObjectTerrainData.xml"
+        if not path.exists():
+            return []
+        text = path.read_text(encoding="utf-8-sig", errors="replace")
+        rows = []
+        for match in re.finditer(r"<ObjectTerrainData\b([^>]*)/?>", text):
+            attributes = dict(re.findall(r'(\w+)="([^"]*)"', match.group(1)))
+            if "Id" in attributes:
+                rows.append({"id": int(attributes["Id"]), "name": attributes.get("DataName", ""),
+                             "sky": attributes.get("SkyFileName", "")})
+        return rows
+
+    # --- assets for the viewport ---------------------------------------------------------------------
+
+    def model(self, actor: str) -> dict:
+        with self.lock:
+            if actor.lower() in self._model_cache:
+                return self._model_cache[actor.lower()]
+        if actor.lower().endswith(".agr"):
+            # An actor set: its first actor stands in for it (they differ by tint or texture alias).
+            members = models.actor_group_members(self.assets.read(actor))
+            if not members:
+                raise KeyError(f"{actor} lists no actors")
+            return self.model(members[0])
+        mesh_name = models.adr_mesh_name(self.assets.read(actor)) if actor.lower().endswith(".adr") else actor
+        if not mesh_name:
+            raise KeyError(f"{actor} names no mesh")
+        model = models.parse_dme(self.assets.read(mesh_name), self.library)
+        with self.lock:
+            self._model_cache[actor.lower()] = model
+        return model
+
+    def texture(self, name: str, size: int = 512) -> bytes:
+        return models.texture_png(self.assets.read(name), size)
+
+    def project(self, name: str) -> "ZoneProject":
+        with self.lock:
+            key = name.lower()
+            if key not in self.projects:
+                self.projects[key] = ZoneProject(self, name)
+            return self.projects[key]
+
+    # --- new zones -----------------------------------------------------------------------------------
+
+    def create_zone(self, name: str, kind: str, source: str | None, width: int, depth: int, height: float,
+                    eco_source: str | None, eco_index: int | None) -> "ZoneProject":
+        """A new zone: a copy of an existing one (all its files under the new name), or blank terrain.
+
+        Blank zones get width x depth chunks of flat ground at the given height, painted with one eco
+        taken from another zone's list (eco_source / eco_index), e.g. FabledRealms' SG_Grass.
+        """
+        name = name.strip()
+        if not NAME.match(name):
+            raise ValueError("Zone names are 3-48 lowercase letters, digits and '_', starting with a letter")
+        if self.assets.exists(name + ".gzne") or self.definitions().get(name):
+            raise ValueError(f"{name} already exists")
+        if self.assets.names() and any(n.startswith(name + "_") for n in self.assets.manifest):
+            raise ValueError(f"The client already has assets named {name}_*")
+
+        self.mods_dir.mkdir(parents=True, exist_ok=True)
+        if source:
+            source_project = ZoneProject(self, source)
+            zone = copy.deepcopy(source_project.zone)
+            # Chunks, colour maps, and minimap tiles with their index (like fork_zone.py), read before
+            # anything is written so a file the asset sources can't supply doesn't leave half a zone.
+            copies = {}
+            for (row, col) in source_project.chunk_cells:
+                for ext in ("gcnk", "gck2"):
+                    asset = f"{source_project.name}_{row}_{col}.{ext}"
+                    if self.assets.exists(asset):
+                        copies[f"{name}_{row}_{col}.{ext}"] = asset
+            prefix = source_project.name.lower() + "_tile"
+            for lower, (listed, _) in sorted(self.assets.manifest.items()):
+                if lower.startswith(prefix) and (lower.endswith(".dds") or lower.endswith("_tileinfo.txt")):
+                    copies[name + listed.removesuffix(".z")[len(source_project.name):]] = lower
+            data = {}
+            for target, asset in copies.items():
+                try:
+                    data[target] = self.assets.read(asset)
+                except (KeyError, OSError) as error:
+                    # Some stock chunks have no colour map anywhere; the copy goes without, like the original.
+                    if asset.lower().endswith(".gck2"):
+                        continue
+                    raise ValueError(f"Can't copy {source_project.name}: {asset} isn't in the client, the local "
+                                     f"asset copy or (if set) the upstream server ({error})") from None
+            for target, blob in data.items():
+                if target.lower().endswith(".gcnk"):
+                    version = int.from_bytes(blob[4:8], "little")
+                    if version not in (5, 6):
+                        raise ValueError(f"{source_project.name}'s chunks are version {version}; the editor reads and writes 5 and 6")
+            for target, blob in data.items():
+                if target.lower().endswith("_tileinfo.txt"):
+                    blob = blob.decode("latin-1").replace(source_project.name, name).encode("latin-1")
+                (self.mods_dir / target).write_bytes(blob)
+            definition = dict(source_project.definition or {})
+        else:
+            zone = Zone(start_x=0, start_z=0, end_x=width * CHUNK_TILES, end_z=depth * CHUNK_TILES)
+            source_zone = self.project(eco_source).zone if eco_source else None
+            if source_zone and eco_index is not None:
+                eco = next(e for e in source_zone.ecos if e.index == eco_index)
+                zone.ecos = [formats.Eco(0, eco.name, eco.texture, eco.repeat, copy.deepcopy(eco.floras))]
+                needed = {f.name.lower() for f in eco.floras}
+                zone.floras = [copy.deepcopy(f) for f in source_zone.floras if f.name.lower() in needed]
+            else:
+                zone.ecos = [formats.Eco(0, "sg_grass", "sg_grass.dds", 10)]
+            definition = {}
+
+        (self.mods_dir / f"{name}.gzne.z").write_bytes(compress(zone.write()))
+
+        definitions = [data for _, data in self.definitions().values()]
+        houses = self._houses()
+        zone_id = max([d.get("Id", 0) for d in definitions] + [1099]) + 1
+        spawn = definition.get("SpawnPosition") or [width * CHUNK_TILES * TILE_SIZE / 2, height + 2, depth * CHUNK_TILES * TILE_SIZE / 2]
+        definition.update({
+            "$type": kind, "Id": zone_id, "Name": name, "Type": kind, "TileSize": TILE_SIZE,
+            "StartLatitude": zone.start_z, "StartLongitude": zone.start_x,
+            "EndLatitude": zone.end_z, "EndLongitude": zone.end_x,
+            "SpawnPosition": spawn, "SpawnRotation": definition.get("SpawnRotation", [-1, 0, 0, 0]),
+        })
+        for key in ("AreaDefinitions", "EnabledClientAreaIds", "SeasonalClientAreas", "Scripts"):
+            definition.pop(key, None)
+        ordered = {k: definition[k] for k in ("$type", "Id", "Name", "Type", "TileSize", "StartLatitude",
+                                              "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition",
+                                              "SpawnRotation") if k in definition}
+        ordered.update({k: v for k, v in definition.items() if k not in ordered})
+        write_json(self.zones_dir / f"{name}.json", ordered)
+
+        if kind == "Housing":
+            house_id = max([h.get("Id", 0) for h in houses] + [0]) + 1
+            x, y, z = spawn[:3]
+            house = {"Id": house_id, "NameId": 0, "ZoneId": zone_id, "Icon": 0, "ItemDefinitionIds": [],
+                     "ExitObjectId": 0, "ExitPosition": [x, y, z, 0], "SpawnPosition": [x, y, z, 0],
+                     "SpawnRotation": [-1, 0, 0, 0],
+                     "BuildAreas": [{"Min": [x - 48, y - 20, z - 48], "Max": [x + 48, y + 60, z + 48]}]}
+            # A copied lot keeps its props' ids, so its house's exit door, spawn and build areas still fit.
+            # Deed items stay with the original: grant the new one with !house grant <id>.
+            source_id = source and source_project.definition and source_project.definition.get("Id")
+            original = next((h for h in houses if source_id and h.get("ZoneId") == source_id), None)
+            if original:
+                house.update({k: copy.deepcopy(v) for k, v in original.items() if k not in ("Id", "ZoneId", "ItemDefinitionIds")})
+            houses.append(house)
+            write_json(self.resources / "Houses.json", houses)
+
+        written = [self.mods_dir / f"{name}.gzne.z", self.zones_dir / f"{name}.json"]
+        if kind == "Housing":
+            written.append(self.resources / "Houses.json")
+        with self.lock:
+            self.projects.pop(name, None)
+        project = self.project(name)
+        if not source:
+            for row in range(0, depth * CHUNK_TILES, CHUNK_STEP):
+                for col in range(0, width * CHUNK_TILES, CHUNK_STEP):
+                    project.create_flat_chunk(row, col, height, 0, 0)
+        else:
+            written += [self.mods_dir / f"{name}_{row}_{col}.{ext}" for row, col in project.chunk_cells for ext in ("gcnk", "gck2")]
+        written += project.written
+        project.written = []
+        self.mirror([path for path in written if path.exists()])
+        return project
+
+    def _houses(self) -> list:
+        path = self.resources / "Houses.json"
+        return json.loads(path.read_text(encoding="utf-8-sig")) if path.exists() else []
+
+    # --- output folders ------------------------------------------------------------------------------
+
+    def mirror(self, paths: list) -> list:
+        """Copies written files into built server output folders, so a restart serves them."""
+        copies = []
+        src = self.root / "src"
+        targets = []
+        for build in src.glob("Sanctuary.WebAPI/bin/*/*"):
+            targets.append((self.mods_dir, build / "ClientMods"))
+        for build in src.glob("Sanctuary.Gateway/bin/*/*"):
+            targets.append((self.resources, build / "Resources"))
+        for path in paths:
+            for source_root, target_root in targets:
+                try:
+                    relative = path.relative_to(source_root)
+                except ValueError:
+                    continue
+                if not target_root.parent.is_dir():
+                    continue
+                target = target_root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(path, target)
+                copies.append(str(target))
+        return copies
+
+
+class ZoneProject:
+    def __init__(self, workspace: Workspace, name: str):
+        self.ws = workspace
+        assets = workspace.assets
+        listed = assets.manifest.get(name.lower() + ".gzne")
+        mod = assets.mod_path(name + ".gzne")
+        if listed:
+            self.name = listed[0].removesuffix(".z")[: -len(".gzne")]
+        elif mod:
+            self.name = mod.name.removesuffix(".z")[: -len(".gzne")]
+        else:
+            raise KeyError(f"No zone named {name}")
+        self.stock = listed is not None
+        self.zone = Zone.read(assets.read(self.name + ".gzne"))
+        self.zone_dirty = False
+        self.lock = threading.RLock()
+        self.written = []
+
+        pattern = re.compile(re.escape(self.name.lower()) + r"_(-?\d+)_(-?\d+)\.gcnk$")
+        self.chunk_cells = {}
+        for asset in assets.names(".gcnk"):
+            match = pattern.match(asset)
+            if match:
+                row, col = int(match.group(1)), int(match.group(2))
+                self.chunk_cells[(row, col)] = "stock" if assets.is_stock(asset) else "mod"
+        self.chunks = {}
+        self.originals = {}
+        self.snapshot = {}
+
+        definitions = workspace.definitions()
+        self.definition_path, self.definition = definitions.get(self.name.lower(), (None, None))
+        environment_path = workspace.zones_dir / "Environments" / f"{self.name}.json"
+        self.environments = json.loads(environment_path.read_text(encoding="utf-8-sig")) if environment_path.exists() else None
+
+    # --- reading -------------------------------------------------------------------------------------
+
+    def editable(self, row: int, col: int) -> bool:
+        return self.chunk_cells.get((row, col)) != "stock"
+
+    def in_bounds(self, row: int, col: int) -> bool:
+        z = self.zone
+        return z.start_x <= col and col + CHUNK_TILES <= z.end_x and z.start_z <= row and row + CHUNK_TILES <= z.end_z
+
+    def chunk(self, row: int, col: int) -> Chunk | None:
+        with self.lock:
+            if (row, col) not in self.chunks:
+                if (row, col) not in self.chunk_cells:
+                    return None
+                blob = self.ws.assets.read(f"{self.name}_{row}_{col}.gcnk")
+                self.chunks[(row, col)] = Chunk.read(blob)
+                self.originals[(row, col)] = self.chunks[(row, col)]
+            return self.chunks[(row, col)]
+
+    def colour(self, row: int, col: int) -> ColourMap | None:
+        name = f"{self.name}_{row}_{col}.gck2"
+        return ColourMap.read(self.ws.assets.read(name)) if self.ws.assets.exists(name) else None
+
+    def eco_colour(self, index: int) -> list:
+        eco = next((e for e in self.zone.ecos if e.index == index), None)
+        if not eco:
+            raise KeyError(index)
+        try:
+            return models.mean_colour(self.ws.assets.read(eco.texture))
+        except (KeyError, ValueError, OSError):
+            return [128, 128, 128]
+
+    def meta(self) -> dict:
+        z = self.zone
+        houses = []
+        if self.definition:
+            houses = [h for h in self.ws._houses() if h.get("ZoneId") == self.definition.get("Id")]
+        return {
+            "name": self.name, "stock": self.stock, "version": z.version,
+            "bounds": {"startX": z.start_x, "startZ": z.start_z, "endX": z.end_x, "endZ": z.end_z},
+            "ecos": [{"index": e.index, "name": e.name, "texture": e.texture, "repeat": e.repeat,
+                      "floras": [f.name for f in e.floras]} for e in z.ecos],
+            "floras": [{"name": f.name, "texture": f.texture} for f in z.floras],
+            "walls": z.walls or [],
+            "chunks": [{"row": r, "col": c, "editable": self.editable(r, c), "source": s}
+                       for (r, c), s in sorted(self.chunk_cells.items())],
+            "definition": self.definition, "houses": houses,
+            "environments": self.ws.terrain_environments(),
+            "skies": self.ws.skies(),
+            "ecoDefinitions": self.ws.eco_definitions() if not self.stock else [],
+        }
+
+    def chunk_payload(self, row: int, col: int, lite: bool = False):
+        """(meta, heights f32 [129 x 129], eco weights u8 [512 x 512 x n], colour PNG [1024 x 1024, x by z]).
+
+        lite (for chunks the editor only shows) leaves out the weights and halves the colour map.
+        """
+        chunk = self.chunk(row, col)
+        if chunk is None:
+            raise KeyError(f"No chunk {row}_{col}")
+        heights = terrain.rasterize(chunk, row, col)
+        ecos, weights = formats.chunk_eco_weights(chunk)
+        colour = self.colour(row, col)
+        rgb = terrain.colour_to_xz(colour) if colour else np.full((1024, 1024, 3), 128, np.uint8)
+
+        objects = []
+        lights = []
+        for t, tile in enumerate(chunk.tiles):
+            for i, o in enumerate(tile.objects):
+                objects.append({"uid": f"{row}_{col}_{t}_{i}", "tile": t, "file": o.file_name,
+                                "position": list(o.position[:3]), "rotation": list(o.rotation[:3]),
+                                "scale": o.scale, "id": o.object_id, "flags": o.flags})
+            for i, light in enumerate(formats.read_lights(tile.lights)):
+                a, r, g, b = light.color
+                lights.append({"uid": f"{row}_{col}_{t}_{i}", "tile": t, "name": light.name,
+                               "colorName": light.color_name, "type": light.type,
+                               "position": list(light.position[:3]), "range": light.range,
+                               "intensity": light.intensity, "color": [r, g, b, a]})
+        meta = {
+            "row": row, "col": col, "version": chunk.version, "editable": self.editable(row, col),
+            "tiles": [{"row": t.row, "col": t.col, "environment": t.environment, "ecos": t.ecos} for t in chunk.tiles],
+            "ecos": ecos, "objects": objects, "lights": lights,
+        }
+        if lite:
+            meta["ecos"] = []
+            return meta, heights.astype("<f4").tobytes(), b"", png(np.ascontiguousarray(rgb[::2, ::2]))
+        return meta, heights.astype("<f4").tobytes(), np.ascontiguousarray(weights).tobytes(), png(rgb)
+
+    # --- writing -------------------------------------------------------------------------------------
+
+    def _original(self, uid: str, kind: str):
+        """The object or light a uid from chunk_payload named, as the chunk was when the editor loaded it."""
+        try:
+            row, col, tile, index = map(int, uid.split("_"))
+            chunk = self.snapshot.get((row, col)) or self.chunk(row, col)
+            if kind == "lights":
+                return formats.read_lights(chunk.tiles[tile].lights)[index]
+            return chunk.tiles[tile].objects[index]
+        except (AttributeError, IndexError, ValueError):
+            return None
+
+    def save_chunks(self, saves: list) -> list:
+        """Saves several chunks against one snapshot, so props moved between them resolve in any order."""
+        with self.lock:
+            self.snapshot = dict(self.originals)
+            try:
+                return [self.save_chunk(*save) for save in saves]
+            finally:
+                self.snapshot = {}
+
+    def _used_ids(self) -> set:
+        ids = set()
+        for key in list(self.chunk_cells):
+            chunk = self.chunks.get(key)
+            if chunk:
+                ids |= {o.object_id for tile in chunk.tiles for o in tile.objects}
+        return ids
+
+    def _tile_ids(self) -> set:
+        return {tile.id for chunk in self.chunks.values() for tile in chunk.tiles}
+
+    def _template(self) -> tuple[bytes, int]:
+        """A collision record and chunk version to build new chunks from: this zone's, else FabledRealms'."""
+        for chunk in self.chunks.values():
+            record = terrain.collision_template(chunk)
+            if record:
+                return record, chunk.version
+        for key in sorted(self.chunk_cells):
+            record = terrain.collision_template(self.chunk(*key))
+            if record:
+                return record, self.chunk(*key).version
+        fabled = self.ws.project("FabledRealms")
+        key = sorted(fabled.chunk_cells)[0]
+        return terrain.collision_template(fabled.chunk(*key)), 6
+
+    def create_flat_chunk(self, row: int, col: int, height: float, eco: int, environment: int):
+        heights = np.full((terrain.SAMPLES, terrain.SAMPLES), height, np.float32)
+        weights = np.full((ECO_MAP_SIZE, ECO_MAP_SIZE, 1), 255, np.uint8)
+        colour = np.empty((1024, 1024, 3), np.uint8)
+        colour[:] = self.eco_colour(eco) if self.zone.ecos else [96, 128, 64]
+        self.save_chunk(row, col, {"ecos": [eco], "tileDirty": [True] * 16, "objects": [], "lights": [],
+                                   "environments": [environment] * 16},
+                        np.pad(heights, 1, mode="edge"), weights, colour)
+
+    def save_chunk(self, row: int, col: int, meta: dict, padded: np.ndarray, weights: np.ndarray | None,
+                   colour: np.ndarray | None) -> dict:
+        """Rebuilds and writes one chunk from the editor's state.
+
+        meta: ecos (zone eco indices of the weight channels), tileDirty (16 bools: heights changed),
+        environments (16 ids), objects and lights (the chunk's full lists; existing ones carry their uid).
+        padded is the (131, 131) heightfield with a one-sample border from the neighbours.
+        """
+        if row % CHUNK_STEP or col % CHUNK_STEP:
+            raise ValueError("Chunk rows and columns are multiples of 4")
+        if not self.editable(row, col):
+            raise PermissionError(f"{self.name}_{row}_{col} is a stock chunk; the client can't take a replacement")
+        new = (row, col) not in self.chunk_cells
+        if new and self.stock and not self.in_bounds(row, col):
+            raise ValueError(f"{row}_{col} is outside {self.name}'s bounds, which a stock zone can't grow")
+
+        with self.lock:
+            record, version = self._template()
+            if new:
+                base = int(meta["ecos"][0]) if meta.get("ecos") else 0
+                chunk = terrain.new_chunk(row, col, version, base, 0, self._tile_ids())
+                dirty = [True] * len(chunk.tiles)
+            else:
+                chunk = copy.deepcopy(self.chunk(row, col))
+                dirty = [bool(d) for d in meta.get("tileDirty", [False] * len(chunk.tiles))]
+
+            heights = padded[1:-1, 1:-1]
+            if any(dirty):
+                terrain.rebuild_tiles(chunk, row, col, heights, padded, dirty, record)
+
+            for t, environment in enumerate(meta.get("environments") or []):
+                if t < len(chunk.tiles) and environment is not None:
+                    chunk.tiles[t].environment = int(environment)
+
+            if weights is not None:
+                formats.encode_eco_weights(chunk, [int(e) for e in meta["ecos"]], weights)
+
+            self._apply_objects(chunk, row, col, meta.get("objects", []))
+            self._apply_lights(chunk, row, col, meta.get("lights", []))
+
+            gcnk = self.ws.mods_dir / f"{self.name}_{row}_{col}.gcnk"
+            gcnk.parent.mkdir(parents=True, exist_ok=True)
+            gcnk.write_bytes(chunk.write())
+            written = [gcnk]
+            if colour is not None or new:
+                if colour is None:
+                    colour = np.full((1024, 1024, 3), 128, np.uint8)
+                gck2 = gcnk.with_suffix(".gck2")
+                gck2.write_bytes(terrain.colour_from_xz(colour, self.colour(row, col) if not new else None).write())
+                written.append(gck2)
+            # A compressed copy of the same asset would also be published; this one replaces it.
+            for path in written:
+                stale = path.with_name(path.name + ".z")
+                if stale.exists():
+                    stale.unlink()
+
+            self.chunks[(row, col)] = chunk
+            self.originals[(row, col)] = chunk
+            self.chunk_cells[(row, col)] = "mod"
+            self.written += written
+            if new:
+                self._grow(row, col, int((meta.get("environments") or [0])[0] or 0))
+            return {"files": [str(p) for p in written], "vertices": int(len(chunk.vertices)),
+                    "objects": sum(len(t.objects) for t in chunk.tiles)}
+
+    def _home_tile(self, chunk: Chunk, row: int, col: int, position) -> int:
+        x0, z0 = terrain.chunk_origin(row, col)
+        tile_x = int(np.clip((position[0] - x0) // TILE_SIZE, 0, CHUNK_TILES - 1))
+        tile_z = int(np.clip((position[2] - z0) // TILE_SIZE, 0, CHUNK_TILES - 1))
+        return tile_z * CHUNK_TILES + tile_x
+
+    def _apply_objects(self, chunk: Chunk, row: int, col: int, objects: list):
+        used = self._used_ids()
+        rng = np.random.default_rng()
+        for tile in chunk.tiles:
+            tile.objects = []
+        for item in objects:
+            original = self._original(item["uid"], "objects") if item.get("uid") else None
+            template = self._original(item["copyOf"], "objects") if item.get("copyOf") else None
+            if original:
+                o = copy.deepcopy(original)
+            elif template:
+                o = copy.deepcopy(template)
+                o.object_id = 0
+            else:
+                o = Object(item["file"])
+            o.file_name = item["file"]
+            o.position = (*map(float, item["position"]), 1.0)
+            o.rotation = (*map(float, item["rotation"]), 0.0)
+            o.scale = float(item.get("scale", 1))
+            if not original:
+                while o.object_id == 0 or o.object_id in used:
+                    o.object_id = int(rng.integers(1 << 24, 1 << 31))
+                used.add(o.object_id)
+                o.flags = int(rng.integers(1 << 24, 1 << 31)) if not template else o.flags
+            # An object stays in the tile it came from unless it moved into this chunk from elsewhere.
+            tile = item.get("tile")
+            same_chunk = item.get("uid", "").startswith(f"{row}_{col}_")
+            if tile is None or not same_chunk:
+                tile = self._home_tile(chunk, row, col, o.position)
+            chunk.tiles[int(tile)].objects.append(o)
+
+    def _apply_lights(self, chunk: Chunk, row: int, col: int, lights: list):
+        by_tile = [[] for _ in chunk.tiles]
+        for item in lights:
+            original = self._original(item["uid"], "lights") if item.get("uid") else None
+            light = copy.deepcopy(original) if original else Light()
+            light.name = item.get("name") or light.name
+            light.color_name = item.get("colorName", light.color_name)
+            light.position = (*map(float, item["position"]), 1.0)
+            light.range = float(item.get("range", light.range))
+            light.intensity = float(item.get("intensity", light.intensity))
+            r, g, b, a = (list(item.get("color", [255, 255, 255, 255])) + [255])[:4]
+            light.color = bytes([int(a), int(r), int(g), int(b)])
+            tile = item.get("tile")
+            if tile is None or not item.get("uid", "").startswith(f"{row}_{col}_"):
+                tile = self._home_tile(chunk, row, col, light.position)
+            by_tile[int(tile)].append(light)
+        for tile, tile_lights in zip(chunk.tiles, by_tile):
+            # A tile that had none and still has none keeps its empty record as it was.
+            if tile_lights or tile.lights:
+                tile.lights = formats.write_lights(tile_lights)
+
+    def _grow(self, row: int, col: int, environment: int):
+        """A new chunk widens a custom zone's bounds and fills its cells in the server's environment grid."""
+        z = self.zone
+        if not self.stock:
+            grown = (min(z.start_x, col), min(z.start_z, row), max(z.end_x, col + CHUNK_TILES), max(z.end_z, row + CHUNK_TILES))
+            if grown != (z.start_x, z.start_z, z.end_x, z.end_z):
+                z.start_x, z.start_z, z.end_x, z.end_z = grown
+                self.zone_dirty = True
+        if self.environments is not None:
+            env = self.environments
+            rows = env["Rows"]
+            # Rows[longitude (x tile) - start][latitude (z tile) - start]; pad with out of bounds (-1).
+            while col < env["StartLongitude"]:
+                rows.insert(0, [-1] * len(rows[0]))
+                env["StartLongitude"] -= 1
+            while row < env["StartLatitude"]:
+                for r in rows:
+                    r.insert(0, -1)
+                env["StartLatitude"] -= 1
+            while env["StartLongitude"] + len(rows) < col + CHUNK_TILES:
+                rows.append([-1] * len(rows[0]))
+            while env["StartLatitude"] + len(rows[0]) < row + CHUNK_TILES:
+                for r in rows:
+                    r.append(-1)
+            for x in range(col, col + CHUNK_TILES):
+                for zt in range(row, row + CHUNK_TILES):
+                    rows[x - env["StartLongitude"]][zt - env["StartLatitude"]] = environment
+            self.zone_dirty = True
+
+    def add_eco(self, source_zone: str | None, source_index: int | None, definition: str | None) -> dict:
+        """Adds an eco to a custom zone's list, from another zone's list or from a client .eco file."""
+        if self.stock:
+            raise PermissionError(f"{self.name} is a stock zone; its eco list can't change")
+        index = max([e.index for e in self.zone.ecos] + [-1]) + 1
+        if definition:
+            flora_textures = {}
+            for zone_name in (source_zone, "FabledRealms"):
+                if zone_name:
+                    flora_textures |= {f.name.lower(): f.texture for f in self.ws.project(zone_name).zone.floras}
+            eco, floras = formats.eco_from_definition(index, definition, self.ws.assets.read(definition + ".eco").decode("latin-1"), flora_textures)
+        else:
+            source = self.ws.project(source_zone).zone
+            original = next(e for e in source.ecos if e.index == source_index)
+            eco = formats.Eco(index, original.name, original.texture, original.repeat, copy.deepcopy(original.floras))
+            needed = {f.name.lower() for f in original.floras}
+            floras = [copy.deepcopy(f) for f in source.floras if f.name.lower() in needed]
+        if any(e.name.lower() == eco.name.lower() for e in self.zone.ecos):
+            raise ValueError(f"{self.name} already has an eco named {eco.name}")
+        self.zone.ecos.append(eco)
+        known = {f.name.lower() for f in self.zone.floras}
+        self.zone.floras += [f for f in floras if f.name.lower() not in known]
+        self.zone_dirty = True
+        return {"index": eco.index, "name": eco.name, "texture": eco.texture, "repeat": eco.repeat,
+                "floras": [f.name for f in eco.floras]}
+
+    def save_zone(self, settings: dict) -> dict:
+        """Writes the zone file (custom zones), the Sanctuary zone definition, environments and house."""
+        written = []
+        with self.lock:
+            if not self.stock and self.zone_dirty:
+                path = self.ws.mods_dir / f"{self.name}.gzne.z"
+                plain = self.ws.mods_dir / f"{self.name}.gzne"
+                if plain.exists():
+                    plain.unlink()
+                path.write_bytes(compress(self.zone.write()))
+                written.append(path)
+
+            if self.definition is not None:
+                definition = self.definition
+                if "spawnPosition" in settings:
+                    x, y, z = settings["spawnPosition"]
+                    definition["SpawnPosition"] = [round(x, 3), round(y, 3), round(z, 3)]
+                if "spawnHeading" in settings:
+                    angle = np.radians(settings["spawnHeading"])
+                    definition["SpawnRotation"] = [round(float(np.cos(angle)), 6), round(float(np.sin(angle)), 6)]
+                if "sky" in settings:
+                    if settings["sky"]:
+                        definition["Sky"] = settings["sky"]
+                    else:
+                        definition.pop("Sky", None)
+                if not self.stock:
+                    z = self.zone
+                    definition.update({"StartLatitude": z.start_z, "StartLongitude": z.start_x,
+                                       "EndLatitude": z.end_z, "EndLongitude": z.end_x})
+                path = self.definition_path or self.ws.zones_dir / f"{self.name}.json"
+                if write_json(path, definition, DEFINITION_KEYS):
+                    written.append(path)
+                self.definition_path = path
+
+            if self.environments is not None and self.zone_dirty:
+                path = self.ws.zones_dir / "Environments" / f"{self.name}.json"
+                if write_json(path, self.environments):
+                    written.append(path)
+
+            if settings.get("houses") is not None and self.definition is not None:
+                houses = self.ws._houses()
+                ours = {h["Id"]: h for h in settings["houses"]}
+                houses = [ours.pop(h.get("Id"), h) if h.get("ZoneId") == self.definition.get("Id") else h for h in houses]
+                houses += ours.values()
+                path = self.ws.resources / "Houses.json"
+                if write_json(path, houses):
+                    written.append(path)
+
+            if settings.get("customSky"):
+                path = self.ws.root / "ClientMods" / "sky" / settings["customSky"]["name"]
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(settings["customSky"]["xml"], encoding="utf-8")
+                written.append(path)
+                client_sky = self.ws.client_dir / "Resources" / "SKY" / path.name
+                shutil.copyfile(path, client_sky)
+                written.append(client_sky)
+
+            self.zone_dirty = False
+            written += self.written
+            self.written = []
+        copies = self.ws.mirror(written)
+        return {"files": [str(p) for p in written], "mirrored": copies}
