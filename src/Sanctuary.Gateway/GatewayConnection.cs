@@ -19,6 +19,7 @@ using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
 using Sanctuary.Game.Entities;
+using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources.Definitions;
@@ -90,6 +91,8 @@ public class GatewayConnection : UdpConnection
         SendFriendOffline();
 
         SendGuildMemberOffline();
+
+        _serviceProvider.GetRequiredService<IGroupManager>().OnLogout(Player);
 
         _loginClient.SendCharacterLogout(GuidHelper.GetPlayerId(Player.Guid));
 

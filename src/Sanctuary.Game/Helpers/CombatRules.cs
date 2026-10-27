@@ -19,6 +19,11 @@ public static class CombatRules
     public const int PlayerRespawnSeconds = 8;
 
     /// <summary>
+    /// Group members this close to a kill share its stars, coins and loot roll.
+    /// </summary>
+    public const float GroupShareRadius = 60f;
+
+    /// <summary>
     /// A player's health before buffs: 2500 at rank 1 and 100 more for each rank of the active job.
     /// </summary>
     public static int MaxHitpointsAtRank(int rank) => 2500 + 100 * (Math.Clamp(rank, 1, ProfileExperience.MaxRank) - 1);

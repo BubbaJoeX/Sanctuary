@@ -626,7 +626,8 @@ public sealed class NpcCombat
     }
 
     /// <summary>
-    /// Everyone who hurt it and is still around gets the mob's coins and stars, and a roll on its reward table.
+    /// Everyone who hurt it and is still around, and their group members nearby, gets the mob's coins and
+    /// stars, and a roll on its reward table.
     /// </summary>
     private void GrantKillRewards()
     {
@@ -638,11 +639,8 @@ public sealed class NpcCombat
             _attackers.Clear();
         }
 
-        foreach (var guid in attackers)
+        foreach (var player in GetRewardedPlayers(attackers))
         {
-            if (!_npc.Zone.TryGetPlayer(guid, out var player))
-                continue;
-
             var coins = player.ApplyCoinBoost(Definition.Coins);
             var experience = player.ApplyExperienceBoost(Definition.Experience);
 
@@ -670,5 +668,34 @@ public sealed class NpcCombat
 
             player.OnKilled(_npc);
         }
+    }
+
+    /// <summary>
+    /// The attackers still in the zone, plus each one's standing group members within
+    /// <see cref="CombatRules.GroupShareRadius"/> of the mob, each once.
+    /// </summary>
+    private List<Player> GetRewardedPlayers(ulong[] attackers)
+    {
+        var mobPosition = _npc.Position.ToVector3();
+        var rewarded = new Dictionary<ulong, Player>();
+
+        foreach (var guid in attackers)
+        {
+            if (!_npc.Zone.TryGetPlayer(guid, out var attacker))
+                continue;
+
+            rewarded.TryAdd(attacker.Guid, attacker);
+
+            foreach (var memberGuid in attacker.Group?.Members ?? [])
+            {
+                if (rewarded.ContainsKey(memberGuid) || !_npc.Zone.TryGetPlayer(memberGuid, out var member) || member.IsDead)
+                    continue;
+
+                if (Vector3.DistanceSquared(mobPosition, member.Position.ToVector3()) <= CombatRules.GroupShareRadius * CombatRules.GroupShareRadius)
+                    rewarded.TryAdd(member.Guid, member);
+            }
+        }
+
+        return [.. rewarded.Values];
     }
 }
