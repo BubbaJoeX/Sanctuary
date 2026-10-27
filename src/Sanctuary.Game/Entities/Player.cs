@@ -1835,7 +1835,16 @@ public sealed class Player : ClientPcData, IEntity
 
         SendToolbar();
         SendCombatMode();
+        SendFriendStatus();
 
+        return true;
+    }
+
+    /// <summary>
+    /// Shows friends the active job and its rank.
+    /// </summary>
+    private void SendFriendStatus()
+    {
         var friendStatusPacket = new FriendStatusPacket
         {
             Guid = Guid,
@@ -1854,8 +1863,54 @@ public sealed class Player : ClientPcData, IEntity
             if (_zoneManager.TryGetPlayer(friend.Guid, out var friendPlayer))
                 friendPlayer.SendTunneled(friendStatusPacket);
         }
+    }
 
-        return true;
+    /// <summary>
+    /// Moves a job's bar to <paramref name="progress"/> (already saved). A higher rank gets the client's
+    /// level-up notice, the level-up sparkle for everyone around and a full refill.
+    /// </summary>
+    public void UpdateProfileProgress(ClientPcProfile profile, ProfileProgress progress)
+    {
+        var rankedUp = progress.Rank > profile.Rank;
+
+        profile.Rank = progress.Rank;
+        profile.RankPercent = ProfileExperience.RankPercent(progress);
+
+        // The rank packet goes first: it only shows the level-up notice while the client still has the old rank.
+        SendTunneled(new ClientUpdatePacketUpdateProfileRank
+        {
+            ProfileId = profile.Id,
+            Rank = profile.Rank
+        });
+
+        SendTunneled(new ClientUpdatePacketUpdateProfileExperience
+        {
+            ProfileId = profile.Id,
+            Rank = profile.Rank,
+            RankPercent = profile.RankPercent,
+            StarsAvailable = profile.StarsAvailable,
+            StarsEarned = profile.StarsEarned,
+            Unknown20 = profile.Unknown20
+        });
+
+        if (!rankedUp)
+            return;
+
+        SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect
+        {
+            Guid = Guid,
+            CompositeEffectId = ProfileExperience.LevelUpEffectId,
+            Position = Position
+        }, true);
+
+        if (!IsDead)
+        {
+            Hitpoints = MaxHitpoints;
+            Energy = EffectiveMaxEnergy;
+        }
+
+        if (profile.Id == ActiveProfile.Id)
+            SendFriendStatus();
     }
 
     /// <summary>

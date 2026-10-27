@@ -108,8 +108,9 @@ public static class CommandPacketInteractRequestHandler
 
         collectionProgress.OwnedItemDefinitionIds.Add(collectionProgress.ItemDefinitionId);
 
-        if (collectionProgress.WasStarted
-            && collectionMatch.Definition.IsComplete(collectionProgress.OwnedItemDefinitionIds, collectionProgress.CollectedEntryIds))
+        var isComplete = collectionMatch.Definition.IsComplete(collectionProgress.OwnedItemDefinitionIds, collectionProgress.CollectedEntryIds);
+
+        if (collectionProgress.WasStarted && isComplete)
         {
             connection.SendTunneled(new ClientUpdatePacketCollectionRemoveEntry
             {
@@ -120,7 +121,51 @@ public static class CommandPacketInteractRequestHandler
 
         SendCollectionEntryUpdate(connection, collectionMatch.Definition, collectionMatch.Entry, collectionMatch.Index,
             collectionProgress.WasStarted);
+
+        if (isComplete)
+            GrantCollectionCompletionReward(connection, collectionMatch.Definition);
+
         return true;
+    }
+
+    /// <summary>
+    /// Pays a finished collection's RewardPoints as stars, once per character. A RewardClaimedEntryId row
+    /// marks it paid, so dropping an item and collecting it again doesn't pay twice.
+    /// </summary>
+    private static void GrantCollectionCompletionReward(GatewayConnection connection, CollectionDefinition collection)
+    {
+        if (collection.RewardEntryType != RewardBundleEntryType.Experience || collection.RewardPoints <= 0)
+            return;
+
+        var characterId = GuidHelper.GetPlayerId(connection.Player.Guid);
+
+        using var dbContext = _dbContextFactory.CreateDbContext();
+
+        if (dbContext.CollectionEntries.Any(x => x.CharacterId == characterId && x.CollectionId == collection.Id
+            && x.EntryId == CollectionDefinition.RewardClaimedEntryId))
+            return;
+
+        dbContext.CollectionEntries.Add(new DbCollectionEntry
+        {
+            CharacterId = characterId,
+            CollectionId = collection.Id,
+            EntryId = CollectionDefinition.RewardClaimedEntryId
+        });
+
+        if (dbContext.SaveChanges() <= 0)
+            return;
+
+        var experience = connection.Player.ApplyExperienceBoost(collection.RewardPoints);
+
+        var celebration = new RewardBundlePacket();
+        celebration.RewardBundle.Experience = experience;
+        celebration.RewardBundle.Multiplier = 1f;
+        celebration.RewardBundle.IconId = -1;
+        celebration.RewardBundle.NameId = -1;
+
+        connection.SendTunneled(celebration);
+
+        _rewardManager.TryGrantExperience(connection.Player, experience);
     }
 
     private static bool HandleCollectionCoin(GatewayConnection connection, CollectionCoin coin)
@@ -184,6 +229,10 @@ public static class CommandPacketInteractRequestHandler
 
             SendCollectionEntryUpdate(
                 connection, collection, collection.Entries[entryIndex], entryIndex, collectionWasStarted);
+
+            if (collectionWillBeComplete)
+                GrantCollectionCompletionReward(connection, collection);
+
             return true;
         }
         catch (Exception ex)

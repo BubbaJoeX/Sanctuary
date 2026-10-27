@@ -9,6 +9,7 @@ using Sanctuary.Core.IO;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game.Entities;
+using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
@@ -154,6 +155,44 @@ public class RewardManager : IRewardManager
         player.Coins = dbCharacter.Coins;
 
         player.SendTunneled(new ClientUpdatePacketCoinCount { Coins = player.Coins });
+
+        return true;
+    }
+
+    public bool TryGrantExperience(Player player, int experience)
+    {
+        if (experience <= 0)
+            return false;
+
+        var profile = player.ActiveProfile;
+        var characterId = GuidHelper.GetPlayerId(player.Guid);
+
+        // Kills from several mobs can land at once; each read-add-save must see the last one's total.
+        lock (profile)
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            var dbProfile = dbContext.Profiles.SingleOrDefault(x => x.CharacterId == characterId && x.Id == profile.Id);
+
+            if (dbProfile is null)
+                return false;
+
+            var before = new ProfileProgress(dbProfile.Level, dbProfile.LevelXP);
+            var after = ProfileExperience.Add(before, experience);
+
+            if (after == before)
+                return false;
+
+            dbProfile.Level = after.Rank;
+            dbProfile.LevelXP = after.Experience;
+
+            if (dbContext.SaveChanges() <= 0)
+                return false;
+
+            player.UpdateProfileProgress(profile, after);
+
+            if (after.Rank > before.Rank)
+                _logger.LogInformation("{player} reached rank {rank} in profile {profile}.", player.Name.FullName, after.Rank, profile.Id);
+        }
 
         return true;
     }

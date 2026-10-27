@@ -14,7 +14,7 @@ namespace Sanctuary.Game.ChatCommands;
 public class ProfileChatCommand : IChatCommand
 {
     private const int PageSize = 15;
-    private const int MaxLevel = 20;
+    private const int MaxLevel = ProfileExperience.MaxRank;
 
     private readonly ILogger _logger;
     private readonly IZoneManager _zoneManager;
@@ -24,7 +24,7 @@ public class ProfileChatCommand : IChatCommand
 
     public string KeyWord => "profile";
     public string Usage => "list [page] | grant <id> [level] [player] | level <id> <level> [player]";
-    public string Description => "Lists profiles (jobs), grants one with its default items, or sets a profile's level. Changes show after relog.";
+    public string Description => "Lists profiles (jobs), grants one with its default items, or sets a profile's level. A granted profile appears after relog.";
     public ChatCommandRole RequiredRole => ChatCommandRole.Admin;
 
     public ProfileChatCommand(ILogger<ProfileChatCommand> logger, IZoneManager zoneManager, IResourceManager resourceManager, IChatCommandManager chatCommandManager, IDbContextFactory<DatabaseContext> dbContextFactory)
@@ -170,13 +170,10 @@ public class ProfileChatCommand : IChatCommand
         var clientPcProfile = target.Profiles.FirstOrDefault(x => x.Id == profileId);
 
         if (clientPcProfile is not null)
-        {
-            clientPcProfile.Rank = level;
-            clientPcProfile.RankPercent = 0;
-        }
+            target.UpdateProfileProgress(clientPcProfile, new ProfileProgress(level, 0));
 
         _chatCommandManager.LogAction(this, invoker, "Level", target.Name.FullName, $"Profile: {profileId}, Level: {level}");
-        ChatHelper.SendSystemMessage(invoker, $"Profile {profileId} on {target.Name.FullName} set to level {level}. It shows after relog.");
+        ChatHelper.SendSystemMessage(invoker, $"Profile {profileId} on {target.Name.FullName} set to level {level}.");
 
         return true;
     }

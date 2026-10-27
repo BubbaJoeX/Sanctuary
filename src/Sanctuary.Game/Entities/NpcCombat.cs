@@ -662,6 +662,8 @@ public sealed class NpcCombat
                 player.SendTunneled(rewardBundlePacket);
             }
 
+            _rewardManager.TryGrantExperience(player, experience);
+
             if (!string.IsNullOrWhiteSpace(Definition.RewardTable) &&
                 _rewardManager.TryRollReward(Definition.RewardTable, out var drop) && drop is not null)
                 _rewardManager.TryGrantReward(player, drop, _npc.Guid);

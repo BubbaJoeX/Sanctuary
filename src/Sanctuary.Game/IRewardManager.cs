@@ -12,4 +12,9 @@ public interface IRewardManager
     bool TryGrantItem(Player player, int itemDefinitionId, int tint, int quantity = 1, ulong sourceGuid = 0);
 
     bool TryGrantCurrency(Player player, CurrencyType currencyType, int amount);
+
+    /// <summary>
+    /// Adds stars to the active job, ranking it up as its bar fills. False at the top rank.
+    /// </summary>
+    bool TryGrantExperience(Player player, int experience);
 }
