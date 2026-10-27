@@ -1699,6 +1699,16 @@ public sealed class Player : ClientPcData, IEntity
 
     public void OnAttackedBy(Npc mob) => EnterCombat();
 
+    /// <summary>
+    /// The client only treats hostile NPCs as enemies (enemy nameplate, targetable) in its overworld combat
+    /// mode, which needs both packets. A combat job turns it on and any other job turns it off.
+    /// </summary>
+    public void SendCombatMode()
+    {
+        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = true });
+        SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
+    }
+
     public void OnKilled(Npc mob) => MarkInCombat();
 
     /// <summary>
@@ -1819,6 +1829,7 @@ public sealed class Player : ClientPcData, IEntity
         });
 
         SendToolbar();
+        SendCombatMode();
 
         var friendStatusPacket = new FriendStatusPacket
         {

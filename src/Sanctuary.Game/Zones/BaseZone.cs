@@ -375,6 +375,7 @@ public abstract class BaseZone : IZone, IDisposable
 
         // Hitpoints, energy and buffed stats carry over between zones.
         player.SendVitals();
+        player.SendCombatMode();
 
         var playerUpdatePacketUpdateActiveWieldType = new PlayerUpdatePacketUpdateActiveWieldType
         {
