@@ -66,7 +66,31 @@ is what lets the Referee Tools panel be dragged anywhere and resized (bottom-rig
 maximize). The client's Lua bottom-aligns the chat window, and the mod draws the chat movie 1:1
 anchored bottom-left, so chat itself stays where it always was.
 
+It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` (see below).
+
 Undo it with `--uninstall`.
+
+## Referee client tools (Lua)
+
+The retail client ships without its internal Lua: the `Admin` module, the `/dofile` binding and the
+debug console switch. Its `startup.lua` still defines `dofileInternalOnlyCommand(name)`, which runs
+`Client.PathScripts .. name` (`[Paths] PathScripts` in `ClientConfig.ini`, `./Resources/Scripts/` by default).
+
+The server can call any client Lua function with three numbers (`AbilityPacketExecuteClientLua`,
+Ability sub-op 17). When a referee finishes loading into the world it calls
+`dofileInternalOnlyCommand(1)`, which runs `lua/referee_tools.lua` installed as `Resources/Scripts/1`. That
+gives the referee:
+
+- `/lua <code>` (`/lua =<expression>` prints the value)
+- `/dofile <file>` (`/dofile 1` reloads the tools)
+- `/admin on|off`, which sets the client's `Admin` global so its admin-only UI turns on, e.g. the atlas
+  printing world coordinates on click
+- `Client.EnableDebugConsole`
+
+`!lua tools [referee]` reloads the tools. `!lua call <function> [x y z] [player]` calls any client Lua
+function, e.g. `!lua call CuteMode:Big`. Both commands need the admin role.
+
+The retail client also binds `/var <name>` and `/listvars`, which print `Client.*` variables.
 
 The client must be launched against a Sanctuary WebAPI that serves the same build
 (`AssetDelivery:IndirectServerAddress=http://127.0.0.1:20040/assets`, which is the default in

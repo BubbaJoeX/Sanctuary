@@ -7,6 +7,9 @@ matches the asset manifest the client downloaded from the asset server. So insta
   - switches the UI window definitions to the renamed mod movies.
 Sanctuary's WebAPI publishes the same files in the manifest it serves, which keeps them "current".
 
+It also copies the referee client tools (lua/referee_tools.lua) to Resources/Scripts/1, which the
+server runs for referees through the client's dofileInternalOnlyCommand (see ClientLuaHelper).
+
 Originals are backed up next to each file as <name>.sanctuary-backup.
 
 Examples:
@@ -25,6 +28,10 @@ mods_dir = script_dir.parent / "src" / "Resources" / "ClientMods"
 
 BACKUP_SUFFIX = ".sanctuary-backup"
 MARKER_FILE = "sanctuary_client_mods.txt"
+
+# dofileInternalOnlyCommand(n) runs Client.PathScripts .. n, and the server can only pass it a number,
+# so the file is named after one (ClientLuaHelper.RefereeToolsScript).
+REFEREE_LUA = (script_dir / "lua" / "referee_tools.lua", Path("Resources/Scripts/1"))
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
 PACK_DATA_ALIGNMENT = 8192
@@ -127,6 +134,12 @@ def install(client_dir):
         path.write_text(text, encoding="utf-8-sig")
         print(f"{relative_path}: patched ({len(replacements)} change(s))")
 
+    source, relative_path = REFEREE_LUA
+    target = client_dir / relative_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, target)
+    print(f"{relative_path}: referee client tools")
+
 
 def uninstall(client_dir):
     for relative_path, _ in WINDOW_PATCHES:
@@ -140,6 +153,11 @@ def uninstall(client_dir):
         shutil.copy2(backup, path)
         backup.unlink()
         print(f"{relative_path}: restored")
+
+    _, relative_path = REFEREE_LUA
+    if (client_dir / relative_path).exists():
+        (client_dir / relative_path).unlink()
+        print(f"{relative_path}: removed")
 
     marker = client_dir / MARKER_FILE
     if marker.exists():

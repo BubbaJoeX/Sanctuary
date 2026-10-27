@@ -109,6 +109,11 @@ public sealed class Player : ClientPcData, IEntity
     public (int ZoneDefinitionId, ulong? OwnerId, Vector4 Position, Quaternion Rotation)? ReturnPoint { get; set; }
 
     /// <summary>
+    /// The referee client tools (/lua, /dofile, ...) were loaded into this client (see ClientLuaHelper).
+    /// </summary>
+    public bool RefereeToolsLoaded { get; set; }
+
+    /// <summary>
     /// NPC a referee last clicked; the target of !npc edits.
     /// </summary>
     public ulong? SelectedNpcGuid { get; set; }
