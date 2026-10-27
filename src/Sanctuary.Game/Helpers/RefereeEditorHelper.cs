@@ -95,13 +95,14 @@ public static class RefereeEditorHelper
 
         var eventKey = npc.Zone is WorldZone eventZone ? eventZone.GetWorldNpcEvent(npc.Guid) : null;
 
-        // npc: guid, name, name id, model, scale, animation, disposition, nameplate, behavior, speed, event, x, y, z, collidable
+        // npc: guid, name, name id, model, scale, animation, disposition, nameplate, behavior, speed, event, x, y, z, collidable,
+        // definition id (quest givers and talk goals use it)
         ChatHelper.SendGmPanelData(player, "edit", "npc",
             npc.Guid, npc.Name ?? string.Empty, npc.NameId, npc.ModelId,
             Format(npc.Scale), npc.Animation, npc.Disposition, npc.HideNamePlate ? 0 : 1,
             npc.Behavior, Format(npc.Speed), eventKey ?? string.Empty,
             Format(npc.Position.X), Format(npc.Position.Y), Format(npc.Position.Z),
-            npc.Collidable ? 1 : 0);
+            npc.Collidable ? 1 : 0, npc.DefinitionId);
         RefereeFieldsHelper.Send(player, npc, "npc", eventKey);
     }
 
