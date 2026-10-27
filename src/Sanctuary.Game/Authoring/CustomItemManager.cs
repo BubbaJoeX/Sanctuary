@@ -53,9 +53,10 @@ public class CustomItemManager : ICustomItemManager
 
     /// <summary>
     /// Overridable fields. Names, descriptions and icons are client ids: the client only shows its own strings and art.
+    /// param1/param2 are the type-specific ids (a mount item's Mounts.json id, for example).
     /// </summary>
     public static readonly string[] Fields =
-        ["name", "desc", "model", "texture", "tint", "icon", "icontint", "rarity", "cost", "stack", "effect", "members", "notrade", "nosale"];
+        ["name", "desc", "model", "texture", "tint", "icon", "icontint", "rarity", "cost", "stack", "effect", "param1", "param2", "members", "notrade", "nosale"];
 
     private static readonly JsonSerializerOptions JsonOptions = new();
 
@@ -318,6 +319,8 @@ public class CustomItemManager : ICustomItemManager
             case "cost": definition.Cost = Number(); break;
             case "stack": definition.MaxStackSize = Number(); break;
             case "effect": definition.CompositeEffectId = Number(); break;
+            case "param1": definition.Param1 = Number(); break;
+            case "param2": definition.Param2 = Number(); break;
             case "members": definition.MembersOnly = value == "on"; break;
             case "notrade": definition.NoTrade = value == "on"; break;
             case "nosale": definition.NoSale = value == "on"; break;
@@ -337,6 +340,8 @@ public class CustomItemManager : ICustomItemManager
         "cost" => definition.Cost.ToString(CultureInfo.InvariantCulture),
         "stack" => definition.MaxStackSize.ToString(CultureInfo.InvariantCulture),
         "effect" => definition.CompositeEffectId.ToString(CultureInfo.InvariantCulture),
+        "param1" => definition.Param1.ToString(CultureInfo.InvariantCulture),
+        "param2" => definition.Param2.ToString(CultureInfo.InvariantCulture),
         "members" => definition.MembersOnly ? "on" : "off",
         "notrade" => definition.NoTrade ? "on" : "off",
         "nosale" => definition.NoSale ? "on" : "off",

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Game;
+using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Packet.Common;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
@@ -90,7 +91,7 @@ public static class CharacterSelectInfoRequestHandler
                     accountInfoCharacterDetails.Data.CharacterAttachments.Add(new CharacterAttachmentData
                     {
                         ModelName = clientItemDefinition.ModelName,
-                        TextureAlias = clientItemDefinition.TextureAlias,
+                        TextureAlias = ItemDefinitionHelper.GetAttachmentTextureAlias(clientItemDefinition.TextureAlias, character.SkinTone),
                         TintAlias = clientItemDefinition.TintAlias,
                         TintId = item.Tint,
                         CompositeEffectId = clientItemDefinition.CompositeEffectId,

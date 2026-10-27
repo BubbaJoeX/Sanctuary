@@ -12,6 +12,8 @@
 
     <PackageReference Include="SixLabors.ImageSharp" />
 
+    <PackageReference Include="System.IO.Hashing" />
+
     <PackageReference Include="NLog" />
     <PackageReference Include="NLog.Extensions.Logging" />
   </ItemGroup>
@@ -23,6 +25,8 @@
   <ItemGroup>
     <!-- Modified client assets served by the asset endpoint. -->
     <Content Include="..\Resources\ClientMods\**\*" LinkBase="ClientMods" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- Modified client files served to the launcher by the client endpoints. -->
+    <Content Include="..\Resources\ClientPatches\**\*" LinkBase="ClientPatches" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-gwg2-r3hj-4w44" />
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-j3p4-wp97-rph4" />
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-j9gm-c75j-xc9q" />

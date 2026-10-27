@@ -145,7 +145,7 @@ public static class InventoryPacketEquipByGuidHandler
         clientUpdatePacketEquipItem.Guid = inventoryPacketEquipByGuid.Guid;
 
         clientUpdatePacketEquipItem.Attachment.ModelName = clientItemDefinition.ModelName;
-        clientUpdatePacketEquipItem.Attachment.TextureAlias = clientItemDefinition.TextureAlias;
+        clientUpdatePacketEquipItem.Attachment.TextureAlias = ItemDefinitionHelper.GetAttachmentTextureAlias(clientItemDefinition.TextureAlias, connection.Player.SkinTone);
         clientUpdatePacketEquipItem.Attachment.TintAlias = clientItemDefinition.TintAlias;
         clientUpdatePacketEquipItem.Attachment.TintId = clientItem.Tint == 0 ? clientItemDefinition.Icon.TintId : clientItem.Tint;
         clientUpdatePacketEquipItem.Attachment.CompositeEffectId = clientItemDefinition.CompositeEffectId;
