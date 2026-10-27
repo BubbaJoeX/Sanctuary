@@ -88,6 +88,8 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
     (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
     (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),
+    (Path("UI/UiModules/Main/wndEquipmentPane.xml"),
+     [("UI\\equipmentscreen_new.swf", "UI\\sanctuaryEquipmentScreen.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

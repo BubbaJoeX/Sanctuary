@@ -91,6 +91,8 @@ MODS = [
     ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
     ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "main_menu.as"], []),
     ("atlas", "sanctuaryAtlas", "\\frame_1\\DoAction", [script_dir / "atlas" / "lavender_coast.as"], []),
+    ("equipmentscreen_new", "sanctuaryEquipmentScreen", "\\frame_1\\DoAction",
+     [script_dir / "equipment" / "equipment_pane.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("FRUtilNavigation", "sanctuaryFRUtilNavigation", None, [], []),
     ("mini_map", "sanctuaryMiniMap", None, [], []),
