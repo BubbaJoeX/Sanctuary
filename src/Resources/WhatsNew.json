@@ -1,5 +1,20 @@
 [
   {
+    "Title": "Rank up your jobs",
+    "Text": "Defeating enemies, finishing quests and completing collections now earn stars for the job you're in. Fill the bar to rank up, all the way to rank 20: every rank gives more health and harder hits.",
+    "Icon": "trophy"
+  },
+  {
+    "Title": "Team up and trade",
+    "Text": "Click another player to Invite to Group (up to five) or to Trade items and coins. Group members fighting together share stars, coins and loot.",
+    "Icon": "friends"
+  },
+  {
+    "Title": "Loot to find",
+    "Text": "Enemies drop potions, orbs and coins, and the tough ones always leave something behind. Open a Thick Pocket Book or a Robgoblin Treasure Trove to see what's inside!",
+    "Icon": "bag"
+  },
+  {
     "Title": "Quests are here!",
     "Text": "Talk to the folks with a marker over their heads to pick up quests. Track your goals in the Hero's Journal and earn rewards when you're done.",
     "Action": "OpenHerosJournal",

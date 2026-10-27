@@ -22,6 +22,7 @@ using Sanctuary.Game.Entities;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Quests;
+using Sanctuary.Game.Trading;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Gateway.Handlers;
 using Sanctuary.Packet;
@@ -93,6 +94,7 @@ public class GatewayConnection : UdpConnection
         SendGuildMemberOffline();
 
         _serviceProvider.GetRequiredService<IGroupManager>().OnLogout(Player);
+        _serviceProvider.GetRequiredService<ITradeManager>().OnLogout(Player);
 
         _loginClient.SendCharacterLogout(GuidHelper.GetPlayerId(Player.Guid));
 
