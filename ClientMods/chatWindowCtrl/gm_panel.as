@@ -1124,8 +1124,9 @@ function gmRenderWorld(content)
 
    var move = gmCard(content, "move_mc", "Getting around", 0, 0, w, 58);
    gmCardRow(move, 28, w, [
-      ["God mode on", "!godmode on", 0x2E7D5B],
-      ["God mode off", "!godmode off"],
+      ["God on", "!godmode on", 0x2E7D5B],
+      ["God off", "!godmode off"],
+      ["Fly", "!fly"],
       ["Back", "!gm back"],
       ["Where am I", "!gm pos"],
       ["Area here", "!area here"],
@@ -1265,8 +1266,8 @@ function gmRenderServer(content)
    gmCardRow(speed, 56, col, [
       ["Jump normal", "!stat JumpHeight 0"],
       ["Jump high", "!stat JumpHeight 20"],
-      ["Glide on", "!stat GlideEnabled 1"],
-      ["Glide off", "!stat GlideEnabled 0"]
+      ["Fly on", "!fly on"],
+      ["Fly off", "!fly off"]
    ]);
 
    var size = gmCard(content, "size_mc", "My size", col + 10, 132, col, 86);
