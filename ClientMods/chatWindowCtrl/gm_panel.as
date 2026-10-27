@@ -2418,36 +2418,50 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "onSecond()  every second\r" +
    "onInteract(player)  clicked\r" +
    "onProximity(player)  walks up (8 m)\r" +
+   "onLeave(player)  walks away again\r" +
    "onHear(player, message)  says something nearby (10 m)\r" +
    "onChoice(player, hook)  dialogue answer with a hook\r" +
+   "onArrive()  reached its moveTo target\r" +
+   "onSignal(name, data, fromGuid)  another script's npc:signal\r" +
+   "\rTIMERS (on the one-second tick)\r" +
+   "after(seconds, fn)  every(seconds, fn)  return an id\r" +
+   "cancel(id)\r" +
    "\rNPC (the global npc)\r" +
-   "npc.guid  npc.name  npc.position  npc.zone  npc.isMoving\r" +
-   "npc:say(text)\r" +
+   "npc.guid  npc.name  npc.position  npc.home  npc.zone  npc.isMoving\r" +
+   "npc:say(text)  npc:sayTo(player, text)\r" +
    "npc:sayLocalized(stringId)\r" +
-   "npc:face(player)\r" +
-   "npc:moveTo(x, y, z [, direct])\r" +
-   "npc:setSpeed(speed)  npc:setHeading(degrees)\r" +
+   "npc:face(player)  npc:setHeading(degrees)\r" +
+   "npc:moveTo(x, y, z [, direct])  npc:returnHome()\r" +
+   "npc:setSpeed(speed)  npc:setScale(scale)  npc:rename(name)\r" +
    "npc:emote(animId [, loop])  npc:playAnimation(animId)\r" +
    "npc:setBaseAnimation(animId)\r" +
    "npc:playEffect(effectId)\r" +
    "npc:addEffectTag(effectId)  npc:removeEffectTag(tagId)\r" +
    "npc:setCollidable(true|false)\r" +
+   "npc:getPlayers(radius)  npc:getPlayer(guid or name)\r" +
    "npc:getNearbyPlayers(radius)\r" +
    "npc:getPlayersOnTop(radius, minHeight, maxHeight)\r" +
    "npc:startConversation(player [, nodeId])\r" +
+   "npc:signal(name [, data [, radius]])\r" +
    "\rPLAYER\r" +
-   "player.name  player.guid  player.position\r" +
+   "player.name  player.guid  player.position  player.isGm  player.isMounted\r" +
    "player:message(text)\r" +
-   "player:giveItem(itemId [, qty])\r" +
-   "player:acceptQuest(questId)\r" +
-   "player:hasCompletedQuest(questId)\r" +
+   "player:giveItem(itemId [, qty])  player:giveCoins(amount)\r" +
+   "player:heal(amount)\r" +
+   "player:teleport(x, y, z [, heading])  player:dismount()\r" +
+   "player:emote(animId)  player:playEffect(effectId)\r" +
+   "player:transform(modelId, seconds)  player:clearTransform()\r" +
+   "player:resize(scale, seconds)\r" +
+   "player:acceptQuest(questId)  player:hasCompletedQuest(questId)\r" +
    "\rZONE (npc.zone)\r" +
    "zone.id  zone.name\r" +
-   "zone:broadcast(text)\r" +
-   "zone:broadcastNear(text, x, z, radius)\r" +
+   "zone:broadcast(text)  zone:broadcastNear(text, x, z, radius)\r" +
+   "zone:getFlag(name)  zone:setFlag(name, value)  zone:addFlag(name [, amount])\r" +
    "zone:spawnNpc(npcId, x, y, z, heading)\r" +
    "zone:setClientAreaEnabled(areaId, on)\r" +
    "zone:isSeasonActive(name)\r" +
+   "\rHELPERS\r" +
+   "distance(a, b)  pick(list)  chance(probability)  shuffle(list)  countdown(seconds)\r" +
    "\rLUA\r" +
    "math string table pairs ipairs next select type tostring tonumber pcall error assert unpack print\r" +
    "\r16 KB per script, 100 ms per hook.";
@@ -2455,11 +2469,13 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
 // Hook skeletons the Insert buttons add: [name, code].
 var GM_SCRIPT_SNIPPETS = [
    ["onSpawn", "function onSpawn()\r    npc:say(\"I'm awake!\")\rend"],
-   ["onSecond", "local clock = 0\r\rfunction onSecond()\r    clock = clock + 1\rend"],
    ["onInteract", "function onInteract(player)\r    npc:face(player)\r    npc:say(\"Hello, \" .. player.name .. \"!\")\rend"],
    ["onProximity", "function onProximity(player)\r    npc:face(player)\r    npc:say(\"Welcome, \" .. player.name .. \"!\")\rend"],
+   ["onLeave", "function onLeave(player)\r    npc:sayTo(player, \"Come back soon!\")\rend"],
    ["onHear", "function onHear(player, message)\r    if string.find(string.lower(message), \"hello\", 1, true) then\r        npc:face(player)\r        npc:say(\"Hello to you too, \" .. player.name .. \"!\")\r    end\rend"],
-   ["onChoice", "function onChoice(player, hook)\r    if hook == \"thanks\" then\r        player:message(\"The NPC smiles at you.\")\r    end\rend"]
+   ["onChoice", "function onChoice(player, hook)\r    if hook == \"thanks\" then\r        player:message(\"The NPC smiles at you.\")\r    end\rend"],
+   ["onSignal", "function onSignal(name, data, fromGuid)\r    if name == \"start\" then\r        npc:say(\"Here we go!\")\r    end\rend"],
+   ["every", "every(30, function()\r    npc:say(pick({ \"Lovely day!\", \"Anyone seen my hat?\", \"Hmm...\" }))\rend)"]
 ];
 
 // Every space escaped, for values passed as key=value arguments.
@@ -2763,7 +2779,7 @@ function gmRenderScriptEditor(content, x, hasEntity, kind, isLib)
    var i;
    for(i = 0; i < GM_SCRIPT_SNIPPETS.length; i++)
    {
-      var b = gmButton(content, "snip" + i + "_mc", GM_SCRIPT_SNIPPETS[i][0], x + 52 + i * 101, y, 97, 22, function()
+      var b = gmButton(content, "snip" + i + "_mc", GM_SCRIPT_SNIPPETS[i][0], x + 52 + i * 76, y, 72, 22, function()
       {
          gmScriptInsert(this.index);
       });
@@ -2816,7 +2832,7 @@ function gmScriptInsert(index)
    var t = _root.gm_mc.content_mc.source_txt;
    var name = GM_SCRIPT_SNIPPETS[index][0];
    var source = String(t.text);
-   if(source.indexOf("function " + name + "(") != -1)
+   if(name.substr(0, 2) == "on" && source.indexOf("function " + name + "(") != -1)
    {
       gmStatus("The script already has " + name + ".");
       return;
