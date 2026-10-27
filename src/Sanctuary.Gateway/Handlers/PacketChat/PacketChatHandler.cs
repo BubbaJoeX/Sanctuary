@@ -198,6 +198,31 @@ public static class PacketChatHandler
                 }
                 break;
 
+            case ChatChannel.GroupSay:
+                {
+                    if (connection.Player.Group is not { } group)
+                        break;
+
+                    _chatLogger.LogInformation("GroupSay|GroupId: {GroupId}, From: \"{FromName}\" ({FromGuid}), Msg: \"{Message}\"",
+                        group.Id,
+                        packet.FromName,
+                        packet.FromGuid,
+                        packet.Message
+                    );
+
+                    foreach (var memberGuid in group.Members)
+                    {
+                        if (!_zoneManager.TryGetPlayer(memberGuid, out var groupPlayer))
+                            continue;
+
+                        if (groupPlayer.Guid != connection.Player.Guid && groupPlayer.Ignores.Any(x => x.Guid == connection.Player.Guid))
+                            continue;
+
+                        groupPlayer.SendTunneled(packet);
+                    }
+                }
+                break;
+
             case ChatChannel.GuildSay:
                 {
                     if (connection.Player.GuildData is null)

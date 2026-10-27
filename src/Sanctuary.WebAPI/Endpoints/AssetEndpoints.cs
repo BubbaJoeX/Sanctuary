@@ -187,9 +187,13 @@ public static class AssetEndpoints
             if (_manifest?.Key == key)
                 return _manifest;
 
+            // The build runs to the end even if the client that asked gives up (it waits only a few seconds),
+            // so its retries find the manifest ready instead of starting over.
+            var buildToken = CancellationToken.None;
+
             var source = localManifest?.Exists == true
-                ? await File.ReadAllBytesAsync(localManifest.FullName, cancellationToken)
-                : await GetUpstreamAsync(options, httpClientFactory, ManifestFileName, cancellationToken);
+                ? await File.ReadAllBytesAsync(localManifest.FullName, buildToken)
+                : await GetUpstreamAsync(options, httpClientFactory, ManifestFileName, buildToken);
 
             if (source is null)
             {
@@ -201,20 +205,22 @@ public static class AssetEndpoints
                 .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries)
                 .ToList();
 
+            // Replace each mod's original entry whether it was listed compressed or not, in one pass.
+            var replaced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var clientMod in clientMods)
+            {
+                var assetName = clientMod.Name.EndsWith(".z", StringComparison.OrdinalIgnoreCase) ? clientMod.Name[..^2] : clientMod.Name;
+                replaced.Add(assetName);
+                replaced.Add(assetName + ".z");
+            }
+
+            lines.RemoveAll(line => replaced.Contains(line[..Math.Max(line.IndexOf(','), 0)]));
+
             foreach (var clientMod in clientMods)
             {
                 var isCompressed = clientMod.Name.EndsWith(".z", StringComparison.OrdinalIgnoreCase);
-                var assetName = isCompressed ? clientMod.Name[..^2] : clientMod.Name;
 
-                // Replace the original entry whether it was listed compressed or not.
-                lines.RemoveAll(line =>
-                {
-                    var name = line.Split(',')[0];
-                    return name.Equals(assetName, StringComparison.OrdinalIgnoreCase)
-                        || name.Equals(assetName + ".z", StringComparison.OrdinalIgnoreCase);
-                });
-
-                var data = await File.ReadAllBytesAsync(clientMod.FullName, cancellationToken);
+                var data = await File.ReadAllBytesAsync(clientMod.FullName, buildToken);
 
                 // ".z" entries list the crc of the uncompressed asset and the size of the download.
                 var crc = isCompressed ? Crc32(Decompress(data)) : Crc32(data);

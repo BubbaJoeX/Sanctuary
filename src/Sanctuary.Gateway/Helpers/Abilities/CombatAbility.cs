@@ -67,8 +67,9 @@ public sealed class CombatAbility(AbilityServices services)
             ? FindMobsAround(player, target.Position.ToVector3(), ability.AoeRadius)
             : [target];
 
-        // Attack foods (+20 EquippedMeleeWeaponDamage) add to every hit.
-        var damagePerHit = ability.Damage + (int)MathF.Round(player.GetStatBonus(CharacterStatId.EquippedMeleeWeaponDamage));
+        // The job's rank scales the ability; attack foods (+20 EquippedMeleeWeaponDamage) add to every hit.
+        var damagePerHit = CombatRules.ScaleDamageForRank(ability.Damage, player.ActiveProfile.Rank)
+            + (int)MathF.Round(player.GetStatBonus(CharacterStatId.EquippedMeleeWeaponDamage));
 
         foreach (var mob in targets)
         {

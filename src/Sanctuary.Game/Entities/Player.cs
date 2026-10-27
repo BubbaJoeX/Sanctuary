@@ -16,6 +16,7 @@ using Sanctuary.Core.IO;
 using Sanctuary.Core.Helpers;
 using Sanctuary.Game;
 using Sanctuary.Game.ChatCommands;
+using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
 using Sanctuary.Game.Quests;
@@ -115,6 +116,11 @@ public sealed class Player : ClientPcData, IEntity
     public bool RefereeToolsLoaded { get; set; }
 
     /// <summary>
+    /// The client extensions (Sanctuary's region badges, ...) were loaded into this client (see ClientLuaHelper).
+    /// </summary>
+    public bool ClientExtensionsLoaded { get; set; }
+
+    /// <summary>
     /// Glide and jump stats to restore when !fly is turned off; null while not flying.
     /// </summary>
     public CharacterStat[]? FlyRestoreStats { get; set; }
@@ -176,6 +182,11 @@ public sealed class Player : ClientPcData, IEntity
     public List<CoinStoreTransactionRecord> CoinStoreTransactions { get; set; } = [];
 
     public GuildData? GuildData { get; set; }
+
+    /// <summary>
+    /// The party this player is in, kept by GroupManager.
+    /// </summary>
+    public PlayerGroup? Group { get; set; }
 
     public int TimezoneOffset { get; set; }
 
@@ -1835,6 +1846,18 @@ public sealed class Player : ClientPcData, IEntity
 
         SendToolbar();
         SendCombatMode();
+        SendFriendStatus();
+        ApplyRankHealth();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Shows friends and the group the active job and its rank.
+    /// </summary>
+    private void SendFriendStatus()
+    {
+        Group?.NotifyMemberChanged();
 
         var friendStatusPacket = new FriendStatusPacket
         {
@@ -1854,8 +1877,57 @@ public sealed class Player : ClientPcData, IEntity
             if (_zoneManager.TryGetPlayer(friend.Guid, out var friendPlayer))
                 friendPlayer.SendTunneled(friendStatusPacket);
         }
+    }
 
-        return true;
+    /// <summary>
+    /// Moves a job's bar to <paramref name="progress"/> (already saved). A higher rank gets the client's
+    /// level-up notice, the level-up sparkle for everyone around, more health and a full refill.
+    /// </summary>
+    public void UpdateProfileProgress(ClientPcProfile profile, ProfileProgress progress)
+    {
+        var rankedUp = progress.Rank > profile.Rank;
+
+        profile.Rank = progress.Rank;
+        profile.RankPercent = ProfileExperience.RankPercent(progress);
+
+        // The rank packet goes first: it only shows the level-up notice while the client still has the old rank.
+        SendTunneled(new ClientUpdatePacketUpdateProfileRank
+        {
+            ProfileId = profile.Id,
+            Rank = profile.Rank
+        });
+
+        SendTunneled(new ClientUpdatePacketUpdateProfileExperience
+        {
+            ProfileId = profile.Id,
+            Rank = profile.Rank,
+            RankPercent = profile.RankPercent,
+            StarsAvailable = profile.StarsAvailable,
+            StarsEarned = profile.StarsEarned,
+            Unknown20 = profile.Unknown20
+        });
+
+        if (profile.Id == ActiveProfile.Id)
+            ApplyRankHealth();
+
+        if (!rankedUp)
+            return;
+
+        SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect
+        {
+            Guid = Guid,
+            CompositeEffectId = ProfileExperience.LevelUpEffectId,
+            Position = Position
+        }, true);
+
+        if (!IsDead)
+        {
+            Hitpoints = MaxHitpoints;
+            Energy = EffectiveMaxEnergy;
+        }
+
+        if (profile.Id == ActiveProfile.Id)
+            SendFriendStatus();
     }
 
     /// <summary>
@@ -1863,10 +1935,34 @@ public sealed class Player : ClientPcData, IEntity
     /// </summary>
     public void SendVitals()
     {
+        ApplyRankHealth();
         RefreshStatBonuses(_statBases.Keys.ToList());
 
         Hitpoints = _hitpoints;
         Energy = _energy;
+    }
+
+    /// <summary>
+    /// Sets base MaxHealth from the active job's rank (CombatRules.MaxHitpointsAtRank), under any health buff.
+    /// </summary>
+    private void ApplyRankHealth()
+    {
+        var baseHealth = CombatRules.MaxHitpointsAtRank(ActiveProfile.Rank);
+        var wasFull = !IsDead && _hitpoints >= MaxHitpoints;
+
+        // A health buff holds the base aside and adds itself on top.
+        if (_statBases.ContainsKey(CharacterStatId.MaxHealth))
+        {
+            _statBases[CharacterStatId.MaxHealth] = baseHealth;
+            RefreshStatBonuses([CharacterStatId.MaxHealth]);
+        }
+        else if (GetStatValue(CharacterStatId.MaxHealth) != baseHealth)
+            UpdateCharacterStats(new CharacterStat(CharacterStatId.MaxHealth, baseHealth));
+        else
+            return;
+
+        // A full bar stays full when the cap goes up; anything else is clamped to the new cap.
+        Hitpoints = wasFull ? MaxHitpoints : _hitpoints;
     }
 
     // Regen at the HitPointRegen/ManaRegen stat rates. A downed player (0 hp) stays down.

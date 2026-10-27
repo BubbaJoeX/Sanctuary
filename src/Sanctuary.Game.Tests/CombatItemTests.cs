@@ -95,6 +95,52 @@ public sealed class CombatItemTests
     }
 
     [TestMethod]
+    public void ItemAbilitiesJson_ScaresAndSharedPotions()
+    {
+        var abilities = new ItemAbilityDefinitionCollection(NullLogger.Instance);
+        Assert.IsTrue(abilities.Load(Path.Combine(Resources, "ItemAbilities.json")));
+
+        // A scare transforms the user even with no mob around, so it isn't kept back like an orb.
+        Assert.IsTrue(abilities.TryGetValue(4078, out var hologramSpores), "Hologram Spores");
+        Assert.AreEqual(MobControl.Flee, hologramSpores.Attack!.Control);
+        Assert.AreEqual(30000, hologramSpores.Attack.ControlMs);
+        Assert.AreNotEqual(0, hologramSpores.ModelId);
+        Assert.IsTrue(hologramSpores.AffectsUser);
+        Assert.IsTrue(hologramSpores.CooldownMs >= hologramSpores.Attack.ControlMs, "Ready again only once the fright is over.");
+
+        Assert.IsTrue(abilities.TryGetValue(1644, out var fragOrb), "Frag Orb");
+        Assert.IsFalse(fragOrb.AffectsUser);
+
+        Assert.IsTrue(abilities.TryGetValue(4722, out var sharedHealth), "Shared Health Potion");
+        Assert.IsNotNull(sharedHealth.Health);
+        Assert.IsTrue(sharedHealth.ShareRadius > 0);
+
+        Assert.IsTrue(abilities.TryGetValue(4340, out var healthPotion), "Health Potion");
+        Assert.AreEqual(0f, healthPotion.ShareRadius);
+    }
+
+    [TestMethod]
+    public void Load_RejectsANegativeShareRadius()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"item-abilities-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path,
+            "[{\"AbilityId\":1,\"Health\":{\"Percent\":50},\"ShareRadius\":-1}," +
+            "{\"AbilityId\":2,\"Health\":{\"Percent\":50},\"ShareRadius\":15}]");
+
+        try
+        {
+            var abilities = new ItemAbilityDefinitionCollection(NullLogger.Instance);
+
+            Assert.IsTrue(abilities.Load(path));
+            CollectionAssert.AreEqual(new[] { 2 }, abilities.Keys.ToArray());
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
     public void Load_RejectsAttacksThatDoNothing()
     {
         var path = Path.Combine(Path.GetTempPath(), $"item-abilities-{Guid.NewGuid():N}.json");

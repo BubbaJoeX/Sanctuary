@@ -3,12 +3,13 @@
 
 UI movies are loaded synchronously from the local asset packs, and only when their crc
 matches the asset manifest the client downloaded from the asset server. So installing:
-  - writes the built mods (src/Resources/ClientMods) into a new Assets_NNN.pack (zone files stream instead), and
+  - writes the built UI mods (the .gfx and .lst files in src/Resources/ClientMods) into a new Assets_NNN.pack, and
   - switches the UI window definitions (and LoadingScreen.xml) to the renamed mod movies.
 Sanctuary's WebAPI publishes the same files in the manifest it serves, which keeps them "current".
 
-It also copies the referee client tools (lua/referee_tools.lua) to Resources/Scripts/1, which the
-server runs for referees through the client's dofileInternalOnlyCommand (see ClientLuaHelper).
+It also copies the referee client tools (lua/referee_tools.lua) to Resources/Scripts/1 and the client
+extensions (lua/client_extensions.lua, e.g. Sanctuary's region badges) to Resources/Scripts/2, which the
+server runs (for referees, and for everyone) through the client's dofileInternalOnlyCommand (see ClientLuaHelper).
 
 Client mods that replace a stock asset (a FabledRealms chunk edited in the zone editor) need one more step.
 The client won't update an asset its read-only Assets_NNN packs hold ("Attempt to update data that already
@@ -23,7 +24,6 @@ Examples:
   python install_client_mods.py --client "..." --uninstall
 """
 
-import re
 import shutil
 import struct
 import zlib
@@ -39,14 +39,13 @@ OVERRIDES_FILE = "sanctuary_stock_overrides.txt"
 HIDDEN_PREFIX = b"~"
 
 # dofileInternalOnlyCommand(n) runs Client.PathScripts .. n, and the server can only pass it a number,
-# so the file is named after one (ClientLuaHelper.RefereeToolsScript).
+# so the files are named after one (ClientLuaHelper.RefereeToolsScript, ClientLuaHelper.ClientExtensionsScript).
 REFEREE_LUA = (script_dir / "lua" / "referee_tools.lua", Path("Resources/Scripts/1"))
+CLIENT_EXTENSIONS_LUA = (script_dir / "lua" / "client_extensions.lua", Path("Resources/Scripts/2"))
+CLIENT_LUA = [(REFEREE_LUA, "referee client tools"), (CLIENT_EXTENSIONS_LUA, "client extensions")]
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
 PACK_DATA_ALIGNMENT = 8192
-
-# Terrain chunks, colour maps, zone files and minimap tiles (fork_zone.py, the zone editor).
-ZONE_ASSET = re.compile(r"(\.gzne|\.gcnk|\.gck2|_tile_.+\.dds|_tileinfo\.txt)(\.z)?$", re.IGNORECASE)
 
 # Skies the zone editor wrote (ClientMods/sky). The client reads Resources/SKY from disk; they don't stream.
 SKY_DIR = script_dir / "sky"
@@ -99,6 +98,7 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndFRUtilNavigation.xml"), [("UI\\FRUtilNavigation.swf", "UI\\sanctuaryFRUtilNavigation.swf")]),
     (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
     (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
+    (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [
@@ -110,15 +110,15 @@ WINDOW_PATCHES = [
 
 
 def load_mods():
-    # Packs hold assets uncompressed under their plain names.
+    # Packs hold assets uncompressed under their plain names. Only UI movies go in: everything else in the
+    # folder (published items, zones) streams from the asset server, and a copy in this read-only pack would
+    # stop the client from ever taking a newer one (it hangs on "non-writeable pack file").
     mods = []
     for path in sorted(mods_dir.iterdir()):
+        if not path.name.endswith((".gfx", ".lst", ".lst.z")):
+            continue
         data = path.read_bytes()
         name = path.name
-        # Zone files stream from the WebAPI like any new asset. In this read-only pack the client couldn't
-        # take a later edit of them ("Attempt to update data that already exists in a non-writeable pack").
-        if ZONE_ASSET.search(name):
-            continue
         if name.endswith(".z"):
             magic, _ = struct.unpack(">II", data[:8])
             if magic != COMPRESSED_MAGIC:
@@ -257,11 +257,11 @@ def install(client_dir):
         path.write_text(text, encoding="utf-8-sig")
         print(f"{relative_path}: patched ({len(replacements)} change(s))")
 
-    source, relative_path = REFEREE_LUA
-    target = client_dir / relative_path
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, target)
-    print(f"{relative_path}: referee client tools")
+    for (source, relative_path), description in CLIENT_LUA:
+        target = client_dir / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        print(f"{relative_path}: {description}")
 
     for sky in sorted(SKY_DIR.glob("*.xml")):
         shutil.copyfile(sky, client_dir / "Resources" / "SKY" / sky.name)
@@ -287,10 +287,10 @@ def uninstall(client_dir):
         backup.unlink()
         print(f"{relative_path}: restored")
 
-    _, relative_path = REFEREE_LUA
-    if (client_dir / relative_path).exists():
-        (client_dir / relative_path).unlink()
-        print(f"{relative_path}: removed")
+    for (_, relative_path), _ in CLIENT_LUA:
+        if (client_dir / relative_path).exists():
+            (client_dir / relative_path).unlink()
+            print(f"{relative_path}: removed")
 
     for sky in sorted(SKY_DIR.glob("*.xml")):
         if (client_dir / "Resources" / "SKY" / sky.name).exists():

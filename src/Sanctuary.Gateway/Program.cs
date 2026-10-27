@@ -14,6 +14,7 @@ using Sanctuary.Database;
 using Sanctuary.Game;
 using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Conversations;
+using Sanctuary.Game.Groups;
 using Sanctuary.Game.Quests;
 using Sanctuary.Gateway;
 using Sanctuary.Scripting;
@@ -111,6 +112,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<IChatCommandManager, ChatCommandManager>();
     serviceCollection.AddSingleton<IQuestManager, QuestManager>();
     serviceCollection.AddSingleton<IRewardManager, RewardManager>();
+    serviceCollection.AddSingleton<IGroupManager, GroupManager>();
     serviceCollection.AddSingleton<IHousingManager, HousingManager>();
     serviceCollection.AddSingleton<IServerSettings, ServerSettings>();
     serviceCollection.AddSingleton<IWorldEventManager, WorldEventManager>();

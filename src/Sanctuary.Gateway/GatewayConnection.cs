@@ -19,8 +19,10 @@ using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
 using Sanctuary.Game.Entities;
+using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Quests;
+using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Gateway.Handlers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
@@ -89,6 +91,8 @@ public class GatewayConnection : UdpConnection
         SendFriendOffline();
 
         SendGuildMemberOffline();
+
+        _serviceProvider.GetRequiredService<IGroupManager>().OnLogout(Player);
 
         _loginClient.SendCharacterLogout(GuidHelper.GetPlayerId(Player.Guid));
 
@@ -362,7 +366,7 @@ public class GatewayConnection : UdpConnection
             clientPcProfile.ItemClasses = profileData.ItemClasses;
 
             clientPcProfile.Rank = dbProfile.Level;
-            clientPcProfile.RankPercent = dbProfile.LevelXP;
+            clientPcProfile.RankPercent = ProfileExperience.RankPercent(new ProfileProgress(dbProfile.Level, dbProfile.LevelXP));
 
             foreach (var dbItem in dbProfile.Items)
             {
@@ -425,7 +429,10 @@ public class GatewayConnection : UdpConnection
         }
 
         foreach (var collectionEntry in dbCharacter.CollectionEntries)
-            Player.CollectedCollectionEntryIds.TryAdd(collectionEntry.EntryId);
+        {
+            if (collectionEntry.EntryId != CollectionDefinition.RewardClaimedEntryId)
+                Player.CollectedCollectionEntryIds.TryAdd(collectionEntry.EntryId);
+        }
 
         Player.Gender = dbCharacter.Gender;
 

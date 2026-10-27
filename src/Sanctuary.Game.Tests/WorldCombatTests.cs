@@ -371,6 +371,15 @@ public sealed class WorldCombatTests
     }
 
     [TestMethod]
+    public void MobCollection_RejectsADropChanceOutsideZeroToOne()
+    {
+        Assert.IsFalse(new MobDefinitionCollection(NullLogger.Instance).Load([new MobDefinition { Key = "default", RewardChance = 1.5f }], "test"));
+        Assert.IsFalse(new MobDefinitionCollection(NullLogger.Instance).Load([new MobDefinition { Key = "default", RewardChance = -0.1f }], "test"));
+        Assert.IsFalse(new MobDefinitionCollection(NullLogger.Instance).Load([new MobDefinition { Key = "default", RewardChance = float.NaN }], "test"));
+        Assert.IsTrue(new MobDefinitionCollection(NullLogger.Instance).Load([new MobDefinition { Key = "default", RewardChance = 0f }], "test"));
+    }
+
+    [TestMethod]
     public void ShippedMobsJson_Loads()
     {
         var path = Path.Combine(FindSourceResources(), "Mobs.json");

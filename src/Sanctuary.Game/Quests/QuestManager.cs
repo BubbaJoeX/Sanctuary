@@ -1006,6 +1006,8 @@ public sealed class QuestManager : IQuestManager
             player.SendTunneled(celebration);
         }
 
+        _rewardManager.TryGrantExperience(player, experience);
+
         foreach (var itemDefinitionId in quest.RewardItems)
         {
             if (_resourceManager.ClientItemDefinitions.TryGetValue(itemDefinitionId, out var itemDefinition))

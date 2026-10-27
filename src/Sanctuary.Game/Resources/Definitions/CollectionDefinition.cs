@@ -7,6 +7,11 @@ namespace Sanctuary.Game.Resources.Definitions;
 
 public sealed class CollectionDefinition
 {
+    /// <summary>
+    /// The DbCollectionEntry EntryId that marks a collection's completion reward as paid. No entry uses it.
+    /// </summary>
+    public const int RewardClaimedEntryId = 0;
+
     public int Id { get; set; }
     public int NameId { get; set; }
     public int CategoryId { get; set; }
