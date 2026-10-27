@@ -2047,5 +2047,30 @@
     "Id": 176,
     "TeleportLocationId": 260493,
     "AtlasName": "sacredgrove"
+  },
+  {
+    "Comment": "Lavender Coast",
+    "Id": 200,
+    "NameId": 74161,
+    "LocationId": 230200,
+    "Position": [
+      -3222.0,
+      15.736,
+      712.0
+    ],
+    "SpawnPosition": [
+      -3210.0,
+      15.536,
+      712.0
+    ],
+    "Heading": -1.5708,
+    "IconId": 1345,
+    "NotificationType": 7,
+    "SubNameId": 382845,
+    "Unknown": 651,
+    "TeleportLocationId": 230200,
+    "Unknown2": 30,
+    "AtlasName": "sacredgrove",
+    "ZoneId": 1036
   }
 ]

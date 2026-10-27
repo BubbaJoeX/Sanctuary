@@ -9,4 +9,6 @@ public sealed class WorldZoneDefinition : BaseZoneDefinition
     public List<int> EnabledClientAreaIds { get; set; } = [];
 
     public List<SeasonalClientAreaDefinition> SeasonalClientAreas { get; set; } = [];
+
+    public List<ZonePortalDefinition> Portals { get; set; } = [];
 }

@@ -255,6 +255,11 @@ public sealed class Player : ClientPcData, IEntity
     public Vector4 StartingZonePosition { get; set; }
     public Quaternion StartingZoneRotation { get; set; }
 
+    /// <summary>
+    /// Tick count before which zone portals ignore the player (set when one moves them).
+    /// </summary>
+    public long PortalReadyAt { get; set; }
+
     public ConcurrentSet<OneTimeNotification> SeenOneTimeNotifications { get; } = [];
 
     public bool ShopDataSent { get; set; }

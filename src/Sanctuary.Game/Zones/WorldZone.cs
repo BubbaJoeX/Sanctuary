@@ -247,6 +247,20 @@ public sealed partial class WorldZone : BaseZone
         return GetZoneArea(position, GetTileFromPosition(position));
     }
 
+    /// <summary>
+    /// The portal (if any) that sends a player standing at <paramref name="position"/> on to another zone.
+    /// </summary>
+    public ZonePortalDefinition? GetPortal(Vector4 position)
+    {
+        foreach (var portal in _zoneDefinition.Portals)
+        {
+            if (portal.Contains(position))
+                return portal;
+        }
+
+        return null;
+    }
+
     public ZoneAreaDefinition? GetZoneArea(Vector4 position, ZoneTile zoneTile)
     {
         if (_tileZoneAreas.TryGetValue((zoneTile.Longitude, zoneTile.Latitude), out var tileZoneArea))
