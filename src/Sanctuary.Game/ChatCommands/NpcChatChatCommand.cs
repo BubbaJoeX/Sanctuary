@@ -12,9 +12,10 @@ public class NpcChatChatCommand : IChatCommand
     private readonly IChatCommandManager _chatCommandManager;
 
     public string KeyWord => "npcchat";
-    public string Usage => "[on|off|reset]";
-    public string Description => "Shows or toggles NPCs answering what players say near them through the Studio Umbra chat bot. " +
-        "'reset' makes every NPC forget its conversations. Scripts with an onHear hook answer either way.";
+    public string Usage => "[on|off|reset|test [message]]";
+    public string Description => "Shows the NPC chat bot's state and which NPC near you would hear you, or toggles it. " +
+        "'reset' makes every NPC forget its conversations; 'test' has the NPC that hears you answer now and reports what happened. " +
+        "Scripts with an onHear hook answer either way.";
     public ChatCommandRole RequiredRole => ChatCommandRole.Admin;
 
     public NpcChatChatCommand(INpcChatManager npcChatManager, IChatCommandManager chatCommandManager)
@@ -42,13 +43,21 @@ public class NpcChatChatCommand : IChatCommand
                 ChatHelper.SendSystemMessage(invoker, "NPCs forgot their conversations.");
                 return true;
 
+            case "test":
+                var message = args.Length > 1 ? string.Join(' ', args[1..]) : "Howdy!";
+
+                ChatHelper.SendSystemMessage(invoker, $"Asking the NPC that hears you: \"{message}\"...");
+                _npcChatManager.TestAsync(invoker, message).ContinueWith(task =>
+                    ChatHelper.SendSystemMessage(invoker, task.IsCompletedSuccessfully ? task.Result : $"The test failed: {task.Exception?.GetBaseException().Message}"));
+                return true;
+
             default:
                 return false;
         }
 
-        ChatHelper.SendSystemMessage(invoker, !_npcChatManager.BotConfigured
-            ? "The NPC chat bot has no API key (NpcChat:ApiKey in gateway.local.json)."
-            : $"The NPC chat bot is {(_npcChatManager.BotEnabled ? "on" : "off")}.");
+        foreach (var line in _npcChatManager.Describe(invoker))
+            ChatHelper.SendSystemMessage(invoker, line);
+
         return true;
     }
 }
