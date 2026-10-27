@@ -3,7 +3,7 @@
 
 UI movies are loaded synchronously from the local asset packs, and only when their crc
 matches the asset manifest the client downloaded from the asset server. So installing:
-  - writes the built mods (src/Resources/ClientMods) into a new Assets_NNN.pack, and
+  - writes the built UI mods (the .gfx and .lst files in src/Resources/ClientMods) into a new Assets_NNN.pack, and
   - switches the UI window definitions (and LoadingScreen.xml) to the renamed mod movies.
 Sanctuary's WebAPI publishes the same files in the manifest it serves, which keeps them "current".
 
@@ -84,6 +84,7 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndFRUtilNavigation.xml"), [("UI\\FRUtilNavigation.swf", "UI\\sanctuaryFRUtilNavigation.swf")]),
     (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
     (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
+    (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [
@@ -95,9 +96,13 @@ WINDOW_PATCHES = [
 
 
 def load_mods():
-    # Packs hold assets uncompressed under their plain names.
+    # Packs hold assets uncompressed under their plain names. Only UI movies go in: everything else in the
+    # folder (published items, zones) streams from the asset server, and a copy in this read-only pack would
+    # stop the client from ever taking a newer one (it hangs on "non-writeable pack file").
     mods = []
     for path in sorted(mods_dir.iterdir()):
+        if not path.name.endswith((".gfx", ".lst", ".lst.z")):
+            continue
         data = path.read_bytes()
         name = path.name
         if name.endswith(".z"):

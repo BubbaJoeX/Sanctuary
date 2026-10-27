@@ -52,6 +52,7 @@ What gets built:
 | `sanctuaryDialog.gfx` | `dialog.gfx` | `dialog/dialog_hide.as` appended: the NPC dialog stays hidden when sent without text. GM conversations open it for the camera zoom onto the NPC and the chat window draws their text where its pane sits, since the pane only shows locale strings |
 | `sanctuaryFRUtilNavigation.gfx`, `sanctuaryMiniMap.gfx`, `sanctuarySocial.gfx` (and the dock) | `FRUtilNavigation.gfx`, `mini_map.gfx`, `social.gfx`, `gamedock.gfx` | The HUD repainted in one theme (`RESKINS`, `hud/reskin.py`): the top bar, the friends panel and the dock's plates and slots become navy glass, frosted glass and gold, and the minimap gets a new gold ring. Each texture is repainted at its drawn size from the client's own art, so the layout doesn't change |
 | `sanctuaryLoadingScreen.gfx` | `loadingscreen.gfx` | Characters, logo and vines removed, leaving the tip text and loading bar over new art: "Open Source Free Realms" curved around the OSFR tree (`loadingscreen/osfr_logo.png`). `loadingscreen/background.py` draws it at build time in the FreeRealmsDemiBold font exported from the client's `gfxfontlib.gfx` |
+| `sanctuaryAtlas.gfx` | `atlas.gfx` | `atlas/lavender_coast.as` appended: a Lavender Coast page (the `lavendercoast` zone south of Merry Vale). The Sacred Grove page's Lavender Coast label, hidden in the stock movie, opens it, and so does opening the atlas south of the Sacred Grove painting. The page is `atlas/lavendercoast.png`, a map drawn from the zone's own chunks by the Maya MCP's `examples/lavender_coast/atlas_map.py` and embedded at build time (`IMAGE_SYMBOLS`) |
 
 Mods are published under new names because the client only downloads assets that are missing
 from its local packs.
@@ -65,10 +66,15 @@ once per client (and again after each rebuild):
 python install_client_mods.py --client "%LOCALAPPDATA%/OSFRLauncher/Servers/OSFR Public Server/Client"
 ```
 
-This writes the built mods into a new `Assets_NNN.pack` (recorded in `sanctuary_client_mods.txt`)
-and points `UI/UiModules/Main/wndChatLog.xml`, `wndGameDock.xml` and `wndDialogNew.xml` at the renamed movies (the
-originals are kept as `*.sanctuary-backup`). In `LoadingScreen.xml` it makes `sanctuaryLoadingScreen.swf`
-the only loading screen, commenting out the stock ones. Close the client first.
+This writes the built UI movies (the `.gfx` and `.lst` files) into a new `Assets_NNN.pack` (recorded in
+`sanctuary_client_mods.txt`) and points `UI/UiModules/Main/wndChatLog.xml`, `wndGameDock.xml`, `wndDialogNew.xml`,
+`wndAtlas.xml` and the rest at the renamed movies (the originals are kept as `*.sanctuary-backup`). In
+`LoadingScreen.xml` it makes `sanctuaryLoadingScreen.swf` the only loading screen, commenting out the stock ones.
+Close the client first.
+
+Nothing else in the folder goes into the pack: published items and zones stream from the asset server, and a
+copy in a read-only local pack would stop the client from taking a newer version (it hangs on "non-writeable pack
+file").
 
 It also enlarges the chat window to 2000x1045. The client clips every movie to its window, so this
 is what lets the Referee Tools panel be dragged anywhere and resized (bottom-right grip, `[ ]` to

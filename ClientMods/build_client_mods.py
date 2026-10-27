@@ -16,6 +16,8 @@ Mods:
                                            search box (housing/tray.as).
   sanctuaryLoadingScreen.gfx (+ .lst.z)  - loading screen with "Open Source Free Realms" curved around the
                                            OSFR tree (loadingscreen/background.py), keeping the tip and bar.
+  sanctuaryAtlas.gfx (+ .lst.z)          - the atlas with a Lavender Coast page (atlas/lavendercoast.png), opened from
+                                           the Sacred Grove page's Lavender Coast label (atlas/lavender_coast.as).
 
   Station Cash and membership no longer exist:
   sanctuaryGameDock.gfx                  - the Marketplace icon is labelled Coin Shop (gamedock/coin_shop_button.as).
@@ -84,6 +86,7 @@ MODS = [
     ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction", [script_dir / "HousingPreview" / NO_STATION_CASH], []),
     ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
     ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "main_menu.as"], []),
+    ("atlas", "sanctuaryAtlas", "\\frame_1\\DoAction", [script_dir / "atlas" / "lavender_coast.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("FRUtilNavigation", "sanctuaryFRUtilNavigation", None, [], []),
     ("mini_map", "sanctuaryMiniMap", None, [], []),
@@ -132,6 +135,12 @@ TEXTURE_SYMBOLS = {
         ("img11740438261774166106.dds", "sanctuaryMenuHouse", 96, 0),
         ("img10946043591668366760.dds", "sanctuaryMenuPalette", 96, 0),
     ],
+}
+
+# Stock movie -> [(image file, export name)]: pictures of our own, embedded like TEXTURE_SYMBOLS at their pixel size.
+IMAGE_SYMBOLS = {
+    # Lavender Coast's atlas page, at the size the stock pages show their paintings (1653x843).
+    "atlas": [(script_dir / "atlas" / "lavendercoast.png", "sanctuaryLavenderCoastPage")],
 }
 
 # Stock movie -> [(export name, text, font size, gradient top, gradient bottom)]: text in the loading screen's
@@ -437,11 +446,12 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
 
         swaps = TEXTURE_SWAPS.get(stock_name, [])
         textures = TEXTURE_SYMBOLS.get(stock_name, [])
+        images = IMAGE_SYMBOLS.get(stock_name, [])
         texts = TEXT_SYMBOLS.get(stock_name, [])
         removed = REMOVED_DEPTHS.get(stock_name, [])
         reskins = RESKINS.get(stock_name, {})
 
-        if symbols or swaps or textures or texts or removed or reskins:
+        if symbols or swaps or textures or images or texts or removed or reskins:
             ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
             xml = (temp / "stock.xml").read_text(encoding="utf-8")
             for symbol in symbols:
@@ -452,6 +462,8 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
                 xml = xml.replace(f'fileName="{old}"', f'fileName="{new}"')
             for texture in textures:
                 xml = add_texture_symbol(xml, stock, *texture)
+            for image_path, export_name in images:
+                xml = add_image_symbol(xml, Image.open(image_path), export_name)
             if texts:
                 font = export_font(java, jar, stock, temp)
                 for export_name, text, size, top, bottom in texts:
@@ -569,6 +581,7 @@ def main():
     source.add_argument("--assets", type=Path, help="Local copy of the asset server (<bucket>/<name> folders)")
     parser.add_argument("--ffdec", type=Path, required=True, help="Path to ffdec.jar")
     parser.add_argument("--java", type=Path, default=Path(shutil.which("java") or "java"), help="Java executable")
+    parser.add_argument("--only", nargs="+", metavar="NAME", help="Build only these published mods (e.g. sanctuaryAtlas)")
     args = parser.parse_args()
 
     stock = ClientPacks(args.client) if args.client else AssetMirror(args.assets)
@@ -576,6 +589,8 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for stock_name, published_name, script_name, patch_paths, symbols in MODS:
+        if args.only and published_name not in args.only:
+            continue
         movie_path = output_dir / f"{published_name}.gfx"
         list_path = output_dir / f"{published_name}.lst.z"
 
@@ -585,6 +600,8 @@ def main():
         print(f"Built {movie_path.name} ({movie_path.stat().st_size} bytes) and {list_path.name}")
 
     stock_name, published_name = LOADING_SCREEN
+    if args.only and published_name not in args.only:
+        return
     movie_path = output_dir / f"{published_name}.gfx"
     list_path = output_dir / f"{published_name}.lst.z"
     build_loading_screen(args.java, args.ffdec, stock, stock_name, published_name, movie_path, list_path)
