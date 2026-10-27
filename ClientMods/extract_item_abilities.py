@@ -73,6 +73,8 @@ FROST_BLAST = 5185         # PFX_snow_white_circ_blast_aoe
 STINK_CLOUD = 5021         # PFX_flies_sphere_cog_explode
 
 SHARE_RADIUS = 15          # shared potions reach everyone this close
+RESURRECT_EFFECT = 4002    # PFX_magic-resurrect
+REVIVE_RANGE = 10          # how close a knocked-out ally has to be
 FRIGHTFUL_MODEL = 175      # mauthedog.adr, the spectral hound, for "a frightful creature"
 SCARY_MONSTER_MODEL = 77   # troll_forest.adr, for "a big scary monster"
 
@@ -165,6 +167,12 @@ def loot(reward_table):
 def shared(ability, radius=SHARE_RADIUS):
     # Also drunk by every other player this close ("you and all your pals nearby").
     return {**ability, "ShareRadius": radius}
+
+
+def revive(health_percent, revive_range=REVIVE_RANGE):
+    # Stands a knocked-out ally back up where they lie with some of their health. Kept when nobody's down.
+    return {"CooldownMs": ORB_COOLDOWN_MS,
+            "Revive": {"HealthPercent": health_percent, "Range": revive_range, "EffectId": RESURRECT_EFFECT}}
 
 
 def scare(seconds, radius, model_id=FRIGHTFUL_MODEL, transform_ms=30 * SECOND):
@@ -397,6 +405,9 @@ ABILITIES = {
     5156: aura(16454),                      # Stone Heart's Candy: "Emolicious." (a broken heart)
     5150: {**aura(15555, 1 * MINUTE), "CooldownMs": REFILL_COOLDOWN_MS},   # Love Potion v9.0: "fills back up over time"
 
+    # Reviving knocked-out players
+    1654: revive(50),                       # Resurrection Scroll: "A scroll that resurrects a fallen ally."
+
     # Loot bags, dropped by mobs
     3903: loot("pocket-book"),              # Thick Pocket Book: "a powerful opponent dropped some of his belongings"
     3911: loot("treasure-trove"),           # Robgoblin Treasure Trove: "the stuff dreams are made of"
@@ -486,6 +497,7 @@ def main():
 
         effect_ids = [ability.get(key, 0) for key in ("CastEffectId", "AuraEffectId")]
         effect_ids += [ability.get("Attack", {}).get(key, 0) for key in ("HitEffectId", "ControlEffectId")]
+        effect_ids.append(ability.get("Revive", {}).get("EffectId", 0))
         for effect_id in effect_ids:
             if effect_id and effect_id not in effect_names:
                 raise SystemExit(f"Ability {ability_id}: composite effect {effect_id} is not in ActorCompositeEffectDefinitions.xml")

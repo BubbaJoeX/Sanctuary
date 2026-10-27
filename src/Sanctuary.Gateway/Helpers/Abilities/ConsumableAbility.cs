@@ -27,6 +27,9 @@ public abstract class ConsumableAbility(AbilityServices services)
     internal const int ActionBarId = 2;
     protected const int IdleAnimationId = 1;
 
+    private const int AbilityFailedStringId = 3079; // "You can't use that ability right now."
+    internal const int KnockedOutStringId = 280; // "You can't use abilities when you are knocked out!"
+
     protected const int MinCooldownMs = 3000;
 
     protected static int ClampCooldown(int cooldownMs) => Math.Max(cooldownMs, MinCooldownMs);
@@ -226,9 +229,9 @@ public abstract class ConsumableAbility(AbilityServices services)
     }
 
     // internal so the handler can fail its own request validation the same way.
-    internal static bool SendFailure(Player player)
+    internal static bool SendFailure(Player player, int stringId = AbilityFailedStringId)
     {
-        player.SendTunneled(new AbilityPacketFailed { StringId = 3079 });
+        player.SendTunneled(new AbilityPacketFailed { StringId = stringId });
 
         return true;
     }

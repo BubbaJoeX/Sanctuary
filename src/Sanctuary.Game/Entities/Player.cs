@@ -1703,8 +1703,18 @@ public sealed class Player : ClientPcData, IEntity
 
     public bool IsDead => _hitpoints <= 0;
 
+    /// <summary>
+    /// Knocked out by a mob and still down: waiting to recover at the zone's start, or for an ally to revive them.
+    /// </summary>
+    public bool IsKnockedOut => IsDead && _knockOut.IsDown;
+
+    /// <summary>
+    /// Just revived, so mobs leave them be for a moment (see <see cref="CombatRules.ReviveProtectionSeconds"/>).
+    /// </summary>
+    public bool IsReviveProtected => _knockOut.IsProtected(Environment.TickCount64);
+
     private long _lastCombatAt = long.MinValue;
-    private long? _respawnAt;
+    private readonly KnockOutTimer _knockOut = new();
 
     public bool IsInCombat => Environment.TickCount64 - _lastCombatAt < CombatRules.OutOfCombatSeconds * 1000L;
 
@@ -1732,6 +1742,9 @@ public sealed class Player : ClientPcData, IEntity
     public void EnterCombat()
     {
         MarkInCombat();
+
+        // A revived player who picks a fight is fair game again.
+        _knockOut.EndProtection();
 
         if (IsInCombatJob)
             return;
@@ -1798,7 +1811,7 @@ public sealed class Player : ClientPcData, IEntity
         // Running heal over time potions end with the fight.
         RemoveEffectGroup("Health");
 
-        _respawnAt = Environment.TickCount64 + CombatRules.PlayerRespawnSeconds * 1000L;
+        _knockOut.KnockOut(Environment.TickCount64);
 
         SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = KnockedOutCharacterState }, true);
 
@@ -1809,12 +1822,7 @@ public sealed class Player : ClientPcData, IEntity
 
     private void UpdateRespawn()
     {
-        if (_respawnAt is not { } respawnAt || Environment.TickCount64 < respawnAt)
-            return;
-
-        _respawnAt = null;
-
-        if (!IsDead)
+        if (!_knockOut.TryRecover(Environment.TickCount64) || !IsDead)
             return;
 
         var position = Zone.SpawnPosition;
@@ -1836,6 +1844,34 @@ public sealed class Player : ClientPcData, IEntity
         SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = IdleCharacterState }, true);
 
         _lastCombatAt = long.MinValue;
+    }
+
+    /// <summary>
+    /// Stands a knocked-out player back up where they lie with <paramref name="hitpoints"/> (at least 1), instead of
+    /// at the zone's start: everyone around sees them get up, and mobs leave them be for
+    /// <see cref="CombatRules.ReviveProtectionSeconds"/>. False if they aren't knocked out (or already got up).
+    /// </summary>
+    public bool Revive(int hitpoints, ulong reviverGuid = 0)
+    {
+        if (!IsDead || !_knockOut.TryRevive(Environment.TickCount64))
+            return false;
+
+        Hitpoints = Math.Max(1, hitpoints);
+
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = IdleCharacterState }, true);
+
+        // Own floating number, and the bar others see over this player.
+        SendTunneledToVisible(new PlayerUpdatePacketHitPointModification
+        {
+            SourceGuid = reviverGuid != 0 ? reviverGuid : Guid,
+            TargetGuid = Guid,
+            ShowDelta = true,
+            MaxHitpoints = MaxHitpoints,
+            CurrentHitpoints = _hitpoints,
+            Delta = _hitpoints
+        }, true);
+
+        return true;
     }
 
     /// <summary>
