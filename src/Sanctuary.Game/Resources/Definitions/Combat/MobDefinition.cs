@@ -49,6 +49,11 @@ public sealed class MobDefinition
     /// </summary>
     public string? RewardTable { get; set; }
 
+    /// <summary>
+    /// The chance (0-1) that each of those players gets the roll.
+    /// </summary>
+    public float RewardChance { get; set; } = 1f;
+
     public int AttackAnimationId { get; set; } = 1099;
 
     /// <summary>

@@ -256,5 +256,193 @@
                 "Quantity": 3
             }
         ]
+    },
+    {
+        "Key": "mob-loot",
+        "DropTable": [
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 2173,
+                "Weight": 4,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 11005,
+                "Weight": 3,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 3082,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 11006,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 11015,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 11012,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 2594,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 25,
+                "Weight": 4
+            }
+        ]
+    },
+    {
+        "Key": "mob-loot-elite",
+        "DropTable": [
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 3021,
+                "Weight": 3,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 3023,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 2593,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 3025,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 3075,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 2687,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 2594,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 1156,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 200,
+                "Weight": 2
+            }
+        ]
+    },
+    {
+        "Key": "pocket-book",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 100,
+                "Weight": 4
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 250,
+                "Weight": 2
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 2173,
+                "Weight": 2,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 3021,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 1157,
+                "Weight": 1,
+                "Quantity": 1
+            }
+        ]
+    },
+    {
+        "Key": "treasure-trove",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 500,
+                "Weight": 4
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 1000,
+                "Weight": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 2591,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 3025,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 1156,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 1157,
+                "Weight": 1,
+                "Quantity": 1
+            }
+        ]
     }
 ]

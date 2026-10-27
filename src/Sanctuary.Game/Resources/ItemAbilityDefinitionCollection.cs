@@ -80,7 +80,9 @@ public class ItemAbilityDefinitionCollection : ObservableConcurrentDictionary<in
         && (entry.DurationMs > 0 || entry.MovementSpeedBonus == 0 && entry.Scale == 0 && entry.Stats.Count == 0
             && (entry.AuraEffectId == 0 || IsOverTime(entry.Health) || IsOverTime(entry.Energy)))
         && IsValid(entry.Attack)
-        && (entry.CastEffectId != 0 || entry.DurationMs > 0 || entry.Health is not null || entry.Energy is not null || entry.Attack is not null);
+        && (entry.RewardTable is null || !string.IsNullOrWhiteSpace(entry.RewardTable))
+        && (entry.CastEffectId != 0 || entry.DurationMs > 0 || entry.Health is not null || entry.Energy is not null || entry.Attack is not null
+            || entry.RewardTable is not null);
 
     public static bool IsOverTime(ItemAbilityRestoreDefinition? restore) => restore is { OverMs: > 0 };
 

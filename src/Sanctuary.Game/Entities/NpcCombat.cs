@@ -664,7 +664,7 @@ public sealed class NpcCombat
 
             _rewardManager.TryGrantExperience(player, experience);
 
-            if (!string.IsNullOrWhiteSpace(Definition.RewardTable) &&
+            if (!string.IsNullOrWhiteSpace(Definition.RewardTable) && Random.Shared.NextSingle() < Definition.RewardChance &&
                 _rewardManager.TryRollReward(Definition.RewardTable, out var drop) && drop is not null)
                 _rewardManager.TryGrantReward(player, drop, _npc.Guid);
 

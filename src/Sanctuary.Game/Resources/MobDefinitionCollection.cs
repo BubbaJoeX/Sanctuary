@@ -72,7 +72,8 @@ public sealed class MobDefinitionCollection : ObservableConcurrentDictionary<str
             entry.Key = entry.Key.Trim().ToLowerInvariant();
 
             if (entry.Key.Length == 0 || entry.MaxHitpoints <= 0 || entry.Damage < 0 || entry.AttackIntervalMs <= 0 ||
-                entry.AttackRange <= 0f || entry.AggroRadius < 0f || entry.LeashRadius <= entry.AggroRadius || entry.RespawnSeconds < 0)
+                entry.AttackRange <= 0f || entry.AggroRadius < 0f || entry.LeashRadius <= entry.AggroRadius || entry.RespawnSeconds < 0 ||
+                !(entry.RewardChance is >= 0f and <= 1f))
             {
                 _logger.LogError("Invalid mob \"{key}\" in \"{file}\".", entry.Key, source);
                 return false;

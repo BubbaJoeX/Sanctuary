@@ -53,6 +53,7 @@ LIGHTNING_SPEED_AURA = 15049  # PFX_beam_red_feet_speed-run_loop
 SHIELD_EFFECT = 15855      # PFX_shield_green_head_defense-buff
 TRANSFIGURE_EFFECT = 5332  # PFX_swirl-flash_purple_root_transfiguration-land
 INVISIBILITY_AURA = 15570  # PFX_smoke_dark_root_invisibility-indicator_loop
+LOOT_EFFECT = 5386         # PFX_sparkles-swirl_gold_treasure-reward
 TRANSFORM_POOF = 21
 
 # Combat orbs and grenades: hit effects play on each mob, hold effects stay on it while it's held.
@@ -154,6 +155,11 @@ def transform(model_id, duration_ms=FOOD_DURATION_MS):
     # Same poof (21) and 30 minute default as the Consumables.json transformations.
     return {"Group": "Transform", "CooldownMs": BUFF_COOLDOWN_MS, "DurationMs": duration_ms, "CastEffectId": TRANSFORM_POOF,
             "ModelId": model_id}
+
+
+def loot(reward_table):
+    # Opened for one roll on a Rewards.json table.
+    return {"CooldownMs": BUFF_COOLDOWN_MS, "CastEffectId": LOOT_EFFECT, "RewardTable": reward_table}
 
 
 def shared(ability, radius=SHARE_RADIUS):
@@ -390,6 +396,10 @@ ABILITIES = {
     5153: aura(16472),                      # Cupid Cut-Out Cookie: Cupid's bow
     5156: aura(16454),                      # Stone Heart's Candy: "Emolicious." (a broken heart)
     5150: {**aura(15555, 1 * MINUTE), "CooldownMs": REFILL_COOLDOWN_MS},   # Love Potion v9.0: "fills back up over time"
+
+    # Loot bags, dropped by mobs
+    3903: loot("pocket-book"),              # Thick Pocket Book: "a powerful opponent dropped some of his belongings"
+    3911: loot("treasure-trove"),           # Robgoblin Treasure Trove: "the stuff dreams are made of"
 
     # More fireworks and poppers
     5034: cast(16381),                      # Garland Fireworks

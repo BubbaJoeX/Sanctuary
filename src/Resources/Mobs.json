@@ -10,7 +10,9 @@
         "LeashRadius": 40,
         "RespawnSeconds": 30,
         "Coins": 15,
-        "Experience": 25
+        "Experience": 25,
+        "RewardTable": "mob-loot",
+        "RewardChance": 0.25
     },
     {
         "Key": "weak",
@@ -23,7 +25,9 @@
         "LeashRadius": 30,
         "RespawnSeconds": 20,
         "Coins": 5,
-        "Experience": 10
+        "Experience": 10,
+        "RewardTable": "mob-loot",
+        "RewardChance": 0.15
     },
     {
         "Key": "ranged",
@@ -36,7 +40,9 @@
         "LeashRadius": 45,
         "RespawnSeconds": 30,
         "Coins": 20,
-        "Experience": 30
+        "Experience": 30,
+        "RewardTable": "mob-loot",
+        "RewardChance": 0.25
     },
     {
         "Key": "elite",
@@ -50,6 +56,7 @@
         "RespawnSeconds": 300,
         "Coins": 150,
         "Experience": 250,
-        "RewardTable": "dev-test-reward"
+        "RewardTable": "mob-loot-elite",
+        "RewardChance": 1.0
     }
 ]

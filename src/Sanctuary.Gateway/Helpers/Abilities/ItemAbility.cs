@@ -47,6 +47,9 @@ public sealed class ItemAbility(AbilityServices services) : ConsumableAbility(se
         if (mobs.Count > 0)
             AttackMobs(player, ability.Attack!, mobs);
 
+        if (ability.RewardTable is not null && _rewardManager.TryRollReward(ability.RewardTable, out var drop) && drop is not null)
+            _rewardManager.TryGrantReward(player, drop);
+
         FinishActivation(player, clientItem, itemDefinition, slot, cooldownMs, IconTintId(clientItem, itemDefinition.Icon.TintId));
 
         return true;

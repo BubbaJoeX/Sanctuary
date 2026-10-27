@@ -71,4 +71,35 @@ public sealed class PartyCrateTests
                 Assert.IsTrue(items.ContainsKey(drop.ItemDefinitionId), $"{crate.RewardTableKey}: item {drop.ItemDefinitionId}");
         }
     }
+
+    [TestMethod]
+    public void MobLootAndLootBags_RollRewardTablesThatExist()
+    {
+        var mobs = new MobDefinitionCollection(NullLogger.Instance);
+        Assert.IsTrue(mobs.Load(Path.Combine(Resources, "Mobs.json")));
+
+        var abilities = new ItemAbilityDefinitionCollection(NullLogger.Instance);
+        Assert.IsTrue(abilities.Load(Path.Combine(Resources, "ItemAbilities.json")));
+
+        var rewards = new RewardTableDefinitionCollection(NullLogger.Instance);
+        Assert.IsTrue(rewards.Load(Path.Combine(Resources, "Rewards.json")));
+
+        var items = new ClientItemDefinitionCollection(NullLogger.Instance);
+        Assert.IsTrue(items.Load(Path.Combine(Resources, "ClientItemDefinitions.json")));
+
+        var keys = mobs.Values.Select(mob => mob.RewardTable)
+            .Concat(abilities.Values.Select(ability => ability.RewardTable))
+            .Where(key => !string.IsNullOrEmpty(key))
+            .ToList();
+
+        Assert.IsTrue(keys.Contains("mob-loot") && keys.Contains("pocket-book"), "Mobs drop loot and the Thick Pocket Book opens.");
+
+        foreach (var key in keys)
+        {
+            Assert.IsTrue(rewards.TryGetValue(key!.ToLowerInvariant(), out var table), key);
+
+            foreach (var drop in table.DropTable.OfType<ItemRewardDropDefinition>())
+                Assert.IsTrue(items.ContainsKey(drop.ItemDefinitionId), $"{key}: item {drop.ItemDefinitionId}");
+        }
+    }
 }

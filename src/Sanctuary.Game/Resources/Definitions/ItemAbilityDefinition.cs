@@ -59,6 +59,11 @@ public class ItemAbilityDefinition
     public float ShareRadius { get; set; }
 
     /// <summary>
+    /// Rewards.json table rolled once on use (loot bags such as the Thick Pocket Book).
+    /// </summary>
+    public string? RewardTable { get; set; }
+
+    /// <summary>
     /// What a combat orb or grenade does to mobs. The item isn't used up when no mob is in reach,
     /// unless it also changes the user (see <see cref="AffectsUser"/>).
     /// </summary>

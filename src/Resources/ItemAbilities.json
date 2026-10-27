@@ -3085,6 +3085,20 @@
     "AuraEffectId": 15369
   },
   {
+    "AbilityId": 3903,
+    "Comment": "Thick Pocket Book",
+    "CooldownMs": 5000,
+    "CastEffectId": 5386,
+    "RewardTable": "pocket-book"
+  },
+  {
+    "AbilityId": 3911,
+    "Comment": "Robgoblin Treasure Trove",
+    "CooldownMs": 5000,
+    "CastEffectId": 5386,
+    "RewardTable": "treasure-trove"
+  },
+  {
     "AbilityId": 3953,
     "Comment": "Flabbergast Grenade",
     "CooldownMs": 10000,
