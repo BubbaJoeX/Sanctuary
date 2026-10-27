@@ -28,6 +28,8 @@ from .assets import AssetSource, compress
 from .formats import CHUNK_TILES, ECO_MAP_SIZE, TILE_SIZE, Chunk, ColourMap, Light, Object, Zone
 
 NAME = re.compile(r"^[a-z][a-z0-9_]{2,47}$")
+# Downloaded assets, the actor usage count and prop thumbnails; beside the editor, not in the checkout it saves to.
+CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache"
 CHUNK_STEP = CHUNK_TILES                       # chunk names step 4 tiles in row and col
 # What the editor changes in a zone definition; the rest of the file is left as it is.
 DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky"]
@@ -167,12 +169,17 @@ class Workspace:
         self.mods_dir = self.resources / "ClientMods"
         self.zones_dir = self.resources / "Zones"
         self.client_dir = client_dir
-        self.assets = AssetSource(client_dir, self.mods_dir, mirror_dir, upstream, sanctuary_root / "ZoneEditor" / ".cache")
+        self.cache_dir = CACHE_DIR
+        self.assets = AssetSource(client_dir, self.mods_dir, mirror_dir, upstream, self.cache_dir / "assets")
         self.library = models.MaterialLibrary(client_dir)
         self.projects = {}
         self.lock = threading.RLock()
         self._model_cache = {}
         self._actor_names = None
+        self._palette = None
+        self._colours = {}
+        self._usage = None
+        self._usage_thread = None
 
     # --- listings ------------------------------------------------------------------------------------
 
@@ -205,11 +212,99 @@ class Workspace:
 
     def actor_names(self) -> list:
         if self._actor_names is None:
-            self._actor_names = sorted(self.assets.names(".adr"))
+            # As the manifest lists them, the casing stock chunks use.
+            names = self.assets.names(".adr") | self.assets.names(".agr")
+            self._actor_names = sorted((self.assets.manifest.get(n, (n,))[0].removesuffix(".z") for n in names), key=str.lower)
         return self._actor_names
+
+    def actor_usage(self) -> dict | None:
+        """How often each actor is placed across every zone's chunks, and in how many zones:
+        {name: [placements, zones]}. Counted once in the background (a few thousand chunks) and cached on
+        disk; None until it's ready."""
+        path = self.cache_dir / "actor_usage.json"
+        with self.lock:
+            if self._usage is not None:
+                return self._usage
+            if path.exists():
+                self._usage = json.loads(path.read_text(encoding="utf-8"))
+                return self._usage
+            if self._usage_thread is None:
+                self._usage_thread = threading.Thread(target=self._count_actor_usage, args=(path,), daemon=True)
+                self._usage_thread.start()
+        return None
+
+    def _count_actor_usage(self, path: Path):
+        placements, zones = {}, {}
+        pattern = re.compile(r"^(.+)_-?\d+_-?\d+\.gcnk$")
+        for lower in sorted(self.assets.names(".gcnk")):
+            match = pattern.match(lower)
+            try:
+                for name in formats.chunk_object_names(self.assets.read(lower)):
+                    name = name.lower()
+                    placements[name] = placements.get(name, 0) + 1
+                    zones.setdefault(name, set()).add(match.group(1) if match else lower)
+            except Exception:
+                continue
+        usage = {name: [count, len(zones[name])] for name, count in sorted(placements.items())}
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(usage), encoding="utf-8")
+        with self.lock:
+            self._usage = usage
+
+    def thumbnail(self, actor: str) -> bytes:
+        path = self.cache_dir / "thumbs" / (actor.lower() + ".png")
+        if not path.exists():
+            raise KeyError(actor)
+        return path.read_bytes()
+
+    def save_thumbnail(self, actor: str, png: bytes):
+        if not re.fullmatch(r"[\w.\-]+\.a[dg]r", actor, re.IGNORECASE) or png[:8] != b"\x89PNG\r\n\x1a\n":
+            raise ValueError("not an actor thumbnail")
+        path = self.cache_dir / "thumbs" / (actor.lower() + ".png")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(png)
 
     def eco_definitions(self) -> list:
         return sorted(name[:-4] for name in self.assets.names(".eco"))
+
+    def palette(self) -> dict:
+        """Every eco the client knows, by "name|texture": those in any zone's eco list (the first zone's detail
+        repeat and flora win) and then the client's .eco definitions, for what no zone uses."""
+        with self.lock:
+            if self._palette is not None:
+                return self._palette
+        entries = {}
+        flora_textures = {}
+        for lower in sorted(self.assets.names(".gzne")):
+            listed = self.assets.manifest.get(lower, (lower,))[0]
+            zone_name = listed.removesuffix(".z")[: -len(".gzne")]
+            try:
+                zone = Zone.read(self.assets.read(lower))
+            except (KeyError, ValueError, OSError):
+                continue
+            floras = {f.name.lower(): f for f in zone.floras}
+            flora_textures.update({name: f.texture for name, f in floras.items()})
+            for eco in zone.ecos:
+                key = f"{eco.name.lower()}|{eco.texture.lower()}"
+                if key not in entries:
+                    entries[key] = {"eco": copy.deepcopy(eco), "zones": [],
+                                    "floras": [copy.deepcopy(floras[f.name.lower()]) for f in eco.floras if f.name.lower() in floras]}
+                entries[key]["zones"].append(zone_name)
+        for name in self.eco_definitions():
+            try:
+                eco, floras = formats.eco_from_definition(0, name, self.assets.read(name + ".eco").decode("latin-1"), flora_textures)
+            except (KeyError, ValueError, OSError, IndexError):
+                continue
+            key = f"{eco.name.lower()}|{eco.texture.lower()}"
+            entries.setdefault(key, {"eco": eco, "zones": [], "floras": floras}).setdefault("definition", name)
+        with self.lock:
+            self._palette = dict(sorted(entries.items()))
+        return self._palette
+
+    def palette_list(self) -> list:
+        return [{"key": key, "name": e["eco"].name, "texture": e["eco"].texture, "repeat": e["eco"].repeat,
+                 "floras": [f.name for f in e["eco"].floras], "zones": e["zones"][:6], "zoneCount": len(e["zones"]),
+                 "definition": e.get("definition")} for key, e in self.palette().items()]
 
     def skies(self) -> list:
         sky_dir = self.client_dir / "Resources" / "SKY"
@@ -260,8 +355,20 @@ class Workspace:
             self._model_cache[actor.lower()] = model
         return model
 
-    def texture(self, name: str, size: int = 512) -> bytes:
-        return models.texture_png(self.assets.read(name), size)
+    def texture(self, name: str, size: int = 512, opaque: bool = False) -> bytes:
+        return models.texture_png(self.assets.read(name), size, opaque)
+
+    def texture_colour(self, name: str) -> list:
+        with self.lock:
+            if name.lower() in self._colours:
+                return self._colours[name.lower()]
+        try:
+            colour = models.mean_colour(self.assets.read(name))
+        except (KeyError, ValueError, OSError):
+            colour = [128, 128, 128]
+        with self.lock:
+            self._colours[name.lower()] = colour
+        return colour
 
     def project(self, name: str) -> "ZoneProject":
         with self.lock:
@@ -273,11 +380,11 @@ class Workspace:
     # --- new zones -----------------------------------------------------------------------------------
 
     def create_zone(self, name: str, kind: str, source: str | None, width: int, depth: int, height: float,
-                    eco_source: str | None, eco_index: int | None) -> "ZoneProject":
+                    eco_source: str | None, eco_index: int | None, eco_key: str | None = None) -> "ZoneProject":
         """A new zone: a copy of an existing one (all its files under the new name), or blank terrain.
 
-        Blank zones get width x depth chunks of flat ground at the given height, painted with one eco
-        taken from another zone's list (eco_source / eco_index), e.g. FabledRealms' SG_Grass.
+        Blank zones get width x depth chunks of flat ground at the given height, painted with one eco from
+        the palette (eco_key) or another zone's list (eco_source / eco_index), e.g. FabledRealms' SG_Grass.
         """
         name = name.strip()
         if not NAME.match(name):
@@ -326,7 +433,12 @@ class Workspace:
         else:
             zone = Zone(start_x=0, start_z=0, end_x=width * CHUNK_TILES, end_z=depth * CHUNK_TILES)
             source_zone = self.project(eco_source).zone if eco_source else None
-            if source_zone and eco_index is not None:
+            if eco_key:
+                entry = self.palette()[eco_key]
+                eco = entry["eco"]
+                zone.ecos = [formats.Eco(0, eco.name, eco.texture, eco.repeat, copy.deepcopy(eco.floras))]
+                zone.floras = copy.deepcopy(entry["floras"])
+            elif source_zone and eco_index is not None:
                 eco = next(e for e in source_zone.ecos if e.index == eco_index)
                 zone.ecos = [formats.Eco(0, eco.name, eco.texture, eco.repeat, copy.deepcopy(eco.floras))]
                 needed = {f.name.lower() for f in eco.floras}
@@ -517,10 +629,7 @@ class ZoneProject:
         eco = next((e for e in self.zone.ecos if e.index == index), None)
         if not eco:
             raise KeyError(index)
-        try:
-            return models.mean_colour(self.ws.assets.read(eco.texture))
-        except (KeyError, ValueError, OSError):
-            return [128, 128, 128]
+        return self.ws.texture_colour(eco.texture)
 
     def meta(self) -> dict:
         z = self.zone
@@ -541,7 +650,6 @@ class ZoneProject:
             "definition": self.definition, "houses": houses,
             "environments": self.ws.terrain_environments(),
             "skies": self.ws.skies(),
-            "ecoDefinitions": self.ws.eco_definitions(),
         }
 
     def chunk_payload(self, row: int, col: int, lite: bool = False):
@@ -769,10 +877,17 @@ class ZoneProject:
                 for zt in range(row, row + CHUNK_TILES):
                     self.environment_cells[(x, zt)] = environment
 
-    def add_eco(self, source_zone: str | None, source_index: int | None, definition: str | None) -> dict:
-        """Adds an eco to the zone's list, from another zone's list or from a client .eco file."""
+    def add_eco(self, source_zone: str | None = None, source_index: int | None = None, definition: str | None = None,
+                palette: str | None = None) -> dict:
+        """Adds an eco to the zone's list: from the palette (Workspace.palette), another zone's list or a client
+        .eco file. One the zone already has (same name and texture) is returned as it is."""
         index = max([e.index for e in self.zone.ecos] + [-1]) + 1
-        if definition:
+        if palette:
+            entry = self.ws.palette()[palette]
+            original = entry["eco"]
+            eco = formats.Eco(index, original.name, original.texture, original.repeat, copy.deepcopy(original.floras))
+            floras = copy.deepcopy(entry["floras"])
+        elif definition:
             flora_textures = {}
             for zone_name in (source_zone, "FabledRealms"):
                 if zone_name:
@@ -784,8 +899,10 @@ class ZoneProject:
             eco = formats.Eco(index, original.name, original.texture, original.repeat, copy.deepcopy(original.floras))
             needed = {f.name.lower() for f in original.floras}
             floras = [copy.deepcopy(f) for f in source.floras if f.name.lower() in needed]
-        if any(e.name.lower() == eco.name.lower() for e in self.zone.ecos):
-            raise ValueError(f"{self.name} already has an eco named {eco.name}")
+        existing = next((e for e in self.zone.ecos if e.name.lower() == eco.name.lower() and e.texture.lower() == eco.texture.lower()), None)
+        if existing:
+            return {"index": existing.index, "name": existing.name, "texture": existing.texture, "repeat": existing.repeat,
+                    "floras": [f.name for f in existing.floras]}
         self.zone.ecos.append(eco)
         known = {f.name.lower() for f in self.zone.floras}
         self.zone.floras += [f for f in floras if f.name.lower() not in known]

@@ -115,7 +115,15 @@ class Handler(BaseHTTPRequestHandler):
         }).encode(), "application/json", cache=True)
 
     def get_texture(self, query, body):
-        self.send(200, self.workspace.texture(query["name"], int(query.get("size", 512))), "image/png", cache=True)
+        png = self.workspace.texture(query["name"], int(query.get("size", 512)), query.get("opaque") == "1")
+        self.send(200, png, "image/png", cache=True)
+
+    def get_texture_colour(self, query, body):
+        self.send_json(self.workspace.texture_colour(query["name"]))
+
+    def get_ecos(self, query, body):
+        """The full eco palette: every zone's ecos and the client's .eco definitions."""
+        self.send_json(self.workspace.palette_list())
 
     def get_dds(self, query, body):
         """A texture as the client has it, for the viewport to upload compressed with its own mipmaps."""
@@ -131,9 +139,18 @@ class Handler(BaseHTTPRequestHandler):
         self.send(200, self.workspace.sky(query["name"]).encode("utf-8"), "text/plain; charset=utf-8")
 
     def get_actors(self, query, body):
+        """Every actor and actor set, and (once counted) how often zones place each: {name: [placements, zones]}."""
         words = query.get("q", "").lower().split()
         names = [n for n in self.workspace.actor_names() if all(w in n for w in words)]
-        self.send_json({"total": len(names), "names": names[: int(query.get("limit", 300))]})
+        limit = int(query.get("limit", len(names) or 1))
+        self.send_json({"total": len(names), "names": names[:limit], "usage": self.workspace.actor_usage()})
+
+    def get_thumb(self, query, body):
+        self.send(200, self.workspace.thumbnail(query["name"]), "image/png")
+
+    def post_thumb(self, query, body):
+        self.workspace.save_thumbnail(query["name"], body)
+        self.send_json({"ok": True})
 
     # --- writes ----------------------------------------------------------------------------------------
 
@@ -141,7 +158,8 @@ class Handler(BaseHTTPRequestHandler):
         data = json.loads(body)
         project = self.workspace.create_zone(
             data["name"], data.get("type", "World"), data.get("source") or None, int(data.get("width", 2)),
-            int(data.get("depth", 2)), float(data.get("height", 0)), data.get("ecoZone"), data.get("ecoIndex"))
+            int(data.get("depth", 2)), float(data.get("height", 0)), data.get("ecoZone"), data.get("ecoIndex"),
+            data.get("ecoKey"))
         self.send_json(project.meta())
 
     def post_play(self, query, body):
@@ -150,7 +168,7 @@ class Handler(BaseHTTPRequestHandler):
     def post_zone_eco(self, query, body):
         data = json.loads(body)
         project = self.workspace.project(data["zone"])
-        self.send_json(project.add_eco(data.get("sourceZone"), data.get("sourceIndex"), data.get("definition")))
+        self.send_json(project.add_eco(data.get("sourceZone"), data.get("sourceIndex"), data.get("definition"), data.get("palette")))
 
     def post_save(self, query, body):
         meta, blobs = unframe(body)

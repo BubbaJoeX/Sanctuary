@@ -154,6 +154,18 @@ class Zone:
         return out + self.tail
 
 
+def chunk_object_names(blob: bytes) -> list:
+    """The actor files a chunk places, read from its tiles without decoding its mesh."""
+    magic, version, size, length = struct.unpack_from("<4sIII", blob)
+    if magic != b"GCNK":
+        raise ValueError("not a GCNK chunk")
+    r = Reader(zlib.decompress(blob[16 : 16 + length]))
+    names = []
+    for _ in range(r.unpack("i")):
+        names += [o.file_name for o in Tile.read(r, version).objects]
+    return names
+
+
 # --- point lights ------------------------------------------------------------------------------------
 
 @dataclass

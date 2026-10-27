@@ -23,6 +23,7 @@
     <button id="new-zone">New zone…</button>
     <span id="zone-title"></span>
     <span class="spacer"></span>
+    <button id="toggle-content" title="Browse the client's objects to place (O)">Content</button>
     <label class="inline">View <input id="view-radius" type="range" min="1" max="5" value="2"></label>
     <label class="inline" title="Time of day for the sky's lighting">Time <input id="time-of-day" type="range" min="0" max="23.75" step="0.25" value="12"> <span id="time-label">12:00</span></label>
     <label class="inline"><input id="show-details" type="checkbox" checked> Detail</label>
@@ -50,6 +51,7 @@
   <main id="viewport">
     <canvas id="canvas"></canvas>
     <canvas id="minimap" width="220" height="220" title="Click to fly there"></canvas>
+    <section id="content-browser" hidden></section>
     <div id="help">RMB drag: look · WASD/QE: fly · Shift: fast · Wheel: speed (brush size in brush tools, Ctrl+wheel strength) · F: focus · G/R/T: move/rotate/scale · Del · Ctrl+D duplicate</div>
     <div id="toast"></div>
   </main>
@@ -75,7 +77,7 @@
         <label>Width (chunks) <input name="width" type="number" min="1" max="16" value="2"></label>
         <label>Depth (chunks) <input name="depth" type="number" min="1" max="16" value="2"></label>
         <label>Ground height <input name="height" type="number" value="0" step="1"></label>
-        <label>Ground eco (from FabledRealms) <select name="eco"></select></label>
+        <label>Ground eco <select name="eco"></select></label>
       </fieldset>
       <menu>
         <button value="cancel" formnovalidate>Cancel</button>

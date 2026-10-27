@@ -1,9 +1,10 @@
 // Sanctuary zone editor: the viewport, tools and panels.
 import * as THREE from "three";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
-import { getJson, postJson, save } from "./api.js";
+import { ASSET_VERSION, getJson, postJson, save } from "./api.js";
 import { CHUNK, TerrainManager, environmentColour } from "./terrain.js";
 import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform } from "./props.js";
+import { ContentBrowser } from "./content.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
 
@@ -54,7 +55,7 @@ skyDome.renderOrder = -1;
 scene.add(skyDome);
 
 const terrain = new TerrainManager(scene, {
-  onChunkLoaded: (chunk) => { props.addChunk(chunk); drawMinimap(); },
+  onChunkLoaded: (chunk) => { props.addChunk(chunk); drawMinimap(); if (contentOpen()) content.renderGroups(); },
   onChunkUnloaded: (chunk) => { props.removeChunk(chunk); if (selected?.userData.chunk === chunk) select(null); },
   status,
 });
@@ -83,13 +84,14 @@ const state = {
   tool: "select",
   brush: { radius: 16, strength: 0.5, mode: "raise" },
   eco: null,
+  ecoPick: null,
   ecoTint: true,
   ecoTintAmount: 0.85,
   ecoColours: new Map(),
   colour: [96, 140, 70],
   environment: 0,
   actor: null,
-  newChunk: { height: 0, eco: null, environment: 0 },
+  newChunk: { height: 0, eco: null, ecoKey: null, environment: 0 },
   settings: {},
   houses: null,
   sky: undefined,
@@ -325,6 +327,7 @@ function setTool(tool) {
   terrain.uniforms.brush.value.z = 0;
   if (ghost) { scene.remove(ghost); ghost = null; }
   if (tool === "props" && state.actor) makeGhost();
+  if (tool === "props" && state.zone && !contentOpen()) toggleContent(true);
   renderPanel();
 }
 
@@ -351,16 +354,46 @@ function bindBrush() {
   }
 }
 
-function ecoSwatch(index) {
-  const colour = state.ecoColours.get(index);
-  return colour ? `<span class="swatch" style="background:rgb(${colour.join(",")})"></span>` : `<span class="swatch"></span>`;
-}
-
 async function ecoColour(index) {
   if (!state.ecoColours.has(index)) {
     state.ecoColours.set(index, await getJson(`/api/eco-colour?zone=${encodeURIComponent(state.zone.name)}&index=${index}`));
   }
   return state.ecoColours.get(index);
+}
+
+// A palette row: the eco's detail texture as a swatch, its name, and a note (by default its texture and flora).
+function ecoRow(eco, attributes, active, note) {
+  const text = note ?? `${eco.texture}${eco.floras.length ? ` · ${eco.floras.length} flora` : ""}`;
+  const used = eco.zones?.length ? `\nUsed in ${eco.zones.join(", ")}${eco.zoneCount > eco.zones.length ? ", …" : ""}` : "";
+  return `<div ${attributes} class="${active ? "active" : ""}" title="${escape(eco.texture + used)}">` +
+    `<img loading="lazy" alt="" src="/api/texture?name=${encodeURIComponent(eco.texture)}&size=48&opaque=1&v=${ASSET_VERSION}">` +
+    `${escape(eco.name)} <small>${escape(text)}</small></div>`;
+}
+
+// Every eco the client has (zones' lists and .eco definitions), fetched once.
+let palettePromise = null;
+function loadPalette() {
+  palettePromise ??= getJson("/api/ecos").catch((error) => { palettePromise = null; throw error; });
+  return palettePromise;
+}
+
+// The eco to paint: one the zone has (index), or a palette entry it doesn't, added on first use.
+function pickEco(index, entry) {
+  state.eco = index;
+  state.ecoPick = entry;
+  terrain.setSelectedEco(index);
+}
+
+async function ensureEco() {
+  if (!state.ecoPick) return state.eco;
+  const eco = await postJson("/api/zone/eco", { zone: state.zone.name, palette: state.ecoPick.key });
+  if (!state.zone.ecos.some((e) => e.index === eco.index)) state.zone.ecos.push(eco);
+  state.zoneDirty = true;
+  pickEco(eco.index, null);
+  await ecoColour(eco.index).catch(() => {});
+  toast(`Added ${eco.name} to ${state.zone.name}'s ecos; it's saved with the zone.`, "ok");
+  if (state.tool === "eco") renderPanel();
+  return eco.index;
 }
 
 function noZonePanel() {
@@ -387,18 +420,44 @@ function renderPanel() {
     panel.innerHTML = `<h3>Eco layers</h3>${noEditable}${brushControls()}
       <label class="check"><input id="eco-tint" type="checkbox" ${state.ecoTint ? "checked" : ""}> Also tint the colour map</label>
       <label>Tint amount <input id="eco-tint-amount" type="range" min="0" max="1" step="0.05" value="${state.ecoTintAmount}"></label>
-      <h4>${zone.name}'s ecos</h4>
-      <div class="list" id="eco-list">${zone.ecos.map((e) => `<div data-eco="${e.index}" class="${e.index === state.eco ? "active" : ""}">${ecoSwatch(e.index)}${escape(e.name)} <small>${escape(e.texture)}${e.floras.length ? " · " + e.floras.length + " flora" : ""}</small></div>`).join("")}</div>
-      <p class="hint">The highlighted area shows where the selected eco is. A tile holds up to 5 ecos; past that the lightest are dropped on save. Add more ecos in the Zone tool.</p>`;
+      <h4>In ${escape(zone.name)}</h4>
+      <div class="list palette">${zone.ecos.map((e) => ecoRow(e, `data-eco="${e.index}"`, e.index === state.eco && !state.ecoPick)).join("")}</div>
+      <h4>All ecos <span id="palette-count"></span></h4>
+      <input id="palette-search" placeholder="Search: grass, sand, snow, bw_, cobblestone…" value="${escape(state.paletteQuery || "")}">
+      <div class="list palette" id="palette-list"><div>Loading…</div></div>
+      <p class="hint">Every eco the client has: those other zones use and its .eco definitions. Painting with one ${escape(zone.name)} doesn't have adds it to the zone's eco list, saved with the zone. A tile holds up to 5 ecos; past that the lightest are dropped on save.</p>`;
     bindBrush();
     panel.querySelector("#eco-tint").addEventListener("change", (e) => { state.ecoTint = e.target.checked; });
     panel.querySelector("#eco-tint-amount").addEventListener("input", (e) => { state.ecoTintAmount = +e.target.value; });
     for (const row of panel.querySelectorAll("[data-eco]")) {
-      row.addEventListener("click", () => { state.eco = +row.dataset.eco; terrain.setSelectedEco(state.eco); renderPanel(); });
+      row.addEventListener("click", () => { pickEco(+row.dataset.eco, null); renderPanel(); });
     }
-    Promise.all(zone.ecos.map((e) => ecoColour(e.index))).then(() => {
-      if (state.tool === "eco") for (const row of panel.querySelectorAll("[data-eco]")) row.querySelector(".swatch").outerHTML = ecoSwatch(+row.dataset.eco);
-    }).catch(() => {});
+    const search = panel.querySelector("#palette-search");
+    const fill = async () => {
+      const palette = await loadPalette();
+      if (state.tool !== "eco") return;
+      state.paletteQuery = search.value;
+      const words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+      const shown = palette.filter((p) => words.every((w) => `${p.name} ${p.texture} ${p.zones.join(" ")}`.toLowerCase().includes(w)));
+      panel.querySelector("#palette-count").textContent = `(${shown.length} of ${palette.length})`;
+      panel.querySelector("#palette-list").innerHTML = shown.map((p) => {
+        const inZone = zone.ecos.find((e) => e.name.toLowerCase() === p.name.toLowerCase() && e.texture.toLowerCase() === p.texture.toLowerCase());
+        const active = state.ecoPick?.key === p.key || (inZone && inZone.index === state.eco && !state.ecoPick);
+        const used = p.zoneCount ? `${p.zoneCount} zone${p.zoneCount > 1 ? "s" : ""}` : `.eco ${p.definition}`;
+        return ecoRow(p, `data-key="${escape(p.key)}"`, active, `${inZone ? "in zone · " : ""}${used}`);
+      }).join("");
+      for (const row of panel.querySelectorAll("[data-key]")) {
+        row.addEventListener("click", () => {
+          const entry = palette.find((p) => p.key === row.dataset.key);
+          const inZone = zone.ecos.find((e) => e.name.toLowerCase() === entry.name.toLowerCase() && e.texture.toLowerCase() === entry.texture.toLowerCase());
+          pickEco(inZone ? inZone.index : null, inZone ? null : entry);
+          renderPanel();
+        });
+      }
+    };
+    let timer;
+    search.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(fill, 150); });
+    fill().catch((error) => toast(error.message, "error"));
   } else if (state.tool === "colour") {
     const hex = "#" + state.colour.map((v) => v.toString(16).padStart(2, "0")).join("");
     panel.innerHTML = `<h3>Colour map</h3>${noEditable}${brushControls()}
@@ -419,34 +478,19 @@ function renderPanel() {
     }
   } else if (state.tool === "props") {
     panel.innerHTML = `<h3>Props</h3>
-      <input id="actor-search" placeholder="Search actors (tree, fence, housing_…)" value="${escape(state.actorQuery || "")}">
-      <p class="hint" id="actor-count"></p>
-      <div class="list" id="actor-list"></div>
-      <p class="hint">Pick an actor, then click the ground to place it (it lands in the editable chunk under it, else the nearest one loaded). Esc stops placing.</p>
+      <p class="hint">${state.actor ? `Placing <b>${escape(state.actor)}</b>: click the ground to place it, Shift+wheel turns it, Esc stops.` : "Pick an object in the content browser below, or drag one into the view."}</p>
+      <div class="row"><button id="open-content">${contentOpen() ? "Hide" : "Show"} content browser (O)</button></div>
+      <p class="hint">A placed object goes in the chunk under it. Shift+click selects instead of placing.</p>
       <div id="inspector"></div>`;
-    const search = panel.querySelector("#actor-search");
-    const refresh = async () => {
-      state.actorQuery = search.value;
-      const data = await getJson(`/api/actors?q=${encodeURIComponent(search.value)}&limit=400`);
-      panel.querySelector("#actor-count").textContent = `${data.total} actors${data.total > data.names.length ? `, showing ${data.names.length}` : ""}`;
-      panel.querySelector("#actor-list").innerHTML = data.names.map((n) => `<div data-actor="${escape(n)}" class="${n === state.actor ? "active" : ""}">${escape(n)}</div>`).join("");
-      for (const row of panel.querySelectorAll("[data-actor]")) {
-        row.addEventListener("click", () => {
-          state.actor = row.dataset.actor;
-          for (const other of panel.querySelectorAll("[data-actor]")) other.classList.toggle("active", other === row);
-          makeGhost();
-        });
-      }
-    };
-    let timer;
-    search.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(refresh, 200); });
-    refresh();
+    panel.querySelector("#open-content").addEventListener("click", () => toggleContent());
     renderInspector();
   } else if (state.tool === "lights") {
     panel.innerHTML = `<h3>Point lights</h3><p class="hint">Click the ground to add a light 6 units above it, or click a light to edit it.</p><div id="inspector"></div>`;
     renderInspector();
   } else if (state.tool === "chunks") {
-    const options = zone.ecos.map((e) => `<option value="${e.index}" ${e.index === state.newChunk.eco ? "selected" : ""}>${escape(e.name)}</option>`).join("");
+    const options = `<optgroup label="In ${escape(zone.name)}">` +
+      zone.ecos.map((e) => `<option value="${e.index}" ${e.index === state.newChunk.eco && !state.newChunk.ecoKey ? "selected" : ""}>${escape(e.name)}</option>`).join("") +
+      `</optgroup><optgroup label="All ecos (added to the zone)" id="chunk-palette"></optgroup>`;
     const envs = [{ id: 0, name: "None" }, ...zone.environments].map((e) => `<option value="${e.id}" ${e.id === state.newChunk.environment ? "selected" : ""}>${e.id} ${escape(e.name)}</option>`).join("");
     const b = zone.bounds;
     panel.innerHTML = `<h3>Chunks</h3>
@@ -456,8 +500,19 @@ function renderPanel() {
       <label>Eco <select id="chunk-eco">${options}</select></label>
       <label>Environment <select id="chunk-env">${envs}</select></label>`;
     panel.querySelector("#chunk-height").addEventListener("input", (e) => { state.newChunk.height = +e.target.value; });
-    panel.querySelector("#chunk-eco").addEventListener("change", (e) => { state.newChunk.eco = +e.target.value; });
+    panel.querySelector("#chunk-eco").addEventListener("change", (e) => {
+      const value = e.target.value;
+      state.newChunk.ecoKey = value.startsWith("palette:") ? value.slice(8) : null;
+      if (!state.newChunk.ecoKey) state.newChunk.eco = +value;
+    });
     panel.querySelector("#chunk-env").addEventListener("change", (e) => { state.newChunk.environment = +e.target.value; });
+    loadPalette().then((palette) => {
+      const group = panel.querySelector("#chunk-palette");
+      if (!group) return;
+      const has = (p) => zone.ecos.some((e) => e.name.toLowerCase() === p.name.toLowerCase() && e.texture.toLowerCase() === p.texture.toLowerCase());
+      group.innerHTML = palette.filter((p) => !has(p)).map((p) =>
+        `<option value="palette:${escape(p.key)}" ${state.newChunk.ecoKey === p.key ? "selected" : ""}>${escape(p.name)} (${escape(p.texture)})</option>`).join("");
+    }).catch(() => {});
   } else if (state.tool === "zone") {
     renderZonePanel();
   }
@@ -468,7 +523,6 @@ function renderZonePanel() {
   const definition = zone.definition;
   const skies = zone.skies;
   const sky = state.sky !== undefined ? state.sky : definition?.Sky || "";
-  const fabled = state.zones.find((z) => z.name.toLowerCase() === "fabledrealms");
   panel.innerHTML = html`<h3>Zone</h3>
     <p class="hint">${escape(zone.name)} · ${zone.stock ? "stock" : "custom"} · ${zone.chunks.length} chunks · bounds x ${zone.bounds.startX * 64}…${zone.bounds.endX * 64}, z ${zone.bounds.startZ * 64}…${zone.bounds.endZ * 64}</p>
     ${definition ? `<p class="hint">Sanctuary ${definition.Type} zone ${definition.Id}. Travel there with <code>!moveplayer zone ${definition.Id} &lt;you&gt;</code> after restarting the servers.</p>` : `<p class="warn">No Sanctuary zone definition (Zones/${escape(zone.name)}.json), so the server can't send players here.</p>`}
@@ -482,9 +536,7 @@ function renderZonePanel() {
       <label>Sky XML (sun, ambient, fog and dome by time of day)<textarea id="custom-sky-xml">${escape(state.customSky?.xml || "")}</textarea></label>
       <p class="hint">Saved to ClientMods/sky and copied into your client's Resources/SKY (skies aren't streamed, so other clients need it installed too).</p>
     </div>
-    ${`<h4>Ecos</h4>
-      <label>Add from FabledRealms<select id="add-eco-fabled"><option value="">…</option></select></label>
-      ${zone.ecoDefinitions.length ? `<label>Add from a client .eco<select id="add-eco-def"><option value="">…</option>${zone.ecoDefinitions.map((d) => `<option>${escape(d)}</option>`).join("")}</select></label>` : ""}`}
+    <h4>Ecos</h4><p class="hint">${zone.ecos.length} in the zone's list. Any other eco in the client is in the Eco tool's palette (E) and the Chunks tool; it joins the list when you use it.</p>
     ${state.houses.length ? `<h4>Houses</h4>${state.houses.map((h, i) => `
       <p class="hint">House ${h.Id} (name ${h.NameId}, items ${escape(h.ItemDefinitionIds.join(", ") || "none")}): green marker spawn, orange exit. Exit door object ${h.ExitObjectId || "none (one is spawned)"}.</p>
       <div class="row"><button data-exit-door="${i}">Use selected prop as exit door</button></div>
@@ -519,14 +571,6 @@ function renderZonePanel() {
     state.customSky.xml = e.target.value;
     updateLightingFromSky(null, e.target.value);
   });
-  const fabledSelect = panel.querySelector("#add-eco-fabled");
-  if (fabledSelect && fabled) {
-    getJson("/api/zone?name=FabledRealms").then((fr) => {
-      fabledSelect.innerHTML += fr.ecos.map((e) => `<option value="${e.index}">${escape(e.name)} (${escape(e.texture)})</option>`).join("");
-    });
-    fabledSelect.addEventListener("change", () => addEco({ sourceZone: "FabledRealms", sourceIndex: +fabledSelect.value }));
-  }
-  panel.querySelector("#add-eco-def")?.addEventListener("change", (e) => addEco({ definition: e.target.value }));
   for (const button of panel.querySelectorAll("[data-exit-door]")) {
     button.addEventListener("click", () => {
       const record = selected?.userData.kind === "prop" ? selected.userData.record : null;
@@ -543,18 +587,6 @@ function renderZonePanel() {
       state.zoneDirty = true;
       buildMarkers();
     });
-  }
-}
-
-async function addEco(body) {
-  try {
-    const eco = await postJson("/api/zone/eco", { zone: state.zone.name, ...body });
-    state.zone.ecos.push(eco);
-    state.zoneDirty = true;
-    toast(`Added eco ${eco.name}; save to write the zone file.`, "ok");
-    renderPanel();
-  } catch (error) {
-    toast(error.message, "error");
   }
 }
 
@@ -758,6 +790,68 @@ function makeGhost() {
   });
 }
 
+// --- content browser -----------------------------------------------------------------------------------
+
+function placeActor(name, hit, yaw = 0) {
+  const chunk = editableChunkFor(hit.x, hit.z);
+  if (!chunk) return toast("No chunk is loaded here. Add one with the Chunks tool (K).");
+  addRecord(chunk, "prop", { file: name, position: [hit.x, hit.y, hit.z], rotation: [yaw, 0, 0], scale: 1 });
+  content.placed(name);
+}
+
+// How often each actor is placed in the loaded chunks, for the browser's "Used nearby".
+function nearbyActors() {
+  const counts = new Map();
+  for (const chunk of terrain.chunks.values()) {
+    for (const record of chunk.objects) counts.set(record.file, (counts.get(record.file) || 0) + 1);
+  }
+  return counts;
+}
+
+const content = new ContentBrowser($("#content-browser"), library, {
+  pick: (name) => {
+    state.actor = name;
+    if (state.tool !== "props") setTool("props");
+    else { makeGhost(); renderPanel(); }
+  },
+  nearby: nearbyActors,
+});
+let contentLoaded = false;
+
+function contentOpen() {
+  return !$("#content-browser").hidden;
+}
+
+function toggleContent(open = !contentOpen()) {
+  $("#content-browser").hidden = !open;
+  $("#viewport").classList.toggle("content-open", open);
+  $("#toggle-content").classList.toggle("active", open);
+  if (open && !contentLoaded) {
+    contentLoaded = true;
+    content.load().catch((error) => { contentLoaded = false; toast(error.message, "error"); });
+  } else if (open) content.render();
+  if (state.tool === "props") renderPanel();
+}
+$("#toggle-content").addEventListener("click", () => toggleContent());
+
+// Dragging a tile picks it (so the preview follows the pointer); dropping it on the ground places it.
+canvas.addEventListener("dragover", (event) => {
+  if (!event.dataTransfer.types.includes("text/x-zone-actor")) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+  updatePointer(event);
+  pointer.inside = true;
+});
+canvas.addEventListener("drop", (event) => {
+  const name = event.dataTransfer.getData("text/x-zone-actor");
+  if (!name) return;
+  event.preventDefault();
+  updatePointer(event);
+  const hit = terrainHit();
+  if (!hit) return toast("Drop it on the ground.");
+  placeActor(name, hit, ghost ? ghost.rotation.y : 0);
+});
+
 // --- pointer and keyboard ------------------------------------------------------------------------------
 
 function updatePointer(event) {
@@ -814,6 +908,9 @@ canvas.addEventListener("pointerdown", async (event) => {
       if (picked) { state.colour = picked; renderPanel(); }
       return;
     }
+    if (tool === "eco" && state.ecoPick) {
+      try { await ensureEco(); } catch (error) { return toast(error.message, "error"); }
+    }
     const hit = terrainHit();
     stroke = { snapshot: new Map(), target: hit?.y ?? 0, last: performance.now() };
     return;
@@ -828,11 +925,7 @@ canvas.addEventListener("pointerdown", async (event) => {
   const propHit = props.pick(raycaster);
   if (tool === "props" && state.actor && !event.shiftKey) {
     const hit = terrainHit();
-    if (!hit) return;
-    const chunk = editableChunkFor(hit.x, hit.z);
-    if (!chunk) return toast("No editable chunk is loaded here. Add one with the Chunks tool (K).");
-    const yaw = ghost ? ghost.rotation.y : 0;
-    addRecord(chunk, "prop", { file: state.actor, position: [hit.x, hit.y, hit.z], rotation: [yaw, 0, 0], scale: 1 });
+    if (hit) placeActor(state.actor, hit, ghost ? ghost.rotation.y : 0);
     return;
   }
   if (tool === "lights" && !propHit) {
@@ -879,6 +972,7 @@ window.addEventListener("keydown", (event) => {
   const tools = { v: "select", b: "sculpt", e: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone" };
   if (key === "escape") { select(null); state.actor = null; if (ghost) { scene.remove(ghost); ghost = null; } renderPanel(); }
   else if (key === "delete" || key === "backspace") deleteSelected();
+  else if (key === "o") toggleContent();
   else if (key === "g") gizmo.setMode("translate");
   else if (key === "r") gizmo.setMode("rotate");
   else if (key === "t" && selected?.userData.kind === "prop") gizmo.setMode("scale");
@@ -959,8 +1053,15 @@ function undo() {
 async function addChunk(row, col) {
   const key = `${row}_${col}`;
   if (terrain.cells.has(key)) return status(`${key} already has a chunk.`);
-  if (state.newChunk.eco === null) return toast("This zone has no ecos; add one in the Zone tool first.");
   try {
+    if (state.newChunk.ecoKey) {
+      const eco = await postJson("/api/zone/eco", { zone: state.zone.name, palette: state.newChunk.ecoKey });
+      if (!state.zone.ecos.some((e) => e.index === eco.index)) state.zone.ecos.push(eco);
+      state.zoneDirty = true;
+      state.newChunk.eco = eco.index;
+      state.newChunk.ecoKey = null;
+    }
+    if (state.newChunk.eco === null) return toast("Pick an eco for the new chunk in the Chunks tool first.");
     const tint = await ecoColour(state.newChunk.eco).catch(() => [110, 140, 80]);
     const chunk = terrain.createChunk(row, col, state.newChunk.height, state.newChunk.eco, state.newChunk.environment, tint);
     undoStack.push(() => {
@@ -1235,8 +1336,8 @@ $("#new-zone").addEventListener("click", async () => {
     .filter((z) => z.name.toLowerCase() !== "fabledrealms")
     .map((z) => `<option value="${escape(z.name)}">Copy of ${escape(z.name)}${z.type ? ` (${z.type})` : ""}</option>`).join("");
   try {
-    const fabled = await getJson("/api/zone?name=FabledRealms");
-    form.eco.innerHTML = fabled.ecos.map((e) => `<option value="${e.index}" ${e.name.toLowerCase() === "sg_grass" ? "selected" : ""}>${escape(e.name)}</option>`).join("");
+    const palette = await loadPalette();
+    form.eco.innerHTML = palette.map((p) => `<option value="${escape(p.key)}" ${p.key === "sg_grass|sg_grass.dds" ? "selected" : ""}>${escape(p.name)} (${escape(p.texture)})</option>`).join("");
   } catch { form.eco.innerHTML = ""; }
   form.source.onchange = () => { dialog.querySelector(".blank-only").style.display = form.source.value ? "none" : ""; };
   dialog.showModal();
@@ -1249,7 +1350,7 @@ dialog.addEventListener("close", async () => {
     const zone = await postJson("/api/zone/new", {
       name: form.name.value, type: form.type.value, source: form.source.value,
       width: +form.width.value, depth: +form.depth.value, height: +form.height.value,
-      ecoZone: form.eco.value !== "" ? "FabledRealms" : null, ecoIndex: form.eco.value !== "" ? +form.eco.value : null,
+      ecoKey: form.eco.value || null,
     });
     await loadZones();
     await openZone(zone.name);

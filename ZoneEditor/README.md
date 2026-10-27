@@ -61,13 +61,20 @@ for a housing zone, `!house grant <house id>` and then `!house enter`.
 | --- | --- | --- |
 | Select | V | Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus. A prop dragged into another chunk moves into it. |
 | Sculpt | B | Raise, lower (Shift swaps them), smooth, flatten (to where the stroke started), level (to a set height), noise. |
-| Eco | E | Paint one of the zone's ecos; the highlight shows where the selected eco is. Also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). A tile holds up to 5 ecos. |
+| Eco | E | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). A tile holds up to 5 ecos. |
 | Colour | C | Paint the colour map directly; Alt+click picks a colour. |
 | Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. |
-| Props | P | Search the client's actors, click to place. Shift+wheel turns the preview. |
+| Props | P | Place objects from the content browser (O): click a tile, then the ground, or drag a tile into the view. Shift+wheel turns the preview. |
 | Lights | L | Click the ground to add a point light; edit colour, range and intensity. |
 | Chunks | K | Click an empty cell, in the view or on the minimap, to add a chunk. Its edges join the land around it. |
 | Zone | Z | Spawn point and heading, zone sky or a custom sky XML, adding ecos (from FabledRealms' list or a client `.eco`), house exit door and build areas. |
+
+The **content browser** (Content, or O) shows all of the client's 10,000-odd actors and actor sets as rendered
+thumbnails. It opens on what zones place (counted across every zone's chunks the first time, then cached,
+most placed first), with groups for what the loaded chunks use, ★ favourites, recently placed, all actors and
+name prefixes (bw_ Briarwood, sh_ Snowhill, hsg_ housing, ...), and filters by kind (trees, rocks, plants,
+buildings, ...) and name. Characters and gear stay hidden unless asked for. Thumbnails are rendered in the
+browser and kept in `ZoneEditor/.cache/thumbs`.
 
 Fly with the right mouse button and WASD/QE (Shift for speed, the wheel changes speed; in brush tools the
 wheel sizes the brush and Ctrl+wheel sets strength). Ctrl+Z undoes, Ctrl+S saves. The minimap shows chunks

@@ -200,9 +200,12 @@ def open_texture(blob: bytes):
     return image.convert("RGBA")
 
 
-def texture_png(blob: bytes, max_size: int = 512) -> bytes:
-    """A texture as PNG, scaled down to max_size for the viewport."""
+def texture_png(blob: bytes, max_size: int = 512, opaque: bool = False) -> bytes:
+    """A texture as PNG, scaled down to max_size for the viewport. opaque drops alpha, for textures that keep
+    a mask there (eco detail maps) shown as swatches."""
     image = open_texture(blob)
+    if opaque:
+        image = image.convert("RGB")
     if max(image.size) > max_size:
         image.thumbnail((max_size, max_size))
     out = io.BytesIO()
