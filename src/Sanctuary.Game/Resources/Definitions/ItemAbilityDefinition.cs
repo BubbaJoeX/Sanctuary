@@ -54,9 +54,20 @@ public class ItemAbilityDefinition
     public List<ItemAbilityStatDefinition> Stats { get; set; } = [];
 
     /// <summary>
-    /// What a combat orb or grenade does to mobs. The item isn't used up when no mob is in reach.
+    /// Every other player this close gets the ability too (shared potions). 0 for the user alone.
+    /// </summary>
+    public float ShareRadius { get; set; }
+
+    /// <summary>
+    /// What a combat orb or grenade does to mobs. The item isn't used up when no mob is in reach,
+    /// unless it also changes the user (see <see cref="AffectsUser"/>).
     /// </summary>
     public ItemAbilityAttackDefinition? Attack { get; set; }
+
+    /// <summary>
+    /// Whether it does anything to the user besides the cast effect: a restore, a new look or a timed buff.
+    /// </summary>
+    public bool AffectsUser => ModelId != 0 || DurationMs > 0 || Health is not null || Energy is not null;
 }
 
 public class ItemAbilityAttackDefinition

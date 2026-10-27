@@ -72,6 +72,7 @@ public class ItemAbilityDefinitionCollection : ObservableConcurrentDictionary<in
             || entry.Health!.OverMs == entry.Energy!.OverMs && entry.Health.IntervalMs == entry.Energy.IntervalMs)
         && float.IsFinite(entry.MovementSpeedBonus)
         && float.IsFinite(entry.Scale) && entry.Scale >= 0
+        && float.IsFinite(entry.ShareRadius) && entry.ShareRadius >= 0
         && entry.ModelId >= 0 && (entry.ModelId == 0 || entry.DurationMs > 0)
         && entry.Stats is not null && entry.Stats.All(stat => stat is not null
             && stat.Stat != CharacterStatId.InvalidStat && Enum.IsDefined(stat.Stat) && float.IsFinite(stat.Value))

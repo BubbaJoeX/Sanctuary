@@ -31,8 +31,8 @@ public sealed class ItemAbility(AbilityServices services) : ConsumableAbility(se
 
         List<Npc> mobs = [];
 
-        // Likewise an orb with no mob in reach is kept.
-        if (ability.Attack is { } attack && (mobs = FindMobs(player, packet, attack)).Count == 0)
+        // Likewise an orb with no mob in reach is kept, unless it changes the user too (a scare potion still transforms them).
+        if (ability.Attack is { } attack && (mobs = FindMobs(player, packet, attack)).Count == 0 && !ability.AffectsUser)
             return SendFailure(player);
 
         var cooldownMs = ClampCooldown(ability.CooldownMs);
@@ -41,8 +41,11 @@ public sealed class ItemAbility(AbilityServices services) : ConsumableAbility(se
 
         ItemAbilityHelper.Apply(player, ability, itemDefinition.NameId, itemDefinition.Icon.Id);
 
-        if (ability.Attack is not null)
-            AttackMobs(player, ability.Attack, mobs);
+        foreach (var pal in FindPlayersAround(player, ability.ShareRadius))
+            ItemAbilityHelper.Apply(pal, ability, itemDefinition.NameId, itemDefinition.Icon.Id);
+
+        if (mobs.Count > 0)
+            AttackMobs(player, ability.Attack!, mobs);
 
         FinishActivation(player, clientItem, itemDefinition, slot, cooldownMs, IconTintId(clientItem, itemDefinition.Icon.TintId));
 
@@ -77,6 +80,21 @@ public sealed class ItemAbility(AbilityServices services) : ConsumableAbility(se
         var nearestFirst = mobs.OrderBy(mob => Vector3.DistanceSquared(center, mob.Position.ToVector3()));
 
         return (attack.MaxTargets > 0 ? nearestFirst.Take(attack.MaxTargets) : nearestFirst).ToList();
+    }
+
+    /// <summary>
+    /// The other standing players within <paramref name="radius"/> of the user, for a shared potion.
+    /// </summary>
+    private static IEnumerable<Player> FindPlayersAround(Player player, float radius)
+    {
+        if (radius <= 0f)
+            return [];
+
+        var center = player.Position.ToVector3();
+
+        return player.VisiblePlayers.Values
+            .Where(other => !other.IsDead && Vector3.DistanceSquared(center, other.Position.ToVector3()) <= radius * radius)
+            .ToList();
     }
 
     private static void AttackMobs(Player player, ItemAbilityAttackDefinition attack, List<Npc> mobs)

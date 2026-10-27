@@ -252,6 +252,10 @@
     { "ItemId": 67964, "EffectId": 15828, "Comment": "Yellow Silly String Can" },
     { "ItemId": 68909, "EffectId": 15818, "Comment": "Red Silly String Can" },
     { "ItemId": 68910, "EffectId": 15826, "Comment": "Green Silly String Can" },
-    { "ItemId": 68911, "EffectId": 15828, "Comment": "Yellow Silly String Can" }
+    { "ItemId": 68911, "EffectId": 15828, "Comment": "Yellow Silly String Can" },
+    { "ItemId": 77439, "EffectId": 15825, "Comment": "Blue Birthday Silly String" },
+    { "ItemId": 77440, "EffectId": 15827, "Comment": "Orange Anniversary Silly String" },
+    { "ItemId": 69822, "EffectId": 15905, "Comment": "Black Spooky Spray" },
+    { "ItemId": 69823, "EffectId": 15827, "Comment": "Orange Spooky Spray" }
   ]
 }

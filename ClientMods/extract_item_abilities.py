@@ -71,6 +71,10 @@ COCOON_HOLD = 5566         # PFX_spiderweb_white_root_root_loop
 FROST_BLAST = 5185         # PFX_snow_white_circ_blast_aoe
 STINK_CLOUD = 5021         # PFX_flies_sphere_cog_explode
 
+SHARE_RADIUS = 15          # shared potions reach everyone this close
+FRIGHTFUL_MODEL = 175      # mauthedog.adr, the spectral hound, for "a frightful creature"
+SCARY_MONSTER_MODEL = 77   # troll_forest.adr, for "a big scary monster"
+
 
 def restore(percent, over_ms=0):
     return {"Percent": percent, "OverMs": over_ms} if over_ms else {"Percent": percent}
@@ -150,6 +154,18 @@ def transform(model_id, duration_ms=FOOD_DURATION_MS):
     # Same poof (21) and 30 minute default as the Consumables.json transformations.
     return {"Group": "Transform", "CooldownMs": BUFF_COOLDOWN_MS, "DurationMs": duration_ms, "CastEffectId": TRANSFORM_POOF,
             "ModelId": model_id}
+
+
+def shared(ability, radius=SHARE_RADIUS):
+    # Also drunk by every other player this close ("you and all your pals nearby").
+    return {**ability, "ShareRadius": radius}
+
+
+def scare(seconds, radius, model_id=FRIGHTFUL_MODEL, transform_ms=30 * SECOND):
+    # Turns the user into something frightful and sends the mobs around them running. Works with no mob
+    # around too, since the user still changes. Ready again once the fright is over.
+    return {**transform(model_id, transform_ms), "CooldownMs": max(ORB_COOLDOWN_MS, seconds * SECOND, transform_ms),
+            "Attack": hold("Flee", FEAR_HOLD, seconds, radius=radius, around_caster=True)["Attack"]}
 
 
 # Tiers follow the item names (I/1, II, III, IV, V) and descriptions ("some", "a large portion").
@@ -315,6 +331,73 @@ ABILITIES = {
               cooldown=REFILL_COOLDOWN_MS),  # Stink Bombs: "slowly refills itself after each use"
 
     4073: stats("Defense", 60 * SECOND, SHIELD_EFFECT, DamageReductionPercent=25),   # Anti-Venom: "reduces damage taken"
+
+    # Potions the description rules miss
+    4340: heal(50),                         # Health Potion
+    4693: energy(25, 5 * SECOND),           # Small Energy Potion: "some of your energy over 5 seconds"
+    4722: shared(heal(50)),                 # Shared Health Potion: "you and all your pals nearby"
+    4723: shared(energy(50)),               # Shared Energy Potion
+    4724: shared(replenish(50)),            # Shared Replenishment Potion
+    348: heal(20, cooldown=BUFF_COOLDOWN_MS), 349: heal(20, cooldown=BUFF_COOLDOWN_MS),   # Vanilla / Chocolate Cupcake
+
+    # Sleep and scare
+    2061: hold("Sleep", SLEEP_HOLD, 8),     # Bedtime Ball: "puts your target to sleep"
+    270: hold("Sleep", SLEEP_HOLD, 8, radius=10, around_caster=True, cooldown=REFILL_COOLDOWN_MS),   # Flute of Slumber
+    4078: scare(30, 12),                    # Hologram Spores: "All opponents will flee from you for 30 seconds"
+    1160: scare(6, 10), 1162: scare(10, 12),   # Scare Potion II / IV
+    227: scare(8, 10),                      # Spook Sphere
+    3279: transform(SCARY_MONSTER_MODEL),   # Chug's Illusion Potion: "a big scary monster"
+
+    # More illusion foods, candies and masks
+    1978: transform(141),                   # Froggy Fries: toad.adr
+    3983: transform(1669, 60 * MINUTE),     # Purple Frog Mask: toad_purple.adr "for a long time"
+    1995: transform(4547),                  # Illusion Food - Yeti: sh_standard_yeti_01.adr
+    1982: transform(100),                   # Illusion Food - Ice Creature: troll_ice.adr
+    1992: transform(142), 3068: transform(186),   # Illusion Food - Wolf Vine Golem / Fungal Vinegolem Wolf
+    4095: transform(250),                   # Brewery Shake: chugawug_farmer_f.adr
+    4096: transform(331),                   # Bite Sized Burger: shaggy_cow.adr
+    4097: transform(169),                   # Bark Chocolate: dog_large_floppy.adr
+    4098: transform(191),                   # Leafy Sandwich: robgoblin_m_mage.adr
+    4099: transform(348),                   # Shaved Mocha: ewe_shaved.adr
+    4379: transform(1689),                  # Pumpkin Candy: jackolantern_m_01.adr
+    4380: transform(1692, 3 * MINUTE), 4381: transform(751, 3 * MINUTE),   # Skeleton / Wraith Candy
+    4382: transform(1339, 3 * MINUTE), 4383: transform(52, 3 * MINUTE),    # Tarantula / Widow Candy
+    370: transform(176),                    # Werewolf Cake Slice: wolf.adr "Full moon optional."
+    374: transform(28),                     # Vampire Cake Slice: bat_01.adr "For midnight flight"
+    4375: transform(198),                   # Raven Cupcake: "Nevermore"
+    5054: transform(16),                    # Penguin Cut-out Cookie: penguin_01.adr
+    1929: transform(199),                   # Thugawug Mask: chugawug_m_bandit_01.adr
+    1922: transform(4),                     # Goblin Smith Apple: robgoblin_m_basic.adr
+    4132: transform(1385),                  # Meatball Costume: meatball.adr
+
+    # More cosmetic foods: "will cause ... to appear around the player for thirty minutes"
+    1971: aura(15148),                      # Grape Soda: purple bubbles
+    1974: aura(15891),                      # Squall Bread: a storm
+    1972: aura(47), 4094: aura(47),         # Charged Fries, Vibrant Carrot: blue lightning
+    1959: aura(12),                         # Hot-to-Trot Tots: feet on fire
+    4090: aura(5726),                       # Dewy Lettuce: water falling
+    4091: aura(5232),                       # Crispy Crossiant: shadow flames
+    4092: aura(15550),                      # Triple Layer Popsicle: pixie dust
+    4093: aura(53),                         # Ice Cream Surprise: snow flakes
+    4102: aura(15915), 4374: aura(15909),   # Freaky Fries, Ghost Cupcake: ghosts
+    4103: aura(23),                         # Lovely Cupcake: "fill the player with love"
+    4276: aura(15710),                      # Bag of Angel Feathers: a halo
+    342: aura(1, LOOP_CAST_DURATION_MS),    # Tasty Marshmallow: "the fire will only make you tasty"
+    5037: aura(16418),                      # Bell Cut-Out Cookie: falling bells
+    5038: aura(16411),                      # Candy Cane: candy cane trail
+    5040: speed(2, FOOD_DURATION_MS),       # Gingerbread Cookie: "Can't catch the gingerbread man!"
+    5151: aura(16462), 5152: aura(16465),   # Candy Hearts, Heart-Shaped Sucker
+    5153: aura(16472),                      # Cupid Cut-Out Cookie: Cupid's bow
+    5156: aura(16454),                      # Stone Heart's Candy: "Emolicious." (a broken heart)
+    5150: {**aura(15555, 1 * MINUTE), "CooldownMs": REFILL_COOLDOWN_MS},   # Love Potion v9.0: "fills back up over time"
+
+    # More fireworks and poppers
+    5034: cast(16381),                      # Garland Fireworks
+    5035: cast(16380),                      # Candy Cane Fireworks
+    5036: cast(16413),                      # Snowflake Fireworks
+    5154: cast(16461),                      # Valentine Party Popper
+    350: cast(16506),                       # Birthday Boomer
+    4010: cast(15477),                      # Golden Summer Sparkler
 }
 
 # Families matched on the description. The stats are the ones AbilityEffectTypeSettings.txt shows for

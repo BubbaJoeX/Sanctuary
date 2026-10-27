@@ -354,6 +354,23 @@
     "AuraEffectId": 15531
   },
   {
+    "AbilityId": 227,
+    "Comment": "Spook Sphere",
+    "Group": "Transform",
+    "CooldownMs": 30000,
+    "DurationMs": 30000,
+    "CastEffectId": 21,
+    "ModelId": 175,
+    "Attack": {
+      "Radius": 10,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 8000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    }
+  },
+  {
     "AbilityId": 228,
     "Comment": "Time Saver's Truffle, Wheeler Truffle",
     "Group": "Talent",
@@ -595,6 +612,27 @@
     "CastEffectId": 5021
   },
   {
+    "AbilityId": 270,
+    "Comment": "Flute of Slumber",
+    "CooldownMs": 120000,
+    "Attack": {
+      "Radius": 10,
+      "AroundCaster": true,
+      "Control": "Sleep",
+      "ControlMs": 8000,
+      "HitEffectId": 9,
+      "ControlEffectId": 3
+    }
+  },
+  {
+    "AbilityId": 342,
+    "Comment": "Tasty Marshmallow",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 10000,
+    "AuraEffectId": 1
+  },
+  {
     "AbilityId": 345,
     "Comment": "Birthday Firework",
     "CooldownMs": 10000,
@@ -613,6 +651,33 @@
     "CastEffectId": 16518
   },
   {
+    "AbilityId": 348,
+    "Comment": "Vanilla Cupcake",
+    "Group": "Health",
+    "CooldownMs": 5000,
+    "CastEffectId": 16324,
+    "Health": {
+      "Percent": 20
+    }
+  },
+  {
+    "AbilityId": 349,
+    "Comment": "Chocolate Cupcake",
+    "Group": "Health",
+    "CooldownMs": 5000,
+    "CastEffectId": 16324,
+    "Health": {
+      "Percent": 20
+    }
+  },
+  {
+    "AbilityId": 350,
+    "Comment": "Birthday Boomer",
+    "CooldownMs": 10000,
+    "AuraEffectId": 16506,
+    "DurationMs": 10000
+  },
+  {
     "AbilityId": 358,
     "Comment": "Treeble Treat",
     "Group": "Transform",
@@ -629,6 +694,24 @@
     "DurationMs": 1800000,
     "CastEffectId": 21,
     "ModelId": 4
+  },
+  {
+    "AbilityId": 370,
+    "Comment": "Werewolf Cake Slice",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 176
+  },
+  {
+    "AbilityId": 374,
+    "Comment": "Vampire Cake Slice",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 28
   },
   {
     "AbilityId": 390,
@@ -1321,6 +1404,23 @@
     "ModelId": 1516
   },
   {
+    "AbilityId": 1160,
+    "Comment": "Scare Potion II (PH)",
+    "Group": "Transform",
+    "CooldownMs": 30000,
+    "DurationMs": 30000,
+    "CastEffectId": 21,
+    "ModelId": 175,
+    "Attack": {
+      "Radius": 10,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    }
+  },
+  {
     "AbilityId": 1161,
     "Comment": "Scare Orb",
     "CooldownMs": 10000,
@@ -1333,6 +1433,23 @@
       "ControlEffectId": 464
     },
     "CastEffectId": 5332
+  },
+  {
+    "AbilityId": 1162,
+    "Comment": "Scare Potion IV (PH)",
+    "Group": "Transform",
+    "CooldownMs": 30000,
+    "DurationMs": 30000,
+    "CastEffectId": 21,
+    "ModelId": 175,
+    "Attack": {
+      "Radius": 12,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 10000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    }
   },
   {
     "AbilityId": 1163,
@@ -1662,6 +1779,15 @@
     "ModelId": 4
   },
   {
+    "AbilityId": 1922,
+    "Comment": "Goblin Smith Apple",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 4
+  },
+  {
     "AbilityId": 1923,
     "Comment": "Bandit Burger",
     "Group": "Transform",
@@ -1697,6 +1823,15 @@
     "DurationMs": 1800000,
     "CastEffectId": 21,
     "ModelId": 88
+  },
+  {
+    "AbilityId": 1929,
+    "Comment": "Thugawug Mask",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 199
   },
   {
     "AbilityId": 1930,
@@ -1920,6 +2055,38 @@
     "MovementSpeedBonus": 1
   },
   {
+    "AbilityId": 1959,
+    "Comment": "Hot-to-Trot Tots",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 12
+  },
+  {
+    "AbilityId": 1971,
+    "Comment": "FX Food - Grape Soda, Grape Soda",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 15148
+  },
+  {
+    "AbilityId": 1972,
+    "Comment": "Charged Fries",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 47
+  },
+  {
+    "AbilityId": 1974,
+    "Comment": "Squall Bread",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 15891
+  },
+  {
     "AbilityId": 1975,
     "Comment": "Illusion Food - Chick",
     "Group": "Transform",
@@ -1947,6 +2114,15 @@
     "ModelId": 376
   },
   {
+    "AbilityId": 1978,
+    "Comment": "Froggy Fries",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 141
+  },
+  {
     "AbilityId": 1980,
     "Comment": "Animated Snacks",
     "Group": "Transform",
@@ -1963,6 +2139,15 @@
     "DurationMs": 1800000,
     "CastEffectId": 21,
     "ModelId": 219
+  },
+  {
+    "AbilityId": 1982,
+    "Comment": "Illusion Food - Ice Creature",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 100
   },
   {
     "AbilityId": 1984,
@@ -2001,6 +2186,15 @@
     "ModelId": 88
   },
   {
+    "AbilityId": 1992,
+    "Comment": "Illusion Food - Wolf Vine Golem",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 142
+  },
+  {
     "AbilityId": 1993,
     "Comment": "Illusion Food - Bear Vine Golem",
     "Group": "Transform",
@@ -2008,6 +2202,15 @@
     "DurationMs": 1800000,
     "CastEffectId": 21,
     "ModelId": 62
+  },
+  {
+    "AbilityId": 1995,
+    "Comment": "Illusion Food - Yeti",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 4547
   },
   {
     "AbilityId": 1996,
@@ -2061,6 +2264,17 @@
     "Attack": {
       "Control": "Sleep",
       "ControlMs": 10000,
+      "HitEffectId": 9,
+      "ControlEffectId": 3
+    }
+  },
+  {
+    "AbilityId": 2061,
+    "Comment": "Bedtime Ball",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Sleep",
+      "ControlMs": 8000,
       "HitEffectId": 9,
       "ControlEffectId": 3
     }
@@ -2397,6 +2611,15 @@
     "ModelId": 188
   },
   {
+    "AbilityId": 3068,
+    "Comment": "Illusion Food - Fungal Vinegolem Wolf",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 186
+  },
+  {
     "AbilityId": 3069,
     "Comment": "Illusion Food - Fungal Vinegolem Bear",
     "Group": "Transform",
@@ -2606,6 +2829,15 @@
         "Value": 500
       }
     ]
+  },
+  {
+    "AbilityId": 3279,
+    "Comment": "Chug's Illusion Potion",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 77
   },
   {
     "AbilityId": 3411,
@@ -2888,6 +3120,22 @@
     "CastEffectId": 15729
   },
   {
+    "AbilityId": 3983,
+    "Comment": "Purple Frog Mask",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 3600000,
+    "CastEffectId": 21,
+    "ModelId": 1669
+  },
+  {
+    "AbilityId": 4010,
+    "Comment": "Golden Summer Sparkler",
+    "CooldownMs": 10000,
+    "AuraEffectId": 15477,
+    "DurationMs": 10000
+  },
+  {
     "AbilityId": 4066,
     "Comment": "Gold Pinwheel Firework",
     "CooldownMs": 10000,
@@ -2961,6 +3209,23 @@
     }
   },
   {
+    "AbilityId": 4078,
+    "Comment": "Hologram Spores",
+    "Group": "Transform",
+    "CooldownMs": 30000,
+    "DurationMs": 30000,
+    "CastEffectId": 21,
+    "ModelId": 175,
+    "Attack": {
+      "Radius": 12,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 30000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    }
+  },
+  {
     "AbilityId": 4085,
     "Comment": "Very Cherry Pie",
     "Group": "Talent",
@@ -3031,11 +3296,212 @@
     ]
   },
   {
+    "AbilityId": 4090,
+    "Comment": "Dewy Lettuce",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 5726
+  },
+  {
+    "AbilityId": 4091,
+    "Comment": "Crispy Crossiant",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 5232
+  },
+  {
+    "AbilityId": 4092,
+    "Comment": "Triple Layer Popsicle",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 15550
+  },
+  {
+    "AbilityId": 4093,
+    "Comment": "Ice Cream Surprise",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 53
+  },
+  {
+    "AbilityId": 4094,
+    "Comment": "Vibrant Carrot",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 47
+  },
+  {
+    "AbilityId": 4095,
+    "Comment": "Brewery Shake",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 250
+  },
+  {
+    "AbilityId": 4096,
+    "Comment": "Bite Sized Burger",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 331
+  },
+  {
+    "AbilityId": 4097,
+    "Comment": "Bark Chocolate",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 169
+  },
+  {
+    "AbilityId": 4098,
+    "Comment": "Leafy Sandwich",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 191
+  },
+  {
+    "AbilityId": 4099,
+    "Comment": "Shaved Mocha",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 348
+  },
+  {
+    "AbilityId": 4102,
+    "Comment": "Freaky Fries",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 15915
+  },
+  {
+    "AbilityId": 4103,
+    "Comment": "Lovely Cupcake",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 23
+  },
+  {
+    "AbilityId": 4132,
+    "Comment": "Meatball Costume",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 1385
+  },
+  {
     "AbilityId": 4161,
     "Comment": "Party Popper",
     "CooldownMs": 10000,
     "AuraEffectId": 15813,
     "DurationMs": 10000
+  },
+  {
+    "AbilityId": 4276,
+    "Comment": "Bag of Angel Feathers",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 15710
+  },
+  {
+    "AbilityId": 4340,
+    "Comment": "Health Potion",
+    "Group": "Health",
+    "CooldownMs": 30000,
+    "CastEffectId": 16324,
+    "Health": {
+      "Percent": 50
+    }
+  },
+  {
+    "AbilityId": 4374,
+    "Comment": "Ghost Cupcake",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 15909
+  },
+  {
+    "AbilityId": 4375,
+    "Comment": "Raven Cupcake",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 198
+  },
+  {
+    "AbilityId": 4379,
+    "Comment": "Pumpkin Candy",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 1689
+  },
+  {
+    "AbilityId": 4380,
+    "Comment": "Skeleton Candy",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 180000,
+    "CastEffectId": 21,
+    "ModelId": 1692
+  },
+  {
+    "AbilityId": 4381,
+    "Comment": "Wraith Candy",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 180000,
+    "CastEffectId": 21,
+    "ModelId": 751
+  },
+  {
+    "AbilityId": 4382,
+    "Comment": "Tarantula Candy",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 180000,
+    "CastEffectId": 21,
+    "ModelId": 1339
+  },
+  {
+    "AbilityId": 4383,
+    "Comment": "Widow Candy",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 180000,
+    "CastEffectId": 21,
+    "ModelId": 52
+  },
+  {
+    "AbilityId": 4693,
+    "Comment": "Small Energy Potion",
+    "Group": "Energy",
+    "CooldownMs": 30000,
+    "CastEffectId": 16325,
+    "Energy": {
+      "Percent": 25,
+      "OverMs": 5000
+    }
   },
   {
     "AbilityId": 4694,
@@ -3133,11 +3599,146 @@
     }
   },
   {
+    "AbilityId": 4722,
+    "Comment": "Shared Health Potion",
+    "Group": "Health",
+    "CooldownMs": 30000,
+    "CastEffectId": 16324,
+    "Health": {
+      "Percent": 50
+    },
+    "ShareRadius": 15
+  },
+  {
+    "AbilityId": 4723,
+    "Comment": "Shared Energy Potion",
+    "Group": "Energy",
+    "CooldownMs": 30000,
+    "CastEffectId": 16325,
+    "Energy": {
+      "Percent": 50
+    },
+    "ShareRadius": 15
+  },
+  {
+    "AbilityId": 4724,
+    "Comment": "Shared Replenishment Potion",
+    "Group": "Health",
+    "CooldownMs": 30000,
+    "CastEffectId": 16326,
+    "Health": {
+      "Percent": 50
+    },
+    "Energy": {
+      "Percent": 50
+    },
+    "ShareRadius": 15
+  },
+  {
     "AbilityId": 5033,
     "Comment": "Winter Party Popper",
     "CooldownMs": 10000,
     "AuraEffectId": 16375,
     "DurationMs": 10000
+  },
+  {
+    "AbilityId": 5034,
+    "Comment": "{n}Garland Fireworks{pl=\"Garland Fireworks\"}",
+    "CooldownMs": 10000,
+    "CastEffectId": 16381
+  },
+  {
+    "AbilityId": 5035,
+    "Comment": "{n}Candy Cane Fireworks{pl=\"Candy Cane Fireworks\"}",
+    "CooldownMs": 10000,
+    "CastEffectId": 16380
+  },
+  {
+    "AbilityId": 5036,
+    "Comment": "Snowflake Fireworks",
+    "CooldownMs": 10000,
+    "CastEffectId": 16413
+  },
+  {
+    "AbilityId": 5037,
+    "Comment": "Bell Cut-Out Cookie",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 16418
+  },
+  {
+    "AbilityId": 5038,
+    "Comment": "Candy Cane",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 16411
+  },
+  {
+    "AbilityId": 5040,
+    "Comment": "Gingerbread Cookie",
+    "Group": "Speed",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 15216,
+    "MovementSpeedBonus": 2
+  },
+  {
+    "AbilityId": 5054,
+    "Comment": "Penguin Cut-out Cookie",
+    "Group": "Transform",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "CastEffectId": 21,
+    "ModelId": 16
+  },
+  {
+    "AbilityId": 5150,
+    "Comment": "Love Potion v9.0",
+    "Group": "Aura",
+    "CooldownMs": 120000,
+    "DurationMs": 60000,
+    "AuraEffectId": 15555
+  },
+  {
+    "AbilityId": 5151,
+    "Comment": "{n}Candy Hearts{pl=\"Candy Hearts\"}",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 16462
+  },
+  {
+    "AbilityId": 5152,
+    "Comment": "Heart-Shaped Sucker",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 16465
+  },
+  {
+    "AbilityId": 5153,
+    "Comment": "Cupid Cut-Out Cookie",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 16472
+  },
+  {
+    "AbilityId": 5154,
+    "Comment": "Valentine Party Popper",
+    "CooldownMs": 10000,
+    "AuraEffectId": 16461,
+    "DurationMs": 10000
+  },
+  {
+    "AbilityId": 5156,
+    "Comment": "Stone Heart's Candy",
+    "Group": "Aura",
+    "CooldownMs": 5000,
+    "DurationMs": 1800000,
+    "AuraEffectId": 16454
   },
   {
     "AbilityId": 5157,
