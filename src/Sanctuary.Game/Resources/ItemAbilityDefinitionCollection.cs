@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 using Sanctuary.Core.Collections;
+using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Packet.Common;
@@ -77,9 +78,23 @@ public class ItemAbilityDefinitionCollection : ObservableConcurrentDictionary<in
         // Timed parts need a duration; an aura without one is only allowed to last as long as a restore over time.
         && (entry.DurationMs > 0 || entry.MovementSpeedBonus == 0 && entry.Scale == 0 && entry.Stats.Count == 0
             && (entry.AuraEffectId == 0 || IsOverTime(entry.Health) || IsOverTime(entry.Energy)))
-        && (entry.CastEffectId != 0 || entry.DurationMs > 0 || entry.Health is not null || entry.Energy is not null);
+        && IsValid(entry.Attack)
+        && (entry.CastEffectId != 0 || entry.DurationMs > 0 || entry.Health is not null || entry.Energy is not null || entry.Attack is not null);
 
     public static bool IsOverTime(ItemAbilityRestoreDefinition? restore) => restore is { OverMs: > 0 };
+
+    private static bool IsValid(ItemAbilityAttackDefinition? attack) =>
+        attack is null
+        || attack.Damage >= 0 && attack.DamageIntervalMs > 0
+           && attack.DamageOverMs >= 0 && attack.DamageOverMs % attack.DamageIntervalMs == 0
+           && float.IsFinite(attack.Range) && attack.Range > 0
+           && float.IsFinite(attack.Radius) && attack.Radius >= 0 && (!attack.AroundCaster || attack.Radius > 0)
+           && attack.MaxTargets >= 0
+           && Enum.IsDefined(attack.Control) && (attack.Control == MobControl.None) == (attack.ControlMs == 0) && attack.ControlMs >= 0
+           && float.IsFinite(attack.KnockbackDistance) && (attack.Control == MobControl.Knockback) == (attack.KnockbackDistance > 0)
+           && attack.HitEffectId >= 0 && attack.ControlEffectId >= 0
+           // It has to do something to the mob.
+           && (attack.Damage > 0 || attack.Control != MobControl.None);
 
     private static bool IsValid(ItemAbilityRestoreDefinition? restore) =>
         restore is null

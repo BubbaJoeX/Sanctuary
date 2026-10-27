@@ -99,7 +99,7 @@ public sealed class CombatAbility(AbilityServices services)
     /// <summary>
     /// The clicked mob if it's alive and in reach, otherwise the nearest one in reach.
     /// </summary>
-    private static Npc? FindTarget(Player player, ulong targetGuid, float reach)
+    internal static Npc? FindTarget(Player player, ulong targetGuid, float reach)
     {
         if (targetGuid != 0 && player.VisibleNpcs.TryGetValue(targetGuid, out var clicked) && IsAliveMob(clicked) &&
             IsWithin(player.Position.ToVector3(), clicked.Position.ToVector3(), reach))
@@ -110,7 +110,7 @@ public sealed class CombatAbility(AbilityServices services)
             .FirstOrDefault();
     }
 
-    private static List<Npc> FindMobsAround(Player player, Vector3 center, float radius) =>
+    internal static List<Npc> FindMobsAround(Player player, Vector3 center, float radius) =>
         player.VisibleNpcs.Values
             .Where(npc => IsAliveMob(npc) && ReferenceEquals(npc.Zone, player.Zone) && IsWithin(center, npc.Position.ToVector3(), radius))
             .ToList();

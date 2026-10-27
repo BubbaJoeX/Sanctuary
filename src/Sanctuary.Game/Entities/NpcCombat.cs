@@ -13,6 +13,39 @@ using Sanctuary.Packet;
 namespace Sanctuary.Game.Entities;
 
 /// <summary>
+/// An orb or grenade's hold on a mob (see <see cref="NpcCombat.ApplyControl"/>).
+/// </summary>
+public enum MobControl
+{
+    None,
+
+    /// <summary>
+    /// Stands there doing nothing (stun, freeze, cocoon, confusion).
+    /// </summary>
+    Stun,
+
+    /// <summary>
+    /// A stun that any hit ends.
+    /// </summary>
+    Sleep,
+
+    /// <summary>
+    /// Can't move, but still hits whoever is in reach.
+    /// </summary>
+    Root,
+
+    /// <summary>
+    /// Runs from whoever scared it.
+    /// </summary>
+    Flee,
+
+    /// <summary>
+    /// Shoved away from whoever hit it, then stunned until the time runs out.
+    /// </summary>
+    Knockback
+}
+
+/// <summary>
 /// Makes a hostile ("red") world NPC a mob: hit points, the <see cref="MobBrain"/>'s aggro, chase and attacks
 /// carried out on the NPC, and death, kill rewards and respawn. Attached by WorldZone to any world NPC
 /// whose disposition is hostile.
@@ -25,6 +58,11 @@ public sealed class NpcCombat
     private const float DirectChaseDistance = 12f;
     private const int IdleCharacterState = 1;
     private const int KnockedOutCharacterState = 0x80;
+    private const int FleeRepathMs = 1000;
+    private const float FleeStepDistance = 10f;
+
+    // How long a knockback shove takes, whatever its distance.
+    private const int KnockbackMoveMs = 400;
 
     private readonly object _lock = new();
     private readonly Npc _npc;
@@ -40,6 +78,24 @@ public sealed class NpcCombat
     private bool _walkingHome;
     private long _despawnAt;
     private long _respawnAt;
+
+    private MobControl _control;
+    private long _controlUntil;
+    private ulong _controlSourceGuid;
+    private int _controlEffectTagId;
+    private float _speedBeforeKnockback;
+
+    private readonly List<DamageOverTime> _damageOverTime = [];
+
+    private sealed class DamageOverTime(ulong attackerGuid, int damagePerTick, int intervalMs, int hitEffectId)
+    {
+        public ulong AttackerGuid { get; } = attackerGuid;
+        public int DamagePerTick { get; } = damagePerTick;
+        public int IntervalMs { get; } = intervalMs;
+        public int HitEffectId { get; } = hitEffectId;
+        public int TicksLeft { get; set; }
+        public long NextTickAt { get; set; }
+    }
 
     public NpcCombat(Npc npc, MobDefinition definition, IRewardManager rewardManager)
     {
@@ -84,6 +140,15 @@ public sealed class NpcCombat
 
     public ulong TargetGuid => _brain.TargetGuid;
 
+    public MobControl Control
+    {
+        get
+        {
+            lock (_lock)
+                return _control;
+        }
+    }
+
     public static bool CanBeAttacked(Player player, IEntity mob) =>
         player.Visible && !player.IsDead && !player.IsInGodMode && player.CanFight && ReferenceEquals(player.Zone, mob.Zone);
 
@@ -97,10 +162,23 @@ public sealed class NpcCombat
             return;
         }
 
-        if (now < _nextThinkAt)
+        TickDamageOverTime(now);
+
+        if (IsDead || now < _nextThinkAt)
             return;
 
         _nextThinkAt = now + ThinkIntervalMs;
+
+        var control = UpdateControl(now);
+
+        if (control is MobControl.Stun or MobControl.Sleep or MobControl.Knockback)
+            return;
+
+        if (control == MobControl.Flee)
+        {
+            Flee(now);
+            return;
+        }
 
         var candidates = _npc.VisiblePlayers.Values
             .Select(player => new MobCandidate(player.Guid, player.Position.ToVector3(), CanBeAttacked(player, _npc)))
@@ -126,6 +204,11 @@ public sealed class NpcCombat
 
         switch (action.Type)
         {
+            // Rooted, it can only hit what's already in reach.
+            case MobActionType.Chase when control == MobControl.Root:
+                _npc.StopMoving();
+                break;
+
             case MobActionType.Chase:
                 Chase(now, action.Destination);
                 break;
@@ -135,7 +218,7 @@ public sealed class NpcCombat
                 break;
 
             case MobActionType.Return:
-                if (!_walkingHome)
+                if (!_walkingHome && control != MobControl.Root)
                 {
                     _walkingHome = true;
                     _npc.MoveTo(action.Destination);
@@ -196,6 +279,10 @@ public sealed class NpcCombat
                 Die();
         }
 
+        // Any hit wakes a sleeper, and a dead mob is let go of.
+        if (killed || Control == MobControl.Sleep)
+            EndControl();
+
         // Bar, floating number (for the attacker) and flinch in one.
         SendToVisible(new PlayerUpdatePacketHitPointModification
         {
@@ -223,13 +310,81 @@ public sealed class NpcCombat
     }
 
     /// <summary>
+    /// Holds it with an orb or grenade for <paramref name="durationMs"/>, replacing any hold it was under.
+    /// <paramref name="effectId"/> shows on it until then; a knockback shoves it <paramref name="distance"/>
+    /// away from <paramref name="source"/> first. Either way it turns on <paramref name="source"/>.
+    /// </summary>
+    public bool ApplyControl(Player source, MobControl control, int durationMs, int effectId = 0, float distance = 0f)
+    {
+        if (control == MobControl.None || durationMs <= 0)
+            return false;
+
+        lock (_lock)
+        {
+            if (IsDead || _brain.State == MobState.Returning)
+                return false;
+
+            _brain.AddThreat(source.Guid, 0);
+        }
+
+        EndControl();
+
+        var tagId = effectId != 0 ? _npc.AddEffectTag(effectId) : 0;
+
+        lock (_lock)
+        {
+            _control = control;
+            _controlUntil = Environment.TickCount64 + durationMs;
+            _controlSourceGuid = source.Guid;
+            _controlEffectTagId = tagId;
+        }
+
+        _walkingHome = false;
+        _npc.StopMoving();
+
+        if (control == MobControl.Knockback && distance > 0f)
+            ShoveAwayFrom(source.Position.ToVector3(), distance);
+
+        return true;
+    }
+
+    /// <summary>
+    /// <paramref name="ticks"/> hits of <paramref name="damagePerTick"/> from <paramref name="attacker"/>, one
+    /// every <paramref name="intervalMs"/>, each playing <paramref name="hitEffectId"/>.
+    /// </summary>
+    public bool AddDamageOverTime(Player attacker, int damagePerTick, int ticks, int intervalMs, int hitEffectId = 0)
+    {
+        if (damagePerTick <= 0 || ticks <= 0 || intervalMs <= 0)
+            return false;
+
+        lock (_lock)
+        {
+            if (IsDead || _brain.State == MobState.Returning)
+                return false;
+
+            _brain.AddThreat(attacker.Guid, 0);
+
+            _damageOverTime.Add(new DamageOverTime(attacker.Guid, damagePerTick, intervalMs, hitEffectId)
+            {
+                TicksLeft = ticks,
+                NextTickAt = Environment.TickCount64 + intervalMs
+            });
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// No longer hostile: drop the fight and stand where it is, back on full health.
     /// </summary>
     public void Detach()
     {
+        EndControl();
+
         lock (_lock)
         {
             _brain.Revive();
+            _damageOverTime.Clear();
             Hitpoints = MaxHitpoints;
         }
 
@@ -258,6 +413,122 @@ public sealed class NpcCombat
 
         foreach (var visiblePlayer in _npc.VisiblePlayers.Values)
             visiblePlayer.SendSerialized(data);
+    }
+
+    /// <summary>
+    /// The hold it's under, ending it once its time is up.
+    /// </summary>
+    private MobControl UpdateControl(long now)
+    {
+        lock (_lock)
+        {
+            if (_control == MobControl.None || now < _controlUntil)
+                return _control;
+        }
+
+        EndControl();
+
+        return MobControl.None;
+    }
+
+    private void EndControl()
+    {
+        MobControl control;
+        int tagId;
+
+        lock (_lock)
+        {
+            control = _control;
+            tagId = _controlEffectTagId;
+
+            _control = MobControl.None;
+            _controlEffectTagId = 0;
+        }
+
+        if (control == MobControl.None)
+            return;
+
+        if (control == MobControl.Knockback)
+        {
+            _npc.StopMoving();
+            _npc.Speed = _speedBeforeKnockback;
+        }
+
+        if (tagId != 0)
+            _npc.RemoveEffectTag(tagId);
+    }
+
+    private void ShoveAwayFrom(Vector3 source, float distance)
+    {
+        var position = _npc.Position.ToVector3();
+        var away = position - source;
+        away.Y = 0f;
+        away = away.LengthSquared() > 0.0001f ? Vector3.Normalize(away) : Vector3.UnitX;
+
+        // Fast enough to look like a shove rather than a walk; EndControl puts its speed back.
+        _speedBeforeKnockback = _npc.Speed;
+        _npc.Speed = MathF.Max(_npc.Speed, distance * 1000f / KnockbackMoveMs);
+        _npc.MoveTo(position + away * distance, direct: true);
+    }
+
+    private void Flee(long now)
+    {
+        if (now < _nextChaseAt)
+            return;
+
+        _nextChaseAt = now + FleeRepathMs;
+
+        ulong sourceGuid;
+
+        lock (_lock)
+            sourceGuid = _controlSourceGuid;
+
+        if (!_npc.VisiblePlayers.TryGetValue(sourceGuid, out var source))
+            return;
+
+        var position = _npc.Position.ToVector3();
+        var away = position - source.Position.ToVector3();
+        away.Y = 0f;
+        away = away.LengthSquared() > 0.0001f ? Vector3.Normalize(away) : Vector3.UnitX;
+
+        _npc.MoveTo(position + away * FleeStepDistance);
+    }
+
+    private void TickDamageOverTime(long now)
+    {
+        List<(ulong AttackerGuid, int Damage, int HitEffectId)>? due = null;
+
+        lock (_lock)
+        {
+            for (var i = _damageOverTime.Count - 1; i >= 0; i--)
+            {
+                var damageOverTime = _damageOverTime[i];
+
+                while (damageOverTime.TicksLeft > 0 && damageOverTime.NextTickAt <= now)
+                {
+                    damageOverTime.TicksLeft--;
+                    damageOverTime.NextTickAt += damageOverTime.IntervalMs;
+
+                    (due ??= []).Add((damageOverTime.AttackerGuid, damageOverTime.DamagePerTick, damageOverTime.HitEffectId));
+                }
+
+                if (damageOverTime.TicksLeft == 0)
+                    _damageOverTime.RemoveAt(i);
+            }
+        }
+
+        if (due is null)
+            return;
+
+        foreach (var (attackerGuid, damage, hitEffectId) in due)
+        {
+            // Whoever threw it logged off or left: the rest fizzles out.
+            if (!_npc.Zone.TryGetPlayer(attackerGuid, out var attacker))
+                continue;
+
+            if (TakeDamage(attacker, damage) > 0 && hitEffectId != 0)
+                _npc.PlayEffect(hitEffectId);
+        }
     }
 
     private void Chase(long now, Vector3 targetPosition)
@@ -306,6 +577,7 @@ public sealed class NpcCombat
     private void Die()
     {
         _brain.Kill();
+        _damageOverTime.Clear();
         _walkingHome = false;
         _npc.StopMoving();
 

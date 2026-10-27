@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 
+using Sanctuary.Game.Entities;
 using Sanctuary.Packet.Common;
 
 namespace Sanctuary.Game.Resources.Definitions;
 
 /// <summary>
-/// What an item's ActivatableAbilityId does when used: potions, scrolls and buff foods.
+/// What an item's ActivatableAbilityId does when used: potions, scrolls, buff foods, combat orbs and grenades.
 /// Generated from client data by ClientMods/extract_item_abilities.py.
 /// </summary>
 public class ItemAbilityDefinition
@@ -51,6 +52,57 @@ public class ItemAbilityDefinition
     public int ModelId { get; set; }
 
     public List<ItemAbilityStatDefinition> Stats { get; set; } = [];
+
+    /// <summary>
+    /// What a combat orb or grenade does to mobs. The item isn't used up when no mob is in reach.
+    /// </summary>
+    public ItemAbilityAttackDefinition? Attack { get; set; }
+}
+
+public class ItemAbilityAttackDefinition
+{
+    /// <summary>
+    /// Dealt to each mob hit, all at once or spread over <see cref="DamageOverMs"/>.
+    /// </summary>
+    public int Damage { get; set; }
+
+    public int DamageOverMs { get; set; }
+
+    public int DamageIntervalMs { get; set; } = 1000;
+
+    /// <summary>
+    /// How far away the clicked (or nearest) mob can be.
+    /// </summary>
+    public float Range { get; set; } = 20f;
+
+    /// <summary>
+    /// Also hits every mob this close to the target, or to the player for <see cref="AroundCaster"/> (grenades).
+    /// 0 hits the target alone.
+    /// </summary>
+    public float Radius { get; set; }
+
+    public bool AroundCaster { get; set; }
+
+    /// <summary>
+    /// The most mobs one use hits, nearest first. 0 for no limit.
+    /// </summary>
+    public int MaxTargets { get; set; }
+
+    public MobControl Control { get; set; }
+
+    public int ControlMs { get; set; }
+
+    public float KnockbackDistance { get; set; }
+
+    /// <summary>
+    /// Played on each mob it hits.
+    /// </summary>
+    public int HitEffectId { get; set; }
+
+    /// <summary>
+    /// Shown on each mob for as long as <see cref="Control"/> holds it.
+    /// </summary>
+    public int ControlEffectId { get; set; }
 }
 
 public class ItemAbilityRestoreDefinition

@@ -581,6 +581,20 @@
     "AuraEffectId": 15858
   },
   {
+    "AbilityId": 269,
+    "Comment": "Stink Bombs",
+    "CooldownMs": 120000,
+    "Attack": {
+      "Radius": 10,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    },
+    "CastEffectId": 5021
+  },
+  {
     "AbilityId": 345,
     "Comment": "Birthday Firework",
     "CooldownMs": 10000,
@@ -1307,6 +1321,34 @@
     "ModelId": 1516
   },
   {
+    "AbilityId": 1161,
+    "Comment": "Scare Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 10,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    },
+    "CastEffectId": 5332
+  },
+  {
+    "AbilityId": 1163,
+    "Comment": "Scare Sphere",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 12,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 8000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    },
+    "CastEffectId": 5332
+  },
+  {
     "AbilityId": 1207,
     "Comment": "Average Conditioner (TEST), Health Potion",
     "Group": "Health",
@@ -1431,6 +1473,121 @@
     "CastEffectId": 16325,
     "Energy": {
       "Percent": 35
+    }
+  },
+  {
+    "AbilityId": 1642,
+    "Comment": "Frag Orb 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Damage": 300,
+      "HitEffectId": 44
+    }
+  },
+  {
+    "AbilityId": 1643,
+    "Comment": "Frag Orb II (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Damage": 450,
+      "HitEffectId": 44
+    }
+  },
+  {
+    "AbilityId": 1644,
+    "Comment": "Frag Orb, Wheeler Frag Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Damage": 600,
+      "HitEffectId": 44
+    }
+  },
+  {
+    "AbilityId": 1646,
+    "Comment": "Sleep Orb II (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Sleep",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 3
+    }
+  },
+  {
+    "AbilityId": 1647,
+    "Comment": "Sleep Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Sleep",
+      "ControlMs": 8000,
+      "HitEffectId": 9,
+      "ControlEffectId": 3
+    }
+  },
+  {
+    "AbilityId": 1648,
+    "Comment": "Unmoving Orb 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Root",
+      "ControlMs": 4000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5311
+    }
+  },
+  {
+    "AbilityId": 1649,
+    "Comment": "Unmoving Orb II (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Root",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5311
+    }
+  },
+  {
+    "AbilityId": 1650,
+    "Comment": "Unmoving Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Root",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5311
+    }
+  },
+  {
+    "AbilityId": 1651,
+    "Comment": "Flabbergast Orb 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 3000,
+      "HitEffectId": 9,
+      "ControlEffectId": 2
+    }
+  },
+  {
+    "AbilityId": 1652,
+    "Comment": "Flabbergast Orb II (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 4000,
+      "HitEffectId": 9,
+      "ControlEffectId": 2
+    }
+  },
+  {
+    "AbilityId": 1653,
+    "Comment": "Flabbergast Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 2
     }
   },
   {
@@ -1898,6 +2055,39 @@
     "ModelId": 135
   },
   {
+    "AbilityId": 2060,
+    "Comment": "Sleep Orb IV (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Sleep",
+      "ControlMs": 10000,
+      "HitEffectId": 9,
+      "ControlEffectId": 3
+    }
+  },
+  {
+    "AbilityId": 2062,
+    "Comment": "Unmoving Orb IV (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Root",
+      "ControlMs": 8000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5311
+    }
+  },
+  {
+    "AbilityId": 2064,
+    "Comment": "Flabbergast Orb IV (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 2
+    }
+  },
+  {
     "AbilityId": 2070,
     "Comment": "Health Potion IV (PH)",
     "Group": "Health",
@@ -1915,6 +2105,15 @@
     "CastEffectId": 16325,
     "Energy": {
       "Percent": 65
+    }
+  },
+  {
+    "AbilityId": 2074,
+    "Comment": "Frag Orb IV (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Damage": 800,
+      "HitEffectId": 44
     }
   },
   {
@@ -2219,6 +2418,87 @@
     "AuraEffectId": 15858
   },
   {
+    "AbilityId": 3095,
+    "Comment": "Damage Over Time Potion 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Damage": 600,
+      "DamageOverMs": 6000,
+      "HitEffectId": 15578
+    }
+  },
+  {
+    "AbilityId": 3097,
+    "Comment": "Blast Orb 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Knockback",
+      "ControlMs": 2000,
+      "KnockbackDistance": 6,
+      "HitEffectId": 5342
+    }
+  },
+  {
+    "AbilityId": 3098,
+    "Comment": "Scare Orb 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 8,
+      "AroundCaster": true,
+      "Control": "Flee",
+      "ControlMs": 4000,
+      "HitEffectId": 9,
+      "ControlEffectId": 464
+    },
+    "CastEffectId": 5332
+  },
+  {
+    "AbilityId": 3100,
+    "Comment": "Blast Orb II (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Knockback",
+      "ControlMs": 2000,
+      "KnockbackDistance": 8,
+      "HitEffectId": 5342
+    }
+  },
+  {
+    "AbilityId": 3101,
+    "Comment": "Blast Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Knockback",
+      "ControlMs": 2000,
+      "KnockbackDistance": 10,
+      "HitEffectId": 5342
+    }
+  },
+  {
+    "AbilityId": 3102,
+    "Comment": "Blast Orb IV (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Knockback",
+      "ControlMs": 2000,
+      "KnockbackDistance": 12,
+      "HitEffectId": 5342
+    }
+  },
+  {
+    "AbilityId": 3105,
+    "Comment": "Flabbergast Grenade 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 8,
+      "AroundCaster": true,
+      "Control": "Stun",
+      "ControlMs": 4000,
+      "HitEffectId": 9,
+      "ControlEffectId": 2
+    }
+  },
+  {
     "AbilityId": 3109,
     "Comment": "Replenishing Potion 1",
     "Group": "Health",
@@ -2258,6 +2538,61 @@
     }
   },
   {
+    "AbilityId": 3118,
+    "Comment": "Confusion Orb 1",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 3000,
+      "HitEffectId": 9,
+      "ControlEffectId": 15140
+    }
+  },
+  {
+    "AbilityId": 3119,
+    "Comment": "Confusion Orb II (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 4000,
+      "HitEffectId": 9,
+      "ControlEffectId": 15140
+    }
+  },
+  {
+    "AbilityId": 3120,
+    "Comment": "Confusion Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 15140
+    }
+  },
+  {
+    "AbilityId": 3121,
+    "Comment": "Confusion Orb IV (PH)",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 15140
+    }
+  },
+  {
+    "AbilityId": 3122,
+    "Comment": "Befuddler Ball",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 15140
+    }
+  },
+  {
     "AbilityId": 3264,
     "Comment": "Strong Arm Stew",
     "Group": "Scale",
@@ -2289,6 +2624,17 @@
     "DurationMs": 1800000,
     "CastEffectId": 21,
     "ModelId": 4470
+  },
+  {
+    "AbilityId": 3717,
+    "Comment": "Cocoon Orb",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5566
+    }
   },
   {
     "AbilityId": 3786,
@@ -2507,6 +2853,35 @@
     "AuraEffectId": 15369
   },
   {
+    "AbilityId": 3953,
+    "Comment": "Flabbergast Grenade",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 10,
+      "AroundCaster": true,
+      "MaxTargets": 5,
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 2
+    }
+  },
+  {
+    "AbilityId": 3954,
+    "Comment": "Frost Grenade",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 10,
+      "AroundCaster": true,
+      "MaxTargets": 5,
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5337
+    },
+    "CastEffectId": 5185
+  },
+  {
     "AbilityId": 3955,
     "Comment": "{n}Queen's Firecrackers{pl=\"Queen's Firecrackers\"}",
     "CooldownMs": 10000,
@@ -2559,6 +2934,31 @@
     "Comment": "Stars and Stripes Firework",
     "CooldownMs": 10000,
     "CastEffectId": 15661
+  },
+  {
+    "AbilityId": 4073,
+    "Comment": "Anti-Venom",
+    "Group": "Defense",
+    "CooldownMs": 5000,
+    "DurationMs": 60000,
+    "CastEffectId": 15855,
+    "Stats": [
+      {
+        "Stat": "DamageReductionPercent",
+        "Value": 25
+      }
+    ]
+  },
+  {
+    "AbilityId": 4076,
+    "Comment": "Orb of Gardening",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Control": "Stun",
+      "ControlMs": 8000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5311
+    }
   },
   {
     "AbilityId": 4085,
@@ -2733,6 +3133,13 @@
     }
   },
   {
+    "AbilityId": 5033,
+    "Comment": "Winter Party Popper",
+    "CooldownMs": 10000,
+    "AuraEffectId": 16375,
+    "DurationMs": 10000
+  },
+  {
     "AbilityId": 5157,
     "Comment": "Red Petal",
     "Group": "Aura",
@@ -2747,5 +3154,76 @@
     "CooldownMs": 5000,
     "DurationMs": 30000,
     "AuraEffectId": 16487
+  },
+  {
+    "AbilityId": 5287,
+    "Comment": "Sleep Sphere",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 8,
+      "Control": "Sleep",
+      "ControlMs": 8000,
+      "HitEffectId": 9,
+      "ControlEffectId": 3
+    }
+  },
+  {
+    "AbilityId": 5290,
+    "Comment": "Frag Sphere",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Damage": 500,
+      "Radius": 8,
+      "HitEffectId": 44
+    }
+  },
+  {
+    "AbilityId": 5292,
+    "Comment": "Unmoving Sphere",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 8,
+      "Control": "Root",
+      "ControlMs": 6000,
+      "HitEffectId": 9,
+      "ControlEffectId": 5311
+    }
+  },
+  {
+    "AbilityId": 5294,
+    "Comment": "Flabbergast Sphere",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 8,
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 2
+    }
+  },
+  {
+    "AbilityId": 5296,
+    "Comment": "Confusion Sphere",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 8,
+      "Control": "Stun",
+      "ControlMs": 5000,
+      "HitEffectId": 9,
+      "ControlEffectId": 15140
+    }
+  },
+  {
+    "AbilityId": 5307,
+    "Comment": "Blast Sphere",
+    "CooldownMs": 10000,
+    "Attack": {
+      "Radius": 8,
+      "AroundCaster": true,
+      "Control": "Knockback",
+      "ControlMs": 2000,
+      "KnockbackDistance": 10,
+      "HitEffectId": 5342
+    }
   }
 ]

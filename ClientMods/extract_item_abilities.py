@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds src/Resources/ItemAbilities.json, the server-side behavior of potions, scrolls and buff foods.
+"""Builds src/Resources/ItemAbilities.json, the server-side behavior of potions, scrolls, buff foods and combat orbs.
 
 Items only carry an ActivatableAbilityId; what that ability does lived on the original servers. This
 script rebuilds it from what the client still ships:
@@ -55,6 +55,22 @@ TRANSFIGURE_EFFECT = 5332  # PFX_swirl-flash_purple_root_transfiguration-land
 INVISIBILITY_AURA = 15570  # PFX_smoke_dark_root_invisibility-indicator_loop
 TRANSFORM_POOF = 21
 
+# Combat orbs and grenades: hit effects play on each mob, hold effects stay on it while it's held.
+ORB_COOLDOWN_MS = 10 * SECOND
+FRAG_HIT = 44              # PFX_fire-smoke_explosion
+MAGIC_HIT = 9              # PFX_magic-spark_blue_explosion
+POISON_HIT = 15578         # PFX_hit-flash_green_poison
+KNOCKBACK_HIT = 5342       # PFX_dust-rocks_brown_queen-verda-knockdown-aoe-small
+STUN_HOLD = 2              # PFX_magic-stars_yellow_head_stun_loop
+SLEEP_HOLD = 3             # PFX_emo_z-sleep_red_head_loop
+ROOT_HOLD = 5311           # PFX_roots_green_root_root_loop
+FREEZE_HOLD = 5337         # PFX_ice-cube_blue_freeze_loop
+CONFUSE_HOLD = 15140       # PFX_question-marks_purple_confuse_level-1
+FEAR_HOLD = 464            # PFX_emo_fear_iconic_loop
+COCOON_HOLD = 5566         # PFX_spiderweb_white_root_root_loop
+FROST_BLAST = 5185         # PFX_snow_white_circ_blast_aoe
+STINK_CLOUD = 5021         # PFX_flies_sphere_cog_explode
+
 
 def restore(percent, over_ms=0):
     return {"Percent": percent, "OverMs": over_ms} if over_ms else {"Percent": percent}
@@ -105,6 +121,29 @@ def aura(effect_id, duration_ms=FOOD_DURATION_MS, group="Aura"):
 
 def cast(effect_id, cooldown=FIREWORK_COOLDOWN_MS):
     return {"CooldownMs": cooldown, "CastEffectId": effect_id}
+
+
+def attack(cooldown=ORB_COOLDOWN_MS, cast_effect=0, **values):
+    # Defaults (Range 20, no radius, no limit) are left out.
+    ability = {"CooldownMs": cooldown, "Attack": {key: value for key, value in values.items() if value}}
+    if cast_effect:
+        ability["CastEffectId"] = cast_effect
+    return ability
+
+
+def frag(damage, radius=0):
+    return attack(Damage=damage, Radius=radius, HitEffectId=FRAG_HIT)
+
+
+def hold(control, effect, seconds, radius=0, around_caster=False, max_targets=0, cast_effect=0, cooldown=ORB_COOLDOWN_MS):
+    return attack(cooldown, cast_effect, Radius=radius, AroundCaster=around_caster, MaxTargets=max_targets,
+                  Control=control, ControlMs=seconds * SECOND, HitEffectId=MAGIC_HIT, ControlEffectId=effect)
+
+
+def blast(distance, radius=0, around_caster=False):
+    # Shoved over KnockbackMoveMs, then dazed for the rest.
+    return attack(Radius=radius, AroundCaster=around_caster, Control="Knockback", ControlMs=2 * SECOND,
+                  KnockbackDistance=distance, HitEffectId=KNOCKBACK_HIT)
 
 
 def transform(model_id, duration_ms=FOOD_DURATION_MS):
@@ -240,6 +279,42 @@ ABILITIES = {
     346: cast(16519),                       # Anniversary Firework
     347: cast(16518),                       # Free Realms Firework: "It really says, "Free Realms"."
     4161: cast(15813),                      # Party Popper: "blasts confetti into the air." (hand loop, so a timed aura)
+    5033: cast(16375),                      # Winter Party Popper: "Make your holiday season a blast."
+
+    # Combat orbs: "a magical orb that damages / roots / stuns ... your target". Tiers are the item names
+    # (1, II, the unnumbered one, IV); spheres hit "opponents", every mob near the target.
+    1642: frag(300), 1643: frag(450), 1644: frag(600), 2074: frag(800),   # Frag Orb 1 / II / Frag Orb, Wheeler / IV
+    5290: frag(500, radius=8),              # Frag Sphere
+    1646: hold("Sleep", SLEEP_HOLD, 6), 1647: hold("Sleep", SLEEP_HOLD, 8), 2060: hold("Sleep", SLEEP_HOLD, 10),   # Sleep Orb II / - / IV
+    5287: hold("Sleep", SLEEP_HOLD, 8, radius=8),   # Sleep Sphere: a hit wakes them
+    1648: hold("Root", ROOT_HOLD, 4), 1649: hold("Root", ROOT_HOLD, 5), 1650: hold("Root", ROOT_HOLD, 6),
+    2062: hold("Root", ROOT_HOLD, 8),       # Unmoving Orb 1 / II / - / IV
+    5292: hold("Root", ROOT_HOLD, 6, radius=8),     # Unmoving Sphere
+    1651: hold("Stun", STUN_HOLD, 3), 1652: hold("Stun", STUN_HOLD, 4), 1653: hold("Stun", STUN_HOLD, 5),
+    2064: hold("Stun", STUN_HOLD, 6),       # Flabbergast Orb 1 / II / - / IV
+    5294: hold("Stun", STUN_HOLD, 5, radius=8),     # Flabbergast Sphere
+    3118: hold("Stun", CONFUSE_HOLD, 3), 3119: hold("Stun", CONFUSE_HOLD, 4), 3120: hold("Stun", CONFUSE_HOLD, 5),
+    3121: hold("Stun", CONFUSE_HOLD, 6),    # Confusion Orb 1 / II / - / IV: too confused to fight
+    3122: hold("Stun", CONFUSE_HOLD, 5),    # Befuddler Ball
+    5296: hold("Stun", CONFUSE_HOLD, 5, radius=8),  # Confusion Sphere
+    3717: hold("Stun", COCOON_HOLD, 5),     # Cocoon Orb: "cocoon your opponent"
+    4076: hold("Stun", ROOT_HOLD, 8),       # Orb of Gardening: a man-eating plant turns harmless "for 8 seconds"
+    3097: blast(6), 3100: blast(8), 3101: blast(10), 3102: blast(12),   # Blast Orb 1 / II / - / IV
+    5307: blast(10, radius=8, around_caster=True),  # Blast Sphere: "knocks opponents away from you"
+    3095: attack(Damage=600, DamageOverMs=6 * SECOND, HitEffectId=POISON_HIT),   # Damage Over Time Potion 1
+
+    # Grenades and bombs work on the mobs around you.
+    3105: hold("Stun", STUN_HOLD, 4, radius=8, around_caster=True),   # Flabbergast Grenade 1: "stuns all opponents around you"
+    3953: hold("Stun", STUN_HOLD, 5, radius=10, around_caster=True, max_targets=5),   # Flabbergast Grenade: "up to 5 ... for 5 seconds"
+    3954: hold("Stun", FREEZE_HOLD, 5, radius=10, around_caster=True, max_targets=5,
+               cast_effect=FROST_BLAST),    # Frost Grenade: "Freezes up to five opponents for five seconds"
+    3098: hold("Flee", FEAR_HOLD, 4, radius=8, around_caster=True, cast_effect=TRANSFIGURE_EFFECT),    # Scare Orb 1
+    1161: hold("Flee", FEAR_HOLD, 6, radius=10, around_caster=True, cast_effect=TRANSFIGURE_EFFECT),   # Scare Orb
+    1163: hold("Flee", FEAR_HOLD, 8, radius=12, around_caster=True, cast_effect=TRANSFIGURE_EFFECT),   # Scare Sphere
+    269: hold("Flee", FEAR_HOLD, 6, radius=10, around_caster=True, cast_effect=STINK_CLOUD,
+              cooldown=REFILL_COOLDOWN_MS),  # Stink Bombs: "slowly refills itself after each use"
+
+    4073: stats("Defense", 60 * SECOND, SHIELD_EFFECT, DamageReductionPercent=25),   # Anti-Venom: "reduces damage taken"
 }
 
 # Families matched on the description. The stats are the ones AbilityEffectTypeSettings.txt shows for
@@ -316,8 +391,9 @@ def main():
 
         ability = dict(ability)
 
-        for key in ("CastEffectId", "AuraEffectId"):
-            effect_id = ability.get(key, 0)
+        effect_ids = [ability.get(key, 0) for key in ("CastEffectId", "AuraEffectId")]
+        effect_ids += [ability.get("Attack", {}).get(key, 0) for key in ("HitEffectId", "ControlEffectId")]
+        for effect_id in effect_ids:
             if effect_id and effect_id not in effect_names:
                 raise SystemExit(f"Ability {ability_id}: composite effect {effect_id} is not in ActorCompositeEffectDefinitions.xml")
 
