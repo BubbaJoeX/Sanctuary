@@ -18,7 +18,8 @@ public class ConvChatCommand : IRawChatCommand
     private readonly IChatCommandManager _chatCommandManager;
 
     public string KeyWord => "conv";
-    public string Usage => "show | node <id> <text> | node del <id> | choice add <node> <next> <text> | choice del <node> <index> " +
+    public string Usage => "show | node <id> <text> | node del <id> | choice add <node> <next> <text> | choice del|up|down <node> <index> " +
+        "| choice text <node> <index> <text> | choice next <node> <index> <next> " +
         "| choice give <node> <index> <itemId> [qty] | choice hook <node> <index> <hook|none> | start <node> | clear | copy <npcGuid> | test";
     public string Description => "Edits the conversation on the NPC you last clicked. A choice with next 0 ends it.";
     public ChatCommandRole RequiredRole => ChatCommandRole.Admin;
@@ -218,6 +219,46 @@ public class ConvChatCommand : IRawChatCommand
             case "del":
                 node.Choices.RemoveAt(index);
                 return true;
+
+            case "text":
+                {
+                    if (args.Length < 4)
+                        return false;
+
+                    // "choice text <node> <index> <text>"
+                    var text = PanelTextHelper.Unescape(ChatCommandText.Remainder(rawArgs, 4));
+
+                    if (text.Length > Conversation.MaxTextLength)
+                    {
+                        error = $"Choice text is at most {Conversation.MaxTextLength} characters.";
+                        return false;
+                    }
+
+                    choice.Text = text;
+                    return true;
+                }
+
+            case "next":
+                if (args.Length != 4 || !int.TryParse(args[3], out var nextId) || nextId < 0)
+                    return false;
+
+                choice.Next = nextId;
+                return true;
+
+            case "up":
+            case "down":
+                {
+                    var target = subAction == "up" ? index - 1 : index + 1;
+
+                    if (target < 0 || target >= node.Choices.Count)
+                    {
+                        error = "That choice can't move further.";
+                        return false;
+                    }
+
+                    (node.Choices[index], node.Choices[target]) = (node.Choices[target], node.Choices[index]);
+                    return true;
+                }
 
             case "give":
                 if (args.Length is < 4 or > 5 || !int.TryParse(args[3], out var itemId) || itemId < 0)
