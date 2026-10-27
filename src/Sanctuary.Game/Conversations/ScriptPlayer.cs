@@ -85,7 +85,9 @@ public sealed class ScriptPlayer(Player player, IRewardManager rewardManager, IQ
 
     public int Health => player.Hitpoints;
     public int MaxHealth => player.MaxHitpoints;
-    public bool IsKnockedOut => player.IsDead;
+    public bool IsKnockedOut => player.IsKnockedOut;
+
+    public bool Revive(int healthPercent) => player.Revive(CombatRules.ReviveHitpoints(player.MaxHitpoints, healthPercent));
     public bool IsInCombat => player.IsInCombat;
 
     public int Job => player.ActiveProfileId;

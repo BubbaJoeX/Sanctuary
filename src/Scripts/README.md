@@ -74,6 +74,7 @@ Mobs (hostile NPCs made with `!npc mob`) also get these:
 | `giveItem(itemId [, qty])`, `itemCount(itemId)`, `hasItem(itemId [, qty])`, `takeItem(itemId [, qty])` | `takeItem` takes nothing and returns false if the player has too few. It never takes equipped items. |
 | `giveCoins(amount)`, `takeCoins(amount)` | |
 | `giveStars(amount)` | Adds stars to the active job, with star scrolls applied. |
+| `revive([healthPercent])` | Stands a knocked-out player up where they lie, with 50% health unless another share is given, as a Resurrection Scroll does. Returns false if they aren't knocked out. |
 | `heal(amount)`, `dismount()`, `emote(animId)`, `playEffect(effectId)` | |
 | `transform(modelId, seconds)`, `clearTransform()`, `resize(scale, seconds)` | |
 | `teleport(x, y, z [, heading])` | Moves the player within their zone. |
