@@ -1102,6 +1102,9 @@ public sealed class Player : ClientPcData, IEntity
         if (!player.Ignores.Any(x => x.Guid == Guid))
             commandPacketInteractionList.List.Interactions.Add(TradeInteraction.Data);
 
+        if (GroupInviteInteraction.CanInvite(player, this))
+            commandPacketInteractionList.List.Interactions.Add(GroupInviteInteraction.Data);
+
         if (Friends.Any(x => x.Guid == player.Guid))
         {
             commandPacketInteractionList.List.Interactions.Add(RemoveFriendInteraction.Data);
