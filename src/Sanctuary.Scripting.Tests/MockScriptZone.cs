@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.Logging;
@@ -56,4 +57,13 @@ internal class MockScriptZone(ILogger _logger) : IScriptableZone
     {
         throw new NotImplementedException();
     }
+
+    public List<IScriptablePlayer> Players { get; } = [];
+
+    public int PlayerCount => Players.Count;
+
+    public IReadOnlyList<IScriptablePlayer> GetPlayers() => Players;
+
+    public IScriptablePlayer? GetPlayer(ulong guid, string? name) =>
+        Players.Find(player => guid != 0 ? player.Guid == guid : player.Name == name);
 }

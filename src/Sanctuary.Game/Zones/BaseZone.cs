@@ -420,6 +420,10 @@ public abstract class BaseZone : IZone, IDisposable
 
     public virtual void OnClientFinishedLoading(Player player)
     {
+        var scriptContext = GetOrCreateScriptContext();
+
+        if (scriptContext.HasCallbacks("playerEnter"))
+            scriptContext.FireEvent("playerEnter", NpcContent.WrapPlayer(player));
     }
 
     private void SendQuickChatData(Player player)
@@ -1348,8 +1352,13 @@ public abstract class BaseZone : IZone, IDisposable
 
     public bool TryRemovePlayer(ulong guid)
     {
-        if (!_players.TryRemove(guid, out _))
+        if (!_players.TryRemove(guid, out var player))
             return false;
+
+        var scriptContext = GetOrCreateScriptContext();
+
+        if (scriptContext.HasCallbacks("playerLeave"))
+            scriptContext.FireEvent("playerLeave", NpcContent.WrapPlayer(player));
 
         BoomboxHelper.RemovePlayer(this, guid);
 
@@ -1655,6 +1664,20 @@ public abstract class BaseZone : IZone, IDisposable
             if (Vector2.Distance(new Vector2(player.Position.X, player.Position.Z), center) <= radius)
                 player.SendTunneled(broadcastPacketZone);
         }
+    }
+
+    public int PlayerCount => _players.Count;
+
+    public IReadOnlyList<IScriptablePlayer> GetPlayers() => [.. Players.Select(NpcContent.WrapPlayer)];
+
+    public IScriptablePlayer? GetPlayer(ulong guid, string? name)
+    {
+        var player = guid != 0
+            ? _players.GetValueOrDefault(guid)
+            : Players.FirstOrDefault(x => string.Equals(x.Name.FullName, name, StringComparison.OrdinalIgnoreCase))
+                ?? Players.FirstOrDefault(x => string.Equals(x.Name.FirstName, name, StringComparison.OrdinalIgnoreCase));
+
+        return player is null ? null : NpcContent.WrapPlayer(player);
     }
 
     #endregion

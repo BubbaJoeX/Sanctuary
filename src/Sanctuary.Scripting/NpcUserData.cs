@@ -288,6 +288,36 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
         return new ValueTask<int>(context.Return(self._npc.Signal(name, data, radius)));
     });
 
+    private const int MaxScriptDamage = 100_000;
+
+    private static int ReadDamage(LuaFunctionExecutionContext context, string functionName)
+    {
+        var damage = context.GetArgument<int>(2);
+
+        if (damage is < 1 or > MaxScriptDamage)
+            throw new LuaRuntimeException(context.State, $"{functionName} damage must be between 1 and {MaxScriptDamage}.");
+
+        return damage;
+    }
+
+    private static readonly LuaFunction HurtFunction = new("hurt", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var attacker = context.GetArgument<PlayerUserData>(1);
+        var damage = ReadDamage(context, "hurt");
+
+        return new ValueTask<int>(context.Return(self._npc.Hurt(attacker.Player, damage)));
+    });
+
+    private static readonly LuaFunction AttackFunction = new("attack", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var player = context.GetArgument<PlayerUserData>(1);
+        var damage = ReadDamage(context, "attack");
+
+        return new ValueTask<int>(context.Return(self._npc.Attack(player.Player, damage)));
+    });
+
     #endregion
 
     private static LuaTable ToPositionTable((float x, float y, float z) position) => new()
@@ -353,6 +383,13 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
                 "rename" => RenameFunction,
                 "returnHome" => ReturnHomeFunction,
                 "signal" => SignalFunction,
+                "isMob" => new LuaValue(self._npc.IsMob),
+                "health" => new LuaValue(self._npc.Health),
+                "maxHealth" => new LuaValue(self._npc.MaxHealth),
+                "isDead" => new LuaValue(self._npc.IsDead),
+                "target" => self._npc.TargetGuid == 0 ? LuaValue.Nil : new LuaValue(self._npc.TargetGuid.ToString(CultureInfo.InvariantCulture)),
+                "hurt" => HurtFunction,
+                "attack" => AttackFunction,
                 _ => LuaValue.Nil
             };
 

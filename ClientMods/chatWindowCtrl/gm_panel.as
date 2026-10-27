@@ -2423,6 +2423,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "onChoice(player, hook)  dialogue answer with a hook\r" +
    "onArrive()  reached its moveTo target\r" +
    "onSignal(name, data, fromGuid)  another script's npc:signal\r" +
+   "onHurt(player, amount)  onDeath(killer)  onRespawn()  mobs only\r" +
    "\rTIMERS (on the one-second tick)\r" +
    "after(seconds, fn)  every(seconds, fn)  return an id\r" +
    "cancel(id)\r" +
@@ -2443,6 +2444,9 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "npc:getPlayersOnTop(radius, minHeight, maxHeight)\r" +
    "npc:startConversation(player [, nodeId])\r" +
    "npc:signal(name [, data [, radius]])\r" +
+   "\rMOBS (!npc mob)\r" +
+   "npc.isMob  npc.health  npc.maxHealth  npc.isDead  npc.target (guid or nil)\r" +
+   "npc:hurt(player, amount)  npc:attack(player, amount)\r" +
    "\rPLAYER\r" +
    "player.name  player.guid  player.position  player.isGm  player.isMounted\r" +
    "player:message(text)\r" +
@@ -2453,6 +2457,14 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "player:transform(modelId, seconds)  player:clearTransform()\r" +
    "player:resize(scale, seconds)\r" +
    "player:acceptQuest(questId)  player:hasCompletedQuest(questId)\r" +
+   "player.zoneId  player.zoneName  player:warp(zoneId [, x, y, z [, heading]])\r" +
+   "player.health  player.maxHealth  player.inCombat  player.isKnockedOut\r" +
+   "player.job  player.jobRank  player:giveStars(amount)\r" +
+   "player.coins  player:takeCoins(amount)\r" +
+   "player:itemCount(itemId)  player:hasItem(itemId [, qty])\r" +
+   "player:takeItem(itemId [, qty])\r" +
+   "player.groupId  player.groupMembers  player.isGroupLeader\r" +
+   "player:isGroupedWith(other)\r" +
    "\rZONE (npc.zone)\r" +
    "zone.id  zone.name\r" +
    "zone:broadcast(text)  zone:broadcastNear(text, x, z, radius)\r" +
@@ -2460,6 +2472,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "zone:spawnNpc(npcId, x, y, z, heading)\r" +
    "zone:setClientAreaEnabled(areaId, on)\r" +
    "zone:isSeasonActive(name)\r" +
+   "zone.playerCount  zone:getPlayers()  zone:getPlayer(guid or name)\r" +
    "\rHELPERS\r" +
    "distance(a, b)  pick(list)  chance(probability)  shuffle(list)  countdown(seconds)\r" +
    "\rLUA\r" +

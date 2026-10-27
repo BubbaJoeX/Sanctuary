@@ -54,6 +54,13 @@ public sealed class ScriptTemplateTests
         public void SetScale(float scale) { }
         public void Rename(string name) { }
         public bool Signal(string name, string? data, float radius) => true;
+        public bool IsMob => false;
+        public int Health => 0;
+        public int MaxHealth => 0;
+        public bool IsDead => false;
+        public ulong TargetGuid => 0;
+        public int Hurt(IScriptablePlayer attacker, int damage) => 0;
+        public int Attack(IScriptablePlayer player, int damage) => 0;
     }
 
     private sealed class StubZone : IScriptableZone
@@ -77,6 +84,10 @@ public sealed class ScriptTemplateTests
             npc = null!;
             return false;
         }
+
+        public int PlayerCount => 0;
+        public IReadOnlyList<IScriptablePlayer> GetPlayers() => [];
+        public IScriptablePlayer? GetPlayer(ulong guid, string? name) => null;
     }
 
     private sealed class StubPlayer : IScriptablePlayer
@@ -100,6 +111,23 @@ public sealed class ScriptTemplateTests
         public void Transform(int modelId, int seconds) { }
         public void ClearTransform() { }
         public void Resize(float scale, int seconds) { }
+        public int ZoneId => 1;
+        public string ZoneName => "stub";
+        public int Health => 100;
+        public int MaxHealth => 100;
+        public bool IsKnockedOut => false;
+        public bool IsInCombat => false;
+        public int Job => 1;
+        public int JobRank => 1;
+        public int Coins => 0;
+        public int GroupId => 0;
+        public bool IsGroupLeader => false;
+        public IReadOnlyList<ulong> GroupMemberGuids => [];
+        public int CountItem(int itemDefinitionId) => 0;
+        public bool TakeItem(int itemDefinitionId, int quantity) => false;
+        public bool TakeCoins(int amount) => false;
+        public bool GiveStars(int amount) => true;
+        public bool Warp(int zoneId, (float x, float y, float z)? position, float? heading) => false;
     }
 
     private const string Sample = """

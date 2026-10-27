@@ -123,6 +123,36 @@ internal sealed class ZoneUserData(IScriptableZone zone) : ILuaUserData
         return new ValueTask<int>(context.Return(self._zone.IsSeasonActive(seasonName)));
     });
 
+    private static readonly LuaFunction GetPlayersFunction = new("getPlayers", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<ZoneUserData>(0);
+
+        var players = new LuaTable();
+        var index = 1;
+
+        foreach (var player in self._zone.GetPlayers())
+            players[index++] = new LuaValue(new PlayerUserData(player));
+
+        return new ValueTask<int>(context.Return(players));
+    });
+
+    private static readonly LuaFunction GetPlayerFunction = new("getPlayer", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<ZoneUserData>(0);
+        var argument = context.Arguments[1];
+
+        // A guid (as text, or a small number), or else a player's name.
+        var player = argument.TryRead<string>(out var text)
+            ? ulong.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var guid)
+                ? self._zone.GetPlayer(guid, null)
+                : self._zone.GetPlayer(0, text)
+            : argument.TryRead<double>(out var number) && number >= 0
+                ? self._zone.GetPlayer((ulong)number, null)
+                : null;
+
+        return new ValueTask<int>(context.Return(player is null ? LuaValue.Nil : new LuaValue(new PlayerUserData(player))));
+    });
+
     #region Flags
 
     // Zone flags let the scripts on different NPCs and props share state, e.g. which clues a hunt has found.
@@ -228,6 +258,9 @@ internal sealed class ZoneUserData(IScriptableZone zone) : ILuaUserData
                 "getFlag" => GetFlagFunction,
                 "setFlag" => SetFlagFunction,
                 "addFlag" => AddFlagFunction,
+                "playerCount" => new LuaValue(self._zone.PlayerCount),
+                "getPlayers" => GetPlayersFunction,
+                "getPlayer" => GetPlayerFunction,
                 _ => LuaValue.Nil
             };
 
