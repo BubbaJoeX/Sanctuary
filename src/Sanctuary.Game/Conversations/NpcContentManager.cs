@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Core.Extensions;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
@@ -89,6 +90,54 @@ public class NpcContentManager : INpcContentManager
             _logger.LogWarning("Script on NPC {NpcGuid} failed in {Hook}: {Error}", npc.Guid, hook, error);
     }
 
+    private async Task RunTickAsync(Npc npc, ScriptSandbox sandbox)
+    {
+        var error = await sandbox.TickAsync();
+
+        if (error is not null)
+            _logger.LogWarning("Script on NPC {NpcGuid} failed in onSecond: {Error}", npc.Guid, error);
+    }
+
+    public IScriptablePlayer WrapPlayer(Player player) => new ScriptPlayer(player, _rewardManager, _questManager);
+
+    #endregion
+
+    #region Signals
+
+    private const int MaxSignalsPerSecond = 10;
+    private const int MaxSignalNameLength = 64;
+    private const int MaxSignalDataLength = 256;
+
+    public bool Signal(Npc from, string name, string? data, float radius)
+    {
+        if (name.Length is 0 or > MaxSignalNameLength || data?.Length > MaxSignalDataLength)
+            return false;
+
+        if (++from.ScriptSignalsThisSecond > MaxSignalsPerSecond)
+            return false;
+
+        foreach (var npc in from.Zone.Npcs)
+        {
+            if (npc == from || npc.GmScript is not { } sandbox || !sandbox.HasHook("onSignal"))
+                continue;
+
+            if (radius > 0 && !npc.Position.IsInRange(from.Position, radius))
+                continue;
+
+            _ = RunSignalAsync(npc, sandbox, name, data, from.Guid);
+        }
+
+        return true;
+    }
+
+    private async Task RunSignalAsync(Npc npc, ScriptSandbox sandbox, string name, string? data, ulong fromGuid)
+    {
+        var error = await sandbox.CallSignalAsync(name, data, fromGuid);
+
+        if (error is not null)
+            _logger.LogWarning("Script on NPC {NpcGuid} failed in onSignal: {Error}", npc.Guid, error);
+    }
+
     #endregion
 
     #region Interaction
@@ -145,26 +194,38 @@ public class NpcContentManager : INpcContentManager
 
     public void OnSecond(Npc npc)
     {
-        FireHook(npc, "onSecond");
+        npc.ScriptSignalsThisSecond = 0;
+
+        if (npc.GmScript is { NeedsTick: true } sandbox)
+            _ = RunTickAsync(npc, sandbox);
+
+        if (npc.ScriptArrivalPending && !npc.IsMoving)
+        {
+            npc.ScriptArrivalPending = false;
+            FireHook(npc, "onArrive");
+        }
+
+        var tracksProximity = npc.GmScript is { } script && (script.HasHook("onProximity") || script.HasHook("onLeave"));
 
         foreach (var player in npc.VisiblePlayers.Values)
         {
             var distance = Distance(npc, player);
 
-            if (npc.GmScript?.HasHook("onProximity") == true)
+            if (tracksProximity)
             {
                 bool entered;
+                bool left;
 
                 lock (npc.NearbyPlayers)
                 {
                     entered = distance <= ProximityRange && npc.NearbyPlayers.Add(player.Guid);
-
-                    if (distance > ProximityExitRange)
-                        npc.NearbyPlayers.Remove(player.Guid);
+                    left = distance > ProximityExitRange && npc.NearbyPlayers.Remove(player.Guid);
                 }
 
                 if (entered)
                     FireHook(npc, "onProximity", player);
+                else if (left)
+                    FireHook(npc, "onLeave", player);
             }
 
             if (player.ActiveConversation?.NpcGuid == npc.Guid && distance > ConversationRange)

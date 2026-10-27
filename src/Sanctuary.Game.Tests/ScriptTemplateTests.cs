@@ -46,6 +46,14 @@ public sealed class ScriptTemplateTests
         public void RemoveEffectTag(int tagId) { }
         public void PlayEffect(int compositeEffectId) { }
         public void Remove(int compositeEffectId) { }
+        public (float x, float y, float z) HomePosition => (0, 0, 0);
+        public List<IScriptablePlayer> Players { get; } = [];
+        public IReadOnlyList<IScriptablePlayer> GetNearbyPlayers(float radius) => Players;
+        public IScriptablePlayer? GetPlayer(ulong guid) => Players.Find(player => player.Guid == guid);
+        public void SayTo(IScriptablePlayer player, string message) { }
+        public void SetScale(float scale) { }
+        public void Rename(string name) { }
+        public bool Signal(string name, string? data, float radius) => true;
     }
 
     private sealed class StubZone : IScriptableZone
@@ -81,6 +89,17 @@ public sealed class ScriptTemplateTests
         public void GiveItem(int itemDefinitionId, int quantity) { }
         public void AcceptQuest(int questId) { }
         public bool HasCompletedQuest(int questId) => false;
+        public bool IsGm => false;
+        public bool IsMounted => false;
+        public void Dismount() { }
+        public void Teleport(float x, float y, float z, float? heading) => Position = (x, y, z);
+        public void GiveCoins(int amount) { }
+        public void Heal(int amount) { }
+        public void PlayEffect(int compositeEffectId) { }
+        public void Emote(int animationId) { }
+        public void Transform(int modelId, int seconds) { }
+        public void ClearTransform() { }
+        public void Resize(float scale, int seconds) { }
     }
 
     private const string Sample = """
@@ -207,16 +226,33 @@ public sealed class ScriptTemplateTests
                 player.Position = (away, 0, 0);
 
                 npc.NearbyGuids.Clear();
+                npc.Players.Clear();
                 if (away < 12)
+                {
                     npc.NearbyGuids.Add(player.Guid);
+                    npc.Players.Add(player);
+                }
 
                 if (away == 5)
                     await Run("onProximity", player);
 
+                if (second == 30)
+                    await Run("onLeave", player);
+
                 if (second % 25 == 0)
                     await Run("onInteract", player);
 
-                await Run("onSecond");
+                if (second % 20 == 10)
+                    await Run("onArrive");
+
+                if (second % 30 == 15)
+                {
+                    var signalError = await sandbox.CallSignalAsync("ring", "1", 99);
+                    Assert.IsNull(signalError, $"{template.Name} onSignal: {signalError}");
+                }
+
+                var tickError = await sandbox.TickAsync();
+                Assert.IsNull(tickError, $"{template.Name} tick {second}: {tickError}");
             }
         }
     }

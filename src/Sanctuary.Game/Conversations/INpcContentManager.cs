@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 
 using Sanctuary.Game.Entities;
+using Sanctuary.Scripting;
 
 namespace Sanctuary.Game.Conversations;
 
@@ -38,9 +39,21 @@ public interface INpcContentManager
     bool OnHear(Npc npc, Player player, string message);
 
     /// <summary>
-    /// Called every second for NPCs with a script or conversation.
+    /// Called every second for NPCs with a script or conversation. Runs onSecond and due timers, and
+    /// onProximity, onLeave and onArrive as they happen.
     /// </summary>
     void OnSecond(Npc npc);
+
+    /// <summary>
+    /// Runs onSignal on the other scripted NPCs in the sender's zone within the radius (0 for all).
+    /// Returns false if the sender is over its per-second signal limit.
+    /// </summary>
+    bool Signal(Npc from, string name, string? data, float radius);
+
+    /// <summary>
+    /// The script-facing view of a player.
+    /// </summary>
+    IScriptablePlayer WrapPlayer(Player player);
 
     bool StartConversation(Player player, Npc npc, int? nodeId = null);
 

@@ -605,17 +605,25 @@ public class Npc : IScriptableNpc, IEntity
 
     public void Say(string message)
     {
-        var packetChat = new PacketChat
-        {
-            Channel = ChatChannel.WorldSay,
-            FromGuid = Guid,
-            FromName = new NameData { FirstName = Name ?? string.Empty },
-            Message = message
-        };
+        var packetChat = CreateSayPacket(message);
 
         foreach (var visiblePlayer in VisiblePlayers)
             visiblePlayer.Value.SendTunneled(packetChat);
     }
+
+    public void SayTo(IScriptablePlayer player, string message)
+    {
+        if (VisiblePlayers.TryGetValue(player.Guid, out var visiblePlayer))
+            visiblePlayer.SendTunneled(CreateSayPacket(message));
+    }
+
+    private PacketChat CreateSayPacket(string message) => new()
+    {
+        Channel = ChatChannel.WorldSay,
+        FromGuid = Guid,
+        FromName = new NameData { FirstName = Name ?? string.Empty },
+        Message = message
+    };
 
     public void SayLocalized(int stringId)
     {
@@ -631,8 +639,52 @@ public class Npc : IScriptableNpc, IEntity
 
     public void MoveTo(float x, float y, float z, bool direct)
     {
+        ScriptArrivalPending = true;
         MoveTo(new Vector3(x, y, z), direct);
     }
+
+    /// <summary>
+    /// A script sent the NPC walking and hasn't had onArrive for it yet (see INpcContentManager).
+    /// </summary>
+    public bool ScriptArrivalPending { get; set; }
+
+    /// <summary>
+    /// Signals the script sent this second, to stop two NPCs signalling each other forever.
+    /// </summary>
+    public int ScriptSignalsThisSecond { get; set; }
+
+    (float x, float y, float z) IScriptableNpc.HomePosition => (SpawnPosition.X, SpawnPosition.Y, SpawnPosition.Z);
+
+    public IReadOnlyList<IScriptablePlayer> GetNearbyPlayers(float radius)
+    {
+        var nearbyPlayers = new List<IScriptablePlayer>();
+
+        foreach (var visiblePlayer in VisiblePlayers.Values)
+        {
+            if (visiblePlayer.Position.IsInRange(Position, radius))
+                nearbyPlayers.Add(Zone.NpcContent.WrapPlayer(visiblePlayer));
+        }
+
+        return nearbyPlayers;
+    }
+
+    public IScriptablePlayer? GetPlayer(ulong guid) =>
+        VisiblePlayers.TryGetValue(guid, out var player) ? Zone.NpcContent.WrapPlayer(player) : null;
+
+    public void SetScale(float scale)
+    {
+        Scale = scale;
+        RefreshForVisiblePlayers();
+    }
+
+    public void Rename(string name)
+    {
+        Name = name;
+        NameId = 0;
+        RefreshForVisiblePlayers();
+    }
+
+    public bool Signal(string name, string? data, float radius) => Zone.NpcContent.Signal(this, name, data, radius);
 
     public void Emote(int animationId, bool loop) => PlayAnimation(animationId, loop);
 

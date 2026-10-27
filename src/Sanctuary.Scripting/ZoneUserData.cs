@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -122,6 +123,86 @@ internal sealed class ZoneUserData(IScriptableZone zone) : ILuaUserData
         return new ValueTask<int>(context.Return(self._zone.IsSeasonActive(seasonName)));
     });
 
+    #region Flags
+
+    // Zone flags let the scripts on different NPCs and props share state, e.g. which clues a hunt has found.
+    // They live as long as the zone and are not saved.
+
+    private const int MaxFlags = 256;
+    private const int MaxFlagKeyLength = 64;
+    private const int MaxFlagTextLength = 256;
+
+    private readonly ConcurrentDictionary<string, LuaValue> _flags = new();
+
+    private static string ReadFlagKey(LuaFunctionExecutionContext context)
+    {
+        var key = context.GetArgument<string>(1);
+
+        if (key.Length is 0 or > MaxFlagKeyLength)
+            throw new LuaRuntimeException(context.State, $"Flag names are 1 to {MaxFlagKeyLength} characters.");
+
+        return key;
+    }
+
+    private void StoreFlag(LuaFunctionExecutionContext context, string key, LuaValue value)
+    {
+        if (!_flags.ContainsKey(key) && _flags.Count >= MaxFlags)
+            throw new LuaRuntimeException(context.State, $"A zone holds at most {MaxFlags} flags.");
+
+        _flags[key] = value;
+    }
+
+    private static readonly LuaFunction GetFlagFunction = new("getFlag", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<ZoneUserData>(0);
+        var key = ReadFlagKey(context);
+
+        return new ValueTask<int>(context.Return(self._flags.TryGetValue(key, out var value) ? value : LuaValue.Nil));
+    });
+
+    private static readonly LuaFunction SetFlagFunction = new("setFlag", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<ZoneUserData>(0);
+        var key = ReadFlagKey(context);
+        var value = context.ArgumentCount > 2 ? context.Arguments[2] : LuaValue.Nil;
+
+        switch (value.Type)
+        {
+            case LuaValueType.Nil:
+                self._flags.TryRemove(key, out _);
+                break;
+
+            case LuaValueType.Boolean or LuaValueType.Number:
+                self.StoreFlag(context, key, value);
+                break;
+
+            case LuaValueType.String when value.Read<string>().Length <= MaxFlagTextLength:
+                self.StoreFlag(context, key, value);
+                break;
+
+            default:
+                throw new LuaRuntimeException(context.State, $"Flags hold a number, a boolean or a string of at most {MaxFlagTextLength} characters.");
+        }
+
+        return new ValueTask<int>(context.Return());
+    });
+
+    private static readonly LuaFunction AddFlagFunction = new("addFlag", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<ZoneUserData>(0);
+        var key = ReadFlagKey(context);
+        var amount = context.ArgumentCount > 2 ? context.GetArgument<double>(2) : 1;
+
+        var current = self._flags.TryGetValue(key, out var value) && value.TryRead<double>(out var number) ? number : 0;
+        var total = current + amount;
+
+        self.StoreFlag(context, key, total);
+
+        return new ValueTask<int>(context.Return(total));
+    });
+
+    #endregion
+
     private static readonly LuaTable SharedMetatable = BuildMetatable();
 
     private static LuaTable BuildMetatable()
@@ -144,6 +225,9 @@ internal sealed class ZoneUserData(IScriptableZone zone) : ILuaUserData
                 "broadcast" => BroadcastFunction,
                 "broadcastNear" => BroadcastNearFunction,
                 "isSeasonActive" => IsSeasonActiveFunction,
+                "getFlag" => GetFlagFunction,
+                "setFlag" => SetFlagFunction,
+                "addFlag" => AddFlagFunction,
                 _ => LuaValue.Nil
             };
 

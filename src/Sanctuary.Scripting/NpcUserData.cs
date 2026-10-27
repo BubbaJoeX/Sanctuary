@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -197,7 +198,104 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
         return new ValueTask<int>(context.Return());
     });
 
+    private const int MaxNameLength = 32;
+    private const float MinScale = 0.1f;
+    private const float MaxScale = 10f;
+
+    private static readonly LuaFunction GetPlayersFunction = new("getPlayers", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var radius = context.GetArgument<float>(1);
+
+        var players = new LuaTable();
+        var index = 1;
+
+        foreach (var player in self._npc.GetNearbyPlayers(radius))
+            players[index++] = new LuaValue(new PlayerUserData(player));
+
+        return new ValueTask<int>(context.Return(players));
+    });
+
+    private static readonly LuaFunction GetPlayerFunction = new("getPlayer", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var argument = context.Arguments[1];
+
+        // Guids are handed out as text, but a small number is accepted too.
+        ulong? guid = argument.TryRead<string>(out var text)
+            ? ulong.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) ? parsed : null
+            : argument.TryRead<double>(out var number) && number >= 0 ? (ulong)number : null;
+
+        var player = guid is { } value ? self._npc.GetPlayer(value) : null;
+
+        return new ValueTask<int>(context.Return(player is null ? LuaValue.Nil : new LuaValue(new PlayerUserData(player))));
+    });
+
+    private static readonly LuaFunction SayToFunction = new("sayTo", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var player = context.GetArgument<PlayerUserData>(1);
+        var message = context.GetArgument<string>(2);
+
+        self._npc.SayTo(player.Player, message);
+
+        return new ValueTask<int>(context.Return());
+    });
+
+    private static readonly LuaFunction SetScaleFunction = new("setScale", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var scale = context.GetArgument<float>(1);
+
+        if (!(scale >= MinScale && scale <= MaxScale))
+            throw new LuaRuntimeException(context.State, $"setScale must be between {MinScale} and {MaxScale}.");
+
+        self._npc.SetScale(scale);
+
+        return new ValueTask<int>(context.Return());
+    });
+
+    private static readonly LuaFunction RenameFunction = new("rename", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var name = context.GetArgument<string>(1).Trim();
+
+        if (name.Length is 0 or > MaxNameLength)
+            throw new LuaRuntimeException(context.State, $"rename needs 1 to {MaxNameLength} characters.");
+
+        self._npc.Rename(name);
+
+        return new ValueTask<int>(context.Return());
+    });
+
+    private static readonly LuaFunction ReturnHomeFunction = new("returnHome", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var home = self._npc.HomePosition;
+
+        self._npc.MoveTo(home.x, home.y, home.z, false);
+
+        return new ValueTask<int>(context.Return());
+    });
+
+    private static readonly LuaFunction SignalFunction = new("signal", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var name = context.GetArgument<string>(1);
+        var data = context.ArgumentCount > 2 && context.Arguments[2].Type != LuaValueType.Nil ? context.Arguments[2].ToString() : null;
+        var radius = context.ArgumentCount > 3 ? context.GetArgument<float>(3) : 0f;
+
+        return new ValueTask<int>(context.Return(self._npc.Signal(name, data, radius)));
+    });
+
     #endregion
+
+    private static LuaTable ToPositionTable((float x, float y, float z) position) => new()
+    {
+        ["x"] = position.x,
+        ["y"] = position.y,
+        ["z"] = position.z
+    };
 
     private static LuaTable ToGuidTable(IEnumerable<ulong> guids)
     {
@@ -205,7 +303,7 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
         var index = 1;
 
         foreach (var guid in guids)
-            guidTable[index++] = guid.ToString();
+            guidTable[index++] = guid.ToString(CultureInfo.InvariantCulture);
 
         return guidTable;
     }
@@ -224,15 +322,11 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
 
             var result = key switch
             {
-                "guid" => new LuaValue(self._npc.Guid),
+                "guid" => new LuaValue(self._npc.Guid.ToString(CultureInfo.InvariantCulture)),
                 "name" => new LuaValue(self._npc.Name ?? ""),
                 "zone" => new LuaValue(ZoneUserData.GetOrCreate(self._npc.Zone)),
-                "position" => new LuaValue(new LuaTable
-                {
-                    ["x"] = self._npc.Position.x,
-                    ["y"] = self._npc.Position.y,
-                    ["z"] = self._npc.Position.z
-                }),
+                "position" => new LuaValue(ToPositionTable(self._npc.Position)),
+                "home" => new LuaValue(ToPositionTable(self._npc.HomePosition)),
                 //
                 "say" => SayFunction,
                 "sayLocalized" => SayLocalizedFunction,
@@ -252,6 +346,13 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
                 "setSpeed" => SetSpeedFunction,
                 "isMoving" => new LuaValue(self._npc.IsMoving),
                 "remove" => RemoveFunction,
+                "getPlayers" => GetPlayersFunction,
+                "getPlayer" => GetPlayerFunction,
+                "sayTo" => SayToFunction,
+                "setScale" => SetScaleFunction,
+                "rename" => RenameFunction,
+                "returnHome" => ReturnHomeFunction,
+                "signal" => SignalFunction,
                 _ => LuaValue.Nil
             };
 

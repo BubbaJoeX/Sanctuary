@@ -22,4 +22,41 @@ public interface IScriptablePlayer
     void AcceptQuest(int questId);
 
     bool HasCompletedQuest(int questId);
+
+    /// <summary>
+    /// The player is an admin or moderator.
+    /// </summary>
+    bool IsGm { get; }
+
+    bool IsMounted { get; }
+
+    void Dismount();
+
+    /// <summary>
+    /// Moves the player within their zone, keeping their facing unless a heading is given.
+    /// </summary>
+    void Teleport(float x, float y, float z, float? heading);
+
+    void GiveCoins(int amount);
+
+    void Heal(int amount);
+
+    void PlayEffect(int compositeEffectId);
+
+    /// <summary>
+    /// Plays an animation (AnimationTypes.xml id) on the player for everyone nearby.
+    /// </summary>
+    void Emote(int animationId);
+
+    /// <summary>
+    /// Turns the player into another model for a while.
+    /// </summary>
+    void Transform(int modelId, int seconds);
+
+    void ClearTransform();
+
+    /// <summary>
+    /// Grows or shrinks the player for a while.
+    /// </summary>
+    void Resize(float scale, int seconds);
 }
