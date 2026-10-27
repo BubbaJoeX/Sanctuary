@@ -68,6 +68,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string RewardTablesFile = Path.Combine(BaseDirectory, "Rewards.json");
     public static readonly string CombatAbilitiesFile = Path.Combine(BaseDirectory, "CombatAbilities.json");
     public static readonly string CombatJobsFile = Path.Combine(BaseDirectory, "CombatJobs.json");
+    public static readonly string MobsFile = Path.Combine(BaseDirectory, "Mobs.json");
 
 
     public IdToStringLookup HairMappings { get; }
@@ -120,6 +121,7 @@ public class ResourceManager : IResourceManager, IDisposable
 
     public AbilityDefinitionCollection CombatAbilities { get; }
     public JobKitDefinitionCollection CombatJobs { get; }
+    public MobDefinitionCollection Mobs { get; }
 
     public ResourceManager(ILogger<ResourceManager> logger)
     {
@@ -180,6 +182,7 @@ public class ResourceManager : IResourceManager, IDisposable
         RewardTables = new(_logger);
         CombatAbilities = new(_logger);
         CombatJobs = new(_logger);
+        Mobs = new(_logger);
 
         _reloaders = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -203,6 +206,7 @@ public class ResourceManager : IResourceManager, IDisposable
             ["rewards"] = () => Reload(RewardTables, () => RewardTables.Load(RewardTablesFile)),
             ["abilities"] = () => Reload(CombatAbilities, () => CombatAbilities.Load(CombatAbilitiesFile)),
             ["jobs"] = () => Reload(CombatJobs, () => CombatJobs.Load(CombatJobsFile)),
+            ["mobs"] = () => Reload(Mobs, () => Mobs.Load(MobsFile)),
             ["itemabilities"] = () => Reload(ItemAbilities, () => ItemAbilities.Load(ItemAbilitiesFile)),
             ["namefilter"] = () => NameFilter.Load(NameFilterFile),
             ["firsttimeevents"] = () => Reload(FirstTimeEvents, () => FirstTimeEvents.Load(FirstTimeEventsFile)),
@@ -352,6 +356,9 @@ public class ResourceManager : IResourceManager, IDisposable
             return false;
 
         if (!CombatJobs.Load(CombatJobsFile))
+            return false;
+
+        if (!Mobs.Load(MobsFile))
             return false;
 
         foreach (var kit in CombatJobs.Values)
@@ -567,6 +574,8 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = CombatAbilities.Load(CombatAbilitiesFile);
             else if (e.FullPath == CombatJobsFile)
                 loaded = CombatJobs.Load(CombatJobsFile);
+            else if (e.FullPath == MobsFile)
+                loaded = Mobs.Load(MobsFile);
             else if (e.FullPath == ItemAbilitiesFile)
                 loaded = Reload(ItemAbilities, () => ItemAbilities.Load(ItemAbilitiesFile));
             else if (e.FullPath == QuestsFile)

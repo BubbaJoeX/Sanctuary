@@ -55,6 +55,7 @@ public interface IResourceManager
 
     AbilityDefinitionCollection CombatAbilities { get; }
     JobKitDefinitionCollection CombatJobs { get; }
+    MobDefinitionCollection Mobs { get; }
 
     bool Load();
 
