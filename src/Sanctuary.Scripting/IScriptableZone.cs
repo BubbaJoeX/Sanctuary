@@ -18,6 +18,11 @@ public interface IScriptableZone : IScriptable
 
     bool IsSeasonActive(string seasonName);
 
+    /// <summary>
+    /// A staff event (!event on) is on.
+    /// </summary>
+    bool IsEventActive(string eventKey);
+
     bool TrySpawnNpc(int npcId, ulong? npcGuid, float x, float y, float z, float heading, float pitch, float roll, [MaybeNullWhen(false)] out IScriptableNpc npc);
 
     int PlayerCount { get; }

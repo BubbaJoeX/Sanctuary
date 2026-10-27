@@ -163,6 +163,18 @@ public class ScriptContext
         FireEvent(eventName, [.. _eventArguments, new LuaValue(NpcUserData.GetOrCreate(npc)),
             player is null ? LuaValue.Nil : new LuaValue(new PlayerUserData(player))]);
 
+    /// <summary>
+    /// Fires an event whose callbacks get the owner, then a piece of text (e.g. an event key).
+    /// </summary>
+    public void FireEvent(string eventName, string argument) =>
+        FireEvent(eventName, [.. _eventArguments, argument]);
+
+    /// <summary>
+    /// Fires an event whose callbacks get the owner, then a player and a piece of text.
+    /// </summary>
+    public void FireEvent(string eventName, IScriptablePlayer player, string argument) =>
+        FireEvent(eventName, [.. _eventArguments, new LuaValue(new PlayerUserData(player)), argument]);
+
     public bool HasCallbacks(string eventName) =>
         _eventCallbacks.TryGetValue(eventName, out var callbacks) && !callbacks.Snapshot.IsEmpty;
 

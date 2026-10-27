@@ -78,6 +78,7 @@ public sealed class ScriptTemplateTests
         public void Broadcast(string message) { }
         public void BroadcastNear(string message, float x, float z, float radius) { }
         public bool IsSeasonActive(string seasonName) => false;
+        public bool IsEventActive(string eventKey) => false;
 
         public bool TrySpawnNpc(int npcId, ulong? npcGuid, float x, float y, float z, float heading, float pitch, float roll, out IScriptableNpc npc)
         {
