@@ -21,5 +21,47 @@ AddButton = function(parent, iconID, name, id)
       i = i + 1;
    }
    sanctuaryOriginalAddButton(parent,iconID,name,id);
+   sanctuaryThemeBar();
+};
+
+// The bar's backgrounds and button frames take the coin store's dark navy (marketplace/coin_store_only.as);
+// the icons on them keep their colours.
+var NAVY_TINT = {ra:22, ga:26, ba:34, aa:100, rb:10, gb:22, bb:44, ab:0};
+
+function sanctuaryTint(clip)
+{
+   if(clip != undefined)
+   {
+      new Color(clip).setTransform(NAVY_TINT);
+   }
+}
+
+function sanctuaryThemeBar()
+{
+   sanctuaryTint(Bar.navButtons.background);
+   sanctuaryTint(Bar.barButtons.background);
+   var i = 0;
+   while(i < Bar.barButtons.buttons.length)
+   {
+      var button = Bar.barButtons.buttons[i];
+      sanctuaryTint(button.UP);
+      sanctuaryTint(button.HOVER);
+      sanctuaryTint(button.DOWN);
+      i = i + 1;
+   }
+}
+
+var sanctuaryOriginalAddBarButton = AddBarButton;
+AddBarButton = function(iconID, graphicID, text, id)
+{
+   sanctuaryOriginalAddBarButton(iconID,graphicID,text,id);
+   sanctuaryThemeBar();
+};
+
+var sanctuaryOriginalSetBarButtonGraphic = SetBarButtonGraphic;
+SetBarButtonGraphic = function(ID, graphic)
+{
+   sanctuaryOriginalSetBarButtonGraphic(ID,graphic);
+   sanctuaryThemeBar();
 };
 // ===== End Sanctuary coin store tabs =====

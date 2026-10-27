@@ -51,7 +51,11 @@ WINDOW_PATCHES = [
     ]),
     # Station Cash and membership no longer exist: the Marketplace window is the coin store, and Station
     # Cash wallets and Add Station Cash buttons are gone.
-    (Path("UI/UiModules/Main/wndMarketplace.xml"), [("UI\\marketplace.swf", "UI\\sanctuaryMarketplace.swf")]),
+    (Path("UI/UiModules/Main/wndMarketplace.xml"), [
+        ("UI\\marketplace.swf", "UI\\sanctuaryMarketplace.swf"),
+        # The coin store is laid out 1300 wide (marketplace/coin_store_only.as); the window and its movie both.
+        ('Width="1024"', 'Width="1300"'),
+    ]),
     (Path("UI/UiModules/Main/wndNavigationBar.xml"), [("UI\\navigation.swf", "UI\\sanctuaryNavigation.swf")]),
     (Path("UI/UiModules/Main/wndMysteryRewardBrowser.xml"), [("UI\\MysteryRewardBrowser.swf", "UI\\sanctuaryMysteryRewardBrowser.swf")]),
     (Path("UI/UiModules/Main/wndMysteryRewardBrowserSmall.xml"),
