@@ -35,6 +35,12 @@ public class PointOfInterestDefinition : ISerializableType
 
     public string AtlasName { get; set; } = null!;
 
+    /// <summary>
+    /// Server only: the world zone this point of interest is in, when it is not the starting zone (0). Teleporting
+    /// to it from another world zone moves the player there.
+    /// </summary>
+    public int ZoneId { get; set; }
+
     public void Serialize(PacketWriter writer)
     {
         writer.Write(Id);

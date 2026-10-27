@@ -1,0 +1,69 @@
+{
+  "$type": "World",
+  "Id": 1036,
+  "Name": "lavendercoast",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -64,
+  "StartLongitude": -20,
+  "EndLatitude": -28,
+  "EndLongitude": 28,
+  "SpawnPosition": [
+    -2600.0,
+    6.65,
+    -279.0
+  ],
+  "SpawnRotation": [
+    0.1097,
+    0,
+    -0.994,
+    0
+  ],
+  "AreaDefinitions": [
+    {
+      "Comment": "Lavender Coast",
+      "Id": 1,
+      "NameId": 74161,
+      "AreaId": 0,
+      "ChatAreaNameId": 74161,
+      "PointOfInterestId": 200,
+      "Shape": "Rectangle",
+      "X1": -3950,
+      "Z1": -1220,
+      "X2": -2560,
+      "Z2": 1850
+    }
+  ],
+  "Portals": [
+    {
+      "Comment": "Up the Wildwood valley, back to Wildwood",
+      "Shape": "Rectangle",
+      "X1": -2290,
+      "Z1": 450,
+      "X2": -2040,
+      "Z2": 760,
+      "ToZoneId": 1,
+      "ToPosition": [
+        -2240.0,
+        -18.23,
+        590.0
+      ],
+      "ToHeading": 1.5708
+    },
+    {
+      "Comment": "Up the cut to Lavender Coast Pass, back to FabledRealms",
+      "Shape": "Rectangle",
+      "X1": -2215,
+      "Z1": -1300,
+      "X2": -2040,
+      "Z2": 1900,
+      "ToZoneId": 1,
+      "ToPosition": [
+        -2124.8,
+        -23.9,
+        -292.4
+      ],
+      "ToHeading": 1.5708
+    }
+  ]
+}

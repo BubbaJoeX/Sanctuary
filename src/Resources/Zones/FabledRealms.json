@@ -185,5 +185,35 @@
       ],
       "EnvironmentMaxX": -1024
     }
+  ],
+  "Portals": [
+    {
+      "Comment": "Lavender Coast Pass: on to Lavender Coast",
+      "Shape": "Circle",
+      "X1": -2165,
+      "Z1": -298,
+      "Radius": 10,
+      "ToZoneId": 1036,
+      "ToPosition": [
+        -2240.0,
+        -15.63,
+        -302.0
+      ],
+      "ToHeading": -1.5708
+    },
+    {
+      "Comment": "Wildwood valley: on to Lavender Coast",
+      "Shape": "Circle",
+      "X1": -2258,
+      "Z1": 590,
+      "Radius": 10,
+      "ToZoneId": 1036,
+      "ToPosition": [
+        -2300.0,
+        -15.23,
+        590.0
+      ],
+      "ToHeading": -1.5708
+    }
   ]
 }
