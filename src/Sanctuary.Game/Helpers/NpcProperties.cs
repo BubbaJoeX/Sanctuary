@@ -35,6 +35,11 @@ public sealed class NpcProperties
     public int? ImageSetId { get; set; }
 
     /// <summary>
+    /// Mobs.json entry it fights as while hostile.
+    /// </summary>
+    public string? Mob { get; set; }
+
+    /// <summary>
     /// Tilt in radians (see <see cref="Rotate"/>); the heading is the saved spawn rotation's.
     /// </summary>
     public float? Pitch { get; set; }
@@ -65,6 +70,7 @@ public sealed class NpcProperties
             NameplateImageId = npc.NameplateImageId,
             VerticalOffset = npc.VerticalOffset,
             ImageSetId = npc.ImageSetId,
+            Mob = npc.MobKey,
             Pitch = npc.Tilt is { Y: not 0f } tilt ? tilt.Y : null,
             Roll = npc.Tilt is { Z: not 0f } tiltRoll ? tiltRoll.Z : null,
             Icons = GetIcons(npc)
@@ -121,6 +127,7 @@ public sealed class NpcProperties
         npc.NameplateImageId = properties.NameplateImageId ?? npc.NameplateImageId;
         npc.VerticalOffset = properties.VerticalOffset ?? npc.VerticalOffset;
         npc.ImageSetId = properties.ImageSetId ?? npc.ImageSetId;
+        npc.MobKey = properties.Mob ?? npc.MobKey;
 
         if (properties.Icons is not null)
             SetIcons(npc, properties.Icons);

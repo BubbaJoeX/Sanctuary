@@ -14,7 +14,8 @@ public sealed class ItemAbility(AbilityServices services) : ConsumableAbility(se
 
     public override bool HandleAbility(Player player, AbilityPacketClientRequestStartAbility packet, int slot, ClientItem clientItem, ClientItemDefinition itemDefinition)
     {
-        if (player.IsItemOnCooldown(itemDefinition.Id) ||
+        // Nothing to drink while defeated, so the potion isn't used up for nothing.
+        if (player.IsDead || player.IsItemOnCooldown(itemDefinition.Id) ||
             !_resourceManager.ItemAbilities.TryGetValue(itemDefinition.ActivatableAbilityId, out var ability))
             return SendFailure(player);
 

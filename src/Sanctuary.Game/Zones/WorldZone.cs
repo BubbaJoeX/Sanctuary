@@ -25,6 +25,7 @@ public sealed partial class WorldZone : BaseZone
 {
     private readonly WorldZoneDefinition _zoneDefinition;
     private readonly IQuestManager _questManager;
+    private readonly IRewardManager _rewardManager;
 
     private readonly object _clientAreasLock = new();
     private readonly HashSet<SeasonalClientAreaDefinition> _activeSeasonalClientAreas = [];
@@ -77,6 +78,7 @@ public sealed partial class WorldZone : BaseZone
         }
 
         _questManager = serviceProvider.GetRequiredService<IQuestManager>();
+        _rewardManager = serviceProvider.GetRequiredService<IRewardManager>();
         _housingManager = serviceProvider.GetRequiredService<IHousingManager>();
         _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
         _worldEventManager = serviceProvider.GetRequiredService<IWorldEventManager>();

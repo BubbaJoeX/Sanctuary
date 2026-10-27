@@ -1,0 +1,55 @@
+[
+    {
+        "Key": "default",
+        "Comment": "Any hostile world NPC without its own mob entry. A few basic attacks kill it; it takes about 40 seconds to defeat a fresh player.",
+        "MaxHitpoints": 1500,
+        "Damage": 120,
+        "AttackIntervalMs": 2000,
+        "AttackRange": 3,
+        "AggroRadius": 12,
+        "LeashRadius": 40,
+        "RespawnSeconds": 30,
+        "Coins": 15,
+        "Experience": 25
+    },
+    {
+        "Key": "weak",
+        "Comment": "Critters and starter-area pests. Only fights back when attacked (AggroRadius 0).",
+        "MaxHitpoints": 600,
+        "Damage": 60,
+        "AttackIntervalMs": 2500,
+        "AttackRange": 3,
+        "AggroRadius": 0,
+        "LeashRadius": 30,
+        "RespawnSeconds": 20,
+        "Coins": 5,
+        "Experience": 10
+    },
+    {
+        "Key": "ranged",
+        "Comment": "Casters and archers: hits from 15u away.",
+        "MaxHitpoints": 1200,
+        "Damage": 110,
+        "AttackIntervalMs": 2500,
+        "AttackRange": 15,
+        "AggroRadius": 18,
+        "LeashRadius": 45,
+        "RespawnSeconds": 30,
+        "Coins": 20,
+        "Experience": 30
+    },
+    {
+        "Key": "elite",
+        "Comment": "Named or boss-like mobs. Bring friends.",
+        "MaxHitpoints": 8000,
+        "Damage": 300,
+        "AttackIntervalMs": 1800,
+        "AttackRange": 4,
+        "AggroRadius": 15,
+        "LeashRadius": 60,
+        "RespawnSeconds": 300,
+        "Coins": 150,
+        "Experience": 250,
+        "RewardTable": "dev-test-reward"
+    }
+]

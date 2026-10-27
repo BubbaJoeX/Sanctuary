@@ -9,7 +9,7 @@ namespace Sanctuary.Game.ChatCommands;
 
 /// <summary>
 /// Sets the player's tracked hitpoints (see <see cref="Player.Hitpoints"/>), which potions heal and regen tops up.
-/// There's no damage or death handling server-side yet.
+/// Bypasses combat: a kill here doesn't knock them out or respawn them (mobs do, see <see cref="Player.TakeDamage"/>).
 /// </summary>
 public class KillChatCommand : IChatCommand
 {
@@ -18,7 +18,7 @@ public class KillChatCommand : IChatCommand
 
     public string KeyWord => "kill";
     public string Usage => "[player] | revive [player] | hp <current> [player]";
-    public string Description => "Sets a player's hitpoints to 0, back to full, or to a given value (for testing potions; no server damage yet).";
+    public string Description => "Sets a player's hitpoints to 0, back to full, or to a given value (for testing potions; skips combat death and respawn).";
     public ChatCommandRole RequiredRole => ChatCommandRole.Admin;
 
     public KillChatCommand(IZoneManager zoneManager, IChatCommandManager chatCommandManager)

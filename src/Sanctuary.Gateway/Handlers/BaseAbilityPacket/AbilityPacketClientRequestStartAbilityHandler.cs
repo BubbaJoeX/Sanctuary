@@ -24,6 +24,8 @@ public static class AbilityPacketClientRequestStartAbilityHandler
     // Tried in order; first match handles it. The default matches anything, so it goes last.
     private static ConsumableAbility[] _consumableAbilities = [];
 
+    private static CombatAbility _combatAbility = null!;
+
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
@@ -47,6 +49,8 @@ public static class AbilityPacketClientRequestStartAbilityHandler
             new ItemAbility(abilityServices),
             new DefaultConsumableAbility(abilityServices),
         ];
+
+        _combatAbility = new CombatAbility(abilityServices);
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -65,6 +69,9 @@ public static class AbilityPacketClientRequestStartAbilityHandler
 
         if (abilityPacketClientRequestStartAbility.Data.Id == ConsumableAbility.ActionBarId)
             return HandleItemAbility(connection.Player, abilityPacketClientRequestStartAbility);
+
+        if (_combatAbility.Matches(connection.Player, abilityPacketClientRequestStartAbility))
+            return _combatAbility.HandleAbility(connection.Player, abilityPacketClientRequestStartAbility);
 
         return ConsumableAbility.SendFailure(connection.Player);
     }

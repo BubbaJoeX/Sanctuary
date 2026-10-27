@@ -42,6 +42,7 @@ public sealed class Player : ClientPcData, IEntity
     private const int WeaponSlot = 7;
     private const int FlairShardSlot = 13;
     private const int IdleCharacterState = 1;
+    private const int KnockedOutCharacterState = 0x80;
     private const int ActionBarSlotUnknown5 = 1;
     private const int ActionBarSlotUnknown6 = 4;
     private const int ActionBarSlotUnknown7 = 15;
@@ -471,6 +472,7 @@ public sealed class Player : ClientPcData, IEntity
     public void UpdateEverySecond()
     {
         RegenerateVitals();
+        UpdateRespawn();
         SnowballInteraction.Update(this);
         UpdatePortrait();
         UpdatePendingPointOfInterest();
@@ -884,7 +886,8 @@ public sealed class Player : ClientPcData, IEntity
 
     public void OnAddVisibleNpcs(params IEnumerable<Npc> npcs)
     {
-        var visibleNpcs = npcs.Where(npc => npc.IsVisibleTo(this)).ToArray();
+        // A slain mob stays out of view until it respawns.
+        var visibleNpcs = npcs.Where(npc => npc.IsVisibleTo(this) && npc.Combat?.IsDespawned != true).ToArray();
 
         foreach (var npc in visibleNpcs)
         {
@@ -911,6 +914,10 @@ public sealed class Player : ClientPcData, IEntity
             // Placed objects get no idle state, which would loop their animation (and any sound in it).
             if (!npc.IsHouseFixture && !npc.IsWorldProp)
                 SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = npc.Guid, State = IdleCharacterState });
+
+            // A hurt mob's health bar, which AddNpc shows as full.
+            if (npc.Combat is { } combat)
+                SendTunneled(combat.GetHitpointsPacket());
         }
 
         var playerUpdatePacketNpcRelevance = InteractionMenuHelper.GetNpcRelevancePacket(
@@ -1630,14 +1637,209 @@ public sealed class Player : ClientPcData, IEntity
 
     public void Heal(int amount)
     {
+        // A defeated player waits for their respawn; a heal over time mustn't stand them back up.
+        if (IsDead)
+            return;
+
         if (amount > 0 && _hitpoints < MaxHitpoints)
             Hitpoints = _hitpoints + amount;
     }
 
     public void RestoreEnergy(int amount)
     {
+        if (IsDead)
+            return;
+
         if (amount > 0 && _energy < EffectiveMaxEnergy)
             Energy = _energy + amount;
+    }
+
+    public bool IsDead => _hitpoints <= 0;
+
+    private long _lastCombatAt = long.MinValue;
+    private long? _respawnAt;
+
+    public bool IsInCombat => Environment.TickCount64 - _lastCombatAt < CombatRules.OutOfCombatSeconds * 1000L;
+
+    public void MarkInCombat() => _lastCombatAt = Environment.TickCount64;
+
+    /// <summary>
+    /// The combat job last used, which a fight switches back to.
+    /// </summary>
+    public int LastCombatProfileId { get; private set; }
+
+    public bool IsInCombatJob => _resourceManager.CombatJobs.ContainsKey(ActiveProfileId);
+
+    /// <summary>
+    /// Owns a combat job, so it can fight back. Mobs leave players without one alone.
+    /// </summary>
+    public bool CanFight => IsInCombatJob || GetCombatProfileId() != 0;
+
+    private int GetCombatProfileId() =>
+        CombatRules.PickCombatProfileId(Profiles, [.. _resourceManager.CombatJobs.Keys], LastCombatProfileId);
+
+    /// <summary>
+    /// A fight is starting: out of combat regen stops, and a player in a non-combat job (a Miner, a Chef...)
+    /// switches to their combat job, as clicking an enemy in Free Realms does. They stay in it afterwards.
+    /// </summary>
+    public void EnterCombat()
+    {
+        MarkInCombat();
+
+        if (IsInCombatJob)
+            return;
+
+        var profileId = GetCombatProfileId();
+
+        if (profileId == 0 || !ActivateProfile(profileId))
+            return;
+
+        ChatHelper.SendSystemMessage(this, "You switched to your combat job to fight.");
+    }
+
+    public void OnAttackedBy(Npc mob) => EnterCombat();
+
+    public void OnKilled(Npc mob) => MarkInCombat();
+
+    /// <summary>
+    /// Damage from a mob, after DamageReductionPercent. Returns what was taken. Referees in god mode take none.
+    /// </summary>
+    public int TakeDamage(int damage, Npc source)
+    {
+        if (IsDead || IsInGodMode || damage <= 0)
+            return 0;
+
+        damage = CombatRules.Mitigate(damage, GetStatValue(CharacterStatId.DamageReductionPercent));
+
+        EnterCombat();
+
+        if (damage == 0)
+            return 0;
+
+        damage = Math.Min(damage, _hitpoints);
+        Hitpoints = _hitpoints - damage;
+
+        // Own floating number and flinch, and the bar others see over this player.
+        SendTunneledToVisible(new PlayerUpdatePacketHitPointModification
+        {
+            SourceGuid = source.Guid,
+            TargetGuid = Guid,
+            ShowDelta = true,
+            MaxHitpoints = MaxHitpoints,
+            CurrentHitpoints = _hitpoints,
+            Delta = -damage
+        }, true);
+
+        if (IsDead)
+            Die(source);
+
+        return damage;
+    }
+
+    private void Die(Npc killer)
+    {
+        // Running heal over time potions end with the fight.
+        RemoveEffectGroup("Health");
+
+        _respawnAt = Environment.TickCount64 + CombatRules.PlayerRespawnSeconds * 1000L;
+
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = KnockedOutCharacterState }, true);
+
+        var killerName = string.IsNullOrEmpty(killer.Name) ? "an enemy" : killer.Name;
+
+        ChatHelper.SendSystemMessage(this, $"You were defeated by {killerName}! You'll recover at the zone's start in {CombatRules.PlayerRespawnSeconds} seconds.");
+    }
+
+    private void UpdateRespawn()
+    {
+        if (_respawnAt is not { } respawnAt || Environment.TickCount64 < respawnAt)
+            return;
+
+        _respawnAt = null;
+
+        if (!IsDead)
+            return;
+
+        var position = Zone.SpawnPosition;
+        var rotation = Zone.SpawnRotation;
+
+        UpdatePosition(position, rotation);
+        UpdatePointOfInterest();
+
+        SendTunneled(new ClientUpdatePacketUpdateLocation
+        {
+            Position = position,
+            Rotation = rotation,
+            Teleport = true
+        });
+
+        Hitpoints = MaxHitpoints;
+        Energy = EffectiveMaxEnergy;
+
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = IdleCharacterState }, true);
+
+        _lastCombatAt = long.MinValue;
+    }
+
+    /// <summary>
+    /// Switches the active job, as the client's job picker does (CommandPacketSetProfile). False if it isn't owned.
+    /// </summary>
+    public bool ActivateProfile(int profileId)
+    {
+        var profile = Profiles.FirstOrDefault(x => x.Id == profileId);
+
+        if (profile is null)
+            return false;
+
+        // Let each weapon use its own attachment effect during the job transition.
+        ClearWeaponFlairOverride();
+        ActiveProfileId = profileId;
+
+        if (IsInCombatJob)
+            LastCombatProfileId = profileId;
+
+        using var packetWriter = new PacketWriter();
+
+        profile.Serialize(packetWriter);
+
+        var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile
+        {
+            Payload = packetWriter.Buffer,
+            Attachments = GetAttachments(),
+            Animation = 3001, // emo_outfit_all
+            CompositeEffect = 4005 // PFX_Job_Swirl
+        };
+
+        SendTunneled(clientUpdatePacketActivateProfile);
+
+        SendTunneledToVisible(new PlayerUpdatePacketEquippedItemsChange
+        {
+            Guid = Guid,
+            Attachments = clientUpdatePacketActivateProfile.Attachments
+        });
+
+        SendToolbar();
+
+        var friendStatusPacket = new FriendStatusPacket
+        {
+            Guid = Guid,
+            Status =
+            {
+                ProfileId = ActiveProfile.Id,
+                ProfileRank = ActiveProfile.Rank,
+                ProfileIconId = ActiveProfile.Icon,
+                ProfileNameId = ActiveProfile.NameId,
+                ProfileBackgroundImageId = ActiveProfile.BadgeImageSet
+            }
+        };
+
+        foreach (var friend in Friends)
+        {
+            if (_zoneManager.TryGetPlayer(friend.Guid, out var friendPlayer))
+                friendPlayer.SendTunneled(friendStatusPacket);
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -1651,10 +1853,11 @@ public sealed class Player : ClientPcData, IEntity
         Energy = _energy;
     }
 
-    // Out of combat regen at the HitPointRegen/ManaRegen stat rates. A downed player (0 hp) stays down.
+    // Regen at the HitPointRegen/ManaRegen stat rates. A downed player (0 hp) stays down.
     private void RegenerateVitals()
     {
-        if (_hitpoints > 0 && _hitpoints < MaxHitpoints)
+        // Energy keeps coming mid-fight for specials; health waits until it's over.
+        if (_hitpoints > 0 && _hitpoints < MaxHitpoints && !IsInCombat)
             Heal((int)GetStatValue(CharacterStatId.HitPointRegen));
 
         if (_energy < EffectiveMaxEnergy)
@@ -1744,6 +1947,37 @@ public sealed class Player : ClientPcData, IEntity
         AbilityDefinitionId = abilityDefinitionId,
         ForceDismount = true
     };
+
+    public const int BasicToolbarSlot = 0;
+    public const int SpecialToolbarSlot = 1;
+
+    /// <summary>
+    /// When the basic attack is next allowed (the job kit's BasicRecastMs after the last one).
+    /// </summary>
+    public long NextBasicAttackAt { get; set; }
+
+    /// <summary>
+    /// The job kit and the ability on a toolbar slot (<see cref="BasicToolbarSlot"/> or <see cref="SpecialToolbarSlot"/>),
+    /// as <see cref="SendToolbar"/> put them there.
+    /// </summary>
+    public bool TryGetToolbarAbility(int slot, [MaybeNullWhen(false)] out JobKitDefinition kit, [MaybeNullWhen(false)] out AbilityDefinition ability)
+    {
+        ability = null;
+
+        if (!_resourceManager.CombatJobs.TryGetValue(ActiveProfileId, out kit))
+            return false;
+
+        var (basic, special) = ResolveWeaponAbilities(kit, GetEquippedWeaponDefinitionId());
+
+        ability = slot switch
+        {
+            BasicToolbarSlot => basic,
+            SpecialToolbarSlot => special,
+            _ => null
+        };
+
+        return ability is not null;
+    }
 
     private (AbilityDefinition? Basic, AbilityDefinition? Special) ResolveWeaponAbilities(JobKitDefinition kit, int weaponDefinitionId)
     {

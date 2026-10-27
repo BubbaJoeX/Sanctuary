@@ -98,6 +98,16 @@ public class Npc : IScriptableNpc, IEntity
     /// </summary>
     public int Disposition { get; set; } = 1;
 
+    /// <summary>
+    /// Hit points and AI while hostile in a world zone (see WorldZone); null otherwise.
+    /// </summary>
+    public NpcCombat? Combat { get; set; }
+
+    /// <summary>
+    /// Mobs.json entry this NPC fights as while hostile (!npc mob); null for the default one.
+    /// </summary>
+    public string? MobKey { get; set; }
+
     public Action<Player>? InteractAction { get; set; }
     public Action? UpdateEverySecondAction { get; set; }
     public Action? UpdateEveryTickAction { get; set; }
@@ -161,7 +171,7 @@ public class Npc : IScriptableNpc, IEntity
 
     public bool IsMoving => _pathMoving || !_path.IsEmpty;
 
-    private const int HostileDisposition = 0;
+    public const int HostileDisposition = 0;
     private const byte MovingPositionState = 0;
     private const byte StoppedPositionState = 1;
     private const float GroundStepHeight = 3f;
@@ -188,6 +198,10 @@ public class Npc : IScriptableNpc, IEntity
             player.SendTunneled(InteractionMenuHelper.GetInteractionListPacket(Guid, Name, RefereeNpcInteractions.GetMenu(this)));
             return;
         }
+
+        // Clicking a mob picks a fight (and gets a combat job out).
+        if (Combat is { IsDead: false } combat)
+            combat.OnEngagedBy(player);
 
         if (InteractionMenuHelper.TryOpenMenu(player, this, Zone.GetInteractionOptions(player, this)))
             return;
@@ -258,6 +272,7 @@ public class Npc : IScriptableNpc, IEntity
 
         MovementController?.Update();
         AmbientController?.Update();
+        Combat?.Update();
 
         var currentPosition = Position.ToVector3();
         var result = PathFollower.Advance(_path, currentPosition, Speed, WaypointTolerance, Zone.TickDeltaSeconds);
@@ -293,7 +308,9 @@ public class Npc : IScriptableNpc, IEntity
     {
         UpdateEverySecondAction?.Invoke();
 
-        UpdateBehavior();
+        // A mob that is fighting or walking home moves itself.
+        if (Combat is null or { State: MobState.Idle })
+            UpdateBehavior();
 
         if (GmScript is not null || Conversation is not null)
             Zone.NpcContent.OnSecond(this);

@@ -107,6 +107,8 @@ public sealed partial class WorldZone
 
         npc.UpdatePosition(position, rotation);
 
+        SyncCombat(npc);
+
         // Follow targets a player, so only Wander survives a respawn.
         if ((NpcBehavior)worldNpc.Behavior == NpcBehavior.Wander)
             npc.SetBehavior(NpcBehavior.Wander, wanderRadius: worldNpc.WanderRadius);
@@ -286,9 +288,32 @@ public sealed partial class WorldZone
 
             dbContext.WorldNpcs.Update(worldNpc);
             dbContext.SaveChanges();
-
-            return true;
         }
+
+        SyncCombat(npc);
+
+        return true;
+    }
+
+    /// <summary>
+    /// A hostile world NPC fights (as its Mobs.json entry); any other disposition is left alone.
+    /// </summary>
+    private void SyncCombat(Npc npc)
+    {
+        if (npc.Disposition != Npc.HostileDisposition)
+        {
+            npc.Combat?.Detach();
+            npc.Combat = null;
+            return;
+        }
+
+        if (!_resourceManager.Mobs.TryGetMob(npc.MobKey, out var mob))
+            return;
+
+        if (npc.Combat is null)
+            npc.Combat = new NpcCombat(npc, mob, _rewardManager);
+        else if (npc.Combat.Definition != mob)
+            npc.Combat.Definition = mob;
     }
 
     /// <summary>

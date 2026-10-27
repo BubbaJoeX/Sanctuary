@@ -6,6 +6,7 @@ using System.Numerics;
 using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
+using Sanctuary.Game.Resources.Definitions.Combat;
 using Sanctuary.Game.Zones;
 
 namespace Sanctuary.Game.ChatCommands;
@@ -20,7 +21,7 @@ public class NpcChatCommand : IRawChatCommand
     public string KeyWord => "npc";
 
     public string Usage => "spawn <definitionId> | despawn [guid] | select [guid] | info | name <text|clear> | anim <id> [loop] | scale <n> | model <id> " +
-        "| disposition hostile|neutral|ally | nameplate on|off | behavior stay|follow|wander [radius] | speed <n> | move | face | home | use | say <text> | event <key|none> | collide on|off " +
+        "| disposition hostile|neutral|ally | mob <key|default> | nameplate on|off | behavior stay|follow|wander [radius] | speed <n> | move | face | home | use | say <text> | event <key|none> | collide on|off " +
         "| set texture|tintalias <alias|none> | set tint|effect|subtitle|nameid|plateimage|imageset <id> | set offset <n> " +
         "| icon add|set <type> <iconId> [state] | icon clear | icon list | rotate yaw|pitch|roll <degrees> | rotate reset | " + ScriptCommandHelper.Usage;
 
@@ -70,6 +71,7 @@ public class NpcChatCommand : IRawChatCommand
             case "scale":
             case "model":
             case "disposition":
+            case "mob":
             case "nameplate":
             case "behavior":
             case "speed":
@@ -228,8 +230,27 @@ public class NpcChatCommand : IRawChatCommand
                 ChatHelper.SendSystemMessage(invoker,
                     $"{npc.Name ?? $"NameId {npc.NameId}"} (guid {npc.Guid}): Model {npc.ModelId}, Scale {npc.Scale}, Animation {npc.Animation}, " +
                     $"Disposition {npc.Disposition}, Behavior {npc.Behavior}, Speed {npc.Speed}, Nameplate {(npc.HideNamePlate ? "hidden" : "shown")}, " +
-                    $"Position ({npc.Position.X:F1}, {npc.Position.Y:F1}, {npc.Position.Z:F1})");
+                    $"Position ({npc.Position.X:F1}, {npc.Position.Y:F1}, {npc.Position.Z:F1})" +
+                    (npc.Combat is { } combat ? $", Mob {combat.Definition.Key} ({combat.State}, {combat.Hitpoints}/{combat.MaxHitpoints} hp)" : string.Empty));
                 return true;
+
+            case "mob":
+                if (args.Length != 1)
+                    return false;
+
+                var mobKey = args[0].ToLowerInvariant();
+
+                if (mobKey != MobDefinition.DefaultKey && !_resourceManager.Mobs.ContainsKey(mobKey))
+                {
+                    ChatHelper.SendSystemMessage(invoker, $"No mob \"{mobKey}\" in Mobs.json. Mobs: {string.Join(", ", _resourceManager.Mobs.Keys.Order())}.");
+                    return true;
+                }
+
+                npc.MobKey = mobKey == MobDefinition.DefaultKey ? null : mobKey;
+
+                if (npc.Disposition != Npc.HostileDisposition)
+                    ChatHelper.SendSystemMessage(invoker, "It only fights once its disposition is hostile.");
+                break;
 
             case "name":
                 if (args.Length == 0)
