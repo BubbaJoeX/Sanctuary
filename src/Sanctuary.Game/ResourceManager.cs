@@ -45,11 +45,6 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string ItemCategoriesFile = Path.Combine(BaseDirectory, "ItemCategories.txt");
     public static readonly string ItemCategoryGroupsFile = Path.Combine(BaseDirectory, "ItemCategoryGroups.txt");
 
-    public static readonly string StoresFile = Path.Combine(BaseDirectory, "Stores.json");
-    public static readonly string StoreBundlesFile = Path.Combine(BaseDirectory, "StoreBundles.json");
-    public static readonly string StoreBundleGroupsFile = Path.Combine(BaseDirectory, "StoreBundleGroups.json");
-    public static readonly string StoreBundleCategoriesFile = Path.Combine(BaseDirectory, "StoreBundleCategories.json");
-    public static readonly string StoreBundleCategoryGroupsFile = Path.Combine(BaseDirectory, "StoreBundleCategoryGroups.json");
 
     public static readonly string ZonesDirectory = Path.Combine(BaseDirectory, "Zones");
     public static readonly string ZoneEnvironmentsDirectory = Path.Combine(ZonesDirectory, "Environments");
@@ -61,6 +56,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string PlayerTitlesFile = Path.Combine(BaseDirectory, "PlayerTitles.json");
     public static readonly string PointOfInterestsFile = Path.Combine(BaseDirectory, "PointOfInterests.json");
     public static readonly string ConsumablesFile = Path.Combine(BaseDirectory, "Consumables.json");
+    public static readonly string ItemAbilitiesFile = Path.Combine(BaseDirectory, "ItemAbilities.json");
     public static readonly string NpcsFile = Path.Combine(BaseDirectory, "Npcs.json");
     public static readonly string NpcMovementsFile = Path.Combine(BaseDirectory, "NpcMovements.json");
     public static readonly string NpcAmbientFile = Path.Combine(BaseDirectory, "NpcAmbient.json");
@@ -99,10 +95,6 @@ public class ResourceManager : IResourceManager, IDisposable
     public ItemCategoryDefinitionCollection ItemCategories { get; }
     public ItemCategoryGroupDefinitionCollection ItemCategoryGroups { get; }
 
-    public StoreDefinitionCollection Stores { get; }
-    public StoreBundleGroupDefinitionCollection StoreBundleGroups { get; }
-    public StoreBundleCategoryNodeCollection StoreBundleCategories { get; }
-    public StoreBundleCategoryGroupDefinitionCollection StoreBundleCategoryGroups { get; }
 
     public ZoneDefinitionCollection Zones { get; }
     public ZoneEnvironmentCollection ZoneEnvironments { get; }
@@ -114,6 +106,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public QuickChatDefinitionCollection QuickChats { get; }
     public PointOfInterestDefinitionCollection PointOfInterests { get; }
     public ConsumableCollection Consumables { get; }
+    public ItemAbilityDefinitionCollection ItemAbilities { get; }
     public NpcDefinitionCollection Npcs { get; }
     public NameFilterCollection NameFilter { get; }
     public NpcMovementDefinitionCollection NpcMovements { get; }
@@ -164,10 +157,6 @@ public class ResourceManager : IResourceManager, IDisposable
         ItemCategories = new(_logger);
         ItemCategoryGroups = new(_logger);
 
-        Stores = new(_logger);
-        StoreBundleGroups = new(_logger);
-        StoreBundleCategories = new(_logger);
-        StoreBundleCategoryGroups = new(_logger);
 
         Zones = new(_logger);
         ZoneEnvironments = new(_logger);
@@ -179,6 +168,7 @@ public class ResourceManager : IResourceManager, IDisposable
         PlayerTitles = new(_logger);
         PointOfInterests = new(_logger);
         Consumables = new(_logger);
+        ItemAbilities = new(_logger);
         Npcs = new(_logger);
         NameFilter = new(_logger);
         NpcMovements = new(_logger);
@@ -203,10 +193,6 @@ public class ResourceManager : IResourceManager, IDisposable
             ["itemclasses"] = () => Reload(ItemClasses, () => ItemClasses.Load(ItemClassesFile)),
             ["itemcategories"] = () => Reload(ItemCategories, () => ItemCategories.Load(ItemCategoriesFile)),
             ["itemcategorygroups"] = () => Reload(ItemCategoryGroups, () => ItemCategoryGroups.Load(ItemCategoryGroupsFile)),
-            ["stores"] = () => Reload(Stores, () => Stores.Load(StoresFile) && Stores.LoadBundles(StoreBundlesFile)),
-            ["bundlegroups"] = () => Reload(StoreBundleGroups, () => StoreBundleGroups.Load(StoreBundleGroupsFile)),
-            ["bundlecategories"] = () => Reload(StoreBundleCategories, () => StoreBundleCategories.Load(StoreBundleCategoriesFile)),
-            ["bundlecategorygroups"] = () => Reload(StoreBundleCategoryGroups, () => StoreBundleCategoryGroups.Load(StoreBundleCategoryGroupsFile)),
             ["houses"] = () => Reload(Houses, () => Houses.Load(HousesFile)),
             ["mounts"] = () => Reload(Mounts, () => Mounts.Load(MountsFile)),
             ["profiles"] = () => Reload(Profiles, () => Profiles.Load(ProfilesFile)),
@@ -217,6 +203,7 @@ public class ResourceManager : IResourceManager, IDisposable
             ["rewards"] = () => Reload(RewardTables, () => RewardTables.Load(RewardTablesFile)),
             ["abilities"] = () => Reload(CombatAbilities, () => CombatAbilities.Load(CombatAbilitiesFile)),
             ["jobs"] = () => Reload(CombatJobs, () => CombatJobs.Load(CombatJobsFile)),
+            ["itemabilities"] = () => Reload(ItemAbilities, () => ItemAbilities.Load(ItemAbilitiesFile)),
             ["namefilter"] = () => NameFilter.Load(NameFilterFile),
             ["firsttimeevents"] = () => Reload(FirstTimeEvents, () => FirstTimeEvents.Load(FirstTimeEventsFile)),
             ["minigametutorials"] = () => Reload(MiniGameTutorials, () => MiniGameTutorials.Load(MiniGameTutorialsFile))
@@ -404,18 +391,6 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!ItemCategoryGroups.Load(ItemCategoryGroupsFile))
             return false;
 
-        if (!Stores.Load(StoresFile) || !Stores.LoadBundles(StoreBundlesFile))
-            return false;
-
-        if (!StoreBundleGroups.Load(StoreBundleGroupsFile))
-            return false;
-
-        if (!StoreBundleCategories.Load(StoreBundleCategoriesFile))
-            return false;
-
-        if (!StoreBundleCategoryGroups.Load(StoreBundleCategoryGroupsFile))
-            return false;
-
         if (!ZoneEnvironments.Load(ZoneEnvironmentsDirectory))
             return false;
 
@@ -454,6 +429,9 @@ public class ResourceManager : IResourceManager, IDisposable
             return false;
 
         if (!Consumables.Load(ConsumablesFile))
+            return false;
+
+        if (!ItemAbilities.Load(ItemAbilitiesFile))
             return false;
 
         if (!Npcs.Load(NpcsFile))
@@ -561,16 +539,6 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = ItemCategories.Load(ItemCategoriesFile);
             else if (e.FullPath == ItemCategoryGroupsFile)
                 loaded = ItemCategoryGroups.Load(ItemCategoryGroupsFile);
-            else if (e.FullPath == StoresFile)
-                loaded = Stores.Load(StoresFile);
-            else if (e.FullPath == StoreBundlesFile)
-                loaded = Stores.LoadBundles(StoreBundlesFile);
-            else if (e.FullPath == StoreBundleGroupsFile)
-                loaded = StoreBundleGroups.Load(StoreBundleGroupsFile);
-            else if (e.FullPath == StoreBundleCategoriesFile)
-                loaded = StoreBundleCategories.Load(StoreBundleCategoriesFile);
-            else if (e.FullPath == StoreBundleCategoryGroupsFile)
-                loaded = StoreBundleCategoryGroups.Load(StoreBundleCategoryGroupsFile);
             else if (e.FullPath == HousesFile)
                 loaded = Houses.Load(HousesFile);
             else if (e.FullPath == PetsFile)
@@ -599,6 +567,8 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = CombatAbilities.Load(CombatAbilitiesFile);
             else if (e.FullPath == CombatJobsFile)
                 loaded = CombatJobs.Load(CombatJobsFile);
+            else if (e.FullPath == ItemAbilitiesFile)
+                loaded = Reload(ItemAbilities, () => ItemAbilities.Load(ItemAbilitiesFile));
             else if (e.FullPath == QuestsFile)
                 loaded = Quests.Load(QuestsFile);
             else

@@ -157,8 +157,6 @@ namespace Sanctuary.Database.MySql.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("varchar(16)");
 
-                    b.Property<int>("MembershipStatus")
-                        .HasColumnType("int");
 
                     b.PrimitiveCollection<string>("MiniGameTutorials")
                         .HasColumnType("longtext");
@@ -197,8 +195,6 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Property<int>("SkinToneId")
                         .HasColumnType("int");
 
-                    b.Property<int>("StationCash")
-                        .HasColumnType("int");
 
                     b.Property<Guid?>("Ticket")
                         .HasColumnType("char(36)");
@@ -285,6 +281,39 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.HasKey("CharacterId", "CollectionId", "EntryId");
 
                     b.ToTable("CollectionEntries");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbCustomItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BaseItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Overrides")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset>("Updated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<ulong?>("UpdatedBy")
+                        .HasColumnType("bigint unsigned");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CustomItems");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCustomQuest", b =>
@@ -715,6 +744,83 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.ToTable("Profiles");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbRedeemCode", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("Coins")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<ulong?>("CreatedBy")
+                        .HasColumnType("bigint unsigned");
+
+                    b.Property<bool>("Enabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Items")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("MaxUses")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("MembersOnly")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("PerCharacterLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTimeOffset?>("StartsAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Uses")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("RedeemCodes");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbRedeemCodeUse", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<ulong>("CharacterId")
+                        .HasColumnType("bigint unsigned");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Code", "CharacterId");
+
+                    b.ToTable("RedeemCodeUses");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbScriptLibraryEntry", b =>
                 {
                     b.Property<string>("Name")
@@ -775,10 +881,6 @@ namespace Sanctuary.Database.MySql.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsMember")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsMod")
                         .ValueGeneratedOnAdd()
@@ -905,6 +1007,33 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.HasIndex("Zone");
 
                     b.ToTable("WorldFixtures");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbWorldKit", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Entries")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTimeOffset>("Updated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<ulong?>("UpdatedBy")
+                        .HasColumnType("bigint unsigned");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("WorldKits");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbWorldNpc", b =>

@@ -346,7 +346,7 @@ public abstract class BaseZone : IZone, IDisposable
     /// </summary>
     private const int WheelsActivityCategory = 17;
 
-    private const int DailyWheelMinigameId = 8;
+    public const int DailyWheelMinigameId = 8;
 
     /// <summary>
     /// Answers a join request from the Games window by starting the activity's minigame on the client.
@@ -358,11 +358,12 @@ public abstract class BaseZone : IZone, IDisposable
 
         player.SendTunneled(new MiniGameInfoPacket
         {
-            MinigameId = DailyWheelMinigameId,
+            StageId = DailyWheelMinigameId,
             NameId = 409962,
             IconId = 20985,
             DescriptionId = 409969,
-            StageId = DailyWheelMinigameId
+            Difficulty = 1,
+            StageDefinitionId = DailyWheelMinigameId
         });
     }
 
@@ -372,21 +373,8 @@ public abstract class BaseZone : IZone, IDisposable
 
         SendUpdateStat(player);
 
-        var clientUpdatePacketHitpoints = new ClientUpdatePacketHitpoints
-        {
-            CurrentHitpoints = 2500,
-            MaxHitpoints = 2500
-        };
-
-        player.SendTunneled(clientUpdatePacketHitpoints);
-
-        var clientUpdatePacketMana = new ClientUpdatePacketMana
-        {
-            CurrentMana = 100,
-            MaxMana = 100
-        };
-
-        player.SendTunneled(clientUpdatePacketMana);
+        // Hitpoints, energy and buffed stats carry over between zones.
+        player.SendVitals();
 
         var playerUpdatePacketUpdateActiveWieldType = new PlayerUpdatePacketUpdateActiveWieldType
         {
@@ -667,7 +655,6 @@ public abstract class BaseZone : IZone, IDisposable
         bool isReferee = player.IsAdmin || player.IsMod;
         var packetMembershipSubscriptionInfo = new PacketMembershipSubscriptionInfo
         {
-            IsMember = player.MembershipStatus != 0,
             IsReferee = isReferee
         };
 
@@ -676,65 +663,14 @@ public abstract class BaseZone : IZone, IDisposable
 
     private void SendInGamePurchase(Player player)
     {
-        var packetInGamePurchaseStoreBundleGroups = new PacketInGamePurchaseStoreBundleGroups
-        {
-            BundleGroups = _resourceManager.StoreBundleGroups.ToDictionary()
-        };
-
+        // The coin store is a page of the client's Marketplace window, so the Marketplace stays enabled.
+        // Its Station Cash store is gone; ClientMods/marketplace keeps the window on the coin store.
         var packetInGamePurchaseEnableMarketplace = new PacketInGamePurchaseEnableMarketplace
         {
             Enabled = true
         };
 
         player.SendTunneled(packetInGamePurchaseEnableMarketplace);
-
-        var packetInGamePurchaseStoreEnablePaymentSources = new PacketInGamePurchaseStoreEnablePaymentSources
-        {
-            Sms = true,
-            Paypal = true
-        };
-
-        player.SendTunneled(packetInGamePurchaseStoreEnablePaymentSources);
-
-        var packetInGamePurchaseStoreBundleCategoryGroups = new PacketInGamePurchaseStoreBundleCategoryGroups();
-
-        packetInGamePurchaseStoreBundleCategoryGroups.CategoryGroups = _resourceManager.StoreBundleCategoryGroups.ToDictionary();
-
-        player.SendTunneled(packetInGamePurchaseStoreBundleCategoryGroups);
-
-        var packetInGamePurchaseStoreBundleCategories = new PacketInGamePurchaseStoreBundleCategories();
-
-        packetInGamePurchaseStoreBundleCategories.CategoryTree.Categories = _resourceManager.StoreBundleCategories.ToDictionary();
-
-        player.SendTunneled(packetInGamePurchaseStoreBundleCategories);
-
-        if (_resourceManager.Stores.TryGetValue(1, out var mainStore))
-        {
-            var packetInGamePurchaseStoreBundles = new PacketInGamePurchaseStoreBundles();
-
-            packetInGamePurchaseStoreBundles.StoreId = mainStore.Id;
-
-            packetInGamePurchaseStoreBundles.Store.Id = mainStore.Id;
-            packetInGamePurchaseStoreBundles.Store.NameId = mainStore.NameId;
-            packetInGamePurchaseStoreBundles.Store.DescriptionId = mainStore.DescriptionId;
-            packetInGamePurchaseStoreBundles.Store.Image = mainStore.Image;
-
-            foreach (var storeBundle in mainStore.Bundles.Values)
-            {
-                var valid = storeBundle.Entries.All(x => _resourceManager.ClientItemDefinitions.ContainsKey(x.MarketingItemId));
-
-                if (valid)
-                    packetInGamePurchaseStoreBundles.Store.Bundles.Add(storeBundle.Id, storeBundle);
-            }
-
-            player.SendTunneled(packetInGamePurchaseStoreBundles);
-
-            if (packetInGamePurchaseStoreBundleGroups.BundleGroups.TryGetValue(WelcomeScreenHelper.PopularItemsGroupId, out var popularItems))
-                packetInGamePurchaseStoreBundleGroups.BundleGroups[WelcomeScreenHelper.PopularItemsGroupId] = WelcomeScreenHelper.GetPopularItems(
-                    popularItems, packetInGamePurchaseStoreBundles.Store.Bundles.Values);
-        }
-
-        player.SendTunneled(packetInGamePurchaseStoreBundleGroups);
     }
 
     private void SendFriendList(Player player)

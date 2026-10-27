@@ -49,7 +49,8 @@ public class RewardManager : IRewardManager
         {
             ItemRewardDropDefinition item => TryGrantItem(player, item.ItemDefinitionId,
                 item.TintTable?.SelectRandom().TintId ?? 0, item.Quantity, sourceGuid),
-            CurrencyRewardDropDefinition currency => TryGrantCurrency(player, currency.CurrencyType, currency.Amount),
+            CurrencyRewardDropDefinition currency => TryGrantCurrency(player, currency.CurrencyType,
+                currency.CurrencyType == CurrencyType.Coins ? player.ApplyCoinBoost(currency.Amount) : currency.Amount),
             _ => false
         };
     }
@@ -137,12 +138,6 @@ public class RewardManager : IRewardManager
         if (amount <= 0)
             return false;
 
-        if (currencyType == CurrencyType.StationCash)
-        {
-            _logger.LogWarning("Station Cash grants are not yet implemented.");
-            return false;
-        }
-
         var characterId = GuidHelper.GetPlayerId(player.Guid);
 
         using var dbContext = _dbContextFactory.CreateDbContext();
@@ -165,7 +160,7 @@ public class RewardManager : IRewardManager
 
     private static void SendRewardToast(Player player, ClientItem clientItem, ClientItemDefinition itemDefinition, int quantity, ulong sourceGuid)
     {
-        // TODO: Is there a coin/station cash toast? How about for other types of rewards..?
+        // TODO: Is there a coin toast? How about for other types of rewards..?
         var notificationId = Environment.TickCount & int.MaxValue;
 
         var packet = new RewardBundlePacket();

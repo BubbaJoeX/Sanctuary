@@ -150,8 +150,6 @@ namespace Sanctuary.Database.Sqlite.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("MembershipStatus")
-                        .HasColumnType("INTEGER");
 
                     b.PrimitiveCollection<string>("MiniGameTutorials")
                         .HasColumnType("TEXT");
@@ -190,8 +188,6 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.Property<int>("SkinToneId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("StationCash")
-                        .HasColumnType("INTEGER");
 
                     b.Property<Guid?>("Ticket")
                         .HasColumnType("TEXT");
@@ -278,6 +274,37 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.HasKey("CharacterId", "CollectionId", "EntryId");
 
                     b.ToTable("CollectionEntries");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbCustomItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BaseItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Overrides")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Updated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("DATE()");
+
+                    b.Property<ulong?>("UpdatedBy")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CustomItems");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCustomQuest", b =>
@@ -700,6 +727,83 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.ToTable("Profiles");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbRedeemCode", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Coins")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("DATE()");
+
+                    b.Property<ulong?>("CreatedBy")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Enabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Items")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MaxUses")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("MembersOnly")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PerCharacterLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTimeOffset?>("StartsAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Uses")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("RedeemCodes");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbRedeemCodeUse", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("CharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("LastUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("DATE()");
+
+                    b.HasKey("Code", "CharacterId");
+
+                    b.ToTable("RedeemCodeUses");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbScriptLibraryEntry", b =>
                 {
                     b.Property<string>("Name")
@@ -758,10 +862,6 @@ namespace Sanctuary.Database.Sqlite.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsMember")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsMod")
                         .ValueGeneratedOnAdd()
@@ -886,6 +986,33 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.HasIndex("Zone");
 
                     b.ToTable("WorldFixtures");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbWorldKit", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Entries")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Updated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("DATE()");
+
+                    b.Property<ulong?>("UpdatedBy")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("WorldKits");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbWorldNpc", b =>

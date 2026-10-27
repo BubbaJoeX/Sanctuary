@@ -14,6 +14,19 @@ Mods:
                                            get its camera zoom with the panel's text (dialog/dialog_hide.as).
   sanctuaryHousingEditPanel.gfx (+ .lst.z) - decorate-mode furniture tray with 10 items per page and a
                                            search box (housing/tray.as).
+  sanctuaryLoadingScreen.gfx (+ .lst.z)  - loading screen with "Open Source Free Realms" curved around the
+                                           OSFR tree (loadingscreen/background.py), keeping the tip and bar.
+
+  Station Cash and membership no longer exist:
+  sanctuaryGameDock.gfx                  - the Marketplace icon is labelled Coin Shop (gamedock/coin_shop_button.as).
+  sanctuaryMarketplace.gfx               - the Marketplace window only shows its coin store page
+                                           (marketplace/coin_store_only.as).
+  sanctuaryNavigation.gfx                - the Marketplace tab bar only has the Coin Shop tab
+                                           (navigation/coin_store_tabs.as).
+  sanctuaryMysteryRewardBrowser(Small).gfx, sanctuaryPaidNameChange.gfx, sanctuaryUnifiedMessageWindow.gfx,
+  sanctuaryAboutMe.gfx, sanctuaryWelcome.gfx, sanctuaryActivityPortal.gfx, sanctuaryHousingPreview.gfx,
+  sanctuaryStorage.gfx                   - no Station Cash wallets or Add Station Cash buttons
+                                           (<movie>/no_station_cash.as).
 
 The stock movies are read from your Free Realms client's local asset packs (--client), or from a
 local copy of the asset server (--assets). Nothing from the game is stored in this repository.
@@ -37,6 +50,8 @@ from pathlib import Path
 
 from PIL import Image
 
+from loadingscreen import background
+
 script_dir = Path(__file__).resolve().parent
 output_dir = script_dir.parent / "src" / "Resources" / "ClientMods"
 
@@ -44,14 +59,47 @@ COMPRESSED_MAGIC = 0xA1B2C3D4
 
 # (exported symbol to copy, export name of the copy, hue shift in degrees)
 GM_TREE_ICON = ("treeIcon", "gmTreeIcon", 155)
+REDEEM_TREE_ICON = ("treeIcon", "gmRedeemIcon", 35)
 
-# (stock movie, published name, script inside the movie to append to, patch source, recolored symbols to add)
+NO_STATION_CASH = "no_station_cash.as"
+
+# (stock movie, published name, script inside the movie to append to, patch sources, recolored symbols to add)
 MODS = [
-    ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction", script_dir / "chatWindowCtrl" / "gm_panel.as", []),
-    ("gamedock", "sanctuaryGameDock", "\\frame_1\\DoAction", script_dir / "gamedock" / "gm_hub_button.as", [GM_TREE_ICON]),
-    ("dialog", "sanctuaryDialog", "\\frame_1\\DoAction", script_dir / "dialog" / "dialog_hide.as", []),
-    ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction", script_dir / "housing" / "tray.as", []),
+    ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction", [script_dir / "chatWindowCtrl" / "gm_panel.as"], []),
+    ("gamedock", "sanctuaryGameDock", "\\frame_1\\DoAction",
+     [script_dir / "gamedock" / "gm_hub_button.as", script_dir / "gamedock" / "coin_shop_button.as"], [GM_TREE_ICON, REDEEM_TREE_ICON]),
+    ("dialog", "sanctuaryDialog", "\\frame_1\\DoAction", [script_dir / "dialog" / "dialog_hide.as"], []),
+    ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction", [script_dir / "housing" / "tray.as"], []),
+    ("marketplace", "sanctuaryMarketplace", "\\frame_1\\DoAction", [script_dir / "marketplace" / "coin_store_only.as"], []),
+    ("navigation", "sanctuaryNavigation", "\\frame_1\\DoAction", [script_dir / "navigation" / "coin_store_tabs.as"], []),
+    ("MysteryRewardBrowser", "sanctuaryMysteryRewardBrowser", "\\frame_1\\DoAction",
+     [script_dir / "MysteryRewardBrowser" / NO_STATION_CASH], []),
+    # Same side panel as MysteryRewardBrowser.
+    ("MysteryRewardBrowserSmall", "sanctuaryMysteryRewardBrowserSmall", "\\frame_1\\DoAction",
+     [script_dir / "MysteryRewardBrowser" / NO_STATION_CASH], []),
+    ("PaidNameChange", "sanctuaryPaidNameChange", "\\frame_1\\DoAction", [script_dir / "PaidNameChange" / NO_STATION_CASH], []),
+    ("UnifiedMessageWindow", "sanctuaryUnifiedMessageWindow", "\\frame_1\\DoAction",
+     [script_dir / "UnifiedMessageWindow" / NO_STATION_CASH], []),
+    ("aboutme", "sanctuaryAboutMe", "\\frame_1\\DoAction", [script_dir / "aboutme" / NO_STATION_CASH], []),
+    ("welcome", "sanctuaryWelcome", "\\frame_1\\DoAction", [script_dir / "welcome" / NO_STATION_CASH], []),
+    ("ActivityPortal", "sanctuaryActivityPortal", "\\frame_1\\DoAction", [script_dir / "ActivityPortal" / NO_STATION_CASH], []),
+    ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction", [script_dir / "HousingPreview" / NO_STATION_CASH], []),
+    ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
 ]
+
+# Stock movie -> [(external texture, texture to use instead)]. Station Cash no longer exists, so the
+# hub's Marketplace (now Coin Shop) icon shows the coin from the coin store's wallet instead of the SC logo.
+TEXTURE_SWAPS = {
+    "gamedock": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
+    # The welcome screen's header wallet, which now shows coins.
+    "welcome": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
+}
+
+LOADING_SCREEN = ("loadingscreen", "sanctuaryLoadingScreen")
+# Root timeline depths of loadingscreen.gfx that stay: the backdrop, its twinkle, the tip text and the
+# loading bar (track, barMask, fill, spinner, queue). The characters, logo and vines go.
+LOADING_SCREEN_DEPTHS = {1, 2, 4, 72, 73, 75, 78, 82}
+LOADING_SCREEN_BACKDROP = "1"
 
 # ffdec's XML export puts each top-level tag on its own line at this indentation.
 TAG_PREFIX = "\n    <item type="
@@ -192,18 +240,24 @@ def ffdec(java, jar, *args):
         raise RuntimeError(f"ffdec failed: {' '.join(map(str, args))}")
 
 
-def build_movie(java, jar, stock, stock_name, script_name, patch_path, symbols, output_path):
+def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols, output_path):
     with tempfile.TemporaryDirectory() as temp:
         temp = Path(temp)
 
         stock_path = temp / f"{stock_name}.gfx"
         stock_path.write_bytes(stock.read(f"{stock_name}.gfx"))
 
-        if symbols:
+        swaps = TEXTURE_SWAPS.get(stock_name, [])
+
+        if symbols or swaps:
             ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
             xml = (temp / "stock.xml").read_text(encoding="utf-8")
             for symbol in symbols:
                 xml = add_recolored_symbol(xml, stock, *symbol)
+            for old, new in swaps:
+                if f'fileName="{old}"' not in xml:
+                    raise ValueError(f"{old} not found in {stock_name}.gfx")
+                xml = xml.replace(f'fileName="{old}"', f'fileName="{new}"')
             (temp / "stock.xml").write_text(xml, encoding="utf-8")
             ffdec(java, jar, "-xml2swf", temp / "stock.xml", temp / "stock.gfx")
             stock_path = temp / "stock.gfx"
@@ -216,7 +270,7 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_path, symbols, 
 
         patched = temp / "patched.as"
         patched.write_text(
-            script_path.read_text(encoding="utf-8") + "\n" + patch_path.read_text(encoding="utf-8"),
+            "\n".join([script_path.read_text(encoding="utf-8")] + [p.read_text(encoding="utf-8") for p in patch_paths]),
             encoding="utf-8")
 
         ffdec(java, jar, "-replace", stock_path, output_path, script_name, patched)
@@ -226,7 +280,86 @@ def build_list(stock, stock_name, published_name, output_path):
     # The .lst preloads the movie's images and ends with the movie itself.
     text = stock.read(f"{stock_name}.lst").decode("latin-1")
     text = text.replace(f"{stock_name}.gfx", f"{published_name}.gfx")
+    for old, new in TEXTURE_SWAPS.get(stock_name, []):
+        text = text.replace(old, new)
     output_path.write_bytes(compress(text.encode("latin-1")))
+
+
+def split_tags(xml):
+    """Splits ffdec's XML into the part before the first top-level tag, each top-level tag, and the rest."""
+    starts = [m.start() for m in re.finditer(re.escape(TAG_PREFIX), xml)]
+    end = xml.find("\n  </tags>", starts[-1])
+    bounds = starts + [end]
+    return xml[:starts[0]], [xml[a:b] for a, b in zip(bounds, bounds[1:])], xml[end:]
+
+
+def build_loading_screen(java, jar, stock, stock_name, published_name, movie_path, list_path):
+    """Strips the stock loading screen down to its tip and loading bar over the OSFR art."""
+    with tempfile.TemporaryDirectory() as temp:
+        temp = Path(temp)
+
+        # The art is drawn in the client's own font, so no game font is stored here.
+        fontlib_path = temp / "gfxfontlib.gfx"
+        fontlib_path.write_bytes(stock.read("gfxfontlib.gfx"))
+        ffdec(java, jar, "-export", "font", temp / "fonts", fontlib_path)
+        font = next((temp / "fonts").rglob("*FreeRealmsDemiBold*.ttf"), None)
+        if font is None:
+            raise FileNotFoundError("FreeRealmsDemiBold not found in gfxfontlib.gfx")
+        art = background.render(font)
+
+        stock_path = temp / f"{stock_name}.gfx"
+        stock_path.write_bytes(stock.read(f"{stock_name}.gfx"))
+        ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
+        head, tags, tail = split_tags((temp / "stock.xml").read_text(encoding="utf-8"))
+
+        def is_tag(tag, pattern):
+            return re.match(re.escape(TAG_PREFIX) + f'"{pattern}"', tag)
+
+        tags = [tag for tag in tags if not is_tag(tag, r"(?:PlaceObject|RemoveObject)\d?Tag")
+                or int(re.search(r'\bdepth="(\d+)"', tag).group(1)) in LOADING_SCREEN_DEPTHS]
+
+        # Drop the definitions nothing left on screen uses, so their textures aren't loaded.
+        definitions = {}
+        for i, tag in enumerate(tags):
+            match = re.match(re.escape(TAG_PREFIX) + r'"Define\w*"[^>]*?' + DEFINITION_ID, tag)
+            if match:
+                definitions[match.group(1)] = i
+        references = r'(?:characterId|bitmapId|fontId)="(\d+)"'
+        pending = [ref for tag in tags if not is_tag(tag, r"Define\w*") for ref in re.findall(references, tag)]
+        used = set()
+        while pending:
+            character_id = pending.pop()
+            if character_id in definitions and character_id not in used:
+                used.add(character_id)
+                pending += re.findall(references, tags[definitions[character_id]])
+        dropped = {i for character_id, i in definitions.items() if character_id not in used}
+        tags = [tag for i, tag in enumerate(tags) if i not in dropped]
+
+        for i, tag in enumerate(tags):
+            if not is_tag(tag, "DefineExternalImage"):
+                if re.search(f'bitmapId="{LOADING_SCREEN_BACKDROP}"', tag):
+                    # The backdrop shape squashed the stock 1024x1024 texture to the 1024x768 stage;
+                    # the art is already stage sized.
+                    tags[i] = re.sub(f'(bitmapId="{LOADING_SCREEN_BACKDROP}"' + r'[\s\S]*?<bitmapMatrix[^>]*?scaleX="([\d.]+)" scaleY=")[\d.]+',
+                                     lambda m: m.group(1) + m.group(2), tag, count=1)
+                continue
+            attributes = dict(re.findall(r'(\w+)="([^"]*)"', tag))
+            if attributes["characterID"] == LOADING_SCREEN_BACKDROP:
+                tags[i] = lossless_tag(LOADING_SCREEN_BACKDROP, art)
+            else:
+                # Textures are padded to powers of two and drawn at their target size; embedded 1:1
+                # the bar and spinner would lose their right and bottom edges.
+                texture = load_texture(stock, attributes["fileName"])
+                size = (int(attributes["targetWidth"]), int(attributes["targetHeight"]))
+                tags[i] = lossless_tag(attributes["characterID"], texture.resize(size, Image.LANCZOS))
+
+        (temp / "mod.xml").write_text(head + "".join(tags) + tail, encoding="utf-8")
+        ffdec(java, jar, "-xml2swf", temp / "mod.xml", movie_path)
+
+    # Every texture is embedded now, so the list only preloads the movie.
+    lines = stock.read(f"{stock_name}.lst").decode("latin-1").split("\r\n")
+    text = "\r\n".join(line for line in lines if not line.endswith(".dds"))
+    list_path.write_bytes(compress(text.replace(f"{stock_name}.gfx", f"{published_name}.gfx").encode("latin-1")))
 
 
 def main():
@@ -242,14 +375,20 @@ def main():
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for stock_name, published_name, script_name, patch_path, symbols in MODS:
+    for stock_name, published_name, script_name, patch_paths, symbols in MODS:
         movie_path = output_dir / f"{published_name}.gfx"
         list_path = output_dir / f"{published_name}.lst.z"
 
-        build_movie(args.java, args.ffdec, stock, stock_name, script_name, patch_path, symbols, movie_path)
+        build_movie(args.java, args.ffdec, stock, stock_name, script_name, patch_paths, symbols, movie_path)
         build_list(stock, stock_name, published_name, list_path)
 
         print(f"Built {movie_path.name} ({movie_path.stat().st_size} bytes) and {list_path.name}")
+
+    stock_name, published_name = LOADING_SCREEN
+    movie_path = output_dir / f"{published_name}.gfx"
+    list_path = output_dir / f"{published_name}.lst.z"
+    build_loading_screen(args.java, args.ffdec, stock, stock_name, published_name, movie_path, list_path)
+    print(f"Built {movie_path.name} ({movie_path.stat().st_size} bytes) and {list_path.name}")
 
 
 if __name__ == "__main__":
