@@ -62,8 +62,20 @@ public class ScriptSandboxTests
         public string ZoneName => "lavendercoast";
         public int Health => 80;
         public int MaxHealth => 100;
-        public bool IsKnockedOut => false;
+        public bool IsKnockedOut { get; set; }
         public bool IsInCombat => true;
+
+        public int? RevivedAt { get; private set; }
+
+        public bool Revive(int healthPercent)
+        {
+            if (!IsKnockedOut)
+                return false;
+
+            IsKnockedOut = false;
+            RevivedAt = healthPercent;
+            return true;
+        }
         public int Job => 5;
         public int JobRank => 3;
         public int GroupId { get; init; } = 9;
@@ -141,12 +153,12 @@ public class ScriptSandboxTests
     public async Task PlayerApi_CoversCombatJobsGroupsAndInventory()
     {
         var npc = CreateNpc();
-        var player = new MockScriptPlayer();
+        var player = new MockScriptPlayer { IsKnockedOut = true };
 
         var (sandbox, error) = await ScriptSandbox.CompileAsync(npc, """
             function onInteract(player)
                 player:message(player.zoneId .. " " .. player.zoneName)
-                player:message(player.health .. "/" .. player.maxHealth .. " " .. tostring(player.inCombat) .. " " .. tostring(player.isKnockedOut))
+                player:message(player.health .. "/" .. player.maxHealth .. " " .. tostring(player.inCombat))
                 player:message(player.job .. " " .. player.jobRank)
                 player:message(player.groupId .. " " .. #player.groupMembers .. " " .. player.groupMembers[2] .. " " .. tostring(player.isGroupLeader))
                 player:message(tostring(player:isGroupedWith(player)))
@@ -156,6 +168,7 @@ public class ScriptSandboxTests
                 player:message(tostring(player:takeCoins(30)) .. " " .. tostring(player:takeCoins(30)) .. " " .. player.coins)
                 player:message(tostring(player:giveStars(25)))
                 player:message(tostring(player:warp(1036, 1, 2, 3, 90)) .. " " .. tostring(player:warp(1)))
+                player:message(tostring(player.isKnockedOut) .. " " .. tostring(player:revive()) .. " " .. tostring(player:revive(80)))
             end
             """, "test");
 
@@ -166,7 +179,7 @@ public class ScriptSandboxTests
         CollectionAssert.AreEqual(new[]
         {
             "1036 lavendercoast",
-            "80/100 true false",
+            "80/100 true",
             "5 3",
             "9 2 43 true",
             "true",
@@ -174,19 +187,21 @@ public class ScriptSandboxTests
             "true false",
             "true false 20",
             "true",
-            "true false"
+            "true false",
+            "true true false"
         }, player.Messages);
 
         Assert.AreEqual(1, player.Inventory[10]);
         Assert.AreEqual(25, player.Stars);
         Assert.AreEqual(1, player.WarpedTo?.Zone);
         Assert.IsNull(player.WarpedTo?.Position);
+        Assert.AreEqual(50, player.RevivedAt, "revive() stands them up with half their health.");
     }
 
     [TestMethod]
     public async Task PlayerApi_RejectsOutOfRangeAmounts()
     {
-        foreach (var call in new[] { "player:takeItem(10, 0)", "player:takeCoins(-1)", "player:giveStars(0)", "player:warp(1036, 0/0, 0, 0)" })
+        foreach (var call in new[] { "player:takeItem(10, 0)", "player:takeCoins(-1)", "player:giveStars(0)", "player:warp(1036, 0/0, 0, 0)", "player:revive(0)", "player:revive(101)" })
         {
             var (sandbox, _) = await ScriptSandbox.CompileAsync(CreateNpc(), $"function onInteract(player) {call} end", "range");
 

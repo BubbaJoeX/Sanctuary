@@ -72,9 +72,15 @@ public interface IScriptablePlayer
     int MaxHealth { get; }
 
     /// <summary>
-    /// Knocked out by a mob (0 hit points), until they recover at the zone start.
+    /// Knocked out by a mob (0 hit points), until they recover at the zone start or are revived.
     /// </summary>
     bool IsKnockedOut { get; }
+
+    /// <summary>
+    /// Stands a knocked-out player back up where they lie with that share of their health, as a Resurrection
+    /// Scroll does. False if they aren't knocked out.
+    /// </summary>
+    bool Revive(int healthPercent);
 
     /// <summary>
     /// Hit or hitting a mob in the last few seconds.

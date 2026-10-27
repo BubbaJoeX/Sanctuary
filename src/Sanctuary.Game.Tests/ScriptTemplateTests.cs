@@ -117,6 +117,7 @@ public sealed class ScriptTemplateTests
         public int Health => 100;
         public int MaxHealth => 100;
         public bool IsKnockedOut => false;
+        public bool Revive(int healthPercent) => false;
         public bool IsInCombat => false;
         public int Job => 1;
         public int JobRank => 1;

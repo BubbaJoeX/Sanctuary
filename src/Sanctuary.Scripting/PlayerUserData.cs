@@ -254,6 +254,17 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
         return new ValueTask<int>(context.Return(self._player.Warp(zoneId, position, heading)));
     });
 
+    private static readonly LuaFunction ReviveFunction = new("revive", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var healthPercent = context.ArgumentCount > 1 ? context.GetArgument<int>(1) : 50;
+
+        if (healthPercent is < 1 or > 100)
+            throw new LuaRuntimeException(context.State, "revive health is between 1 and 100 percent.");
+
+        return new ValueTask<int>(context.Return(self._player.Revive(healthPercent)));
+    });
+
     private static readonly LuaFunction IsGroupedWithFunction = new("isGroupedWith", static (context, cancellationToken) =>
     {
         var self = context.GetArgument<PlayerUserData>(0);
@@ -334,6 +345,7 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
                 "takeCoins" => TakeCoinsFunction,
                 "giveStars" => GiveStarsFunction,
                 "warp" => WarpFunction,
+                "revive" => ReviveFunction,
                 _ => LuaValue.Nil
             };
 

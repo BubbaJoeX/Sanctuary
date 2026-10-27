@@ -2459,6 +2459,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "player:acceptQuest(questId)  player:hasCompletedQuest(questId)\r" +
    "player.zoneId  player.zoneName  player:warp(zoneId [, x, y, z [, heading]])\r" +
    "player.health  player.maxHealth  player.inCombat  player.isKnockedOut\r" +
+   "player:revive([healthPercent])\r" +
    "player.job  player.jobRank  player:giveStars(amount)\r" +
    "player.coins  player:takeCoins(amount)\r" +
    "player:itemCount(itemId)  player:hasItem(itemId [, qty])\r" +
