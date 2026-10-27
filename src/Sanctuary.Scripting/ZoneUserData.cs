@@ -123,6 +123,14 @@ internal sealed class ZoneUserData(IScriptableZone zone) : ILuaUserData
         return new ValueTask<int>(context.Return(self._zone.IsSeasonActive(seasonName)));
     });
 
+    private static readonly LuaFunction IsEventActiveFunction = new("isEventActive", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<ZoneUserData>(0);
+        var eventKey = context.GetArgument<string>(1);
+
+        return new ValueTask<int>(context.Return(self._zone.IsEventActive(eventKey)));
+    });
+
     private static readonly LuaFunction GetPlayersFunction = new("getPlayers", static (context, cancellationToken) =>
     {
         var self = context.GetArgument<ZoneUserData>(0);
@@ -255,6 +263,7 @@ internal sealed class ZoneUserData(IScriptableZone zone) : ILuaUserData
                 "broadcast" => BroadcastFunction,
                 "broadcastNear" => BroadcastNearFunction,
                 "isSeasonActive" => IsSeasonActiveFunction,
+                "isEventActive" => IsEventActiveFunction,
                 "getFlag" => GetFlagFunction,
                 "setFlag" => SetFlagFunction,
                 "addFlag" => AddFlagFunction,

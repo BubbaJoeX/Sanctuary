@@ -230,12 +230,16 @@ public class ScriptSandboxTests
         var npc = new MockScriptNpc(zone);
         var player = new MockScriptPlayer();
         zone.Players.Add(player);
+        zone.ActiveEvents.Add("halloween");
 
         var (sandbox, error) = await ScriptSandbox.CompileAsync(npc, """
             function onSpawn()
                 local zone = npc.zone
                 for _, p in ipairs(zone:getPlayers()) do
                     p:message(zone.playerCount .. " " .. zone:getPlayer("Tester").name .. " " .. zone:getPlayer(p.guid).name)
+                end
+                if zone:isEventActive("halloween") and not zone:isEventActive("easter") then
+                    zone:getPlayer(42):message("halloween is on")
                 end
                 if zone:getPlayer("Nobody") == nil then
                     zone:getPlayer(42):message("missing is nil")
@@ -247,7 +251,7 @@ public class ScriptSandboxTests
         Assert.IsNotNull(sandbox);
         Assert.IsNull(await sandbox.CallAsync("onSpawn"));
 
-        CollectionAssert.AreEqual(new[] { "1 Tester Tester", "missing is nil" }, player.Messages);
+        CollectionAssert.AreEqual(new[] { "1 Tester Tester", "halloween is on", "missing is nil" }, player.Messages);
     }
 
     [TestMethod]

@@ -364,6 +364,8 @@ public sealed partial class WorldZone
         }
     }
 
+    public override bool IsEventActive(string eventKey) => _worldEventManager.IsActive(eventKey);
+
     public void OnWorldEventChanged(string eventKey, bool active)
     {
         lock (_worldNpcLock)

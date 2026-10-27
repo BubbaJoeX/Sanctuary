@@ -2471,7 +2471,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "zone:getFlag(name)  zone:setFlag(name, value)  zone:addFlag(name [, amount])\r" +
    "zone:spawnNpc(npcId, x, y, z, heading)\r" +
    "zone:setClientAreaEnabled(areaId, on)\r" +
-   "zone:isSeasonActive(name)\r" +
+   "zone:isSeasonActive(name)  zone:isEventActive(key)\r" +
    "zone.playerCount  zone:getPlayers()  zone:getPlayer(guid or name)\r" +
    "\rHELPERS\r" +
    "distance(a, b)  pick(list)  chance(probability)  shuffle(list)  countdown(seconds)\r" +

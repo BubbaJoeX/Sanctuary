@@ -1646,6 +1646,8 @@ public abstract class BaseZone : IZone, IDisposable
 
     public virtual bool IsSeasonActive(string seasonName) => false;
 
+    public virtual bool IsEventActive(string eventKey) => false;
+
     public void Broadcast(string message)
     {
         var broadcastPacketZone = new BroadcastPacketZone { Message = message };

@@ -18,4 +18,9 @@ public interface IWorldEventManager
     /// Persists the event's state and spawns or despawns its NPCs in every loaded world zone.
     /// </summary>
     void SetActive(string key, bool active);
+
+    /// <summary>
+    /// Events staff opened for players to !join, and who joined.
+    /// </summary>
+    EventJoinBook Joins { get; }
 }

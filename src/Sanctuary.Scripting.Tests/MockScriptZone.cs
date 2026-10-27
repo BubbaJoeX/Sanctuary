@@ -66,4 +66,8 @@ internal class MockScriptZone(ILogger _logger) : IScriptableZone
 
     public IScriptablePlayer? GetPlayer(ulong guid, string? name) =>
         Players.Find(player => guid != 0 ? player.Guid == guid : player.Name == name);
+
+    public HashSet<string> ActiveEvents { get; } = [];
+
+    public bool IsEventActive(string eventKey) => ActiveEvents.Contains(eventKey);
 }

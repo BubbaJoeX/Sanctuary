@@ -16,6 +16,8 @@ Both kinds see the same `zone`, `npc` and `player` objects. Guids are always tex
 | `playerEnter` | `fn(zone, player)`. Runs when a player has finished loading into the zone. |
 | `playerLeave` | `fn(zone, player)`. Runs when a player leaves the zone (zoning out or logging out). |
 | `mobKilled` | `fn(zone, npc, killer)`. Runs when a player lands a mob's killing blow. |
+| `eventStart`, `eventEnd` | `fn(zone, key)`. Runs in every world zone when staff turn an event on or off (`!event on/off <key>`). |
+| `eventJoin` | `fn(zone, player, key)`. Runs in the event's zone the first time a player joins it with `!join`. |
 
 NPC scripts in `Npc/` get `tick` and `second`, each with the NPC.
 
@@ -43,6 +45,7 @@ Mobs (hostile NPCs made with `!npc mob`) also get these:
 | `getFlag(name)`, `setFlag(name, value)`, `addFlag(name [, amount])` | Shared state for the zone's scripts. Lost on restart. |
 | `spawnNpc(npcId, x, y, z, heading [, pitch, roll])`, `spawnNpcWithGuid(npcId, guid, ...)` | Returns the npc, or nil. |
 | `setClientAreaEnabled(areaId, on)`, `isSeasonActive(name)` | |
+| `isEventActive(key)` | Whether staff have turned the event on with `!event on <key>`. |
 
 ### npc
 

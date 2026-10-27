@@ -1,5 +1,10 @@
 [
   {
+    "Title": "Join live events",
+    "Text": "When a Referee hosts an event, everyone online gets the call. Type !join to go straight there from anywhere, and stick around for prizes!",
+    "Icon": "referee"
+  },
+  {
     "Title": "Rank up your jobs",
     "Text": "Defeating enemies, finishing quests and completing collections now earn stars for the job you're in. Fill the bar to rank up, all the way to rank 20: every rank gives more health and harder hits.",
     "Icon": "trophy"

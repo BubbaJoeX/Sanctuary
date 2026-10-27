@@ -40,6 +40,8 @@ public class WorldEventManager : IWorldEventManager
 
     public IReadOnlyDictionary<string, bool> GetAll() => _events.Value;
 
+    public EventJoinBook Joins { get; } = new();
+
     public void SetActive(string key, bool active)
     {
         using (var dbContext = _dbContextFactory.CreateDbContext())
@@ -60,6 +62,10 @@ public class WorldEventManager : IWorldEventManager
         var zoneManager = _serviceProvider.GetRequiredService<IZoneManager>();
 
         foreach (var zone in zoneManager.Zones.OfType<WorldZone>())
+        {
             zone.OnWorldEventChanged(key, active);
+
+            zone.GetOrCreateScriptContext().FireEvent(active ? "eventStart" : "eventEnd", key);
+        }
     }
 }
