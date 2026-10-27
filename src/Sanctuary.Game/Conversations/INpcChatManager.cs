@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using Sanctuary.Game.Entities;
 
 namespace Sanctuary.Game.Conversations;
@@ -21,4 +23,14 @@ public interface INpcChatManager
     /// Forgets every NPC's conversation history, so the next line starts fresh.
     /// </summary>
     void Reset();
+
+    /// <summary>
+    /// The bot's state and the NPCs around the player, saying which one hears them and why the others don't.
+    /// </summary>
+    string[] Describe(Player player);
+
+    /// <summary>
+    /// Has the NPC that hears the player answer the message now (no cooldown) and returns what happened.
+    /// </summary>
+    Task<string> TestAsync(Player player, string message);
 }
