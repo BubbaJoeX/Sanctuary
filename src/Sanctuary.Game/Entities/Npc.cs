@@ -125,7 +125,7 @@ public class Npc : IScriptableNpc, IEntity
     /// <summary>
     /// Clicking does something for a regular player.
     /// </summary>
-    public virtual bool HasInteraction => Interactions.Count > 0 || InteractAction is not null || OpensAtlas;
+    public virtual bool HasInteraction => Interactions.Count > 0 || InteractAction is not null || OpensAtlas || Combat is not null;
 
     public bool HasNameplate => !HideNamePlate && (!string.IsNullOrEmpty(Name) || NameId != 0);
 
@@ -172,6 +172,9 @@ public class Npc : IScriptableNpc, IEntity
     public bool IsMoving => _pathMoving || !_path.IsEmpty;
 
     public const int HostileDisposition = 0;
+
+    // ClientColorDefinitions.txt has no red for the client to pick, so hostile nameplates get theirs outright (ARGB).
+    private const int HostileNameColor = unchecked((int)0xFFFF4A3D);
     private const byte MovingPositionState = 0;
     private const byte StoppedPositionState = 1;
     private const float GroundStepHeight = 3f;
@@ -489,7 +492,7 @@ public class Npc : IScriptableNpc, IEntity
 
             Tilt = Tilt ?? default,
 
-            NameColor = default,
+            NameColor = Disposition == HostileDisposition ? HostileNameColor : default,
 
             AreaDefinitionId = AreaDefinitionId,
 

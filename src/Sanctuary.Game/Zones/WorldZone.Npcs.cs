@@ -105,9 +105,10 @@ public sealed partial class WorldZone
 
         NpcProperties.Apply(npc, worldNpc.Properties);
 
-        npc.UpdatePosition(position, rotation);
-
+        // Before it's shown, so a mob's first AddNpc already makes it clickable.
         SyncCombat(npc);
+
+        npc.UpdatePosition(position, rotation);
 
         // Follow targets a player, so only Wander survives a respawn.
         if ((NpcBehavior)worldNpc.Behavior == NpcBehavior.Wander)
@@ -300,20 +301,24 @@ public sealed partial class WorldZone
     /// </summary>
     private void SyncCombat(Npc npc)
     {
+        var wasMob = npc.Combat is not null;
+
         if (npc.Disposition != Npc.HostileDisposition)
         {
             npc.Combat?.Detach();
             npc.Combat = null;
-            return;
+        }
+        else if (_resourceManager.Mobs.TryGetMob(npc.MobKey, out var mob))
+        {
+            if (npc.Combat is null)
+                npc.Combat = new NpcCombat(npc, mob, _rewardManager);
+            else if (npc.Combat.Definition != mob)
+                npc.Combat.Definition = mob;
         }
 
-        if (!_resourceManager.Mobs.TryGetMob(npc.MobKey, out var mob))
-            return;
-
-        if (npc.Combat is null)
-            npc.Combat = new NpcCombat(npc, mob, _rewardManager);
-        else if (npc.Combat.Definition != mob)
-            npc.Combat.Definition = mob;
+        // A mob is clickable and a plain NPC may not be. !npc disposition resent it before this ran, so send it again.
+        if (wasMob != (npc.Combat is not null))
+            npc.RefreshForVisiblePlayers();
     }
 
     /// <summary>

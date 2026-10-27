@@ -379,6 +379,25 @@ public sealed class WorldCombatTests
         Assert.IsTrue(new MobDefinitionCollection(NullLogger.Instance).Load(entries, path));
     }
 
+    [TestMethod]
+    public void HostileNpc_ShowsRedNameplateAndIsClickableAsMob()
+    {
+        // A plain world NPC: named, with the referee cursor, but nothing for a player to click.
+        var npc = new Npc(null!) { NameId = 1, CursorId = 5 };
+
+        Assert.AreEqual(0, npc.GetAddNpcPacket().NameColor, "Neutral nameplates keep the client's own color.");
+        Assert.IsFalse(npc.GetAddNpcPacket().IsInteractable);
+
+        npc.Disposition = Npc.HostileDisposition;
+        npc.Combat = new NpcCombat(npc, CreateMob(), null!);
+
+        var packet = npc.GetAddNpcPacket();
+
+        Assert.AreNotEqual(0, packet.NameColor, "The client's color table has no red to pick for hostile.");
+        Assert.IsTrue(packet.IsInteractable, "Players click a mob to target and fight it.");
+        Assert.IsFalse(packet.HideHealthBar);
+    }
+
     private static string FindSourceResources()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
