@@ -1,9 +1,11 @@
 // ===== Sanctuary GM panel =====
 // Appended to chatWindowCtrl's main timeline by build_client_mods.py.
 //
-// Opened by the "Referee Tools" button on the main hub (ClientMods/gamedock), which sends "!gm".
+// Referees get a Referee tab on the left edge of the screen (the server sends a "referee" line when they enter
+// the world); it pops the panel in and out. "!gm" toggles it too.
 // The server answers with hidden chat lines "[[SANCTUARY_GM]]|kind|field|..." (GmChatCommand)
 // that are swallowed here and rendered. Every button sends a "!" command through chat.
+// The look matches the home screen (ClientMods/welcome/home.as): navy glass with gold for what's selected.
 
 var gmToken = "[[SANCTUARY_GM]]";
 
@@ -33,37 +35,56 @@ function gmRight()
    return Stage.width;
 }
 
-// Base layout; the panel scales from here (resize grip, maximize). Tabs run down a sidebar on the left
-// and every tab draws into the content area beside it.
-var GM_W = 780;
-var GM_H = 500;
-var GM_SIDEBAR_W = 112;
-var GM_CONTENT_X = GM_SIDEBAR_W + 24;
-var GM_CONTENT_Y = 52;
-var GM_CONTENT_W = GM_W - GM_CONTENT_X - 20;
+// Base layout; the panel scales from here (resize grip, maximize). Tab groups run along the header, the
+// group's tabs in a row under them, and every tab draws into the content area below.
+var GM_W = 940;
+var GM_H = 600;
+var GM_CONTENT_X = 22;
+var GM_CONTENT_Y = 112;
+var GM_CONTENT_W = GM_W - GM_CONTENT_X - 22;
 var GM_CONTENT_H = GM_H - GM_CONTENT_Y - 40;
-var GM_COLUMNS = 3;
-var GM_CELL_W = 204;
+var GM_COLUMNS = 4;
+var GM_CELL_W = 221;
 var GM_CELL_H = 52;
 
-// Hub palette.
-var GM_GOLD = 0xF2C94C;
-var GM_GOLD_DARK = 0x9C6B12;
-var GM_BLUE_TOP = 0x4C8FD6;
-var GM_BLUE_BOTTOM = 0x1B4A8C;
-var GM_BLUE_INNER = 0x10325F;
-var GM_BLUE_CELL = 0x1E5799;
-var GM_BLUE_ACTIVE = 0x2F6FBF;
+// Shell palette (the home screen's). The names are from the old gold-rimmed look: "gold" is now the rims,
+// and gold proper (GM_TEXT_GOLD, GM_ACCENT) marks headings and what's selected.
+var GM_GOLD = 0x8FB0F0;
+var GM_GOLD_DARK = 0x4D6CC4;
+var GM_BLUE_TOP = 0x3A5FC2;
+var GM_BLUE_BOTTOM = 0x1A2C6E;
+var GM_BLUE_INNER = 0x0A1440;
+var GM_BLUE_CELL = 0x284A9E;
+var GM_BLUE_ACTIVE = 0x5A86EC;
 var GM_TEXT = 0xFFFFFF;
-var GM_TEXT_DIM = 0xBFD7F5;
-var GM_TEXT_GOLD = 0xFFE68A;
+var GM_TEXT_DIM = 0xC9D6FF;
+var GM_TEXT_GOLD = 0xFFD54A;
+var GM_ACCENT = 0xFFC531;
+var GM_ACCENT_DARK = 0xC7780F;
+var GM_FRAME_TOP = 0x2E4FB0;
+var GM_FRAME_BOTTOM = 0x141F55;
+var GM_RIM = 0x9DB8FF;
 
 var gmTab = "players";
 var gmMaximized = false;
 var gmScale = 1;
 var gmResults = [];
 var gmList = { kind: "", search: "", page: 1, pages: 1, total: 0 };
-// Live work first (people, events, getting around), then lookups, then authoring.
+// Tab groups along the header, each with its tabs: live work first (people, events, getting around), then
+// lookups, then authoring, then admin tools.
+var gmTabGroups = [
+   ["Live", ["players", "events", "world"]],
+   ["Lookup", ["items", "npcs", "houses"]],
+   ["Create", ["edit", "script", "conv", "quests", "tiles"]],
+   ["Admin", ["itemgen", "codes", "server"]]
+];
+// Items tab categories: [label, filter the server knows ("" = all)].
+var gmItemCategories = [
+   ["All", ""], ["Gear", "gear"], ["Items", "items"], ["Pets", "pets"], ["Mounts", "mounts"], ["Housing", "housing"],
+   ["Styles", "styles"], ["Racing", "racing"], ["Recipes", "recipes"], ["Custom", "custom"], ["Other", "other"]
+];
+var gmItemCategory = "";
+var gmIsReferee = false;
 var gmTabs = [
    ["players", "Players"],
    ["events", "Events"],
@@ -155,7 +176,7 @@ function gmButton(parent, name, label, x, y, w, h, onClick, color)
    b.onRelease = onClick;
    b.onRollOver = function()
    {
-      gmPanelShape(this.bg, this.w, this.h, Math.min(8, this.h / 2), 0x7DB4EE, this.base, 0xFFF3B0, 2);
+      gmPanelShape(this.bg, this.w, this.h, Math.min(8, this.h / 2), 0x6A97FF, this.base, 0xFFF4C2, 2);
       fscommand("FR_event", "PlaySound(DockOver)");
    };
    b.onRollOut = b.onReleaseOutside = function()
@@ -227,7 +248,16 @@ function gmBuild()
    root_mc._visible = false;
 
    var frame = root_mc.createEmptyMovieClip("frame_mc", 1);
-   gmPanelShape(frame, GM_W, GM_H, 14, GM_BLUE_TOP, GM_BLUE_BOTTOM, GM_GOLD, 4);
+   gmPanelShape(frame, GM_W, GM_H, 24, GM_FRAME_TOP, GM_FRAME_BOTTOM, GM_RIM, 3);
+   // Soft light from the top left, and a darker header band behind the tabs.
+   frame.lineStyle();
+   frame.beginGradientFill("radial", [0x8FB4FF, 0x8FB4FF], [30, 0], [0, 255], { matrixType: "box", x: -200, y: -320, w: 900, h: 700, r: 0 });
+   gmRoundRect(frame, 2, 2, GM_W - 4, GM_H - 4, 22);
+   frame.endFill();
+   frame.beginFill(0x0A1440, 35);
+   gmRoundRect(frame, 4, 4, GM_W - 8, GM_CONTENT_Y - 18, 20);
+   frame.endFill();
+   frame.filters = [new flash.filters.DropShadowFilter(6, 90, 0x050A24, 0.6, 18, 18, 1, 2)];
    frame.onPress = function()
    {
       // Keep the panel inside the window while dragging; anything outside it is clipped.
@@ -241,29 +271,146 @@ function gmBuild()
       _root.gm_mc.stopDrag();
    };
 
-   // Gold title plaque.
-   var plaque = root_mc.createEmptyMovieClip("plaque_mc", 2);
-   plaque._x = GM_W / 2 - 100;
-   plaque._y = -12;
-   gmPanelShape(plaque, 200, 28, 13, 0xFFE68A, GM_GOLD_DARK, 0xFFF6CF, 2);
-   gmText(plaque, "title_txt", "Referee Tools", 0, 4, 200, 22, 15, 0x3A2400, true, "center");
+   // Title: the Referee Tools tree (the dock's old button, purple) and the name.
+   var title = root_mc.createEmptyMovieClip("title_mc", 2);
+   var tree = title.attachMovie("sanctuaryIconRefereeTree", "tree_mc", 1);
+   tree._x = 16;
+   tree._y = 6;
+   tree._width = tree._height = 42;
+   var title_txt = gmText(title, "title_txt", "Referee Tools", 64, 10, 200, 30, 22, GM_TEXT, true);
+   title_txt.wordWrap = false;
+   title_txt.filters = [new flash.filters.DropShadowFilter(2, 90, 0x0A1030, 0.9, 3, 3, 1, 1)];
+   gmText(title, "role_txt", "", 65, 36, 200, 18, 11, GM_TEXT_DIM, false).wordWrap = false;
 
-   gmButton(root_mc, "max_mc", "[ ]", GM_W - 62, 8, 26, 22, function()
+   gmButton(root_mc, "max_mc", "[ ]", GM_W - 76, 12, 30, 28, function()
    {
       gmMaximized = !gmMaximized;
       gmFit();
    });
-   gmButton(root_mc, "close_mc", "X", GM_W - 32, 8, 24, 22, function()
+   gmButton(root_mc, "close_mc", "X", GM_W - 42, 12, 30, 28, function()
    {
-      _root.gm_mc._visible = false;
+      gmPopIn(false);
    }, 0xC0392B);
 
-   // Tabs shrink a little once there are too many for the panel's height.
-   var tabStep = Math.min(38, Math.floor((GM_H - GM_CONTENT_Y - 12) / gmTabs.length));
+   root_mc.createEmptyMovieClip("tabs_mc", 3);
+
+   var inner = root_mc.createEmptyMovieClip("inner_mc", 50);
+   inner._x = GM_CONTENT_X - 10;
+   inner._y = GM_CONTENT_Y - 10;
+   inner.lineStyle(1, GM_RIM, 35);
+   inner.beginFill(GM_BLUE_INNER, 55);
+   gmRoundRect(inner, 0, 0, GM_CONTENT_W + 20, GM_CONTENT_H + 16, 14);
+   inner.endFill();
+
+   gmText(root_mc, "status_txt", "", GM_CONTENT_X, GM_H - 28, GM_CONTENT_W - 20, 18, 11, GM_TEXT_DIM, false);
+
+   root_mc.createEmptyMovieClip("content_mc", 60);
+   gmAddResizeGrip(root_mc);
+   gmClearContent();
+   gmDrawTabs();
+
+   var stageListener = new Object();
+   stageListener.onResize = function()
+   {
+      gmFit();
+      gmPlaceEdgeTab();
+   };
+   Stage.addListener(stageListener);
+}
+
+// --- tabs ---------------------------------------------------------------------------
+
+function gmTabLabel(tabId)
+{
    var i;
    for(i = 0; i < gmTabs.length; i++)
    {
-      var tab = gmButton(root_mc, "tab" + i + "_mc", gmTabs[i][1], 12, GM_CONTENT_Y - 8 + i * tabStep, GM_SIDEBAR_W - 4, tabStep - 6, function()
+      if(gmTabs[i][0] == tabId)
+      {
+         return gmTabs[i][1];
+      }
+   }
+   return tabId;
+}
+
+function gmTabGroup(tabId)
+{
+   var g;
+   var t;
+   for(g = 0; g < gmTabGroups.length; g++)
+   {
+      for(t = 0; t < gmTabGroups[g][1].length; t++)
+      {
+         if(gmTabGroups[g][1][t] == tabId)
+         {
+            return g;
+         }
+      }
+   }
+   return 0;
+}
+
+// A tab pill; selected ones are gold.
+function gmTabButton(parent, name, label, x, y, w, h, selected, size, onClick)
+{
+   var b = parent.createEmptyMovieClip(name, parent.getNextHighestDepth());
+   b._x = x;
+   b._y = y;
+   b.w = w;
+   b.h = h;
+   b.selected = selected;
+   b.bg = b.createEmptyMovieClip("bg_mc", 1);
+   b.draw = function(over)
+   {
+      if(this.selected)
+      {
+         gmPanelShape(this.bg, this.w, this.h, this.h / 2, 0xFFE066, GM_ACCENT_DARK, 0xFFF4C2, 2);
+      }
+      else
+      {
+         gmPanelShape(this.bg, this.w, this.h, this.h / 2, over ? 0x5A86EC : 0x2B4AA6, over ? 0x2B4AA6 : 0x172A6A, over ? 0xFFF4C2 : GM_RIM, 1);
+      }
+   };
+   b.draw(false);
+   var t = gmText(b, "label_txt", label, 2, Math.round((h - size) / 2) - 4, w - 4, size + 8, size, selected ? 0x4A2500 : GM_TEXT, true, "center");
+   t.wordWrap = false;
+   b.onRelease = onClick;
+   b.onRollOver = function()
+   {
+      this.draw(true);
+      fscommand("FR_event", "PlaySound(DockOver)");
+   };
+   b.onRollOut = b.onReleaseOutside = function()
+   {
+      this.draw(false);
+   };
+   return b;
+}
+
+// Groups along the header, the current group's tabs underneath.
+function gmDrawTabs()
+{
+   var root_mc = _root.gm_mc;
+   root_mc.tabs_mc.removeMovieClip();
+   var tabs = root_mc.createEmptyMovieClip("tabs_mc", 3);
+   var group = gmTabGroup(gmTab);
+   var g;
+   for(g = 0; g < gmTabGroups.length; g++)
+   {
+      var gb = gmTabButton(tabs, "group" + g + "_mc", gmTabGroups[g][0], 290 + g * 132, 12, 124, 32, g == group, 14, function()
+      {
+         if(gmTabGroup(gmTab) != this.group)
+         {
+            gmShowTab(gmTabGroups[this.group][1][0]);
+         }
+      });
+      gb.group = g;
+   }
+   var ids = gmTabGroups[group][1];
+   var t;
+   for(t = 0; t < ids.length; t++)
+   {
+      var tb = gmTabButton(tabs, "tab" + t + "_mc", gmTabLabel(ids[t]), GM_CONTENT_X + t * 132, 62, 124, 28, ids[t] == gmTab, 12, function()
       {
          // Players again from a player's card goes back to the list.
          if(this.tabId == "players" && gmTab == "players")
@@ -272,30 +419,162 @@ function gmBuild()
          }
          gmShowTab(this.tabId);
       });
-      tab.tabId = gmTabs[i][0];
+      tb.tabId = ids[t];
    }
-
-   var inner = root_mc.createEmptyMovieClip("inner_mc", 50);
-   inner._x = GM_CONTENT_X - 10;
-   inner._y = GM_CONTENT_Y - 10;
-   inner.lineStyle(2, GM_GOLD_DARK, 100);
-   inner.beginFill(GM_BLUE_INNER, 92);
-   gmRoundRect(inner, 0, 0, GM_CONTENT_W + 20, GM_CONTENT_H + 16, 10);
-   inner.endFill();
-
-   gmText(root_mc, "status_txt", "", GM_CONTENT_X, GM_H - 28, GM_CONTENT_W - 20, 18, 11, GM_TEXT_DIM, false);
-
-   root_mc.createEmptyMovieClip("content_mc", 60);
-   gmAddResizeGrip(root_mc);
-   gmClearContent();
-
-   var stageListener = new Object();
-   stageListener.onResize = function()
-   {
-      gmFit();
-   };
-   Stage.addListener(stageListener);
 }
+
+// --- pop-in -------------------------------------------------------------------------
+// The panel slides in from the left edge, from the Referee tab there.
+
+function gmPopIn(show)
+{
+   var p = _root.gm_mc;
+   var offscreen = - GM_W * p._xscale / 100 - 20;
+   if(show)
+   {
+      if(p._visible && p.onEnterFrame == undefined)
+      {
+         return;
+      }
+      if(!p._visible)
+      {
+         p._visible = true;
+         gmFit();
+         gmShowTab(gmTab);
+         // Back where it was (beside the edge tab the first time; maximized, where gmFit centered it).
+         p.homeX = gmMaximized ? p._x : (p.homeX == undefined ? 56 : p.homeX);
+         p._x = offscreen;
+      }
+      gmSlide(p, p.homeX, true);
+   }
+   else if(p._visible)
+   {
+      if(p.onEnterFrame == undefined)
+      {
+         p.homeX = p._x;
+      }
+      gmSlide(p, offscreen, false);
+   }
+}
+
+function gmSlide(p, toX, staysVisible)
+{
+   p.onEnterFrame = function()
+   {
+      this._x += (toX - this._x) * 0.3;
+      if(Math.abs(toX - this._x) < 1)
+      {
+         this._x = toX;
+         delete this.onEnterFrame;
+         this._visible = staysVisible;
+      }
+   };
+}
+
+// The Referee tab on the left edge of the screen, for referees only.
+function gmShowEdgeTab()
+{
+   gmIsReferee = true;
+   if(_root.gmtab_mc != undefined)
+   {
+      return;
+   }
+   var tab = _root.createEmptyMovieClip("gmtab_mc", 15990);
+   var w = 46;
+   var h = 168;
+   tab.bg = tab.createEmptyMovieClip("bg_mc", 1);
+   tab.draw = function(over)
+   {
+      this.bg.clear();
+      this.bg.lineStyle(2, over ? 0xFFF4C2 : 0xD9CCFF, over ? 100 : 70);
+      this.bg.beginGradientFill("linear", [over ? 0x8C6BFF : 0x6A4AD8, over ? 0x5A3CC4 : 0x3A2690], [100, 100], [0, 255], { matrixType: "box", x: 0, y: 0, w: w, h: h, r: 0 });
+      // Rounded on the right only; the left side runs off the screen edge.
+      this.bg.moveTo(-20, 0);
+      this.bg.lineTo(w - 16, 0);
+      this.bg.curveTo(w, 0, w, 16);
+      this.bg.lineTo(w, h - 16);
+      this.bg.curveTo(w, h, w - 16, h);
+      this.bg.lineTo(-20, h);
+      this.bg.lineTo(-20, 0);
+      this.bg.endFill();
+   };
+   tab.draw(false);
+   tab.filters = [new flash.filters.DropShadowFilter(3, 0, 0x050A24, 0.6, 10, 10, 1, 2)];
+   var tree = tab.attachMovie("sanctuaryIconRefereeTree", "tree_mc", 2);
+   tree._x = 5;
+   tree._y = 8;
+   tree._width = tree._height = 36;
+   // Vertical label, reading bottom to top.
+   var label = tab.createEmptyMovieClip("label_mc", 3);
+   gmText(label, "txt", "REFEREE", 0, 0, 110, 24, 15, GM_TEXT, true, "center").wordWrap = false;
+   label._rotation = -90;
+   label._x = 12;
+   label._y = h - 8;
+   tab.onRollOver = function()
+   {
+      this.draw(true);
+      fscommand("FR_event", "PlaySound(DockOver)");
+   };
+   tab.onRollOut = tab.onReleaseOutside = function()
+   {
+      this.draw(false);
+   };
+   tab.onRelease = function()
+   {
+      fscommand("FR_event", "PlaySound(DockSelect)");
+      gmPopIn(!_root.gm_mc._visible || _root.gm_mc._x < 0);
+   };
+   gmPlaceEdgeTab();
+}
+
+function gmPlaceEdgeTab()
+{
+   var tab = _root.gmtab_mc;
+   if(tab == undefined)
+   {
+      return;
+   }
+   tab._x = 0;
+   tab._y = Math.round(gmTop() + (gmBottom() - gmTop()) * 0.3);
+}
+
+// --- copying item ids -----------------------------------------------------------------
+// Middle-clicking an item cell copies its id (Scaleform passes the mouse button to onMouseDown; 3 is the middle).
+
+_global.gfxExtensions = true;
+var gmMouseListener = new Object();
+gmMouseListener.onMouseDown = function(button)
+{
+   if(button != 3 || !_root.gm_mc._visible || gmTab != "items")
+   {
+      return;
+   }
+   var content = _root.gm_mc.content_mc;
+   var i;
+   for(i = 0; i < gmResults.length; i++)
+   {
+      var cell = content["cell" + i + "_mc"];
+      if(cell != undefined && cell.hitTest(_root._xmouse, _root._ymouse, false))
+      {
+         var id = String(gmResults[i][0]);
+         System.setClipboard(id);
+         gmStatus("Copied item id " + id + " (" + gmResults[i][4] + ")");
+         cell._alpha = 40;
+         cell.onEnterFrame = function()
+         {
+            this._alpha += 10;
+            if(this._alpha >= 100)
+            {
+               this._alpha = 100;
+               delete this.onEnterFrame;
+            }
+         };
+         fscommand("FR_event", "PlaySound(DockSelect)");
+         return;
+      }
+   }
+};
+Mouse.addListener(gmMouseListener);
 
 // Keeps the whole panel on screen at any window size; maximized fills the space available.
 // Largest scale for the panel. The enlarged chat window can run a little past the screen edge,
@@ -382,13 +661,7 @@ function gmClearContent()
 function gmShowTab(tabId)
 {
    gmTab = tabId;
-   var i;
-   for(i = 0; i < gmTabs.length; i++)
-   {
-      var tab = _root.gm_mc["tab" + i + "_mc"];
-      tab.base = gmTabs[i][0] == tabId ? GM_BLUE_ACTIVE : GM_BLUE_TOP;
-      tab.onRollOut();
-   }
+   gmDrawTabs();
    var content = gmClearContent();
    if(tabId == "world")
    {
@@ -452,34 +725,53 @@ function gmShowTab(tabId)
    }
    else
    {
-      gmSend("!gm " + tabId + " 1");
+      gmSend(gmListCommand(tabId, 1, ""));
    }
 }
 
 // Search box, show-all and paging bar on every lookup tab.
 function gmToolbar(content, kind)
 {
-   gmSearchBox(content, kind, 0, 0, 176, 24);
-   var search = gmButton(content, "search_mc", "Search", 180, 0, 66, 24, function()
+   gmSearchBox(content, kind, 0, 0, 320, 26);
+   var search = gmButton(content, "search_mc", "Search", 328, 0, 80, 26, function()
    {
       gmSearch(this.kind);
    });
    search.kind = kind;
-   var all = gmButton(content, "all_mc", "Show all", 250, 0, 74, 24, function()
+   var all = gmButton(content, "all_mc", "Show all", 414, 0, 88, 26, function()
    {
       _root.gm_mc.content_mc.search_txt.text = "";
-      gmSend("!gm " + this.kind + " 1");
+      gmSend(gmListCommand(this.kind, 1, ""));
    });
    all.kind = kind;
-   gmButton(content, "prev_mc", "<", 330, 0, 28, 24, function()
+   // Paging at the right end of the bar.
+   gmButton(content, "prev_mc", "<", GM_CONTENT_W - 190, 0, 34, 26, function()
    {
       gmPage(kind, -1);
    });
-   gmText(content, "page_txt", "", 360, 4, 112, 20, 11, GM_TEXT, true, "center");
-   gmButton(content, "next_mc", ">", 474, 0, 28, 24, function()
+   gmText(content, "page_txt", "", GM_CONTENT_W - 152, 5, 114, 20, 12, GM_TEXT, true, "center");
+   gmButton(content, "next_mc", ">", GM_CONTENT_W - 34, 0, 34, 26, function()
    {
       gmPage(kind, 1);
    });
+   if(kind == "items")
+   {
+      // Category chips; middle-click a cell to copy its id.
+      var c;
+      var x = 0;
+      for(c = 0; c < gmItemCategories.length; c++)
+      {
+         var w = 22 + gmItemCategories[c][0].length * 7;
+         var chip = gmTabButton(content, "cat" + c + "_mc", gmItemCategories[c][0], x, 32, w, 24, gmItemCategories[c][1] == gmItemCategory, 11, function()
+         {
+            gmItemCategory = this.category;
+            gmSend(gmListCommand("items", 1, gmFieldText(_root.gm_mc.content_mc.search_txt)));
+         });
+         chip.category = gmItemCategories[c][1];
+         x += w + 6;
+      }
+      gmText(content, "copy_txt", "Middle-click an item to copy its id", x + 6, 36, GM_CONTENT_W - x - 6, 18, 10, GM_TEXT_DIM, false, "right").wordWrap = false;
+   }
    if(kind == "houses")
    {
       gmButtonRow(content, GM_CONTENT_H - 26, [
@@ -638,14 +930,14 @@ function gmSearchBox(content, kind, x, y, w, h)
 {
    var t = gmInput(content, "search_txt", x, y, w, h, gmList.kind == kind ? gmList.search : "", "Search by name or id...", function(text)
    {
-      gmSend("!gm " + this.kind + " 1 " + text);
+      gmSend(gmListCommand(this.kind, 1, text));
    });
    t.kind = kind;
 }
 
 function gmSearch(kind)
 {
-   gmSend("!gm " + kind + " 1 " + gmFieldText(_root.gm_mc.content_mc.search_txt));
+   gmSend(gmListCommand(kind, 1, gmFieldText(_root.gm_mc.content_mc.search_txt)));
    fscommand("FR_event", "killFocus()");
 }
 
@@ -663,6 +955,13 @@ function gmButtonRow(content, y, buttons)
    }
 }
 
+// "!gm <kind> <page> [search]"; items also carry the category as "@<category>" before the search.
+function gmListCommand(kind, page, search)
+{
+   var category = kind == "items" && gmItemCategory != "" ? "@" + gmItemCategory + " " : "";
+   return "!gm " + kind + " " + page + " " + category + search;
+}
+
 function gmPage(kind, delta)
 {
    if(gmList.kind != kind)
@@ -674,7 +973,7 @@ function gmPage(kind, delta)
    {
       return;
    }
-   gmSend("!gm " + kind + " " + page + " " + gmList.search);
+   gmSend(gmListCommand(kind, page, gmList.search));
 }
 
 function gmRenderGrid(content)
@@ -687,9 +986,10 @@ function gmRenderGrid(content)
    {
       var r = gmResults[i];
       var cell = content.createEmptyMovieClip("cell" + i + "_mc", 100 + i);
-      cell._x = (i % GM_COLUMNS) * (GM_CELL_W + 2);
-      cell._y = 30 + Math.floor(i / GM_COLUMNS) * (GM_CELL_H + 3);
-      gmPanelShape(cell, GM_CELL_W, GM_CELL_H, 8, GM_BLUE_CELL, GM_BLUE_BOTTOM, GM_GOLD_DARK, 1);
+      cell._x = (i % GM_COLUMNS) * (GM_CELL_W + 4);
+      // Items have a row of category chips over the grid.
+      cell._y = (kind == "items" ? 64 : 34) + Math.floor(i / GM_COLUMNS) * (GM_CELL_H + 4);
+      gmPanelShape(cell, GM_CELL_W, GM_CELL_H, 10, GM_BLUE_CELL, GM_BLUE_BOTTOM, GM_GOLD_DARK, 1);
       if(kind == "items")
       {
          gmItemCell(cell, r);
@@ -3794,14 +4094,15 @@ function gmHandleData(text)
    var kind = parts[1];
    var root_mc = _root.gm_mc;
 
-   if(kind == "open")
+   if(kind == "open" || kind == "referee")
    {
+      // "referee" comes when a referee enters the world: just the edge tab. "open" (!gm) also toggles the panel.
       gmRole = parts[2];
-      root_mc._visible = !root_mc._visible;
-      if(root_mc._visible)
+      root_mc.title_mc.role_txt.text = gmRole == "Admin" ? "Admin" : "Moderator";
+      gmShowEdgeTab();
+      if(kind == "open")
       {
-         gmFit();
-         gmShowTab(gmTab);
+         gmPopIn(!root_mc._visible || root_mc._x < 0);
       }
       return;
    }
@@ -3845,8 +4146,8 @@ function gmHandleData(text)
       gmEdit = parts.slice(2);
       if(gmEdit[0] != "none" && !root_mc._visible)
       {
-         root_mc._visible = true;
-         gmFit();
+         gmTab = "edit";
+         gmPopIn(true);
       }
       if(gmEdit[0] != "none" || gmTab == "edit")
       {

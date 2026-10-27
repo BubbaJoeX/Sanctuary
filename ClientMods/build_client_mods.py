@@ -6,10 +6,10 @@ manifest it hands the client. The client only downloads assets missing from its 
 so mods are published under new names, and install_client_mods.py points the client's UI at them.
 
 Mods:
-  sanctuaryChatWindowCtrl.gfx (+ .lst.z) - chat window with the referee (GM) panel
-                                           (chatWindowCtrl/gm_panel.as appended).
-  sanctuaryGameDock.gfx (+ .lst.z)       - main hub with a purple Referee Tools tree that opens the panel
-                                           (gamedock/gm_hub_button.as appended, gmTreeIcon added).
+  sanctuaryChatWindowCtrl.gfx (+ .lst.z) - chat window with the referee (GM) panel, popped in from a Referee
+                                           tab on the screen edge for referees (chatWindowCtrl/gm_panel.as).
+  sanctuaryGameDock.gfx (+ .lst.z)       - main hub with the Marketplace icon as the Coin Shop
+                                           (gamedock/coin_shop_button.as appended).
   sanctuaryDialog.gfx (+ .lst.z)         - NPC dialog that stays hidden when sent empty, so GM conversations
                                            get its camera zoom with the panel's text (dialog/dialog_hide.as).
   sanctuaryHousingEditPanel.gfx (+ .lst.z) - decorate-mode furniture tray with 10 items per page and a
@@ -50,6 +50,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from hud import reskin
 from loadingscreen import background
 
 script_dir = Path(__file__).resolve().parent
@@ -57,17 +58,13 @@ output_dir = script_dir.parent / "src" / "Resources" / "ClientMods"
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
 
-# (exported symbol to copy, export name of the copy, hue shift in degrees)
-GM_TREE_ICON = ("treeIcon", "gmTreeIcon", 155)
-REDEEM_TREE_ICON = ("treeIcon", "gmRedeemIcon", 35)
-
 NO_STATION_CASH = "no_station_cash.as"
 
 # (stock movie, published name, script inside the movie to append to, patch sources, recolored symbols to add)
 MODS = [
     ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction", [script_dir / "chatWindowCtrl" / "gm_panel.as"], []),
     ("gamedock", "sanctuaryGameDock", "\\frame_1\\DoAction",
-     [script_dir / "gamedock" / "gm_hub_button.as", script_dir / "gamedock" / "coin_shop_button.as"], [GM_TREE_ICON, REDEEM_TREE_ICON]),
+     [script_dir / "gamedock" / "coin_shop_button.as"], []),
     ("dialog", "sanctuaryDialog", "\\frame_1\\DoAction", [script_dir / "dialog" / "dialog_hide.as"], []),
     ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction", [script_dir / "housing" / "tray.as"], []),
     ("marketplace", "sanctuaryMarketplace", "\\frame_1\\DoAction", [script_dir / "marketplace" / "coin_store_only.as"], []),
@@ -87,6 +84,10 @@ MODS = [
     ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction", [script_dir / "HousingPreview" / NO_STATION_CASH], []),
     ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
     ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "main_menu.as"], []),
+    # HUD pieces that are only repainted (RESKINS), with no script changes.
+    ("FRUtilNavigation", "sanctuaryFRUtilNavigation", None, [], []),
+    ("mini_map", "sanctuaryMiniMap", None, [], []),
+    ("social", "sanctuarySocial", None, [], []),
 ]
 
 # Stock movie -> [(external texture, texture to use instead)]. Station Cash no longer exists, so the
@@ -100,6 +101,8 @@ TEXTURE_SWAPS = {
 # Stock movie -> [(client texture, export name, size, hue shift in degrees)]. Each texture is cropped to
 # its art, fitted into a size x size square and embedded as an exported sprite the patch scripts attach.
 TEXTURE_SYMBOLS = {
+    # The referee panel's title and its edge tab: the hub tree in the Referee Tools purple.
+    "chatWindowCtrl": [("img7070878317473001703.dds", "sanctuaryIconRefereeTree", 64, 155)],
     # The welcome screen (welcome/home.as): Main Menu tile art for the quick links and Referee Picks, the
     # coin store coin, the friends icon, and the hub tree in the Referee Tools purple.
     "welcome": [
@@ -144,6 +147,47 @@ TEXT_SYMBOLS = {
 REMOVED_DEPTHS = {
     # The member badge's orange plate.
     "welcome": [115],
+}
+
+# Stock movie -> {client texture: hud/reskin.py recipe}. The texture is repainted at the size the movie draws
+# it and embedded in its place, so the HUD keeps its layout: purple, brown and beige chrome becomes navy glass,
+# frosted glass and gold, and the minimap gets a new ring.
+RESKINS = {
+    # The dock: title plate, slot frames, action bar base and its round slots (health and mana keep their colors).
+    "gamedock": {
+        "img7261148070336999820.dds": "navy", "img1059227586001590212.dds": "navy",
+        "img11007847080817277960.dds": "navy", "img15087113162217541573.dds": "navy",
+        "img12347292446648657273.dds": "navy", "img4008478653138261676.dds": "navy",
+        "img2547489642989162929.dds": "glass", "img571722968246882682.dds": "glass",
+        "img17894775867228385230.dds": "glass", "img13179357351024049733.dds": "glass",
+        "img3433151271243245196.dds": "glass", "img3660832219945813116.dds": "glass",
+    },
+    # The top utility bar.
+    "FRUtilNavigation": {"img3488721174386834823.dds": "navy"},
+    # The minimap: its backdrop, ring and zoom buttons.
+    "mini_map": {
+        "img4695131534032394228.dds": "navy", "img10708622630870636103.dds": "ring",
+        "img13179357351024049733.dds": "glass", "img3433151271243245196.dds": "glass",
+    },
+    # The friends panel: purple frames, the brown header and orange buttons, and the beige buttons.
+    "social": {
+        "img14307746584820960033.dds": "navy", "img3118227998292618224.dds": "navy",
+        "img7481755510491628842.dds": "navy", "img16725234778555798738.dds": "navy",
+        "img5060708491987452422.dds": "navy", "img1059227586001590212.dds": "navy",
+        "img17324286690744305172.dds": "navy", "img835877099391186097.dds": "navy",
+        "img11341374780922977356.dds": "navy", "img3027467735542961691.dds": "navy",
+        "img13788486141241226455.dds": "navy", "img15103948945701512237.dds": "navy",
+        "img15087759986106883599.dds": "navy", "img6055351301255611254.dds": "navy",
+        "img8512871844800064570.dds": "navy", "img17687862331118531982.dds": "navy",
+        "img10601195574189710825.dds": "navy", "img15913745394084125270.dds": "navy",
+        "img14948868264591843625.dds": "navy",
+        "img16504749052500928201.dds": "gold", "img4848014849839955794.dds": "gold",
+        "img11313097541566256479.dds": "gold",
+        "img17721979831663157310.dds": "glass", "img11997853953748690251.dds": "glass",
+        "img9797266604789056704.dds": "glass", "img13179357351024049733.dds": "glass",
+        "img3433151271243245196.dds": "glass", "img626770873669363768.dds": "glass",
+        "img12455688932877814193.dds": "glass", "img1810748524064661009.dds": "glass",
+    },
 }
 
 LOADING_SCREEN = ("loadingscreen", "sanctuaryLoadingScreen")
@@ -370,6 +414,20 @@ def remove_root_depths(xml, depths):
     return head + "".join(tag for tag in tags if not (re.match(placement, tag) and int(re.match(placement, tag).group(1)) in depths)) + tail
 
 
+def apply_reskins(xml, stock, recipes):
+    """Embeds a repainted copy of each listed texture in place of the external image, at its drawn size."""
+    def repaint(match):
+        attributes = dict(re.findall(r'(\w+)="([^"]*)"', match.group(0)))
+        recipe = recipes.get(attributes["fileName"])
+        if recipe is None:
+            return match.group(0)
+        size = (int(attributes["targetWidth"]), int(attributes["targetHeight"]))
+        image = load_texture(stock, attributes["fileName"]).resize(size, Image.LANCZOS)
+        return lossless_tag(attributes["characterID"], reskin.RECIPES[recipe](image)).lstrip("\n ")
+
+    return re.sub(r'<item type="DefineExternalImage"[^>]*/>', repaint, xml)
+
+
 def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols, output_path):
     with tempfile.TemporaryDirectory() as temp:
         temp = Path(temp)
@@ -381,8 +439,9 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
         textures = TEXTURE_SYMBOLS.get(stock_name, [])
         texts = TEXT_SYMBOLS.get(stock_name, [])
         removed = REMOVED_DEPTHS.get(stock_name, [])
+        reskins = RESKINS.get(stock_name, {})
 
-        if symbols or swaps or textures or texts or removed:
+        if symbols or swaps or textures or texts or removed or reskins:
             ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
             xml = (temp / "stock.xml").read_text(encoding="utf-8")
             for symbol in symbols:
@@ -399,9 +458,16 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
                     xml = add_image_symbol(xml, background.render_word(font, text, size, top, bottom), export_name)
             if removed:
                 xml = remove_root_depths(xml, removed)
+            if reskins:
+                xml = apply_reskins(xml, stock, reskins)
             (temp / "stock.xml").write_text(xml, encoding="utf-8")
             ffdec(java, jar, "-xml2swf", temp / "stock.xml", temp / "stock.gfx")
             stock_path = temp / "stock.gfx"
+
+        # A repaint-only mod has no script to patch.
+        if not patch_paths:
+            shutil.copyfile(stock_path, output_path)
+            return
 
         ffdec(java, jar, "-export", "script", temp / "export", stock_path)
 

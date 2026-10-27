@@ -43,7 +43,7 @@ var HOME_MONTHS = ["January","February","March","April","May","June","July","Aug
 
 var HOME_TIPS = [
    "Click a friend under Friends Online to teleport right to them.",
-   "Have a code? Press Enter and type !redeem, or use the Redeem Code button on the dock.",
+   "Have a code? Press Enter and type !redeem to open the code box.",
    "The referees change their picks often. Check back for new places to go!",
    "Earn coins playing, then spend them on outfits, mounts and pets in the Shop.",
    "Open the Main Menu from your portrait on the dock to find everything else.",

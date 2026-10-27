@@ -124,6 +124,10 @@ public sealed partial class WorldZone : BaseZone
 
         SendShopData(player);
 
+        // Referees get the Referee tab that pops in the GM panel (ClientMods/chatWindowCtrl/gm_panel.as).
+        if (player.ChatCommandRole >= ChatCommands.ChatCommandRole.Mod)
+            ChatHelper.SendGmPanelData(player, "referee", player.ChatCommandRole);
+
         _housingManager.SendPlayerHouses(player, player.Guid, null);
         _questManager.RestoreJournal(player);
 

@@ -80,6 +80,10 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndHousingPreview.xml"), [("UI\\HousingPreview.swf", "UI\\sanctuaryHousingPreview.swf")]),
     (Path("UI/UiModules/Main/wndStorage.xml"), [("UI\\storage.swf", "UI\\sanctuaryStorage.swf")]),
     (Path("UI/UiModules/Main/wndMyStuffBrowser.xml"), [("UI\\MyStuffBrowser.swf", "UI\\sanctuaryMyStuffBrowser.swf")]),
+    # The repainted HUD (RESKINS in build_client_mods.py).
+    (Path("UI/UiModules/Main/wndFRUtilNavigation.xml"), [("UI\\FRUtilNavigation.swf", "UI\\sanctuaryFRUtilNavigation.swf")]),
+    (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
+    (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

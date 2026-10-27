@@ -7,6 +7,7 @@ using System.Numerics;
 
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions;
@@ -21,7 +22,8 @@ namespace Sanctuary.Game.ChatCommands;
 /// </summary>
 public class GmChatCommand : IChatCommand
 {
-    private const int PageSize = 18;
+    // Four columns of six rows in the panel.
+    private const int PageSize = 24;
 
     private readonly ILogger _logger;
     private readonly IChatCommandManager _chatCommandManager;
@@ -148,14 +150,46 @@ public class GmChatCommand : IChatCommand
         ChatHelper.SendGmPanelData(invoker, "end", kind);
     }
 
+    // The panel's item categories ("@gear" etc. before the search) -> item definition types.
+    private static readonly Dictionary<string, int[]> ItemCategories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["gear"] = [1],
+        ["items"] = [3, 6, 14, 30],
+        ["pets"] = [2, 4],
+        ["mounts"] = [19],
+        ["housing"] = [16, 17, 29],
+        ["styles"] = [12, 13],
+        ["racing"] = [9, 10, 11, 18],
+        ["recipes"] = [5]
+    };
+
     private bool HandleItems(Player invoker, string[] args)
     {
         ParsePage(args, out var page, out var search);
 
-        // Unnamed items are internal (test/unused), keep them out of the browser.
+        var category = "";
+        if (search.StartsWith('@'))
+        {
+            var split = search.Split(' ', 2);
+            category = split[0][1..];
+            search = split.Length > 1 ? split[1].Trim() : "";
+        }
+
+        var listed = ItemCategories.Values.SelectMany(types => types).ToHashSet();
+
+        // Every item, named or not: custom items by their Item Gen label, the rest by their name, falling back to
+        // the definition's comment or model.
         var results = _resourceManager.ClientItemDefinitions.Values
-            .Select(item => (Item: item, Name: GetName(item.NameId) ?? item.Comment))
-            .Where(x => x.Name is not null && Matches(search, x.Item.Id, x.Name, x.Item.ModelName))
+            .Where(item => category switch
+            {
+                "" => true,
+                "custom" => CustomItemManager.IsCustomItemId(item.Id),
+                "other" => !CustomItemManager.IsCustomItemId(item.Id) && !listed.Contains(item.Type),
+                _ => ItemCategories.TryGetValue(category, out var types) && types.Contains(item.Type) && !CustomItemManager.IsCustomItemId(item.Id)
+            })
+            .Select(item => (Item: item, Name: (CustomItemManager.IsCustomItemId(item.Id) ? item.Comment : null)
+                ?? GetName(item.NameId) ?? item.Comment ?? (string.IsNullOrEmpty(item.ModelName) ? $"Item {item.Id}" : item.ModelName)))
+            .Where(x => Matches(search, x.Item.Id, x.Name, x.Item.ModelName))
             .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
             .ThenBy(x => x.Item.Id)
             .ToList();
