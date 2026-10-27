@@ -19,6 +19,17 @@ public static class CombatRules
     public const int PlayerRespawnSeconds = 8;
 
     /// <summary>
+    /// A player's health before buffs: 2500 at rank 1 and 100 more for each rank of the active job.
+    /// </summary>
+    public static int MaxHitpointsAtRank(int rank) => 2500 + 100 * (Math.Clamp(rank, 1, ProfileExperience.MaxRank) - 1);
+
+    /// <summary>
+    /// What a job's abilities hit for at <paramref name="rank"/>: 5% more per rank above 1 (1.95x at the top).
+    /// </summary>
+    public static int ScaleDamageForRank(int damage, int rank) =>
+        damage <= 0 ? damage : (int)Math.Round(damage * (1d + 0.05d * (Math.Clamp(rank, 1, ProfileExperience.MaxRank) - 1)), MidpointRounding.AwayFromZero);
+
+    /// <summary>
     /// A hit of <paramref name="baseDamage"/>, moved by up to +/- <paramref name="variance"/> of itself.
     /// <paramref name="roll"/> is a uniform 0-1 random number. Never less than 1 for a positive base.
     /// </summary>

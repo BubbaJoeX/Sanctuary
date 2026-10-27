@@ -60,6 +60,21 @@ public sealed class ProfileExperienceTests
     }
 
     [TestMethod]
+    public void HigherRanksHaveMoreHealthAndHitHarder()
+    {
+        Assert.AreEqual(2500, CombatRules.MaxHitpointsAtRank(1));
+        Assert.AreEqual(3400, CombatRules.MaxHitpointsAtRank(10));
+        Assert.AreEqual(4400, CombatRules.MaxHitpointsAtRank(ProfileExperience.MaxRank));
+        Assert.AreEqual(2500, CombatRules.MaxHitpointsAtRank(0), "Bad ranks count as rank 1.");
+
+        Assert.AreEqual(100, CombatRules.ScaleDamageForRank(100, 1));
+        Assert.AreEqual(145, CombatRules.ScaleDamageForRank(100, 10));
+        Assert.AreEqual(195, CombatRules.ScaleDamageForRank(100, ProfileExperience.MaxRank));
+        Assert.AreEqual(195, CombatRules.ScaleDamageForRank(100, 99), "Capped at the top rank.");
+        Assert.AreEqual(0, CombatRules.ScaleDamageForRank(0, ProfileExperience.MaxRank));
+    }
+
+    [TestMethod]
     public void ProgressPackets_MatchTheClient()
     {
         // BaseClientUpdatePacket 38, then the client's sub-opcodes 14 (six ints) and 18 (profile, rank).

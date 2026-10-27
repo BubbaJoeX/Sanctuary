@@ -440,7 +440,7 @@ public abstract class BaseZone : IZone, IDisposable
         // TODO
         clientUpdatePacketUpdateStat.Stats.AddRange(
         [
-            new CharacterStat(CharacterStatId.MaxHealth, 2500),
+            player.Stats[CharacterStatId.MaxHealth],
             player.Stats[CharacterStatId.MaxMovementSpeed],
             new CharacterStat(CharacterStatId.WeaponRange, 5f),
             new CharacterStat(CharacterStatId.HitPointRegen, 25),
