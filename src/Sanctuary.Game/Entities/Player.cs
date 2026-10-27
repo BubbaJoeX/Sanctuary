@@ -115,6 +115,11 @@ public sealed class Player : ClientPcData, IEntity
     public bool RefereeToolsLoaded { get; set; }
 
     /// <summary>
+    /// The client extensions (Sanctuary's region badges, ...) were loaded into this client (see ClientLuaHelper).
+    /// </summary>
+    public bool ClientExtensionsLoaded { get; set; }
+
+    /// <summary>
     /// Glide and jump stats to restore when !fly is turned off; null while not flying.
     /// </summary>
     public CharacterStat[]? FlyRestoreStats { get; set; }
