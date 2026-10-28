@@ -1,0 +1,37 @@
+#ID^NAME^
+150^Penguin Produce - Hard^
+151^A Fishy Situation - Hard^
+152^My fish, MINE! - Hard^
+153^Weed Killing! - Hard^
+154^Plants Alive! - Hard^
+155^Weeding the Weeds! - Hard^
+156^Crop Dusting - Hard^
+157^Gardening 101 - Hard^
+158^Barnyard Bonanza - Hard^
+159^Protect the Hive - Hard^
+160^Honey, I'm Home! - Hard^
+161^We've Come for the Honey! - Hard^
+250^Penguin Produce - Medium^
+251^A Fishy Situation - Medium^
+252^My fish, MINE! - Medium^
+253^Weed Killing! - Medium^
+254^Plants Alive! - Medium^
+255^Weeding the Weeds! - Medium^
+256^Crop Dusting - Medium^
+257^Gardening 101 - Medium^
+258^Barnyard Bonanza - Medium^
+259^Protect the Hive - Medium^
+260^Honey, I'm Home! - Medium^
+261^We've Come for the Honey! - Medium^
+350^Penguin Produce - Easy^
+351^A Fishy Situation - Easy^
+352^My fish, MINE! - Easy^
+353^Weed Killing! - Easy^
+354^Plants Alive! - Easy^
+355^Weeding the Weeds! - Easy^
+356^Crop Dusting - Easy^
+357^Gardening 101 - Easy^
+358^Barnyard Bonanza - Easy^
+359^Protect the Hive - Easy^
+360^Honey, I'm Home! - Easy^
+361^We've Come for the Honey! - Easy^
