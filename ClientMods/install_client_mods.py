@@ -143,6 +143,27 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndArrowIndicator.xml"), [("UI\\ArrowIndicator.swf", "UI\\sanctuaryArrowIndicator.swf")]),
     (Path("UI/UiModules/Main/wndPayAttention.xml"), [("UI\\payattention.swf", "UI\\sanctuaryPayAttention.swf")]),
     (Path("UI/UiModules/Main/wndSceneText.xml"), [("UI\\scenetext.swf", "UI\\sanctuarySceneText.swf")]),
+    # Quests, the generic dialogs and the retired membership/Station Cash windows.
+    (Path("UI/UiModules/Main/wndQuestScreen.xml"), [("UI\\questjournal.swf", "UI\\sanctuaryQuestJournal.swf")]),
+    (Path("UI/UiModules/Main/wndQuestStart.xml"), [("UI\\queststart.swf", "UI\\sanctuaryQuestStart.swf")]),
+    (Path("UI/UiModules/Main/wndQuestEnd.xml"), [("UI\\queststart.swf", "UI\\sanctuaryQuestStart.swf")]),
+    (Path("UI/UiModules/Main/wndQuestHelper.xml"), [("UI\\quest_helper.swf", "UI\\sanctuaryQuestHelper.swf")]),
+    (Path("UI/UiModules/Main/wndObjectives.xml"), [("UI\\objectiveHelper.swf", "UI\\sanctuaryObjectiveHelper.swf")]),
+    (Path("UI/UiModules/Main/wndMiniGameTasks.xml"), [("UI\\objectiveHelper.swf", "UI\\sanctuaryObjectiveHelper.swf")]),
+    (Path("UI/UiModules/Main/wndMessageWindow.xml"), [("UI\\messageWindow.swf", "UI\\sanctuaryMessageWindow.swf")]),
+    (Path("UI/UiModules/Main/wndUtilityWindow.xml"), [("UI\\messageWindow.swf", "UI\\sanctuaryMessageWindow.swf")]),
+    (Path("UI/UiModules/Main/wndMessageWindowV2.xml"), [("UI\\messageWindowV2.swf", "UI\\sanctuaryMessageWindowV2.swf")]),
+    (Path("UI/UiModules/Main/wndConfirmationWindow.xml"), [("UI\\ConfirmationWindow.swf", "UI\\sanctuaryConfirmationWindow.swf")]),
+    (Path("UI/UiModules/Main/wndError.xml"), [("UI\\error.swf", "UI\\sanctuaryError.swf")]),
+    (Path("UI/UiModules/Main/wndDirectedPlayPrompt.xml"), [("UI\\DirectedPlayPrompt.swf", "UI\\sanctuaryDirectedPlayPrompt.swf")]),
+    (Path("UI/UiModules/Main/wndFRMembership.xml"), [("UI\\FRMembership.swf", "UI\\sanctuaryFRMembership.swf")]),
+    (Path("UI/UiModules/Main/wndSCAvailable.xml"), [("UI\\SCAvailable.swf", "UI\\sanctuarySCAvailable.swf")]),
+    (Path("UI/UiModules/Main/wndUpgradeButton.xml"), [("UI\\hud_membership_button.swf", "UI\\sanctuaryHudMembershipButton.swf")]),
+    (Path("UI/UiModules/Main/wndMarketplaceRentalNag.xml"), [("UI\\MarketplaceRentalNag.swf", "UI\\sanctuaryMarketplaceRentalNag.swf")]),
+    (Path("UI/UiModules/Main/wndJobTrialExpired.xml"), [("UI\\JobTrialExpired.swf", "UI\\sanctuaryJobTrialExpired.swf")]),
+    (Path("UI/UiModules/Main/wndNewItemRem.xml"), [("UI\\NewItemRem.swf", "UI\\sanctuaryNewItemRem.swf")]),
+    (Path("UI/UiModules/Main/wndNpxPlayMore.xml"), [("UI\\NpxPlayMore.swf", "UI\\sanctuaryNpxPlayMore.swf")]),
+    (Path("UI/UiModules/Main/wndUpgradeDialog.xml"), [("UI\\upgrade_dialog.swf", "UI\\sanctuaryUpgradeDialog.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

@@ -177,6 +177,42 @@ MODS = [
      [script_dir / "hud" / "arrow_indicator.as"], []),
     ("payattention", "sanctuaryPayAttention", "\\frame_1\\DoAction", [script_dir / "hud" / "pay_attention.as"], []),
     ("scenetext", "sanctuarySceneText", "\\frame_1\\DoAction", [script_dir / "hud" / "scene_text.as"], []),
+    # The Hero's Journal (wndQuestScreen).
+    ("questjournal", "sanctuaryQuestJournal", "\\frame_1\\DoAction", [script_dir / "dialogs" / "quest_journal.as"], []),
+    # The quest offer and turn-in dialog (wndQuestStart, wndQuestEnd).
+    ("queststart", "sanctuaryQuestStart", "\\frame_1\\DoAction", [script_dir / "dialogs" / "quest_start.as"], []),
+    # The quest tracker on the HUD (wndQuestHelper).
+    ("quest_helper", "sanctuaryQuestHelper", "\\frame_1\\DoAction", [script_dir / "dialogs" / "quest_helper.as"], []),
+    # The objectives list (wndObjectives, and wndMiniGameTasks in minigames).
+    ("objectiveHelper", "sanctuaryObjectiveHelper", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "objective_tracker.as"], []),
+    # The generic dialogs: message boxes (wndMessageWindow, wndUtilityWindow, wndMessageWindowV2), Yes/No, errors.
+    ("messageWindow", "sanctuaryMessageWindow", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "message_window.as"], []),
+    ("messageWindowV2", "sanctuaryMessageWindowV2", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "message_window_v2.as"], []),
+    ("ConfirmationWindow", "sanctuaryConfirmationWindow", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "confirmation_window.as"], []),
+    ("error", "sanctuaryError", "\\frame_1\\DoAction", [script_dir / "dialogs" / "error_window.as"], []),
+    # The guide's tip bubble for new players (wndDirectedPlayPrompt).
+    ("DirectedPlayPrompt", "sanctuaryDirectedPlayPrompt", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "directed_play_prompt.as"], []),
+    # Membership and Station Cash leftovers: hidden, and the modal ones close themselves when Lua shows them.
+    ("FRMembership", "sanctuaryFRMembership", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "membership_store.as"], []),
+    ("SCAvailable", "sanctuarySCAvailable", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "station_cash_nag.as"], []),
+    ("hud_membership_button", "sanctuaryHudMembershipButton", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "membership_button.as"], []),
+    ("MarketplaceRentalNag", "sanctuaryMarketplaceRentalNag", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "rental_nag.as"], []),
+    ("JobTrialExpired", "sanctuaryJobTrialExpired", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "job_trial_expired.as"], []),
+    ("NewItemRem", "sanctuaryNewItemRem", "\\frame_1\\DoAction", [script_dir / "retired" / "new_items_nag.as"], []),
+    ("NpxPlayMore", "sanctuaryNpxPlayMore", "\\frame_1\\DoAction", [script_dir / "retired" / "play_more_nag.as"], []),
+    # The quest-limit Upgrade dialog, now a "journal full" notice.
+    ("upgrade_dialog", "sanctuaryUpgradeDialog", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "journal_full.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
     ("starCounter", "sanctuaryStarCounter", None, [], []),
@@ -225,6 +261,8 @@ TEXTURE_SYMBOLS = {
     ],
     # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The Hero's Journal (dialogs/quest_journal.as): the Main Menu's journal beside its title.
+    "questjournal": [("img1837001925841496856.dds", "sanctuaryJournalBook", 64, 0)],
     # The list browser (browser/list_browser.as): the farming browser's seed bag, the Farmers Market's emblem.
     "Browser": [("img10017304919226766628.dds", "sanctuaryMarketSeeds", 64, 0)],
     # The merchant window (merchant/merchant_store.as): the coin store coin, in the crest, the wallet and the empty art socket.
