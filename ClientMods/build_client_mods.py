@@ -67,6 +67,10 @@ COMPRESSED_MAGIC = 0xA1B2C3D4
 
 NO_STATION_CASH = "no_station_cash.as"
 
+# The minigame patches, each appended after their shared theme library.
+MG = script_dir / "minigames"
+THEME = MG / "mg_theme.as"
+
 # (stock movie, published name, script inside the movie to append to, patch sources, recolored symbols to add)
 MODS = [
     ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction",
@@ -285,6 +289,72 @@ MODS = [
     ("Communicator", "sanctuaryCommunicator", "\\frame_1\\DoAction", [script_dir / "dialogs" / "communicator.as"], []),
     # SOE's Station Cash and membership purchase gateway: hidden, and closes itself when Lua shows it.
     ("FRGateway", "sanctuaryFRGateway", "\\frame_1\\DoAction", [script_dir / "retired" / "fr_gateway.as"], []),
+    # Minigames in the Main Menu's style: minigames/mg_theme.as (shared look and helpers), then each movie's own patch.
+    # The shared frame pieces: start screen, top bar, timer (wndFlashTimer, wndRaceTimer, wndPiratesTimer), score/level
+    # HUDs, countdown, between-stages card, detail window, score screen, launch panes, tutorial and group lobby.
+    ("MinigameStartScreen", "sanctuaryMinigameStartScreen", "\\frame_1\\DoAction",
+     [THEME, MG / "MinigameStartScreen.as"], []),
+    ("MinigameTitleBar", "sanctuaryMinigameTitleBar", "\\frame_1\\DoAction", [THEME, MG / "MinigameTitleBar.as"], []),
+    ("timer", "sanctuaryTimer", "\\frame_1\\DoAction", [THEME, MG / "timer.as"], []),
+    ("score", "sanctuaryScore", "\\frame_1\\DoAction", [THEME, MG / "score.as"], []),
+    ("minigameLevel", "sanctuaryMinigameLevel", "\\frame_1\\DoAction", [THEME, MG / "minigameLevel.as"], []),
+    ("countdown3", "sanctuaryCountdown", "\\frame_1\\DoAction", [THEME, MG / "countdown3.as"], []),
+    ("MinigameEndStageScreen", "sanctuaryMinigameEndStageScreen", "\\frame_1\\DoAction",
+     [THEME, MG / "MinigameEndStageScreen.as"], []),
+    ("MinigameDetail", "sanctuaryMinigameDetail", "\\frame_1\\DoAction", [THEME, MG / "MinigameDetail.as"], []),
+    ("scoreScreen", "sanctuaryScoreScreen", "\\frame_1\\DoAction", [THEME, MG / "scoreScreen.as"], []),
+    ("minigameStatusDescPane", "sanctuaryMinigameStatusDescPane", "\\frame_1\\DoAction",
+     [THEME, MG / "minigameStatusDescPane.as"], []),
+    ("minigameStatusGroupPane", "sanctuaryMinigameStatusGroupPane", "\\frame_1\\DoAction",
+     [THEME, MG / "minigameStatusGroupPane.as"], []),
+    ("minigameStatusObjPane", "sanctuaryMinigameStatusObjPane", "\\frame_1\\DoAction",
+     [THEME, MG / "minigameStatusObjPane.as"], []),
+    ("minigameTutorial", "sanctuaryMinigameTutorial", "\\frame_1\\DoAction", [THEME, MG / "minigameTutorial.as"], []),
+    ("lobbyTop", "sanctuaryLobbyTop", "\\frame_1\\DoAction", [THEME, MG / "lobbyTop.as"], []),
+    ("lobbyLeft", "sanctuaryLobbyLeft", "\\frame_1\\DoAction", [THEME, MG / "lobbyLeft.as"], []),
+    ("lobbyLeftSoccer", "sanctuaryLobbyLeftSoccer", "\\frame_1\\DoAction", [THEME, MG / "lobbyLeftSoccer.as"], []),
+    ("lobbyBottom", "sanctuaryLobbyBottom", "\\frame_1\\DoAction", [THEME, MG / "lobbyBottom.as"], []),
+    # Fishing.
+    ("fishFinder", "sanctuaryFishFinder", "\\frame_1\\DoAction", [THEME, MG / "fishFinder.as"], []),
+    ("fishingMeter_REV2", "sanctuaryFishingMeter", "\\frame_1\\DoAction", [THEME, MG / "fishingMeter_REV2.as"], []),
+    ("fishingmeters_bbe", "sanctuaryFishingMeters", "\\frame_1\\DoAction", [THEME, MG / "fishingmeters_bbe.as"], []),
+    ("fishingStatus", "sanctuaryFishingStatus", "\\frame_1\\DoAction", [THEME, MG / "fishingStatus.as"], []),
+    ("caughtStatus", "sanctuaryCaughtStatus", "\\frame_1\\DoAction", [THEME, MG / "caughtStatus.as"], []),
+    ("icon_reel", "sanctuaryIconReel", "\\frame_1\\DoAction", [THEME, MG / "icon_reel.as"], []),
+    ("icon_fish_combo_bbe", "sanctuaryIconFishCombo", "\\frame_1\\DoAction",
+     [THEME, MG / "icon_fish_combo_bbe.as"], []),
+    ("fish_moving_target", "sanctuaryFishMovingTarget", "\\frame_1\\DoAction",
+     [THEME, MG / "fish_moving_target.as"], []),
+    # Racing and the demolition derby (wndRaceProxArrow1..8 use raceProxArrow, wndRaceProxArrow9 its copy; one patch for
+    # both).
+    ("raceResults", "sanctuaryRaceResults", "\\frame_1\\DoAction", [THEME, MG / "raceResults.as"], []),
+    ("raceOrder", "sanctuaryRaceOrder", "\\frame_1\\DoAction", [THEME, MG / "raceOrder.as"], []),
+    ("racePlaceMin", "sanctuaryRacePlaceMin", "\\frame_1\\DoAction", [THEME, MG / "racePlaceMin.as"], []),
+    ("raceLap", "sanctuaryRaceLap", "\\frame_1\\DoAction", [THEME, MG / "raceLap.as"], []),
+    ("raceBoostBar", "sanctuaryRaceBoostBar", "\\frame_1\\DoAction", [THEME, MG / "raceBoostBar.as"], []),
+    ("itemSlots", "sanctuaryItemSlots", "\\frame_1\\DoAction", [THEME, MG / "itemSlots.as"], []),
+    ("race_mini_map", "sanctuaryRaceMiniMap", "\\frame_1\\DoAction", [THEME, MG / "race_mini_map.as"], []),
+    ("raceBackwards", "sanctuaryRaceBackwards", "\\frame_1\\DoAction", [THEME, MG / "raceBackwards.as"], []),
+    ("raceProxArrow", "sanctuaryRaceProxArrow", "\\frame_1\\DoAction", [THEME, MG / "raceProxArrow.as"], []),
+    ("raceProxArrow9", "sanctuaryRaceProxArrow9", "\\frame_1\\DoAction", [THEME, MG / "raceProxArrow.as"], []),
+    ("derbyResults", "sanctuaryDerbyResults", "\\frame_1\\DoAction", [THEME, MG / "derbyResults.as"], []),
+    ("derbyCrown", "sanctuaryDerbyCrown", "\\frame_1\\DoAction", [THEME, MG / "derbyCrown.as"], []),
+    ("demoHealthBar", "sanctuaryDemoHealthBar", "\\frame_1\\DoAction", [THEME, MG / "demoHealthBar.as"], []),
+    # Soccer and Pirates (SSS_popups is the between-rounds banner of both). The pack names are case sensitive: SSS_timer.
+    ("SSS_score", "sanctuarySSSScore", "\\frame_1\\DoAction", [THEME, MG / "SSS_score.as"], []),
+    ("SSS_timer", "sanctuarySSSTimer", "\\frame_1\\DoAction", [THEME, MG / "SSS_timer.as"], []),
+    ("scr_charge_meter_bbe", "sanctuaryScrChargeMeter", "\\frame_1\\DoAction",
+     [THEME, MG / "scr_charge_meter_bbe.as"], []),
+    ("SSS_popups", "sanctuarySSSPopups", "\\frame_1\\DoAction", [THEME, MG / "SSS_popups.as"], []),
+    ("SSS_halftimeBoard", "sanctuarySSSHalftimeBoard", "\\frame_1\\DoAction", [THEME, MG / "SSS_halftimeBoard.as"], []),
+    ("pir_resultscreen_bbe", "sanctuaryPirResultScreen", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_resultscreen_bbe.as"], []),
+    ("pir_shipselection_bbe", "sanctuaryPirShipSelection", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_shipselection_bbe.as"], []),
+    ("pir_player_ship_hold_bbe", "sanctuaryPirStandings", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_player_ship_hold_bbe.as"], []),
+    ("pir_instructions_bbe", "sanctuaryPirInstructions", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_instructions_bbe.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
     ("starCounter", "sanctuaryStarCounter", None, [], []),
@@ -333,6 +403,8 @@ TEXTURE_SYMBOLS = {
     ],
     # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The Pirates ship picker's medallion (minigames/pir_shipselection_bbe.as): the ship from its stock ornament.
+    "pir_shipselection_bbe": [("img17624406294467281186.dds", "sanctuaryPirShip", 96, 0)],
     # The release notes window (dialogs/update_notes.as): the home screen's scroll beside its title.
     "UpdateNotes": [("img3694898642873637100.dds", "sanctuaryNotesScroll", 64, 0)],
     # The loading widgets' spinner centre (login/loading_large.as, asset_loading_status.as): the hub tree in the OSFR
@@ -390,7 +462,12 @@ TEXT_SYMBOLS = {
 }
 
 # Stock movies with no main timeline script, which get an empty one on frame 1 for their patch to be appended to.
-FRAME_SCRIPTS = {"FRUtilNavigation", "loading_large", "UpdateNotes"}
+FRAME_SCRIPTS = {
+    "FRUtilNavigation", "loading_large", "UpdateNotes",
+    # Minigame movies with no main timeline script on frame 1: the between-stages card, the countdown (its only
+    # script is on frame 152), fishing's reel and combo icons and the fishing tutorial's target (frame 75).
+    "MinigameEndStageScreen", "countdown3", "icon_reel", "icon_fish_combo_bbe", "fish_moving_target",
+}
 
 # Stock movie -> root timeline depths whose placements are dropped: plain shapes, which ActionScript can't hide.
 REMOVED_DEPTHS = {
@@ -428,6 +505,26 @@ REMOVED_DEPTHS = {
     "WhatsNewPanel": [26],
     # The VIP window's divider and the star plate behind its title (dialogs/vip_message_window.as).
     "VipMessageWindow": [1, 5],
+    # The minigame detail window's stock frame: one shape with the orange rim, vines and panels.
+    "MinigameDetail": [4],
+    # The score screen's blue sunburst frame (minigames/scoreScreen.as draws the navy one).
+    "scoreScreen": [3],
+    # The lobby player column's curved panel and the three divider lines between its slots.
+    "lobbyLeft": [1, 78, 80, 82],
+    # The soccer lobby column's curved panel and the line under the leader.
+    "lobbyLeftSoccer": [1, 56],
+    # The lobby game card's curved panel.
+    "lobbyBottom": [1],
+    # The soccer scoreboard's two pale glass bars (minigames/SSS_score.as redraws them).
+    "SSS_score": [2],
+    # The kick meter's purple tube (a navy glass one is drawn under the fill).
+    "scr_charge_meter_bbe": [9],
+    # The Pirates result screen's sunburst frame.
+    "pir_resultscreen_bbe": [1],
+    # The ship picker's frame with its ship ornament (redrawn from TEXTURE_SYMBOLS).
+    "pir_shipselection_bbe": [2],
+    # The halftime board's outer frame.
+    "SSS_halftimeBoard": [5],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
@@ -437,6 +534,15 @@ REMOVED_DEPTHS = {
 # it and embedded in its place, so the HUD keeps its layout: purple, brown and beige chrome becomes navy glass,
 # frosted glass and gold, and the minimap gets a new ring.
 RESKINS = {
+    # The racing HUD's purple boost wedge in gold, and the item tray in navy glass.
+    "raceBoostBar": {"img114046457190065444.dds": "gold"},
+    "itemSlots": {"img114046457190065444.dds": "gold", "img4930726603458950520.dds": "navy"},
+    # The derby meters: the wedge and the bar's purple outline in gold, the health bar's silver glass blue.
+    "demoHealthBar": {"img114046457190065444.dds": "gold", "img13381864230809240022.dds": "gold",
+                      "img7827531780234456233.dds": "glass"},
+    # The proximity arrows' dark purple arrow in gold.
+    "raceProxArrow": {"img1722408374110331531.dds": "gold"},
+    "raceProxArrow9": {"img1722408374110331531.dds": "gold"},
     # The comic reader's Back, Next and Teleport buttons, gold (dialogs/comic_book.as).
     "ComicBook": {"img17833834512335390436.dds": "gold", "img2890311447890245816.dds": "gold",
                   "img11554051185741859593.dds": "gold"},
