@@ -94,6 +94,11 @@ MODS = [
     ("atlas", "sanctuaryAtlas", "\\frame_1\\DoAction", [script_dir / "atlas" / "lavender_coast.as"], []),
     ("equipmentscreen_new", "sanctuaryEquipmentScreen", "\\frame_1\\DoAction",
      [script_dir / "equipment" / "equipment_pane.as"], []),
+    ("inventory", "sanctuaryInventory", "\\frame_1\\DoAction", [script_dir / "inventory" / "stuff_browser.as"], []),
+    # The tile browser: Games, Pets, Rides and Houses (wndBrowserV2) and the farming browser (wndFarmingBrowser).
+    ("Browser_V2", "sanctuaryBrowserV2", "\\frame_1\\DoAction", [script_dir / "browser" / "tile_browser.as"], []),
+    ("CollectionsBrowser", "sanctuaryCollectionsBrowser", "\\frame_1\\DoAction",
+     [script_dir / "collections" / "collections_browser.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("FRUtilNavigation", "sanctuaryFRUtilNavigation", None, [], []),
     ("mini_map", "sanctuaryMiniMap", None, [], []),
@@ -137,6 +142,10 @@ TEXTURE_SYMBOLS = {
         ("img1837001925841496856.dds", "sanctuaryProfileJournal", 96, 0),
         ("img5645809723664368221.dds", "sanctuaryProfileSilhouette", 96, 0),
     ],
+    # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
+    "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The Collections window (collections/collections_browser.as): the Main Menu's Collections book by its title.
+    "CollectionsBrowser": [("img1469495624995028744.dds", "sanctuaryCollectionsBook", 64, 0)],
     # The Main Menu (MyStuffBrowser/main_menu.as): its own tile art, with the coin store coin for Shop.
     "MyStuffBrowser": [
         ("img12661814977694140028.dds", "sanctuaryMenuCoin", 96, 0),
@@ -173,6 +182,9 @@ REMOVED_DEPTHS = {
     "welcome": [115],
     # The profile card's stock panels and stat icons.
     "aboutme": [5, 82, 86, 88, 90, 92],
+    # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
+    # AS can't reach it) and the grid's divider lines.
+    "inventory": [1, 39],
 }
 
 # Stock movie -> {client texture: hud/reskin.py recipe}. The texture is repainted at the size the movie draws

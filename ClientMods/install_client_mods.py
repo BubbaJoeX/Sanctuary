@@ -90,6 +90,12 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),
     (Path("UI/UiModules/Main/wndEquipmentPane.xml"),
      [("UI\\equipmentscreen_new.swf", "UI\\sanctuaryEquipmentScreen.swf")]),
+    (Path("UI/UiModules/Main/wndInventory.xml"), [("UI\\inventory.swf", "UI\\sanctuaryInventory.swf")]),
+    # The tile browser (Games, Pets, Rides, Houses) and the farming browser share one movie.
+    (Path("UI/UiModules/Main/wndBrowserV2.xml"), [("UI\\Browser_V2.swf", "UI\\sanctuaryBrowserV2.swf")]),
+    (Path("UI/UiModules/Main/wndFarmingBrowser.xml"), [("UI\\Browser_V2.swf", "UI\\sanctuaryBrowserV2.swf")]),
+    (Path("UI/UiModules/Main/wndCollectionsBrowser.xml"),
+     [("UI\\CollectionsBrowser.swf", "UI\\sanctuaryCollectionsBrowser.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [
