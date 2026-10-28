@@ -76,6 +76,7 @@ Fields: `guid`, `name`, `position`, `isGm`, `isMounted`.
 | `playEffect(effect)`, `emote(animation)` | Seen by everyone nearby. |
 | `transform(model, 1 to 3600 seconds)`, `clearTransform()` | |
 | `resize(0.25 to 4, 1 to 3600 seconds)` | |
+| `startMinigame(id)` | Opens a minigame's start screen (ids from `!minigame list`); false if the server doesn't run it. The `minigame-table` template turns any NPC or prop into a game table: `!prop script use minigame-table games=20` for chess, or `games=46,173,174` for a random recipe, with an optional `coins=`/`ticket=` fee and `cooldown=`. |
 
 ## `npc.zone`
 

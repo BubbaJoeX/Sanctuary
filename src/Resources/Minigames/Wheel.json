@@ -1,0 +1,16 @@
+// The daily wheel ("Activity of the Day"). It pays its own coins (Sanctuary.Game/Minigames/DailyWheelGame.cs).
+[
+  {
+    "Id": 8,
+    "Comment": "Spin For The Win!",
+    "Game": "Wheel",
+    "Swf": "game_wheel.swf",
+    "NameId": 409962,
+    "DescriptionId": 409969,
+    "IconId": 20985,
+    "Difficulty": 1,
+    "Category": 17,
+    "DetailImage": "daily_wheel_detail.dds",
+    "ThumbnailImage": "daily_wheel_thumb.dds"
+  }
+]

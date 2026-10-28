@@ -1,0 +1,28 @@
+# Feeling the Beat! (game_music.swf): the song each game conducts, in the movie's own MimicMiniGamePhaseData.txt
+# layout (MusicConducting.MusicGameServer.OnLevelData). The movie plays one song, the row with SEQUENCE 1; rows
+# with the same GAME and SEQUENCE are alternatives, one picked each play. Lines starting with # are never sent.
+#
+# ID^GAME^SEQUENCE^DURATION^OBJECTIVE_ID^START_ID^END_ID^STAGE_TYPE^DATA1^...^DATA4
+#   GAME        the game: its MiniGameData.txt id (the Level of its Mimic.json entry)
+#   DURATION    the song's length in seconds (the movie times the song itself; the server won't take a win sooner)
+#   STAGE_TYPE  300 + the song: 1 Very Easy (37 s), 2 Easy (40 s), 3 Medium (50 s), 4 Hard (55 s), 5 Very Hard (58 s)
+
+# 78 Feeling the Beat! (difficulty 2): one of the three easier songs
+7801^78^1^37^0^0^0^301^0^0^0^0
+7802^78^1^40^0^0^0^302^0^0^0^0
+7803^78^1^50^0^0^0^303^0^0^0^0
+
+# 201 Feeling the Beat! - Very Easy
+20101^201^1^37^0^0^0^301^0^0^0^0
+
+# 202 Feeling the Beat! - Easy
+20201^202^1^40^0^0^0^302^0^0^0^0
+
+# 203 Feeling the Beat! - Medium
+20301^203^1^50^0^0^0^303^0^0^0^0
+
+# 204 Feeling the Beat! - Hard
+20401^204^1^55^0^0^0^304^0^0^0^0
+
+# 205 Feeling the Beat! - Very Hard
+20501^205^1^58^0^0^0^305^0^0^0^0

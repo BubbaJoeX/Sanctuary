@@ -19,6 +19,7 @@ using Sanctuary.Game.ChatCommands;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
+using Sanctuary.Game.Minigames;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources.Definitions.Combat;
 using Sanctuary.Game.Resources.Definitions;
@@ -470,6 +471,7 @@ public sealed class Player : ClientPcData, IEntity
             QuestDialogue.StopTalkAnimation(this);
 
         PlayerPet.UpdateEveryTick();
+        MinigameManager.Tick(this);
         SendVisiblePositions();
 
         while (true)

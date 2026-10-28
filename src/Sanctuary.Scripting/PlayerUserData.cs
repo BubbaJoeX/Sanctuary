@@ -229,6 +229,14 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
         return new ValueTask<int>(context.Return(self._player.GiveStars(amount)));
     });
 
+    private static readonly LuaFunction StartMinigameFunction = new("startMinigame", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var minigameId = context.GetArgument<int>(1);
+
+        return new ValueTask<int>(context.Return(self._player.StartMinigame(minigameId)));
+    });
+
     private static readonly LuaFunction WarpFunction = new("warp", static (context, cancellationToken) =>
     {
         var self = context.GetArgument<PlayerUserData>(0);
@@ -345,6 +353,7 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
                 "takeCoins" => TakeCoinsFunction,
                 "giveStars" => GiveStarsFunction,
                 "warp" => WarpFunction,
+                "startMinigame" => StartMinigameFunction,
                 "revive" => ReviveFunction,
                 _ => LuaValue.Nil
             };

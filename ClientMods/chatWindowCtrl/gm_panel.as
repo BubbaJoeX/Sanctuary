@@ -2458,6 +2458,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "player:resize(scale, seconds)\r" +
    "player:acceptQuest(questId)  player:hasCompletedQuest(questId)\r" +
    "player.zoneId  player.zoneName  player:warp(zoneId [, x, y, z [, heading]])\r" +
+   "player:startMinigame(minigameId)  (ids: !minigame list)\r" +
    "player.health  player.maxHealth  player.inCombat  player.isKnockedOut\r" +
    "player:revive([healthPercent])\r" +
    "player.job  player.jobRank  player:giveStars(amount)\r" +

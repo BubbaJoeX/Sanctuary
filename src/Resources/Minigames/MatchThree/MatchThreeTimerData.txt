@@ -1,0 +1,4 @@
+# Chain timers. The movies' server loads these but its levels don't use them: a chain adds two seconds a tile.
+# TYPE: 0 none, 1 log (CHAINM * ln(CHAINF * tiles) + CHAINB), 2 linear (CHAINM * tiles + CHAINB); CHAIN* are tenths.
+#ID^TYPE^CHAINM^CHAINF^CHAINB^PERTILE^
+1^2^20^0^0^0

@@ -1,0 +1,2057 @@
+// The match-three games (Sanctuary.Game/Minigames/MatchThree). Each plays the levels of its Level in
+// Minigames/MatchThree/*.txt. Left out: tests (Mining alpha, Darrin's Test, the 9995-9999 copies), the unnamed 22, the
+// leaderboard copies of the tiers and farms (715-725), the extra "Harvesting" rows (110-120, 217, 1082) and 1046 (a copy of 146).
+[
+  // Mining (game_mining): the ore of each vein falls into the drop zone. Pays the ore and Miner stars.
+  {
+    "Id": 18,
+    "Comment": "Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7910,
+    "DescriptionId": 7911,
+    "IconId": 694,
+    "Difficulty": 1,
+    "Category": 19,
+    "DetailImage": "copper_mining_detail.dds",
+    "ThumbnailImage": "copper_mining_thumb.dds",
+    "Level": 18,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2739
+      },
+      {
+        "ItemId": 2740
+      },
+      {
+        "ItemId": 2741
+      }
+    ]
+  },
+  {
+    "Id": 91,
+    "Comment": "Copper Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 16221,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 1,
+    "Category": 19,
+    "DetailImage": "copper_mining_detail.dds",
+    "ThumbnailImage": "copper_mining_thumb.dds",
+    "Level": 91,
+    "Coins": 10,
+    "Stars": 10,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2739,
+        "Quantity": 2
+      }
+    ]
+  },
+  {
+    "Id": 92,
+    "Comment": "Rich Copper Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 16226,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 1,
+    "Category": 19,
+    "DetailImage": "copper_mining_detail.dds",
+    "ThumbnailImage": "copper_mining_thumb.dds",
+    "Level": 92,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2739,
+        "Quantity": 4
+      }
+    ]
+  },
+  {
+    "Id": 93,
+    "Comment": "Tin Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 74881,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 2,
+    "Category": 19,
+    "DetailImage": "tin_mining_detail.dds",
+    "ThumbnailImage": "tin_mining_thumb.dds",
+    "Level": 93,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2740,
+        "Quantity": 2
+      }
+    ]
+  },
+  {
+    "Id": 94,
+    "Comment": "Rich Tin Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 16227,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 2,
+    "Category": 19,
+    "DetailImage": "tin_mining_detail.dds",
+    "ThumbnailImage": "tin_mining_thumb.dds",
+    "Level": 94,
+    "Coins": 20,
+    "Stars": 20,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2740,
+        "Quantity": 4
+      }
+    ]
+  },
+  {
+    "Id": 95,
+    "Comment": "Iron Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 74818,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 3,
+    "Category": 19,
+    "DetailImage": "iron_mining_detail.dds",
+    "ThumbnailImage": "iron_mining_thumb.dds",
+    "Level": 95,
+    "Coins": 20,
+    "Stars": 20,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2741,
+        "Quantity": 2
+      }
+    ]
+  },
+  {
+    "Id": 96,
+    "Comment": "Rich Iron Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 16228,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 3,
+    "Category": 19,
+    "DetailImage": "iron_mining_detail.dds",
+    "ThumbnailImage": "iron_mining_thumb.dds",
+    "Level": 96,
+    "Coins": 25,
+    "Stars": 25,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2741,
+        "Quantity": 4
+      }
+    ]
+  },
+  {
+    "Id": 97,
+    "Comment": "Silver Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 74884,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 4,
+    "Category": 19,
+    "DetailImage": "silver_mining_detail.dds",
+    "ThumbnailImage": "silver_mining_thumb.dds",
+    "Level": 97,
+    "Coins": 25,
+    "Stars": 25,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2742,
+        "Quantity": 2
+      }
+    ]
+  },
+  {
+    "Id": 98,
+    "Comment": "Rich Silver Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 16229,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 4,
+    "Category": 19,
+    "DetailImage": "silver_mining_detail.dds",
+    "ThumbnailImage": "silver_mining_thumb.dds",
+    "Level": 98,
+    "Coins": 30,
+    "Stars": 30,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2742,
+        "Quantity": 4
+      }
+    ]
+  },
+  {
+    "Id": 99,
+    "Comment": "Gold Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 16225,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 5,
+    "Category": 19,
+    "DetailImage": "gold_mining_detail.dds",
+    "ThumbnailImage": "gold_mining_thumb.dds",
+    "Level": 99,
+    "Coins": 30,
+    "Stars": 30,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2743,
+        "Quantity": 2
+      }
+    ]
+  },
+  {
+    "Id": 100,
+    "Comment": "Rich Gold Mining",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 16230,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 5,
+    "Category": 19,
+    "DetailImage": "gold_mining_detail.dds",
+    "ThumbnailImage": "gold_mining_thumb.dds",
+    "Level": 100,
+    "Coins": 35,
+    "Stars": 35,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2743,
+        "Quantity": 4
+      }
+    ]
+  },
+  {
+    "Id": 335,
+    "Comment": "Sunstone Copper Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7218,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 1,
+    "Category": 19,
+    "DetailImage": "copper_mining_detail.dds",
+    "ThumbnailImage": "copper_mining_thumb.dds",
+    "Level": 335,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2739,
+        "Quantity": 3
+      }
+    ]
+  },
+  {
+    "Id": 336,
+    "Comment": "Rare Sunstone Copper Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7219,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 1,
+    "Category": 19,
+    "DetailImage": "copper_mining_detail.dds",
+    "ThumbnailImage": "copper_mining_thumb.dds",
+    "Level": 336,
+    "Coins": 20,
+    "Stars": 20,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2739,
+        "Quantity": 5
+      }
+    ]
+  },
+  {
+    "Id": 337,
+    "Comment": "Sunstone Tin Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7220,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 2,
+    "Category": 19,
+    "DetailImage": "tin_mining_detail.dds",
+    "ThumbnailImage": "tin_mining_thumb.dds",
+    "Level": 337,
+    "Coins": 20,
+    "Stars": 20,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2740,
+        "Quantity": 3
+      }
+    ]
+  },
+  {
+    "Id": 338,
+    "Comment": "Rare Sunstone Tin Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7221,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 2,
+    "Category": 19,
+    "DetailImage": "tin_mining_detail.dds",
+    "ThumbnailImage": "tin_mining_thumb.dds",
+    "Level": 338,
+    "Coins": 25,
+    "Stars": 25,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2740,
+        "Quantity": 5
+      }
+    ]
+  },
+  {
+    "Id": 339,
+    "Comment": "Sunstone Iron Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7222,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 3,
+    "Category": 19,
+    "DetailImage": "iron_mining_detail.dds",
+    "ThumbnailImage": "iron_mining_thumb.dds",
+    "Level": 339,
+    "Coins": 25,
+    "Stars": 25,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2741,
+        "Quantity": 3
+      }
+    ]
+  },
+  {
+    "Id": 340,
+    "Comment": "Rare Sunstone Iron Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7223,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 3,
+    "Category": 19,
+    "DetailImage": "iron_mining_detail.dds",
+    "ThumbnailImage": "iron_mining_thumb.dds",
+    "Level": 340,
+    "Coins": 30,
+    "Stars": 30,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2741,
+        "Quantity": 5
+      }
+    ]
+  },
+  {
+    "Id": 341,
+    "Comment": "Sunstone Silver Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7224,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 4,
+    "Category": 19,
+    "DetailImage": "silver_mining_detail.dds",
+    "ThumbnailImage": "silver_mining_thumb.dds",
+    "Level": 341,
+    "Coins": 30,
+    "Stars": 30,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2742,
+        "Quantity": 3
+      }
+    ]
+  },
+  {
+    "Id": 342,
+    "Comment": "Rare Sunstone Silver Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7225,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 4,
+    "Category": 19,
+    "DetailImage": "silver_mining_detail.dds",
+    "ThumbnailImage": "silver_mining_thumb.dds",
+    "Level": 342,
+    "Coins": 35,
+    "Stars": 35,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2742,
+        "Quantity": 5
+      }
+    ]
+  },
+  {
+    "Id": 343,
+    "Comment": "Sunstone Gold Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7226,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 5,
+    "Category": 19,
+    "DetailImage": "gold_mining_detail.dds",
+    "ThumbnailImage": "gold_mining_thumb.dds",
+    "Level": 343,
+    "Coins": 35,
+    "Stars": 35,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2743,
+        "Quantity": 3
+      }
+    ]
+  },
+  {
+    "Id": 344,
+    "Comment": "Rare Sunstone Gold Vein",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 7227,
+    "DescriptionId": 7911,
+    "IconId": 909,
+    "Difficulty": 5,
+    "Category": 19,
+    "DetailImage": "gold_mining_detail.dds",
+    "ThumbnailImage": "gold_mining_thumb.dds",
+    "Level": 344,
+    "Coins": 40,
+    "Stars": 40,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2743,
+        "Quantity": 5
+      }
+    ]
+  },
+  {
+    "Id": 375,
+    "Comment": "Mining Practice",
+    "Game": "MatchThree",
+    "Swf": "game_mining.swf",
+    "NameId": 92481,
+    "DescriptionId": 92528,
+    "IconId": 909,
+    "Difficulty": 1,
+    "Category": 19,
+    "DetailImage": "mining_practice_detail.dds",
+    "ThumbnailImage": "mining_practice_thumb.dds",
+    "Level": 375,
+    "Coins": 10,
+    "Stars": 10,
+    "ProfileId": 14,
+    "Items": [
+      {
+        "ItemId": 2739
+      }
+    ]
+  },
+  // Forging (game_forging): forge the pieces of the item. Pays the item (where it exists) and Blacksmith stars.
+  {
+    "Id": 59,
+    "Comment": "Forging",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 19201,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 59,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16
+  },
+  {
+    "Id": 138,
+    "Comment": "Forging: Quick Shot Bow",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386080,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "quick_shot_bow_detail.dds",
+    "ThumbnailImage": "quick_shot_bow_thumb.dds",
+    "Level": 138,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30250
+      }
+    ]
+  },
+  {
+    "Id": 139,
+    "Comment": "Forging: Spunky Scrapper Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386081,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "spunky_scrapper_hammer_detail.dds",
+    "ThumbnailImage": "spunky_scrapper_hammer_thumb.dds",
+    "Level": 139,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30280
+      }
+    ]
+  },
+  {
+    "Id": 140,
+    "Comment": "Forging: First Aid Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386082,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "first_aid_hammer_detail.dds",
+    "ThumbnailImage": "first_aid_hammer_thumb.dds",
+    "Level": 140,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30270
+      }
+    ]
+  },
+  {
+    "Id": 141,
+    "Comment": "Forging: Dancing Monkey Bokken",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386083,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "dancing_monkey_bokken_detail.dds",
+    "ThumbnailImage": "dancing_monkey_bokken_thumb.dds",
+    "Level": 141,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30290
+      }
+    ]
+  },
+  {
+    "Id": 142,
+    "Comment": "Forging: Power Charmed Wand",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386084,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "power_charmed_wand_detail.dds",
+    "ThumbnailImage": "power_charmed_wand_thumb.dds",
+    "Level": 142,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30301
+      }
+    ]
+  },
+  {
+    "Id": 143,
+    "Comment": "Forging: Fast Blast Bow",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386085,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "fast_blast_bow_detail.dds",
+    "ThumbnailImage": "fast_blast_bow_thumb.dds",
+    "Level": 143,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30310
+      }
+    ]
+  },
+  {
+    "Id": 144,
+    "Comment": "Forging: Rowdy Rumbler Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386086,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "rowdy_rumbler_hammer_detail.dds",
+    "ThumbnailImage": "rowdy_rumbler_hammer_thumb.dds",
+    "Level": 144,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30340
+      }
+    ]
+  },
+  {
+    "Id": 145,
+    "Comment": "Forging: Field Support Scalpel",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386087,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "field_support_scalpel_detail.dds",
+    "ThumbnailImage": "field_support_scalpel_thumb.dds",
+    "Level": 145,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30330
+      }
+    ]
+  },
+  {
+    "Id": 146,
+    "Comment": "Forging: Biting Mongoose Blade",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386088,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "biting_mongoose_blade_detail.dds",
+    "ThumbnailImage": "biting_mongoose_blade_thumb.dds",
+    "Level": 146,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30350
+      }
+    ]
+  },
+  {
+    "Id": 147,
+    "Comment": "Forging: Lunar Enchanted Wand",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386089,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "lunar_enchanted_wand_detail.dds",
+    "ThumbnailImage": "lunar_enchanted_wand_thumb.dds",
+    "Level": 147,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 7186
+      }
+    ]
+  },
+  {
+    "Id": 148,
+    "Comment": "Forging: Alley Fighter Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386090,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "alley_fighter_hammer_detail.dds",
+    "ThumbnailImage": "alley_fighter_hammer_thumb.dds",
+    "Level": 148,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30400
+      }
+    ]
+  },
+  {
+    "Id": 149,
+    "Comment": "Forging: Anguish Aid Bonesaw",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386091,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "anguish_aid_bonesaw_detail.dds",
+    "ThumbnailImage": "anguish_aid_bonesaw_thumb.dds",
+    "Level": 149,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30390
+      }
+    ]
+  },
+  {
+    "Id": 162,
+    "Comment": "Forging: Diving Hawk Scythe",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386092,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "diving_hawk_scythe_detail.dds",
+    "ThumbnailImage": "diving_hawk_scythe_thumb.dds",
+    "Level": 162,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30410
+      }
+    ]
+  },
+  {
+    "Id": 163,
+    "Comment": "Forging: Chivalrous Guardian Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386093,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "chivalrous_guardian_hammer_detail.dds",
+    "ThumbnailImage": "chivalrous_guardian_hammer_thumb.dds",
+    "Level": 163,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30380
+      }
+    ]
+  },
+  {
+    "Id": 164,
+    "Comment": "Forging: Strong Scrapper Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386096,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "strong_scrapper_hammer_detail.dds",
+    "ThumbnailImage": "strong_scrapper_hammer_thumb.dds",
+    "Level": 164,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30460
+      }
+    ]
+  },
+  {
+    "Id": 165,
+    "Comment": "Forging: Pain Relief Bonesaw",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386097,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "pain_relief_bonesaw_detail.dds",
+    "ThumbnailImage": "pain_relief_bonesaw_thumb.dds",
+    "Level": 165,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30450
+      }
+    ]
+  },
+  {
+    "Id": 166,
+    "Comment": "Forging: Stalking Panther Scythe",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386100,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "stalking_panther_scythe_detail.dds",
+    "ThumbnailImage": "stalking_panther_scythe_thumb.dds",
+    "Level": 166,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30470
+      }
+    ]
+  },
+  {
+    "Id": 167,
+    "Comment": "Forging: Stalwart Protector Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386101,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "stalwart_protector_hammer_detail.dds",
+    "ThumbnailImage": "stalwart_protector_hammer_thumb.dds",
+    "Level": 167,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30440
+      }
+    ]
+  },
+  {
+    "Id": 168,
+    "Comment": "Forging: Frenzy Fighter Hammer",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386102,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "frenzy_fighter_hammer_detail.dds",
+    "ThumbnailImage": "frenzy_fighter_hammer_thumb.dds",
+    "Level": 168,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30520
+      }
+    ]
+  },
+  {
+    "Id": 169,
+    "Comment": "Forging: Trauma Support Shockrod",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386103,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "trauma_support_shockrod_detail.dds",
+    "ThumbnailImage": "trauma_support_shockrod_thumb.dds",
+    "Level": 169,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30510
+      }
+    ]
+  },
+  {
+    "Id": 170,
+    "Comment": "Forging: Striking Serpent Sword",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386104,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "striking_serpent_sword_detail.dds",
+    "ThumbnailImage": "striking_serpent_sword_thumb.dds",
+    "Level": 170,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30530
+      }
+    ]
+  },
+  {
+    "Id": 171,
+    "Comment": "Forging: Intrepid Protector Axe",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386105,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "intrepid_protector_axe_detail.dds",
+    "ThumbnailImage": "intrepid_protector_axe_thumb.dds",
+    "Level": 171,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30500
+      }
+    ]
+  },
+  {
+    "Id": 362,
+    "Comment": "Forging: Valiant Guardian Cudgel",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386106,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "valiant_guardian_cudgel_detail.dds",
+    "ThumbnailImage": "valiant_guardian_cudgel_thumb.dds",
+    "Level": 362,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30260
+      }
+    ]
+  },
+  {
+    "Id": 363,
+    "Comment": "Forging: Spirited Protector Axe",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386109,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "spirited_protector_axe_detail.dds",
+    "ThumbnailImage": "spirited_protector_axe_thumb.dds",
+    "Level": 363,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16
+  },
+  {
+    "Id": 364,
+    "Comment": "Forging: Focus Fire Bow",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386112,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "focus_fire_bow_detail.dds",
+    "ThumbnailImage": "focus_fire_bow_thumb.dds",
+    "Level": 364,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30370
+      }
+    ]
+  },
+  {
+    "Id": 365,
+    "Comment": "Forging: Eclipse Infused Wand",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386113,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "eclipse_infused_wand_detail.dds",
+    "ThumbnailImage": "eclipse_infused_wand_thumb.dds",
+    "Level": 365,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30420
+      }
+    ]
+  },
+  {
+    "Id": 366,
+    "Comment": "Forging: Savage Sting Bow",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386114,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "savage_sting_bow_detail.dds",
+    "ThumbnailImage": "savage_sting_bow_thumb.dds",
+    "Level": 366,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30430
+      }
+    ]
+  },
+  {
+    "Id": 367,
+    "Comment": "Forging: Tempest Woven Wand",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386115,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "tempest_woven_wand_detail.dds",
+    "ThumbnailImage": "tempest_woven_wand_thumb.dds",
+    "Level": 367,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30480
+      }
+    ]
+  },
+  {
+    "Id": 368,
+    "Comment": "Forging: Brutal Blast Bow",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386116,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "brutal_blast_bow_detail.dds",
+    "ThumbnailImage": "brutal_blast_bow_thumb.dds",
+    "Level": 368,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30490
+      }
+    ]
+  },
+  {
+    "Id": 369,
+    "Comment": "Forging: Void Woven Wand",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 386119,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "void_woven_wand_detail.dds",
+    "ThumbnailImage": "void_woven_wand_thumb.dds",
+    "Level": 369,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 30541
+      }
+    ]
+  },
+  {
+    "Id": 370,
+    "Comment": "Forging: Sturdy Summersaber",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 94993,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "sturdy_summersaber_detail.dds",
+    "ThumbnailImage": "sturdy_summersaber_thumb.dds",
+    "Level": 370,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 37003
+      }
+    ]
+  },
+  {
+    "Id": 1047,
+    "Comment": "Forging: Metal Cactoid Illusion",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 1813,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1047,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1048,
+    "Comment": "Forging: Dust Storm Flair Shard",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 1814,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1048,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1049,
+    "Comment": "Forging: Motorsmith Gloves",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 1815,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1049,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1050,
+    "Comment": "Forging: Sunny Potion",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 2794,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 2,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1050,
+    "Coins": 20,
+    "Stars": 15,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1051,
+    "Comment": "Forging: Motorsmith Boots",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 2795,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 2,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1051,
+    "Coins": 20,
+    "Stars": 15,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1052,
+    "Comment": "Forging: Manguana Statue",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 2796,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 2,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1052,
+    "Coins": 20,
+    "Stars": 15,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1053,
+    "Comment": "Forging: Metal Rocklar Illusion",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7041,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1053,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1054,
+    "Comment": "Forging: Power Crystal Flair Shard",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7042,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1054,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1055,
+    "Comment": "Forging: Motorsmith Tank Top",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7043,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1055,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1056,
+    "Comment": "Forging: Robgoblin Archway",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7044,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1056,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1057,
+    "Comment": "Forging: Metal Drakeling Illusion",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7881,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 4,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1057,
+    "Coins": 40,
+    "Stars": 35,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1058,
+    "Comment": "Forging: Motorsmith Pants",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7882,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 4,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1058,
+    "Coins": 40,
+    "Stars": 35,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1059,
+    "Comment": "Forging: Chrome Drakeling",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7883,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 4,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1059,
+    "Coins": 40,
+    "Stars": 35,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1060,
+    "Comment": "Forging: Drake Statue",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 7884,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 4,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1060,
+    "Coins": 40,
+    "Stars": 35,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1061,
+    "Comment": "Forging: Dwarf Biker Firework",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8366,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1061,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1062,
+    "Comment": "Forging: Motorsmith Welding Mask",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8367,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1062,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1063,
+    "Comment": "Forging: Chrome Mini-Rocklar",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8368,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1063,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1064,
+    "Comment": "Forging: Skullz Wall Hanging",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8369,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1064,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1065,
+    "Comment": "Forging: Motorsmith Tool Belt",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8370,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1065,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1066,
+    "Comment": "Forging: Hammer Fist",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 867,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1066,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1067,
+    "Comment": "Forging: Mini-Mech",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 868,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1067,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1068,
+    "Comment": "Forging: Archer's Forged Bow of Advantage",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8627,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1068,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1069,
+    "Comment": "Forging: Ninja's Forged Sword of Purge",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8628,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1069,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1070,
+    "Comment": "Forging: Wizard's Forged Wand of Cunning",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8629,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1070,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1071,
+    "Comment": "Forging: Warrior's Forged Axe of Boon",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8630,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1071,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1072,
+    "Comment": "Forging: Medic's Forged Saw of Promise",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8631,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1072,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1073,
+    "Comment": "Forging: Brawler's Forged Hammer of Challenge",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 8632,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1073,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1074,
+    "Comment": "Forging: Striped Mini-Mech",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 980,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 5,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1074,
+    "Coins": 50,
+    "Stars": 45,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1075,
+    "Comment": "Chrome Cactoid",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 981,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 3,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1075,
+    "Coins": 30,
+    "Stars": 25,
+    "ProfileId": 16
+  },
+  {
+    "Id": 1100,
+    "Comment": "Forging: Medic's Forged Scalpel of Vitals",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 442472,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 14,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1100,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16
+  },
+  // Harvesting (game_farming): harvest each farm's crops.
+  {
+    "Id": 58,
+    "Comment": "Harvesting",
+    "Game": "MatchThree",
+    "Swf": "game_farming.swf",
+    "NameId": 31023,
+    "DescriptionId": 35603,
+    "IconId": 908,
+    "Difficulty": 1,
+    "Category": 15,
+    "DetailImage": "farm1_easy_detail.dds",
+    "ThumbnailImage": "farm1_easy_thumb.dds",
+    "Level": 58,
+    "Coins": 15,
+    "Stars": 15
+  },
+  {
+    "Id": 109,
+    "Comment": "Queensfields Harvesting",
+    "Game": "MatchThree",
+    "Swf": "game_farming.swf",
+    "NameId": 100833,
+    "DescriptionId": 94149,
+    "IconId": 908,
+    "Difficulty": 2,
+    "Category": 15,
+    "DetailImage": "queensfields_harvesting_detail.dds",
+    "ThumbnailImage": "queensfields_harvesting_thumb.dds",
+    "Level": 109,
+    "Coins": 25,
+    "Stars": 20
+  },
+  {
+    "Id": 111,
+    "Comment": "Farnum's Farm Harvesting",
+    "Game": "MatchThree",
+    "Swf": "game_farming.swf",
+    "NameId": 100834,
+    "DescriptionId": 94150,
+    "IconId": 908,
+    "Difficulty": 2,
+    "Category": 15,
+    "DetailImage": "farnums_harvesting_detail.dds",
+    "ThumbnailImage": "farnums_harvesting_thumb.dds",
+    "Level": 111,
+    "Coins": 25,
+    "Stars": 20
+  },
+  {
+    "Id": 113,
+    "Comment": "Chugaroot Farm Harvesting",
+    "Game": "MatchThree",
+    "Swf": "game_farming.swf",
+    "NameId": 100838,
+    "DescriptionId": 94151,
+    "IconId": 908,
+    "Difficulty": 2,
+    "Category": 15,
+    "DetailImage": "chugaroot_harvesting_detail.dds",
+    "ThumbnailImage": "chugaroot_harvesting_thumb.dds",
+    "Level": 113,
+    "Coins": 25,
+    "Stars": 20
+  },
+  {
+    "Id": 115,
+    "Comment": "Perry's Pastures Harvesting",
+    "Game": "MatchThree",
+    "Swf": "game_farming.swf",
+    "NameId": 100836,
+    "DescriptionId": 94152,
+    "IconId": 908,
+    "Difficulty": 2,
+    "Category": 15,
+    "DetailImage": "perrys_harvesting_detail.dds",
+    "ThumbnailImage": "perrys_harvesting_thumb.dds",
+    "Level": 115,
+    "Coins": 25,
+    "Stars": 20
+  },
+  {
+    "Id": 117,
+    "Comment": "Lakesfield Harvesting",
+    "Game": "MatchThree",
+    "Swf": "game_farming.swf",
+    "NameId": 100837,
+    "DescriptionId": 94153,
+    "IconId": 908,
+    "Difficulty": 2,
+    "Category": 15,
+    "DetailImage": "lakesfield_harvesting_detail.dds",
+    "ThumbnailImage": "lakesfield_harvesting_thumb.dds",
+    "Level": 117,
+    "Coins": 25,
+    "Stars": 20
+  },
+  {
+    "Id": 119,
+    "Comment": "Thorny Tillage Harvesting",
+    "Game": "MatchThree",
+    "Swf": "game_farming.swf",
+    "NameId": 100869,
+    "DescriptionId": 94154,
+    "IconId": 908,
+    "Difficulty": 2,
+    "Category": 15,
+    "DetailImage": "thorny_harvesting_detail.dds",
+    "ThumbnailImage": "thorny_harvesting_thumb.dds",
+    "Level": 119,
+    "Coins": 25,
+    "Stars": 20
+  },
+  // Mail Sorting, Artifact Hunt and Goo'd Candy (game_mailsorting, game_artifact, game_halloween).
+  {
+    "Id": 57,
+    "Comment": "Artifact Hunt",
+    "Game": "MatchThree",
+    "Swf": "game_artifact.swf",
+    "NameId": 35604,
+    "DescriptionId": 35605,
+    "IconId": 912,
+    "Difficulty": 2,
+    "Category": 18,
+    "DetailImage": "artifact_hunt_detail.dds",
+    "ThumbnailImage": "artifact_hunt_thumb.dds",
+    "Level": 57,
+    "Coins": 20,
+    "Stars": 20
+  },
+  {
+    "Id": 681,
+    "Comment": "Ambrose's Dig",
+    "Game": "MatchThree",
+    "Swf": "game_artifact.swf",
+    "NameId": 413706,
+    "DescriptionId": 413709,
+    "IconId": 912,
+    "Difficulty": 3,
+    "Category": 18,
+    "DetailImage": "artifact_hunt_detail.dds",
+    "ThumbnailImage": "artifact_hunt_thumb.dds",
+    "Level": 681,
+    "Coins": 30,
+    "Stars": 25
+  },
+  {
+    "Id": 682,
+    "Comment": "Tyrone's Dig",
+    "Game": "MatchThree",
+    "Swf": "game_artifact.swf",
+    "NameId": 413707,
+    "DescriptionId": 413711,
+    "IconId": 912,
+    "Difficulty": 3,
+    "Category": 18,
+    "DetailImage": "artifact_hunt_detail.dds",
+    "ThumbnailImage": "artifact_hunt_thumb.dds",
+    "Level": 682,
+    "Coins": 30,
+    "Stars": 25
+  },
+  {
+    "Id": 683,
+    "Comment": "Wellington's Dig",
+    "Game": "MatchThree",
+    "Swf": "game_artifact.swf",
+    "NameId": 413708,
+    "DescriptionId": 413712,
+    "IconId": 912,
+    "Difficulty": 3,
+    "Category": 18,
+    "DetailImage": "artifact_hunt_detail.dds",
+    "ThumbnailImage": "artifact_hunt_thumb.dds",
+    "Level": 683,
+    "Coins": 30,
+    "Stars": 25
+  },
+  {
+    "Id": 712,
+    "Comment": "Goo'd Candy",
+    "Game": "MatchThree",
+    "Swf": "game_halloween.swf",
+    "NameId": 416765,
+    "DescriptionId": 416766,
+    "IconId": 22414,
+    "Difficulty": 1,
+    "Category": 18,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 712,
+    "Coins": 20,
+    "Stars": 15
+  },
+  {
+    "Id": 60,
+    "Comment": "Mail Sorting",
+    "Game": "MatchThree",
+    "Swf": "game_mailsorting.swf",
+    "NameId": 35595,
+    "DescriptionId": 35611,
+    "IconId": 911,
+    "Difficulty": 1,
+    "Category": 18,
+    "DetailImage": "sanctuary_mail_detail.dds",
+    "ThumbnailImage": "sanctuary_mail_thumb.dds",
+    "Level": 60,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 4
+  },
+  {
+    "Id": 376,
+    "Comment": "Sanctuary Mail Sorting",
+    "Game": "MatchThree",
+    "Swf": "game_mailsorting.swf",
+    "NameId": 102030,
+    "DescriptionId": 35611,
+    "IconId": 911,
+    "Difficulty": 1,
+    "Category": 18,
+    "DetailImage": "sanctuary_mail_detail.dds",
+    "ThumbnailImage": "sanctuary_mail_thumb.dds",
+    "Level": 376,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 4
+  },
+  {
+    "Id": 377,
+    "Comment": "Seaside Mail Sorting",
+    "Game": "MatchThree",
+    "Swf": "game_mailsorting.swf",
+    "NameId": 102033,
+    "DescriptionId": 35611,
+    "IconId": 911,
+    "Difficulty": 1,
+    "Category": 18,
+    "DetailImage": "seaside_mail_detail.dds",
+    "ThumbnailImage": "seaside_mail_thumb.dds",
+    "Level": 377,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 4
+  },
+  {
+    "Id": 378,
+    "Comment": "Wugachug Mail Sorting",
+    "Game": "MatchThree",
+    "Swf": "game_mailsorting.swf",
+    "NameId": 102036,
+    "DescriptionId": 35611,
+    "IconId": 911,
+    "Difficulty": 3,
+    "Category": 18,
+    "DetailImage": "wugachug_mail_detail.dds",
+    "ThumbnailImage": "wugachug_mail_thumb.dds",
+    "Level": 378,
+    "Coins": 30,
+    "Stars": 30,
+    "ProfileId": 4
+  },
+  {
+    "Id": 379,
+    "Comment": "Snowhill Mail Sorting",
+    "Game": "MatchThree",
+    "Swf": "game_mailsorting.swf",
+    "NameId": 31336,
+    "DescriptionId": 35611,
+    "IconId": 911,
+    "Difficulty": 3,
+    "Category": 18,
+    "DetailImage": "snowhill_mail_detail.dds",
+    "ThumbnailImage": "snowhill_mail_thumb.dds",
+    "Level": 379,
+    "Coins": 30,
+    "Stars": 30,
+    "ProfileId": 4
+  },
+  {
+    "Id": 380,
+    "Comment": "Shrouded Glade Mail Sorting",
+    "Game": "MatchThree",
+    "Swf": "game_mailsorting.swf",
+    "NameId": 102038,
+    "DescriptionId": 35611,
+    "IconId": 911,
+    "Difficulty": 5,
+    "Category": 18,
+    "DetailImage": "shrouded_glade_mail_detail.dds",
+    "ThumbnailImage": "shrouded_glade_mail_thumb.dds",
+    "Level": 380,
+    "Coins": 45,
+    "Stars": 45,
+    "ProfileId": 4
+  },
+  {
+    "Id": 381,
+    "Comment": "Merry Vale Mail Sorting",
+    "Game": "MatchThree",
+    "Swf": "game_mailsorting.swf",
+    "NameId": 21585,
+    "DescriptionId": 35611,
+    "IconId": 911,
+    "Difficulty": 1,
+    "Category": 18,
+    "DetailImage": "merry_vale_mail_detail.dds",
+    "ThumbnailImage": "merry_vale_mail_thumb.dds",
+    "Level": 381,
+    "Coins": 15,
+    "Stars": 15,
+    "ProfileId": 4
+  },
+  // Started by a quest only (not in the Games window).
+  {
+    "Id": 1099,
+    "Comment": "Scalpel for Mili",
+    "Game": "MatchThree",
+    "Swf": "game_forging.swf",
+    "NameId": 442477,
+    "DescriptionId": 22054,
+    "IconId": 910,
+    "Difficulty": 1,
+    "Category": 0,
+    "DetailImage": "placeholder_detail.dds",
+    "ThumbnailImage": "placeholder_thumb.dds",
+    "Level": 1099,
+    "Coins": 15,
+    "Stars": 10,
+    "ProfileId": 16,
+    "Items": [
+      {
+        "ItemId": 4610
+      }
+    ]
+  }
+]

@@ -131,4 +131,9 @@ public interface IScriptablePlayer
     /// Sends the player to a world zone, at the given spot or the zone's start. False if it isn't a world zone.
     /// </summary>
     bool Warp(int zoneId, (float x, float y, float z)? position, float? heading);
+
+    /// <summary>
+    /// Opens a minigame's start screen (a Resources/Minigames id). False if the server doesn't run it.
+    /// </summary>
+    bool StartMinigame(int minigameId);
 }

@@ -4,21 +4,22 @@ using System.Linq;
 
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Resources.Definitions.Rewards;
-using Sanctuary.Game.Zones;
-using Sanctuary.Packet;
 
 namespace Sanctuary.Game.Minigames;
 
 /// <summary>
 /// The daily coin wheel ("Spin For The Win!", game_wheel.swf). The movie talks to the server with tab-separated
 /// Flash messages (its Wheel.WheelGameClient class); the flow is connect, wheel data, a spin request answered
-/// with the slot to land on, and the reward once the wheel stops.
+/// with the slot to land on, and the reward once the wheel stops. The wheel pays its own coins, so its
+/// Minigames.json entry pays nothing more.
 /// </summary>
-public static class DailyWheelGame
+[FlashMinigame("Wheel")]
+public sealed class DailyWheelGame : FlashMinigame
 {
-    public const string SwfName = "game_wheel.swf";
-
-    private const int StageId = BaseZone.DailyWheelMinigameId;
+    /// <summary>
+    /// MiniGameData.txt: "Spin For The Win!".
+    /// </summary>
+    public const int MinigameId = 8;
 
     private const int WheelId = 1;
 
@@ -57,139 +58,90 @@ public static class DailyWheelGame
     ];
 
     /// <summary>
-    /// The slot a player's spin landed on, paid when the client reports that the wheel stopped.
-    /// </summary>
-    private static readonly ConcurrentDictionary<ulong, int> PendingSlots = new();
-
-    /// <summary>
     /// The day (UTC) each player last spun. Kept in memory, so a server restart gives everyone a spin back.
     /// </summary>
     private static readonly ConcurrentDictionary<ulong, DateOnly> LastSpinDays = new();
 
     /// <summary>
-    /// Answers the client's start request (sent once the minigame's Info has loaded) by loading the movie.
+    /// The slot this game's spin landed on, paid when the client reports that the wheel stopped.
     /// </summary>
-    public static void Start(Player player)
+    private int? _pendingSlot;
+
+    public override bool OnMessage(string name, FlashArgs args)
     {
-        PendingSlots.TryRemove(player.Guid, out _);
-
-        player.SendTunneled(new CommandPacketStartFlashGame
-        {
-            GameSwfName = SwfName,
-            ReturnToPortal = true
-        });
-
-        player.SendTunneled(new MiniGameHeaderPacket
-        {
-            SubOpCode = BaseMiniGamePacket.StartGame,
-            StageId = StageId
-        });
-    }
-
-    /// <summary>
-    /// Handles a Flash message from the wheel. Returns false for messages it doesn't know.
-    /// </summary>
-    public static bool HandlePayload(Player player, string payload, IRewardManager rewardManager)
-    {
-        // The movie's messages end with padding (control characters, spaces) after the last field.
-        var parts = new string(payload.Where(c => c == '\t' || !char.IsControl(c)).ToArray()).TrimEnd().Split('\t');
-
-        switch (parts[0])
+        switch (name)
         {
             case "OnConnectMsg":
             {
                 var slots = string.Join(' ', Slots.Select(x => x.Category));
 
-                SendPayload(player, $"OnWheelDataMsg\t{WheelId}\t{WheelType}\t{slots}\t0\t0");
-                SendWheelUpdate(player);
-                SendPayload(player, "OnServerReadyMsg");
+                Send("OnWheelDataMsg", WheelId, WheelType, slots, 0, 0);
+                SendWheelUpdate();
+                Send("OnServerReadyMsg");
                 return true;
             }
 
             case "OnChangeWheelRequestMsg":
-                SendPayload(player, $"OnWheelChangedMsg\t{WheelId}");
+                Send("OnWheelChangedMsg", WheelId);
                 return true;
 
             case "OnWheelSpinRequestMsg":
             {
-                if (SpinsLeft(player) <= 0)
+                if (SpinsLeft(Player) <= 0)
                     return true;
 
-                LastSpinDays[player.Guid] = Today;
+                LastSpinDays[Player.Guid] = Today;
 
                 // The movie moves the wheel this many slots past where its own spin would stop, which lands the
                 // arrow on that slot.
                 var slot = RollSlot();
-                PendingSlots[player.Guid] = slot;
-                SendPayload(player, $"OnSpinInfoMsg\t{slot}");
+                _pendingSlot = slot;
+                Send("OnSpinInfoMsg", slot);
                 return true;
             }
 
             case "OnWheelStopMsg":
             {
-                if (!PendingSlots.TryRemove(player.Guid, out var slot))
+                if (_pendingSlot is not { } slot)
                     return true;
+
+                _pendingSlot = null;
 
                 var coins = Slots[slot].Coins;
 
-                rewardManager.TryGrantCurrency(player, CurrencyType.Coins, coins);
-                SendPayload(player, $"OnRewardInfoMsg\t{CoinRewardIconId}\t0\t{coins}\t{CoinsNameId}\t{ComeBackTomorrowId}\t0");
-                SendWheelUpdate(player);
+                RewardManager.TryGrantCurrency(Player, CurrencyType.Coins, coins);
+                Send("OnRewardInfoMsg", CoinRewardIconId, 0, coins, CoinsNameId, ComeBackTomorrowId, 0);
+                SendWheelUpdate();
                 return true;
             }
 
             case "FRServer_GameClose":
             case "FRServer_GameQuit":
-                PendingSlots.TryRemove(player.Guid, out _);
-
-                player.SendTunneled(new ExecuteScriptPacket { Script = "MiniGameFlash.StopAllSounds" });
-
-                // Game over and leave return the client to the world, but leave the movie's window up; the
-                // client's MiniGameFlash object closes it.
-                player.SendTunneled(new MiniGameGameOverPacket
-                {
-                    StageId = StageId,
-                    Won = true
-                });
-
-                player.SendTunneled(new MiniGameHeaderPacket
-                {
-                    SubOpCode = BaseMiniGamePacket.LeaveGame,
-                    StageId = StageId
-                });
-
-                player.SendTunneled(new ExecuteScriptPacket { Script = "MiniGameFlash.Hide" });
-                player.SendTunneled(new ExecuteScriptPacket { Script = "MiniGameFlash.Unload" });
+                // MinigameManager closes the movie.
                 return true;
         }
 
         return false;
     }
 
-    private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
-
-    private static int SpinsLeft(Player player)
+    /// <summary>
+    /// Spins left today: one a day, reset at midnight UTC.
+    /// </summary>
+    public static int SpinsLeft(Player player)
     {
         return LastSpinDays.TryGetValue(player.Guid, out var day) && day == Today ? 0 : 1;
     }
 
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
+
     /// <summary>
     /// Sends the spins left, the consecutive days played and the seconds until the next spin.
     /// </summary>
-    private static void SendWheelUpdate(Player player)
+    private void SendWheelUpdate()
     {
         var secondsUntilTomorrow = (int)(DateTime.UtcNow.Date.AddDays(1) - DateTime.UtcNow).TotalSeconds;
 
-        SendPayload(player, $"OnWheelUpdateMsg\t{WheelId}\t{SpinsLeft(player)}\t1\t{secondsUntilTomorrow}");
-    }
-
-    private static void SendPayload(Player player, string payload)
-    {
-        player.SendTunneled(new MiniGamePayloadPacket
-        {
-            StageId = StageId,
-            Payload = payload
-        });
+        Send("OnWheelUpdateMsg", WheelId, SpinsLeft(Player), 1, secondsUntilTomorrow);
     }
 
     private static int RollSlot()

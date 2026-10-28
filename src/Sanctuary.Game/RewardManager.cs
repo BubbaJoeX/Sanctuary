@@ -252,12 +252,14 @@ public class RewardManager : IRewardManager
         return true;
     }
 
-    public bool TryGrantExperience(Player player, int experience)
+    public bool TryGrantExperience(Player player, int experience) => TryGrantExperience(player, experience, 0);
+
+    public bool TryGrantExperience(Player player, int experience, int profileId)
     {
         if (experience <= 0)
             return false;
 
-        var profile = player.ActiveProfile;
+        var profile = player.Profiles.FirstOrDefault(x => x.Id == profileId) ?? player.ActiveProfile;
         var characterId = GuidHelper.GetPlayerId(player.Guid);
 
         // Kills from several mobs can land at once; each read-add-save must see the last one's total.

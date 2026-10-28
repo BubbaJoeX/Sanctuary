@@ -19,6 +19,7 @@ using Sanctuary.Game.Conversations;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
+using Sanctuary.Game.Minigames;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Zones;
 using Sanctuary.Packet;
@@ -322,62 +323,9 @@ public abstract class BaseZone : IZone, IDisposable
 
     /// <summary>
     /// The Games window (Main Menu > Games) lists the activities of the tile's category; the client has no
-    /// list of its own. Only the daily wheel is offered so far.
+    /// list of its own. <see cref="MinigameManager"/> sends every game the server runs.
     /// </summary>
-    public static void SendActivities(Player player)
-    {
-        player.SendTunneled(new ActivityPacketListOfActivities
-        {
-            Type = BaseActivityServicePacket.MinigameActivityType,
-            Activities =
-            [
-                new ActivityDefinition
-                {
-                    // A minigame activity: PLAY hands it to the client's minigame controller. The id is the
-                    // game's MiniGameData.txt id ("Spin For The Win!").
-                    Id = DailyWheelMinigameId,
-                    Type = BaseActivityServicePacket.MinigameActivityType,
-                    Category = WheelsActivityCategory,
-                    ImageSetId = 20985,
-                    // "Spin For The Win!" (the wheel's MiniGameData.txt entry).
-                    DisplayNameId = 409962,
-                    DisplayDescriptionId = 409969,
-                    NameId = 409962,
-                    DescriptionId = 409969,
-                    CanPlayerJoin = true,
-                    DetailImageFilename = "daily_wheel_detail.dds",
-                    ThumbnailImageFilename = "daily_wheel_thumb.dds",
-                    Difficulty = 1
-                }
-            ]
-        });
-    }
-
-    /// <summary>
-    /// ActivityCategories.txt: the Games window's Wheels tile.
-    /// </summary>
-    private const int WheelsActivityCategory = 17;
-
-    public const int DailyWheelMinigameId = 8;
-
-    /// <summary>
-    /// Answers a join request from the Games window by starting the activity's minigame on the client.
-    /// </summary>
-    public static void StartMinigameActivity(Player player, int activityId)
-    {
-        if (activityId != DailyWheelMinigameId)
-            return;
-
-        player.SendTunneled(new MiniGameInfoPacket
-        {
-            StageId = DailyWheelMinigameId,
-            NameId = 409962,
-            IconId = 20985,
-            DescriptionId = 409969,
-            Difficulty = 1,
-            StageDefinitionId = DailyWheelMinigameId
-        });
-    }
+    public static void SendActivities(Player player) => MinigameManager.SendActivities(player);
 
     public virtual void OnClientIsReady(Player player)
     {
@@ -1373,6 +1321,8 @@ public abstract class BaseZone : IZone, IDisposable
             scriptContext.FireEvent("playerLeave", NpcContent.WrapPlayer(player));
 
         BoomboxHelper.RemovePlayer(this, guid);
+
+        MinigameManager.Abandon(player);
 
         return _entities.TryRemove(guid, out _);
     }

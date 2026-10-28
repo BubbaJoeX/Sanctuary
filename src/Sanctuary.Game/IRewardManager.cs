@@ -27,4 +27,9 @@ public interface IRewardManager
     /// Adds stars to the active job, ranking it up as its bar fills. False at the top rank.
     /// </summary>
     bool TryGrantExperience(Player player, int experience);
+
+    /// <summary>
+    /// Adds stars to one of the player's jobs (a Profiles.json id), or to the active one when they don't have it.
+    /// </summary>
+    bool TryGrantExperience(Player player, int experience, int profileId);
 }
