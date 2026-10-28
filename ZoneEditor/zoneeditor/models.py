@@ -93,6 +93,58 @@ def adr_mesh_name(blob: bytes) -> str | None:
     return None
 
 
+def _adr_fields(blob: bytes) -> list:
+    """An actor definition's tag, length, value fields: [(tag, bytes)]. A length byte with its top bit set is
+    the high byte of a two-byte length."""
+    fields, i = [], 0
+    while i + 1 < len(blob):
+        tag, length = blob[i], blob[i + 1]
+        i += 2
+        if length & 0x80:
+            length = (length & 0x7F) << 8 | blob[i]
+            i += 1
+        if i + length > len(blob):
+            raise ValueError("an actor field runs past the end")
+        fields.append((tag, blob[i : i + length]))
+        i += length
+    return fields
+
+
+def actor_aliases(blob: bytes) -> dict:
+    """What an actor definition lets each placement choose: texture aliases (section 5: named texture
+    variants per material slot, one the default) and tint aliases (section 6: named colours, one the
+    default). An object picks one of each by name (its material and tint alias) and gives its own colour.
+
+    Entries are fields 3 (slot hash), 4 (name); textures 5 (texture) and 7 (default), tints 5, 6, 7 (red,
+    green, blue as big-endian floats) and 8 (default).
+    """
+    result = {"textures": [], "tints": []}
+    try:
+        sections = _adr_fields(blob)
+    except ValueError:
+        return result
+    text = lambda value: value.rstrip(b"\0").decode("latin-1")
+    for tag, section in sections:
+        if tag not in (5, 6):
+            continue
+        try:
+            entries = [dict(_adr_fields(entry)) for kind, entry in _adr_fields(section) if kind == 1]
+        except ValueError:
+            continue
+        for entry in entries:
+            if 4 not in entry:
+                continue
+            slot = struct.unpack("<I", entry[3])[0] if len(entry.get(3, b"")) == 4 else 0
+            if tag == 5 and 5 in entry:
+                result["textures"].append({"slot": slot, "name": text(entry[4]), "texture": text(entry[5]),
+                                           "default": entry.get(7, b"\0")[:1] == b"\1"})
+            elif tag == 6 and all(len(entry.get(k, b"")) == 4 for k in (5, 6, 7)):
+                colour = [round(struct.unpack(">f", entry[k])[0], 4) for k in (5, 6, 7)]
+                result["tints"].append({"slot": slot, "name": text(entry[4]), "colour": colour,
+                                        "default": entry.get(8, b"\0")[:1] == b"\1"})
+    return result
+
+
 def actor_group_members(blob: bytes) -> list:
     """The actors an .agr actor set lists (<Actor name="..."/>), e.g. bw_pots_01.adr for sg_pots_01.agr."""
     return [name.decode("latin-1") for name in re.findall(rb'<Actor\s+name="([^"]+)"', blob)]

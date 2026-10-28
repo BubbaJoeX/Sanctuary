@@ -78,13 +78,13 @@ for a housing zone, `!house grant <house id>` and then `!house enter`.
 
 | Tool | Key | |
 | --- | --- | --- |
-| Select | V | Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus. A prop dragged into another chunk moves into it. |
+| Select | V | Click a prop, light or marker; Shift+click or drag a box to select several. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, Ctrl+C/V copy and paste, End drop to ground, H hide, F focus. A prop dragged into another chunk moves into it. |
 | Sculpt | B | Raise and lower (Shift swaps them), smooth, flatten (to where the stroke started), slope (onto the plane under the brush where the stroke started, for lumpy hillsides), level (to a set height; Alt+click picks it), ramp (drag from one point to another), terrace (steps of a set height), erode (cliffs slide to a 35° slope), sharpen and noise. Keys 1 to 0 pick them. |
 | Exclude | X | Cut holes in the ground for cave mouths and interiors, or restore it. Shift+click a cave model to limit the brush to inside its bounds, or cut all the ground inside it at once. Holes leave the ground's mesh and collision; a tile cut out entirely keeps one buried, degenerate triangle so its collision tree stays valid. |
 | Eco | E | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). Alt+click picks the eco under the pointer and its tint from the colour map, which painting then uses instead. A tile holds up to 5 ecos. |
 | Colour | C | Paint the colour map directly; Alt+click picks a colour. |
 | Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. |
-| Props | P | Place objects from the content browser (O): click a tile, then the ground, or drag a tile into the view. Shift+wheel turns the preview. |
+| Props | P | Place objects from the content browser (O): click a tile, then the ground, or drag a tile into the view. Shift+wheel turns the preview. Or scatter them with a brush. See Objects below. |
 | Lights | L | Click the ground to add a point light; edit colour, range and intensity. |
 | Chunks | K | Click an empty cell, in the view or on the minimap, to add a chunk. Its edges join the land around it. |
 | Zone | Z | Spawn point and heading, zone sky or a custom sky XML, adding ecos (from FabledRealms' list or a client `.eco`), house exit door and build areas. |
@@ -101,6 +101,33 @@ wheel sizes the brush and Ctrl+wheel sets strength; every brush has a falloff: s
 flat). I is the eyedropper: the ground under the pointer sets the level height, the eco to paint and its
 tint, and the colour; the status bar shows the eco under the pointer. Ctrl+Z undoes, Ctrl+S saves. The
 minimap shows chunks green and unsaved ones gold; click it to fly there.
+
+## Objects
+
+**Tint and texture variants.** An actor's `.adr` lists texture aliases (named texture variants, such as a
+housing block's tiger stripes, polka dots and cheese) and tint aliases (named colours: `dyetint`, `notint`,
+and the gear colours). Each placed object names one of each and carries its own tint colour, and the
+inspector's Look section sets them: a variant, a tint alias, a colour picker, swatches of the actor's own
+tints and recent colours, and Copy look / Paste look. Only actors that list tint aliases can be tinted in
+game; the panel says when a model has neither. Version 5 chunks have no room for these, so a chunk is saved
+as version 6 when one of its objects gets a variant or tint (nothing else differs between the two). Each
+object also has a draw distance (0 is the client's default).
+
+**Selecting.** Shift+click adds or removes an object; dragging over the ground in the Select tool selects
+everything in the box (Shift adds). Several selected move, turn (R) and scale (T) together round their
+centre, and share an inspector: their look and draw distance, and the actions. Move and turn snapping are
+in the Select tool. Find objects lists the loaded objects by name, nearest first, to select one or all.
+
+**Actions** (on everything selected): drop to the ground (End), align to the slope, stand upright, random
+turn, random scale (in the Props tool's range), reset; select all like this; hide the model (H, Shift+H
+shows everything again), e.g. trees in the way of terrain work; replace the model with the content
+browser's pick, keeping place, turn and scale; duplicate (Ctrl+D), copy and paste at the pointer (Ctrl+C,
+Ctrl+V) and delete. Each is one undo step.
+
+**Placing.** The Props tool places one object at a time or scatters them under a brush: a set of models (or
+the content pick) dropped at random, no closer than a spacing, with Shift+drag erasing them again; one
+undo step per stroke. Either way new objects can get a random turn, a random scale in a range, stand on the
+slope, sit above or sink into the ground, and take a texture variant and tint.
 
 ## The viewport
 

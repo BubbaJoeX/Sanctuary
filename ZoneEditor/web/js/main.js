@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { ASSET_VERSION, frame as frameBody, getJson, postJson, save, unframe } from "./api.js";
 import { CHUNK, FALLOFFS, STEP, TerrainChunk, TerrainManager, environmentColour } from "./terrain.js";
-import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform } from "./props.js";
+import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform, variantNames } from "./props.js";
 import { ContentBrowser } from "./content.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
@@ -56,7 +56,14 @@ scene.add(skyDome);
 
 const terrain = new TerrainManager(scene, {
   onChunkLoaded: (chunk) => { props.addChunk(chunk); drawMinimap(); if (contentOpen()) content.renderGroups(); },
-  onChunkUnloaded: (chunk) => { props.removeChunk(chunk); if (selected?.userData.chunk === chunk) select(null); },
+  onChunkUnloaded: (chunk) => {
+    props.removeChunk(chunk);
+    const gone = [...selection].filter((o) => o.userData.chunk === chunk);
+    if (!gone.length && selected?.userData.chunk !== chunk) return;
+    for (const object of gone) selection.delete(object);
+    if (selected?.userData.chunk === chunk) selected = [...selection].at(-1) ?? null;
+    selectionChanged();
+  },
   status,
 });
 terrain.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -89,6 +96,15 @@ const state = {
   ecoTintAmount: 0.85,
   ecoTintPick: null,       // a tint the eyedropper took from the ground, painted instead of the eco's own colour
   exclude: { mode: "cut", target: null, onlyInside: true },
+  // New objects: one at a time or scattered under a brush, with a random turn and scale, stood on the slope,
+  // raised by offset, and given a texture variant and tint where their actor has them.
+  place: {
+    mode: "single", randomYaw: false, align: false, scaleMin: 1, scaleMax: 1, offset: 0,
+    material: "", tintOn: false, tint: "#ffffff", spacing: 6, set: [],
+  },
+  snap: { move: 0, turn: 0 },
+  recentTints: [],
+  findQuery: "",
   ecoColours: new Map(),
   colour: [96, 140, 70],
   environment: 0,
@@ -101,7 +117,11 @@ const state = {
   zoneDirty: false,
   time: 12,
 };
-let selected = null;
+let selected = null;           // the object the inspector shows and the gizmo holds (the last one picked)
+const selection = new Set();   // every selected prop and light; a marker is selected alone
+const selectionBoxes = new Map();
+const pivot = new THREE.Object3D();   // the gizmo's handle on several objects at once
+scene.add(pivot);
 let ghost = null;
 const markers = [];
 const undoStack = [];
@@ -555,7 +575,26 @@ function renderPanel() {
     ? `<p class="warn">No chunk is loaded here yet.</p>` : "";
 
   if (state.tool === "select") {
-    panel.innerHTML = `<h3>Select</h3><p class="hint">Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus.</p><div id="inspector"></div>`;
+    const hidden = [...props.hiddenFiles];
+    const options = (values, current, unit) => values.map((v) => `<option value="${v}" ${v === current ? "selected" : ""}>${v ? v + unit : "off"}</option>`).join("");
+    panel.innerHTML = `<h3>Select</h3>
+      <p class="hint">Click a prop, light or marker; Shift+click adds or removes one; drag over the ground to box-select (Shift adds). G move, R turn, T scale, Del delete, Ctrl+D duplicate, Ctrl+C / Ctrl+V copy and paste at the pointer, End drops to the ground, H hides a model, F focuses.</p>
+      <div class="row"><label>Move snap <select id="snap-move">${options([0, 0.25, 0.5, 1, 2, 4, 8], state.snap.move, "")}</select></label>
+        <label>Turn snap <select id="snap-turn">${options([0, 5, 15, 45, 90], state.snap.turn, "°")}</select></label></div>
+      ${hidden.length ? `<p class="hint">Hidden: ${hidden.map(escape).join(", ")}</p><div class="row"><button id="show-all">Show them again (Shift+H)</button></div>` : ""}
+      <div id="inspector"></div>
+      <h4>Find objects</h4>
+      <input id="find-objects" placeholder="Name: rock, tree_giant, hsg_block…" value="${escape(state.findQuery)}">
+      <div class="list" id="found-objects"></div>
+      <div class="row"><button id="select-found" disabled>Select all found</button></div>`;
+    panel.querySelector("#snap-move").addEventListener("change", (e) => { state.snap.move = +e.target.value; applySnap(); });
+    panel.querySelector("#snap-turn").addEventListener("change", (e) => { state.snap.turn = +e.target.value; applySnap(); });
+    panel.querySelector("#show-all")?.addEventListener("click", () => { props.showAll(); renderPanel(); });
+    const find = panel.querySelector("#find-objects");
+    let timer;
+    find.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { state.findQuery = find.value; listFound(); }, 150); });
+    panel.querySelector("#select-found").addEventListener("click", () => selectMany(foundObjects()));
+    listFound();
     renderInspector();
   } else if (state.tool === "sculpt") {
     const mode = state.brush.mode;
@@ -642,12 +681,44 @@ function renderPanel() {
       row.addEventListener("click", () => { state.environment = +row.dataset.env; renderPanel(); });
     }
   } else if (state.tool === "props") {
+    const p = state.place;
+    const scatter = p.mode === "scatter";
+    const short = (file) => escape(file.replace(/\.(adr|agr)$/i, ""));
     panel.innerHTML = `<h3>Props</h3>
-      <p class="hint">${state.actor ? `Placing <b>${escape(state.actor)}</b>: click the ground to place it, Shift+wheel turns it, Esc stops.` : "Pick an object in the content browser below, or drag one into the view."}</p>
+      <p class="hint">${state.actor ? `Picked <b>${escape(state.actor)}</b>. ` : "Pick an object in the content browser below, or drag one into the view. "}${scatter
+        ? "Hold the left button to scatter under the brush; Shift+drag erases those models there."
+        : "Click the ground to place it, Shift+wheel turns it, Esc stops; Shift+click selects instead."}</p>
       <div class="row"><button id="open-content">${contentOpen() ? "Hide" : "Show"} content browser (O)</button></div>
-      <p class="hint">A placed object goes in the chunk under it. Shift+click selects instead of placing.</p>
+      <div class="seg">${[["single", "Place one"], ["scatter", "Scatter"]].map(([m, label]) => `<button data-place-mode="${m}" class="${p.mode === m ? "active" : ""}">${label}</button>`).join("")}</div>
+      ${scatter ? `${brushControls()}
+        <label>Spacing (units between them) <input id="scatter-spacing" type="number" min="0.5" step="0.5" value="${p.spacing}"></label>
+        <h4>Scatter set</h4>
+        <div class="chips">${p.set.length ? p.set.map((f, i) => `<span class="chip">${short(f)} <b data-unset="${i}" title="Remove">×</b></span>`).join("") : `<span class="hint">Empty: the content pick is scattered.</span>`}</div>
+        <div class="row"><button id="scatter-add" ${state.actor ? "" : "disabled"}>Add ${state.actor ? short(state.actor) : "the content pick"}</button></div>` : ""}
+      <h4>New objects</h4>
+      <label class="check"><input id="place-turn" type="checkbox" ${p.randomYaw ? "checked" : ""}> Random turn</label>
+      <label class="check"><input id="place-align" type="checkbox" ${p.align ? "checked" : ""}> Stand on the slope</label>
+      <div class="row"><label>Scale from <input id="place-scale-min" type="number" min="0.05" step="0.05" value="${p.scaleMin}"></label>
+        <label>to <input id="place-scale-max" type="number" min="0.05" step="0.05" value="${p.scaleMax}"></label></div>
+      <label>Height above the ground (negative sinks them) <input id="place-offset" type="number" step="0.1" value="${p.offset}"></label>
+      <div id="place-look"></div>
       <div id="inspector"></div>`;
     panel.querySelector("#open-content").addEventListener("click", () => toggleContent());
+    for (const button of panel.querySelectorAll("[data-place-mode]")) {
+      button.addEventListener("click", () => { p.mode = button.dataset.placeMode; makeGhost(); renderPanel(); });
+    }
+    if (scatter) {
+      bindBrush();
+      panel.querySelector("#scatter-spacing").addEventListener("input", (e) => { p.spacing = Math.max(0.5, +e.target.value); });
+      panel.querySelector("#scatter-add").addEventListener("click", () => { if (!p.set.includes(state.actor)) p.set.push(state.actor); renderPanel(); });
+      for (const remove of panel.querySelectorAll("[data-unset]")) remove.addEventListener("click", () => { p.set.splice(+remove.dataset.unset, 1); renderPanel(); });
+    }
+    panel.querySelector("#place-turn").addEventListener("change", (e) => { p.randomYaw = e.target.checked; });
+    panel.querySelector("#place-align").addEventListener("change", (e) => { p.align = e.target.checked; });
+    panel.querySelector("#place-scale-min").addEventListener("input", (e) => { p.scaleMin = Math.max(0.05, +e.target.value); });
+    panel.querySelector("#place-scale-max").addEventListener("input", (e) => { p.scaleMax = Math.max(0.05, +e.target.value); });
+    panel.querySelector("#place-offset").addEventListener("input", (e) => { p.offset = +e.target.value; });
+    renderPlaceLook();
     renderInspector();
   } else if (state.tool === "lights") {
     panel.innerHTML = `<h3>Point lights</h3><p class="hint">Click the ground to add a light 6 units above it, or click a light to edit it.</p><div id="inspector"></div>`;
@@ -763,6 +834,8 @@ function renderInspector() {
   const locked = chunk && !chunk.editable;
   if (kind === "marker") {
     target.innerHTML = `<h4>${escape(label)}</h4><div class="xyz">${["x", "y", "z"].map((a) => `<input data-pos="${a}" type="number" step="0.5" value="${selected.position[a].toFixed(2)}">`).join("")}</div>`;
+  } else if (selection.size > 1) {
+    return renderGroupInspector(target);
   } else if (kind === "prop") {
     const deg = record.rotation.map((r) => THREE.MathUtils.radToDeg(r).toFixed(1));
     target.innerHTML = html`<h4>${escape(record.file)}</h4>
@@ -770,7 +843,11 @@ function renderInspector() {
       <label>Position</label><div class="xyz">${record.position.map((v, k) => `<input data-pos="${"xyz"[k]}" type="number" step="0.25" value="${v.toFixed(2)}" ${locked ? "disabled" : ""}>`).join("")}</div>
       <label>Yaw / pitch / roll (degrees)</label><div class="xyz">${deg.map((v, k) => `<input data-rot="${k}" type="number" step="5" value="${v}" ${locked ? "disabled" : ""}>`).join("")}</div>
       <label>Scale <input id="prop-scale" type="number" step="0.05" min="0.01" value="${record.scale.toFixed(3)}" ${locked ? "disabled" : ""}></label>
-      <div class="row">${locked ? `<button id="copy-editable">Copy into an editable chunk</button>` : `<button id="snap">Snap to ground</button><button id="duplicate">Duplicate</button><button id="delete" class="danger">Delete</button>`}</div>`;
+      <div id="look"></div>
+      ${drawDistanceControl([record])}
+      ${locked ? `<div class="row"><button id="copy-editable">Copy into an editable chunk</button></div>` : objectButtons()}`;
+    renderLook(target.querySelector("#look"), [selected]);
+    bindObjectButtons(target);
   } else if (kind === "light") {
     const hex = "#" + record.color.slice(0, 3).map((v) => v.toString(16).padStart(2, "0")).join("");
     target.innerHTML = html`<h4>Light ${escape(record.name)}</h4>
@@ -808,17 +885,152 @@ function renderInspector() {
   target.querySelector("#light-colour-name")?.addEventListener("change", (e) => { record.colorName = e.target.value; markDirty(chunk, kind); });
   target.querySelector("#light-range")?.addEventListener("change", (e) => { record.range = +e.target.value; markDirty(chunk, kind); });
   target.querySelector("#light-intensity")?.addEventListener("change", (e) => { record.intensity = +e.target.value; markDirty(chunk, kind); });
-  target.querySelector("#snap")?.addEventListener("click", () => {
-    const h = terrain.heightAt(record.position[0], record.position[2]);
-    if (h !== null) { record.position[1] = h; changed(); renderInspector(); }
-  });
-  target.querySelector("#duplicate")?.addEventListener("click", duplicateSelected);
-  target.querySelector("#delete")?.addEventListener("click", deleteSelected);
+  if (kind === "light") {
+    target.querySelector("#duplicate")?.addEventListener("click", duplicateSelected);
+    target.querySelector("#delete")?.addEventListener("click", deleteSelected);
+  }
   target.querySelector("#copy-editable")?.addEventListener("click", () => {
     const destination = editableChunkFor(record.position[0], record.position[2]);
     if (!destination) return toast("No editable chunk is loaded nearby; add one with the Chunks tool.");
     const copy = { copyOf: record.uid, file: record.file, position: [...record.position], rotation: [...record.rotation], scale: record.scale };
     addRecord(destination, "prop", copy);
+  });
+}
+
+// Several objects: what they are, their look and draw distance together, and the actions on all of them.
+function renderGroupInspector(target) {
+  const objects = selectedObjects();
+  const propsSelected = objects.filter((o) => o.userData.kind === "prop");
+  const counts = new Map();
+  for (const object of objects) {
+    const name = object.userData.kind === "light" ? "point light" : object.userData.record.file;
+    counts.set(name, (counts.get(name) || 0) + 1);
+  }
+  const summary = [...counts].sort((a, b) => b[1] - a[1]);
+  target.innerHTML = html`<h4>${objects.length} objects selected</h4>
+    <p class="hint">${summary.slice(0, 5).map(([name, n]) => `${escape(name)} × ${n}`).join("<br>")}${summary.length > 5 ? `<br>and ${summary.length - 5} more models` : ""}</p>
+    <p class="hint">The gizmo moves them together; R turns and T scales them round their centre.</p>
+    ${propsSelected.length ? `<div id="look"></div>${drawDistanceControl(propsSelected.map((o) => o.userData.record))}` : ""}
+    ${objectButtons()}
+    <div class="row"><button id="deselect">Deselect all</button></div>`;
+  if (propsSelected.length) renderLook(target.querySelector("#look"), propsSelected);
+  bindObjectButtons(target);
+  target.querySelector("#deselect").addEventListener("click", () => select(null));
+}
+
+function drawDistanceControl(records) {
+  const values = new Set(records.map((r) => r.drawDistance ?? null));
+  const value = values.size === 1 ? [...values][0] : undefined;
+  return `<label>Draw distance <small>(0: the client's default${value === null ? "; this one's stock value isn't a distance" : ""})</small>
+    <input id="draw-distance" type="number" min="0" step="25" value="${value ?? ""}" placeholder="${value === undefined ? "mixed" : ""}"></label>`;
+}
+
+function objectButtons() {
+  return `<h4>Arrange</h4>
+    <div class="seg">${Object.entries(OBJECT_ACTIONS).map(([key, [label]]) => `<button data-action="${key}">${label}</button>`).join("")}</div>
+    <div class="row"><button id="select-same">Select all like this</button><button id="hide-model" title="H; Shift+H shows them again">Hide this model</button></div>
+    <div class="row"><button id="replace-model" ${state.actor ? "" : "disabled"} title="Swap the model for the content browser's pick, keeping place, turn and scale">Replace with ${state.actor ? escape(state.actor.replace(/\.(adr|agr)$/i, "")) : "the content pick"}</button></div>
+    <div class="row"><button id="duplicate">Duplicate</button><button id="copy" title="Ctrl+C; Ctrl+V pastes at the pointer">Copy</button><button id="delete" class="danger">Delete</button></div>`;
+}
+
+function bindObjectButtons(target) {
+  for (const button of target.querySelectorAll("[data-action]")) button.addEventListener("click", () => objectAction(button.dataset.action));
+  target.querySelector("#select-same")?.addEventListener("click", selectSameModel);
+  target.querySelector("#hide-model")?.addEventListener("click", hideSelectedModels);
+  target.querySelector("#replace-model")?.addEventListener("click", replaceSelectedModel);
+  target.querySelector("#duplicate")?.addEventListener("click", duplicateSelected);
+  target.querySelector("#copy")?.addEventListener("click", copySelected);
+  target.querySelector("#delete")?.addEventListener("click", deleteSelected);
+  target.querySelector("#draw-distance")?.addEventListener("change", (e) => {
+    if (e.target.value === "") return;
+    const distance = Math.max(0, +e.target.value);
+    editObjects(selectedObjects().filter((o) => o.userData.kind === "prop"), (record) => { record.drawDistance = distance; });
+  });
+}
+
+let lookClipboard = null;      // a copied texture variant and tint, for Paste look
+
+// The Look section for props: texture variant and tint, for those whose actors offer them (an actor
+// lists its texture and tint aliases; the client draws an object with the ones it names).
+function renderLook(container, objects) {
+  Promise.all(objects.map((o) => library.model(o.userData.record.file))).then((templates) => {
+    if (!container.isConnected) return;
+    const aliasesOf = new Map(objects.map((o, i) => [o, templates[i].userData.aliases]));
+    const records = objects.map((o) => o.userData.record);
+    const tintable = objects.filter((o) => aliasesOf.get(o).tints.length);
+    const variants = [...new Set(objects.flatMap((o) => variantNames(aliasesOf.get(o))))];
+    const materials = new Set(records.map((r) => r.material || ""));
+    const material = materials.size === 1 ? [...materials][0] : null;
+    const one = objects.length === 1;
+    const tinted = tintable.find((o) => o.userData.record.tintAlias)?.userData.record;
+    const aliasTints = one ? aliasesOf.get(objects[0]).tints : [];
+    const swatches = [
+      ...aliasTints.map((t) => ({ hex: tintHex(t.colour), title: `${t.name}${t.default ? " (default)" : ""}`, alias: t.name })),
+      ...state.recentTints.map((hex) => ({ hex, title: `Recent: ${hex}` })),
+    ];
+    let markup = "<h4>Look</h4>";
+    if (variants.length) {
+      markup += `<label>Texture variant <select id="look-variant">${material === null ? `<option value="" disabled selected>mixed</option>` : ""}
+        <option value="" ${material === "" ? "selected" : ""}>default</option>${variants.map((v) => `<option value="${escape(v)}" ${v === material ? "selected" : ""}>${escape(v)}</option>`).join("")}</select></label>`;
+    }
+    if (tintable.length) {
+      if (one) {
+        markup += `<label>Tint alias <select id="look-tint-alias"><option value="">none (untinted)</option>${aliasTints.map((t) =>
+          `<option value="${escape(t.name)}" ${t.name === records[0].tintAlias ? "selected" : ""}>${escape(t.name)}${t.default ? " (default)" : ""}</option>`).join("")}</select></label>`;
+      } else if (tintable.length < objects.length) markup += `<p class="hint">${tintable.length} of these ${objects.length} can be tinted.</p>`;
+      markup += `<div class="row"><label>Tint <input id="look-tint" type="color" value="${tintHex(tinted?.tint)}"></label><button id="look-untint">No tint</button></div>
+        <div class="swatches">${swatches.map((s) => `<span class="tint-swatch" data-hex="${s.hex}" ${s.alias ? `data-alias="${escape(s.alias)}"` : ""} title="${escape(s.title)}" style="background:${s.hex}"></span>`).join("")}</div>`;
+    }
+    if (!variants.length && !tintable.length) {
+      markup += `<p class="hint">${one ? "This model has" : "These models have"} no texture variants or tint aliases, so the client draws ${one ? "it" : "them"} as authored.</p>`;
+    }
+    markup += `<div class="row"><button id="look-copy">Copy look</button><button id="look-paste" ${lookClipboard ? "" : "disabled"}>Paste look</button></div>`;
+    container.innerHTML = markup;
+
+    container.querySelector("#look-variant")?.addEventListener("change", (e) => {
+      const value = e.target.value;
+      editObjects(objects.filter((o) => !value || aliasesOf.get(o).textures.some((t) => t.name === value)), (record) => { record.material = value; });
+    });
+    container.querySelector("#look-tint-alias")?.addEventListener("change", (e) => {
+      const alias = aliasTints.find((t) => t.name === e.target.value);
+      editObjects(objects, (record) => {
+        record.tintAlias = alias?.name ?? "";
+        record.tint = alias ? [...alias.colour, 0] : null;
+      });
+    });
+    const picker = container.querySelector("#look-tint");
+    if (picker) {
+      const edit = liveEdit(tintable);
+      picker.addEventListener("input", () => edit.apply((record, object) => setTint(record, object, hexTint(picker.value))));
+      picker.addEventListener("change", () => { rememberTint(picker.value); edit.commit(); });
+    }
+    container.querySelector("#look-untint")?.addEventListener("click", () => editObjects(tintable, (record) => { record.tintAlias = ""; record.tint = null; }));
+    for (const swatch of container.querySelectorAll(".tint-swatch")) {
+      swatch.addEventListener("click", () => {
+        const { hex, alias } = swatch.dataset;
+        editObjects(tintable, (record, object) => {
+          if (alias && aliasesOf.get(object).tints.some((t) => t.name === alias)) record.tintAlias = alias;
+          setTint(record, object, hexTint(hex));
+        });
+      });
+    }
+    container.querySelector("#look-copy").addEventListener("click", () => {
+      const source = tinted || records[0];
+      lookClipboard = { material: records[0].material || "", tintAlias: source.tintAlias || "", tint: source.tint || null };
+      status(`Copied the look: ${lookClipboard.material || "default texture"}${lookClipboard.tintAlias ? `, ${lookClipboard.tintAlias} ${tintHex(lookClipboard.tint)}` : ", untinted"}.`);
+      renderInspector();
+    });
+    container.querySelector("#look-paste")?.addEventListener("click", () => {
+      const look = lookClipboard;
+      editObjects(objects, (record, object) => {
+        const aliases = aliasesOf.get(object);
+        if (!look.material || aliases.textures.some((t) => t.name === look.material)) record.material = look.material;
+        if (!look.tintAlias) { record.tintAlias = ""; record.tint = null; } else if (aliases.tints.length) {
+          record.tintAlias = aliases.tints.some((t) => t.name === look.tintAlias) ? look.tintAlias : defaultTintAlias(aliases);
+          record.tint = structuredClone(look.tint);
+        }
+      });
+    });
   });
 }
 
@@ -834,44 +1046,182 @@ function updateDirty() {
 
 // --- selection and the transform gizmo -----------------------------------------------------------------
 
-function select(object) {
-  selected = object;
-  gizmo.detach();
-  if (object) {
-    const { kind, chunk } = object.userData;
-    const editable = kind === "marker" || (chunk && chunk.editable);
-    if (editable) gizmo.attach(object);
-    gizmo.showY = true;
-    if (kind === "light" || (kind === "marker" && gizmo.mode === "scale")) gizmo.setMode("translate");
+// Selects one object, or with add toggles it in the selection (props and lights; a marker selects alone).
+function select(object, add = false) {
+  if (add && object && object.userData.kind !== "marker" && selected?.userData.kind !== "marker") {
+    if (selection.has(object)) {
+      selection.delete(object);
+      if (selected === object) selected = [...selection].at(-1) ?? null;
+    } else {
+      selection.add(object);
+      selected = object;
+    }
+  } else {
+    selection.clear();
+    selected = object;
+    if (object && object.userData.kind !== "marker") selection.add(object);
   }
+  selectionChanged();
+}
+
+function selectMany(objects, add = false) {
+  if (!add || selected?.userData.kind === "marker") selection.clear();
+  for (const object of objects) selection.add(object);
+  selected = objects.at(-1) ?? [...selection].at(-1) ?? null;
+  selectionChanged();
+}
+
+function selectedObjects() {
+  return [...selection].filter((o) => o.parent);
+}
+
+function selectionChanged() {
+  for (const [object, box] of selectionBoxes) {
+    if (!selection.has(object)) { scene.remove(box); box.dispose(); selectionBoxes.delete(object); }
+  }
+  for (const object of selection) {
+    if (selectionBoxes.has(object)) continue;
+    const box = new THREE.BoxHelper(object, 0xe8b84a);
+    box.material.depthTest = false;
+    box.renderOrder = 5;
+    scene.add(box);
+    selectionBoxes.set(object, box);
+  }
+  attachGizmo();
   renderInspector();
+}
+
+// The gizmo moves the one selected object, or a pivot at the selection's centre that carries all of them.
+function attachGizmo() {
+  gizmo.detach();
+  if (!selected) return;
+  const { kind, chunk } = selected.userData;
+  if (kind !== "marker" && !(chunk && chunk.editable)) return;
+  if (selection.size > 1) {
+    const centre = new THREE.Vector3();
+    for (const object of selection) centre.add(object.position);
+    pivot.position.copy(centre.divideScalar(selection.size));
+    pivot.rotation.set(0, 0, 0);
+    pivot.scale.set(1, 1, 1);
+    pivot.updateMatrixWorld();
+    gizmo.attach(pivot);
+  } else gizmo.attach(selected);
+  gizmo.showY = true;
+  if (kind === "light" || (kind === "marker" && gizmo.mode === "scale")) gizmo.setMode("translate");
+}
+
+const RECORD_KEYS = ["file", "position", "rotation", "scale", "material", "tintAlias", "tint", "drawDistance"];
+
+function recordState(record) {
+  return structuredClone(Object.fromEntries(RECORD_KEYS.filter((k) => k in record).map((k) => [k, record[k]])));
+}
+
+function restoreRecord(record, saved) {
+  for (const key of RECORD_KEYS) {
+    if (key in saved) record[key] = structuredClone(saved[key]);
+    else delete record[key];
+  }
+}
+
+// Redraws an object from its record, moving it to the chunk now under it when that changed. Undo steps hold
+// objects, and undoing a delete makes new ones for the same records, so the record's current object is used.
+function refreshObject(object) {
+  object = object.userData.record?.object ?? object;
+  if (!object.parent) return;
+  const { kind, record } = object.userData;
+  if (kind === "light") {
+    applyTransform(object, { position: record.position, rotation: [0, 0, 0], scale: 1 });
+    props.refreshLight(record);
+  } else props.refresh(object);
+  const home = terrain.chunkAt(record.position[0], record.position[2]);
+  if (home && home !== object.userData.chunk && home.editable) props.rehome(object, home);
+  markDirty(object.userData.chunk, kind);
+}
+
+// Edits objects' records: apply(mutate) runs mutate(record, object) on each and redraws them, as often as a
+// control moves (a colour picker); commit() makes everything applied since one undo step.
+function liveEdit(objects) {
+  objects = objects.filter((o) => o.userData.kind !== "marker" && o.userData.chunk?.editable);
+  let before = null;
+  return {
+    apply(mutate) {
+      before ??= objects.map((o) => [o, recordState(o.userData.record)]);
+      for (const object of objects) mutate(object.userData.record, object);
+      for (const object of objects) refreshObject(object);
+    },
+    commit() {
+      if (!before) return;
+      const saved = before;
+      before = null;
+      undoStack.push(() => {
+        for (const [object, state] of saved) { restoreRecord(object.userData.record, state); refreshObject(object); }
+        attachGizmo();
+      });
+      attachGizmo();
+      renderInspector();
+    },
+  };
+}
+
+// Changes objects' records as one undo step: mutate(record, object) on each, then redraws them.
+function editObjects(objects, mutate) {
+  const edit = liveEdit(objects);
+  edit.apply(mutate);
+  edit.commit();
 }
 
 let dragStart = null;
 gizmo.addEventListener("dragging-changed", (event) => {
+  if (!selected) return;
   if (event.value) {
-    const { kind, record } = selected.userData;
-    dragStart = kind === "marker" ? null : structuredClone({ position: record.position, rotation: record.rotation, scale: record.scale });
+    if (selected.userData.kind === "marker") { dragStart = null; return; }
+    pivot.updateMatrixWorld();
+    dragStart = {
+      pivot: pivot.matrixWorld.clone().invert(),
+      entries: (gizmo.object === pivot ? selectedObjects() : [selected]).map((object) => {
+        object.updateMatrixWorld();
+        return { object, saved: recordState(object.userData.record), matrix: object.matrixWorld.clone() };
+      }),
+    };
     return;
   }
-  if (!selected) return;
-  const { kind, record, chunk } = selected.userData;
-  if (kind === "marker") { selected.userData.apply?.(); renderInspector(); updateDirty(); return; }
-  // Dragged into another editable chunk: it belongs there now.
-  const target = terrain.chunkAt(record.position[0], record.position[2]);
-  if (target && target !== chunk && target.editable) props.rehome(selected, target);
-  const object = selected, before = dragStart;
-  if (before) undoStack.push(() => { Object.assign(record, before); applyTransform(object, kind === "light" ? { position: record.position, rotation: [0, 0, 0], scale: 1 } : record); markDirty(object.userData.chunk, kind); });
+  if (selected.userData.kind === "marker") { selected.userData.apply?.(); renderInspector(); updateDirty(); return; }
+  const entries = dragStart?.entries || [];
+  for (const { object } of entries) {
+    // Dragged into another editable chunk: it belongs there now.
+    const record = object.userData.record;
+    const target = terrain.chunkAt(record.position[0], record.position[2]);
+    if (target && target !== object.userData.chunk && target.editable) props.rehome(object, target);
+  }
+  if (entries.length) {
+    undoStack.push(() => {
+      for (const { object, saved } of entries) { restoreRecord(object.userData.record, saved); refreshObject(object); }
+      attachGizmo();
+    });
+  }
   renderInspector();
 });
 gizmo.addEventListener("objectChange", () => {
-  if (!selected) return;
-  const { kind, record, chunk } = selected.userData;
-  if (kind === "marker") return;
-  if (kind === "light") record.position = [selected.position.x, selected.position.y, selected.position.z];
-  else readTransform(selected, record);
-  markDirty(chunk, kind);
+  if (!selected || selected.userData.kind === "marker") return;
+  if (gizmo.object === pivot && dragStart) {
+    // Each object keeps its place relative to the pivot: rotating or scaling the pivot swings them round it.
+    pivot.updateMatrixWorld();
+    const delta = pivot.matrixWorld.clone().multiply(dragStart.pivot);
+    const scale = new THREE.Vector3();
+    for (const { object, matrix } of dragStart.entries) {
+      delta.clone().multiply(matrix).decompose(object.position, object.quaternion, scale);
+      object.scale.setScalar((scale.x + scale.y + scale.z) / 3);
+      readObject(object);
+    }
+  } else readObject(selected);
 });
+
+function readObject(object) {
+  const { kind, record, chunk } = object.userData;
+  if (kind === "light") record.position = [object.position.x, object.position.y, object.position.z];
+  else readTransform(object, record);
+  markDirty(chunk, kind);
+}
 
 function editableChunkFor(x, z) {
   const under = terrain.chunkAt(x, z);
@@ -886,52 +1236,334 @@ function editableChunkFor(x, z) {
 }
 
 function addRecord(chunk, kind, record) {
-  const list = kind === "light" ? chunk.lights : chunk.objects;
-  list.push(record);
-  const object = kind === "light" ? props.addLight(chunk, record) : props.addProp(chunk, record);
-  markDirty(chunk, kind);
-  undoStack.push(() => {
-    const owner = object.userData.chunk;
-    const ownerList = kind === "light" ? owner.lights : owner.objects;
-    ownerList.splice(ownerList.indexOf(record), 1);
-    props.remove(object);
-    if (selected === object) select(null);
-    markDirty(owner, kind);
-  });
+  const [object] = addRecords([{ chunk, kind, record }]);
   select(object);
   return object;
 }
 
-function deleteSelected() {
-  if (!selected || selected.userData.kind === "marker") return;
-  const { kind, record, chunk } = selected.userData;
-  if (!chunk.editable) return toast("That's in a stock chunk, which is read-only.");
-  const list = kind === "light" ? chunk.lights : chunk.objects;
-  list.splice(list.indexOf(record), 1);
-  const object = selected;
-  props.remove(object);
-  markDirty(chunk, kind);
-  undoStack.push(() => {
-    list.push(record);
-    const restored = kind === "light" ? props.addLight(chunk, record) : props.addProp(chunk, record);
-    restored.userData.chunk = chunk;
+// Puts records ({ chunk, kind, record }) into their chunks and the view; returns their objects.
+function putRecords(entries) {
+  return entries.map(({ chunk, kind, record }) => {
+    (kind === "light" ? chunk.lights : chunk.objects).push(record);
     markDirty(chunk, kind);
+    return kind === "light" ? props.addLight(chunk, record) : props.addProp(chunk, record);
   });
-  select(null);
 }
 
-function duplicateSelected() {
+// Takes objects out of their chunks and the view; returns them as entries putRecords can put back.
+function takeObjects(objects) {
+  const taken = [];
+  for (const object of objects) {
+    if (!object?.parent) continue;
+    const { kind, record, chunk } = object.userData;
+    if (kind === "marker" || !chunk.editable) continue;
+    const list = kind === "light" ? chunk.lights : chunk.objects;
+    if (list.includes(record)) list.splice(list.indexOf(record), 1);
+    props.remove(object);
+    selection.delete(object);
+    if (selected === object) selected = null;
+    markDirty(chunk, kind);
+    taken.push({ chunk, kind, record });
+  }
+  if (taken.length) {
+    selected ??= [...selection].at(-1) ?? null;
+    selectionChanged();
+  }
+  return taken;
+}
+
+// Adds records as one undo step; returns their objects.
+function addRecords(entries) {
+  const objects = putRecords(entries);
+  if (objects.length) undoStack.push(() => takeObjects(entries.map((e) => e.record.object)));
+  return objects;
+}
+
+// Removes objects as one undo step; returns how many.
+function removeObjects(objects) {
+  const taken = takeObjects(objects);
+  if (taken.length) undoStack.push(() => putRecords(taken));
+  return taken.length;
+}
+
+function deleteSelected() {
   if (!selected || selected.userData.kind === "marker") return;
-  const { kind, record, chunk } = selected.userData;
-  const destination = chunk.editable ? chunk : editableChunkFor(record.position[0], record.position[2]);
-  if (!destination) return toast("No editable chunk is loaded nearby.");
+  const count = removeObjects(selectedObjects());
+  if (count > 1) status(`Deleted ${count} objects.`);
+}
+
+// A record as a new object: what save copies from (copyOf), without the original's identity.
+function copyRecord(record) {
   const copy = structuredClone({ ...record, object: undefined });
   delete copy.object;
   delete copy.uid;
   delete copy.id;
   copy.copyOf = record.uid || record.copyOf;
-  copy.position = [record.position[0] + 2, record.position[1], record.position[2] + 2];
-  addRecord(destination, kind, copy);
+  return copy;
+}
+
+function duplicateSelected() {
+  if (!selected || selected.userData.kind === "marker") return;
+  pasteRecords(selectedObjects().map((o) => ({ kind: o.userData.kind, record: copyRecord(o.userData.record) })), [2, 0, 2]);
+}
+
+// Puts copies of records in the chunks under them, offset by [dx, dy, dz], and selects them.
+function pasteRecords(items, offset) {
+  const entries = [];
+  for (const { kind, record } of items) {
+    const copy = structuredClone(record);
+    copy.position = record.position.map((v, k) => v + offset[k]);
+    const chunk = editableChunkFor(copy.position[0], copy.position[2]);
+    if (chunk) entries.push({ chunk, kind, record: copy });
+  }
+  if (!entries.length) return toast("No editable chunk is loaded there.");
+  selectMany(addRecords(entries));
+  status(`Placed ${entries.length} object(s).`);
+}
+
+let clipboard = null;      // copied records and their centre, for Ctrl+V at the pointer
+
+function copySelected() {
+  const objects = selectedObjects().filter((o) => o.userData.kind !== "marker");
+  if (!objects.length) return;
+  const items = objects.map((o) => ({ kind: o.userData.kind, record: copyRecord(o.userData.record) }));
+  const centre = [0, 1, 2].map((k) => items.reduce((sum, i) => sum + i.record.position[k], 0) / items.length);
+  clipboard = { items, centre };
+  status(`Copied ${items.length} object(s); Ctrl+V pastes them at the pointer.`);
+}
+
+function pasteAtPointer() {
+  if (!clipboard) return;
+  const hit = terrainHit();
+  if (!hit) return toast("Point at the ground to paste there.");
+  const { items, centre } = clipboard;
+  pasteRecords(items, [hit.x - centre[0], hit.y - centre[1], hit.z - centre[2]]);
+}
+
+// --- object actions ------------------------------------------------------------------------------------
+
+// The ground's normal at (x, z), from the heights a unit either side.
+function groundNormal(x, z) {
+  const h = (dx, dz) => terrain.heightAt(x + dx, z + dz);
+  const [l, r, b, f] = [h(-1, 0), h(1, 0), h(0, -1), h(0, 1)];
+  if ([l, r, b, f].some((v) => v === null)) return new THREE.Vector3(0, 1, 0);
+  return new THREE.Vector3(-(r - l) / 2, 1, -(f - b) / 2).normalize();
+}
+
+// Pitch and roll that stand an object with yaw on the ground's slope (rotation order YXZ).
+function slopeRotation(yaw, normal) {
+  const n = normal.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), -yaw);
+  return [yaw, Math.atan2(n.z, n.y), -Math.asin(Math.max(-1, Math.min(1, n.x)))];
+}
+
+function randomScale() {
+  const { scaleMin, scaleMax } = state.place;
+  return Math.round((scaleMin + Math.random() * Math.max(0, scaleMax - scaleMin)) * 1000) / 1000;
+}
+
+const OBJECT_ACTIONS = {
+  ground: ["Drop to ground", (r) => { const h = terrain.heightAt(r.position[0], r.position[2]); if (h !== null) r.position[1] = h; }],
+  slope: ["Align to slope", (r) => { r.rotation = slopeRotation(r.rotation[0], groundNormal(r.position[0], r.position[2])); }],
+  upright: ["Stand upright", (r) => { r.rotation = [r.rotation[0], 0, 0]; }],
+  turn: ["Random turn", (r) => { r.rotation = [Math.random() * Math.PI * 2, r.rotation[1], r.rotation[2]]; }],
+  scale: ["Random scale", (r) => { r.scale = randomScale(); }],
+  reset: ["Reset turn and scale", (r) => { r.rotation = [0, 0, 0]; r.scale = 1; }],
+};
+
+function objectAction(name) {
+  const [, action] = OBJECT_ACTIONS[name];
+  editObjects(selectedObjects().filter((o) => o.userData.kind === "prop" || name === "ground"), (record, object) => {
+    if (object.userData.kind === "light" && name === "ground") {
+      const h = terrain.heightAt(record.position[0], record.position[2]);
+      if (h !== null) record.position[1] = h + 6;
+    } else action(record);
+  });
+}
+
+// Every loaded prop of the selected objects' actors.
+function selectSameModel() {
+  const files = new Set(selectedObjects().filter((o) => o.userData.kind === "prop").map((o) => o.userData.record.file.toLowerCase()));
+  selectMany(props.pickables.filter((o) => o.visible && o.userData.kind === "prop" && files.has(o.userData.record.file.toLowerCase())));
+  status(`Selected ${selection.size} object(s) of ${[...files].join(", ")} in the loaded chunks.`);
+}
+
+function hideSelectedModels() {
+  const files = new Set(selectedObjects().filter((o) => o.userData.kind === "prop").map((o) => o.userData.record.file));
+  for (const file of files) props.setFileHidden(file, true);
+  select(null);
+  status(`Hid ${[...files].join(", ")}. Show them again from the Select tool (or Shift+H).`);
+  renderPanel();
+}
+
+function replaceSelectedModel() {
+  if (!state.actor) return toast("Pick the replacement in the content browser first.");
+  editObjects(selectedObjects().filter((o) => o.userData.kind === "prop"), (record) => {
+    record.file = state.actor;
+    // The new actor's texture and tint aliases differ.
+    record.material = "";
+    record.tintAlias = "";
+    record.tint = null;
+  });
+}
+
+function applySnap() {
+  gizmo.setTranslationSnap(state.snap.move || null);
+  gizmo.setRotationSnap(state.snap.turn ? THREE.MathUtils.degToRad(state.snap.turn) : null);
+}
+
+function focusOn(object) {
+  const forward = new THREE.Vector3();
+  camera.getWorldDirection(forward);
+  const p = new THREE.Vector3();
+  object.getWorldPosition(p);
+  const size = new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3()).length();
+  camera.position.copy(p).addScaledVector(forward, -Math.max(35, size * 1.2)).add(new THREE.Vector3(0, 8, 0));
+}
+
+// Loaded props whose name has every word of the Select tool's search, nearest first.
+function foundObjects() {
+  const words = state.findQuery.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  return props.pickables
+    .filter((o) => o.visible && o.userData.kind === "prop" && words.every((w) => o.userData.record.file.toLowerCase().includes(w)))
+    .map((o) => [o.position.distanceTo(camera.position), o])
+    .sort((a, b) => a[0] - b[0])
+    .map(([, o]) => o);
+}
+
+function listFound() {
+  const list = panel.querySelector("#found-objects");
+  if (!list) return;
+  const found = foundObjects();
+  list.innerHTML = found.slice(0, 150).map((o, i) =>
+    `<div data-found="${i}">${escape(o.userData.record.file)} <small>${Math.round(o.position.distanceTo(camera.position))} away</small></div>`).join("") ||
+    (state.findQuery ? `<div class="hint">Nothing by that name in the loaded chunks.</div>` : "");
+  for (const row of list.querySelectorAll("[data-found]")) {
+    row.addEventListener("click", () => { const object = found[+row.dataset.found]; select(object); focusOn(object); });
+  }
+  const button = panel.querySelector("#select-found");
+  button.disabled = !found.length;
+  button.textContent = found.length ? `Select all ${found.length} found` : "Select all found";
+}
+
+// A new object's record at point, with the Props tool's turn, scale, slope and height options.
+function newRecord(file, point, yaw = 0) {
+  const p = state.place;
+  const turn = p.randomYaw ? Math.random() * Math.PI * 2 : yaw;
+  return {
+    file, position: [point.x, point.y + p.offset, point.z], scale: randomScale(),
+    rotation: p.align ? slopeRotation(turn, groundNormal(point.x, point.z)) : [turn, 0, 0],
+  };
+}
+
+// The Props tool's texture variant and tint on a new object, where its actor has them.
+function applyPlaceLook(object) {
+  const { material, tintOn, tint } = state.place;
+  if (!material && !tintOn) return;
+  library.model(object.userData.record.file).then((template) => {
+    const aliases = template.userData.aliases, record = object.userData.record;
+    if (material && aliases.textures.some((t) => t.name === material)) record.material = material;
+    if (tintOn && aliases.tints.length) {
+      record.tintAlias = defaultTintAlias(aliases);
+      record.tint = hexTint(tint);
+    }
+    props.applyAppearance(object);
+  });
+}
+
+function renderPlaceLook() {
+  const box = panel.querySelector("#place-look");
+  const file = state.actor || state.place.set[0];
+  if (!box || !file) return;
+  library.model(file).then((template) => {
+    if (!box.isConnected) return;
+    const p = state.place, aliases = template.userData.aliases, variants = variantNames(aliases);
+    box.innerHTML = (variants.length ? `<label>Texture variant <select id="place-variant"><option value="">default</option>${variants.map((v) =>
+      `<option value="${escape(v)}" ${v === p.material ? "selected" : ""}>${escape(v)}</option>`).join("")}</select></label>` : "") +
+      (aliases.tints.length ? `<div class="row"><label class="check"><input id="place-tint-on" type="checkbox" ${p.tintOn ? "checked" : ""}> Tint them</label>
+        <input id="place-tint" type="color" value="${p.tint}"></div>` : "") +
+      (!variants.length && !aliases.tints.length ? `<p class="hint">${escape(file)} has no texture variants or tint aliases.</p>` : "");
+    box.querySelector("#place-variant")?.addEventListener("change", (e) => { p.material = e.target.value; });
+    box.querySelector("#place-tint-on")?.addEventListener("change", (e) => { p.tintOn = e.target.checked; });
+    box.querySelector("#place-tint")?.addEventListener("input", (e) => { p.tint = e.target.value; p.tintOn = true; box.querySelector("#place-tint-on").checked = true; });
+  });
+}
+
+// --- scatter brush -------------------------------------------------------------------------------------
+
+let scatter = null;        // a scatter stroke in progress: { placed, erased, erase, budget }
+
+function scatterFiles() {
+  return state.place.set.length ? state.place.set : state.actor ? [state.actor] : [];
+}
+
+// One frame of a scatter stroke: objects of the set dropped at random under the brush, no closer to each
+// other than the spacing; or, erasing, the set's objects under the brush taken away.
+function scatterStep(dt) {
+  if (!hover) return;
+  const { radius, strength } = state.brush;
+  const files = scatterFiles();
+  const names = new Set(files.map((f) => f.toLowerCase()));
+  const near = props.pickables.filter((o) => o.userData.kind === "prop" && names.has(o.userData.record.file.toLowerCase()) &&
+    Math.hypot(o.position.x - hover.x, o.position.z - hover.z) <= radius + state.place.spacing);
+  if (scatter.erase) {
+    const doomed = near.filter((o) => Math.hypot(o.position.x - hover.x, o.position.z - hover.z) <= radius);
+    scatter.erased.push(...takeObjects(doomed));
+    return;
+  }
+  const spacing = state.place.spacing;
+  // About one object per spacing-sized cell of the brush per second at full strength.
+  scatter.budget += strength * dt * Math.max(1, (Math.PI * radius * radius) / (spacing * spacing)) * 1.5;
+  const points = near.map((o) => [o.position.x, o.position.z]);
+  const entries = [];
+  for (let tries = 0; scatter.budget >= 1 && tries < 30; tries++) {
+    const angle = Math.random() * Math.PI * 2, distance = radius * Math.sqrt(Math.random());
+    const x = hover.x + Math.cos(angle) * distance, z = hover.z + Math.sin(angle) * distance;
+    if (points.some(([px, pz]) => Math.hypot(px - x, pz - z) < spacing)) continue;
+    const y = terrain.heightAt(x, z);
+    const chunk = y === null ? null : editableChunkFor(x, z);
+    if (!chunk || terrain.chunkAt(x, z) !== chunk) continue;
+    scatter.budget -= 1;
+    points.push([x, z]);
+    entries.push({ chunk, kind: "prop", record: newRecord(files[Math.floor(Math.random() * files.length)], { x, y, z }) });
+  }
+  scatter.budget = Math.min(scatter.budget, 3);
+  for (const object of putRecords(entries)) { applyPlaceLook(object); scatter.placed.push(object); }
+}
+
+function endScatter() {
+  const { placed, erased } = scatter;
+  scatter = null;
+  if (!placed.length && !erased.length) return;
+  const records = placed.map((o) => o.userData.record);
+  undoStack.push(() => { takeObjects(records.map((r) => r.object)); putRecords(erased); });
+  status(placed.length ? `Scattered ${placed.length} object(s).` : `Erased ${erased.length} object(s).`);
+}
+
+// --- tint and texture variants -------------------------------------------------------------------------
+
+function tintHex(tint) {
+  return rgbHex((tint || [1, 1, 1]).slice(0, 3).map((v) => Math.max(0, Math.min(255, Math.round(v * 255)))));
+}
+
+function hexTint(hex) {
+  return [...[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255), 0];
+}
+
+function defaultTintAlias(aliases) {
+  return (aliases.tints.find((t) => t.default) || aliases.tints[0])?.name ?? "";
+}
+
+// Tints an object whose actor has tint aliases (keeping its alias, else taking the actor's default).
+function setTint(record, object, tint) {
+  const aliases = object.userData.aliases;
+  if (!aliases?.tints.length) return;
+  if (!aliases.tints.some((t) => t.name === record.tintAlias)) record.tintAlias = defaultTintAlias(aliases);
+  record.tint = tint;
+}
+
+function rememberTint(hex) {
+  state.recentTints = [hex, ...state.recentTints.filter((h) => h !== hex)].slice(0, 10);
 }
 
 // --- ghost prop for placing ----------------------------------------------------------------------------
@@ -939,7 +1571,7 @@ function duplicateSelected() {
 function makeGhost() {
   if (ghost) scene.remove(ghost);
   ghost = null;
-  if (state.tool !== "props" || !state.actor) return;
+  if (state.tool !== "props" || !state.actor || state.place.mode === "scatter") return;
   const holder = new THREE.Group();
   ghost = holder;
   scene.add(holder);
@@ -960,7 +1592,7 @@ function makeGhost() {
 function placeActor(name, hit, yaw = 0) {
   const chunk = editableChunkFor(hit.x, hit.z);
   if (!chunk) return toast("No chunk is loaded here. Add one with the Chunks tool (K).");
-  addRecord(chunk, "prop", { file: name, position: [hit.x, hit.y, hit.z], rotation: [yaw, 0, 0], scale: 1 });
+  applyPlaceLook(addRecord(chunk, "prop", newRecord(name, hit, yaw)));
   content.placed(name);
 }
 
@@ -1024,6 +1656,24 @@ function updatePointer(event) {
   pointer.x = event.clientX - rect.left;
   pointer.y = event.clientY - rect.top;
   pointer.ndc.set((pointer.x / rect.width) * 2 - 1, -(pointer.y / rect.height) * 2 + 1);
+}
+
+let boxSelect = null;      // a press in the Select tool: { x, y, add, picked, active (dragged into a box) }
+
+// Selects the props and lights whose centres are inside the screen rectangle from a to b.
+function selectInBox(a, b, add) {
+  const rect = canvas.getBoundingClientRect();
+  const [x0, x1] = [Math.min(a.x, b.x), Math.max(a.x, b.x)], [y0, y1] = [Math.min(a.y, b.y), Math.max(a.y, b.y)];
+  const v = new THREE.Vector3();
+  const inside = props.pickables.filter((object) => {
+    if (!object.visible) return false;
+    v.copy(object.position).project(camera);
+    if (v.z < -1 || v.z > 1) return false;
+    const sx = rect.left + (v.x + 1) / 2 * rect.width, sy = rect.top + (1 - v.y) / 2 * rect.height;
+    return sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1;
+  });
+  selectMany(inside, add);
+  status(`${selection.size} object(s) selected.`);
 }
 
 function terrainHit(ndc = pointer.ndc) {
@@ -1093,6 +1743,10 @@ canvas.addEventListener("pointerdown", async (event) => {
   raycaster.setFromCamera(pointer.ndc, camera);
   const markerHit = raycaster.intersectObjects(markers.filter((m) => m.userData.kind === "marker"), true)[0];
   const propHit = props.pick(raycaster);
+  if (tool === "props" && state.place.mode === "scatter" && scatterFiles().length) {
+    scatter = { placed: [], erased: [], erase: event.shiftKey, budget: 1 };
+    return;
+  }
   if (tool === "props" && state.actor && !event.shiftKey) {
     const hit = terrainHit();
     if (hit) placeActor(state.actor, hit, ghost ? ghost.rotation.y : 0);
@@ -1106,14 +1760,39 @@ canvas.addEventListener("pointerdown", async (event) => {
     addRecord(chunk, "light", { name: "newLight", colorName: "warm01", type: 0, position: [hit.x, hit.y + 6, hit.z], range: 20, intensity: 0.75, color: [239, 197, 25, 255] });
     return;
   }
+  let picked = propHit ? propHit.object : null;
   if (markerHit && (!propHit || markerHit.distance < propHit.distance)) {
-    let node = markerHit.object;
-    while (node.parent && !markers.includes(node)) node = node.parent;
-    select(node);
-  } else select(propHit ? propHit.object : null);
+    picked = markerHit.object;
+    while (picked.parent && !markers.includes(picked)) picked = picked.parent;
+  }
+  // The Select tool decides on release: a drag over the view is a box selection, a click picks.
+  if (tool === "select") {
+    boxSelect = { x: event.clientX, y: event.clientY, add: event.shiftKey, picked, active: false };
+    return;
+  }
+  select(picked, event.shiftKey && !!picked);
+});
+canvas.addEventListener("pointermove", (event) => {
+  if (!boxSelect || !(event.buttons & 1)) return;
+  const dx = event.clientX - boxSelect.x, dy = event.clientY - boxSelect.y;
+  if (!boxSelect.active && Math.hypot(dx, dy) < 6) return;
+  boxSelect.active = true;
+  const view = $("#viewport").getBoundingClientRect(), box = $("#select-box");
+  Object.assign(box.style, {
+    display: "block", left: `${Math.min(event.clientX, boxSelect.x) - view.left}px`, top: `${Math.min(event.clientY, boxSelect.y) - view.top}px`,
+    width: `${Math.abs(dx)}px`, height: `${Math.abs(dy)}px`,
+  });
 });
 canvas.addEventListener("pointerup", (event) => {
   pointer.buttons = event.buttons;
+  if (boxSelect) {
+    const box = boxSelect;
+    boxSelect = null;
+    $("#select-box").style.display = "none";
+    if (box.active) selectInBox(box, { x: event.clientX, y: event.clientY }, box.add);
+    else select(box.picked, box.add && !!box.picked);
+  }
+  if (scatter) endScatter();
   if (stroke?.start && hover) {
     const { radius, strength } = state.brush;
     const end = { x: hover.x, y: hover.y, z: hover.z };
@@ -1146,6 +1825,8 @@ window.addEventListener("keydown", (event) => {
   if (event.ctrlKey && key === "s") { event.preventDefault(); saveAll(); return; }
   if (event.ctrlKey && key === "z") { event.preventDefault(); undo(); return; }
   if (event.ctrlKey && key === "d") { event.preventDefault(); duplicateSelected(); return; }
+  if (event.ctrlKey && key === "c") { event.preventDefault(); copySelected(); return; }
+  if (event.ctrlKey && key === "v") { event.preventDefault(); pasteAtPointer(); return; }
   if (event.ctrlKey) return;
   keys.add(key);
   const tools = { v: "select", b: "sculpt", x: "exclude", e: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone" };
@@ -1159,13 +1840,11 @@ window.addEventListener("keydown", (event) => {
   else if (key === "g") gizmo.setMode("translate");
   else if (key === "r") gizmo.setMode("rotate");
   else if (key === "t" && selected?.userData.kind === "prop") gizmo.setMode("scale");
-  else if (key === "f" && selected) {
-    const forward = new THREE.Vector3();
-    camera.getWorldDirection(forward);
-    const p = new THREE.Vector3();
-    selected.getWorldPosition(p);
-    camera.position.copy(p).addScaledVector(forward, -35).add(new THREE.Vector3(0, 8, 0));
-  } else if (tools[key] && !"wasdqe".includes(key)) setTool(tools[key]);
+  else if (key === "f" && selected) focusOn(selected);
+  else if (key === "h" && event.shiftKey) { props.showAll(); renderPanel(); }
+  else if (key === "h" && selected) hideSelectedModels();
+  else if (key === "end" && selected) objectAction("ground");
+  else if (tools[key] && !"wasdqe".includes(key)) setTool(tools[key]);
 });
 window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
 window.addEventListener("blur", () => keys.clear());
@@ -1276,8 +1955,8 @@ function serialize(record, kind) {
     const { uid, tile, name, colorName, type, position, range, intensity, color } = record;
     return { uid, tile, name, colorName, type, position, range, intensity, color };
   }
-  const { uid, copyOf, tile, file, position, rotation, scale } = record;
-  return { uid, copyOf, tile, file, position, rotation, scale };
+  const { uid, copyOf, tile, file, position, rotation, scale, material, tintAlias, tint, drawDistance } = record;
+  return { uid, copyOf, tile, file, position, rotation, scale, material, tintAlias, tint, drawDistance };
 }
 
 async function saveAll() {
@@ -1574,12 +2253,15 @@ function frame() {
   if (state.zone) {
     terrain.update(camera.position.x, camera.position.z);
     hover = pointer.inside && !(pointer.buttons & 2) ? terrainHit() : null;
-    const brushing = BRUSH_TOOLS.has(state.tool) && hover;
+    const scattering = state.tool === "props" && state.place.mode === "scatter";
+    const brushing = (BRUSH_TOOLS.has(state.tool) || scattering) && hover;
     terrain.uniforms.brush.value.set(hover?.x ?? 0, hover?.z ?? 0, brushing ? state.brush.radius : 0);
     if (stroke && pointer.buttons & 1) {
       applyStroke(dt);
       updateDirty();
     }
+    if (scatter && pointer.buttons & 1) scatterStep(dt);
+    for (const box of selectionBoxes.values()) box.update();
     if (ghost && hover) ghost.position.set(hover.x, hover.y, hover.z);
     if (hover) {
       const chunk = hover.chunk;
@@ -1676,7 +2358,7 @@ dialog.addEventListener("close", async () => {
 });
 
 // For poking at the editor from the browser console.
-window.zoneEditor = { THREE, scene, camera, look, terrain, props, state, openZone, saveAll, addChunk, setTool };
+window.zoneEditor = { THREE, scene, camera, look, gizmo, terrain, props, library, state, selection, openZone, saveAll, addChunk, setTool, select, selectMany };
 
 noZonePanel();
 updateDirty();

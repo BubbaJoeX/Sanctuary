@@ -16,8 +16,10 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import math
 import re
 import shutil
+import struct
 import threading
 import zlib
 from collections import OrderedDict
@@ -133,6 +135,13 @@ def write_json(path: Path, data, keys: list | None = None) -> bool:
     with path.open("w", encoding="utf-8", newline="") as f:
         f.write(text.replace("\n", "\r\n") if crlf else text)
     return True
+
+
+def _draw_distance(raw: bytes) -> float | None:
+    """An object's draw distance (0: the client's default); None for the stock records whose bytes aren't
+    a sensible distance."""
+    value = struct.unpack("<f", raw)[0]
+    return round(value, 3) if math.isfinite(value) and 0 <= value <= 1e6 else None
 
 
 def _set_environments(env: dict, cells: dict):
@@ -399,10 +408,12 @@ class Workspace:
             if not members:
                 raise KeyError(f"{actor} lists no actors")
             return self.model(members[0])
-        mesh_name = models.adr_mesh_name(self.assets.read(actor)) if actor.lower().endswith(".adr") else actor
+        definition = self.assets.read(actor) if actor.lower().endswith(".adr") else None
+        mesh_name = models.adr_mesh_name(definition) if definition else actor
         if not mesh_name:
             raise KeyError(f"{actor} names no mesh")
         model = models.parse_dme(self.assets.read(mesh_name), self.library)
+        model["aliases"] = models.actor_aliases(definition) if definition else {"textures": [], "tints": []}
         with self.lock:
             self._model_cache[actor.lower()] = model
         return model
@@ -792,7 +803,10 @@ class ZoneProject:
             for i, o in enumerate(tile.objects):
                 objects.append({"uid": f"{row}_{col}_{t}_{i}", "tile": t, "file": o.file_name,
                                 "position": list(o.position[:3]), "rotation": list(o.rotation[:3]),
-                                "scale": o.scale, "id": o.object_id, "flags": o.flags})
+                                "scale": o.scale, "id": o.object_id, "flags": o.flags,
+                                "material": o.material, "tintAlias": o.tint_alias,
+                                "tint": list(o.tint) if o.tint_alias else None,
+                                "drawDistance": _draw_distance(o.draw_distance)})
             for i, light in enumerate(formats.read_lights(tile.lights)):
                 a, r, g, b = light.color
                 lights.append({"uid": f"{row}_{col}_{t}_{i}", "tile": t, "name": light.name,
@@ -966,6 +980,19 @@ class ZoneProject:
             o.position = (*map(float, item["position"]), 1.0)
             o.rotation = (*map(float, item["rotation"]), 0.0)
             o.scale = float(item.get("scale", 1))
+            # Texture variant, tint and draw distance: only what the editor sends, so stock bytes it can't
+            # show (a draw distance that isn't a sensible float) stay as they are.
+            if "material" in item:
+                o.material = str(item["material"] or "")
+            if "tintAlias" in item:
+                o.tint_alias = str(item["tintAlias"] or "")
+                tint = list(item.get("tint") or [1, 1, 1, 0])[:4]
+                o.tint = tuple(float(v) for v in tint + [0.0] * (4 - len(tint))) if o.tint_alias else None
+            distance = item.get("drawDistance")
+            if distance is not None and distance != _draw_distance(o.draw_distance):
+                o.draw_distance = struct.pack("<f", float(distance)) if distance else b"\0\0\0\0"
+            if (o.material or o.tint_alias) and chunk.version < 6:
+                chunk.version = 6           # version 5 objects have no texture or tint alias; nothing else differs
             if not original:
                 while o.object_id == 0 or o.object_id in used:
                     o.object_id = int(rng.integers(1 << 24, 1 << 31))

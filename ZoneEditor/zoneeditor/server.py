@@ -108,7 +108,7 @@ class Handler(BaseHTTPRequestHandler):
     def get_model(self, query, body):
         model = self.workspace.model(query["name"])
         self.send(200, json.dumps({
-            "min": model["min"], "max": model["max"],
+            "min": model["min"], "max": model["max"], "aliases": model["aliases"],
             "meshes": [{"texture": m["texture"], "alpha": m["alpha"], "positions": b64(m["positions"]), "uvs": b64(m["uvs"]),
                         "normals": b64(m["normals"]) if m["normals"] is not None else None,
                         "indices": b64(m["indices"])} for m in model["meshes"]],

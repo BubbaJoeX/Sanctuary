@@ -1,7 +1,9 @@
 // Props (placed actors), point lights and zone markers in the viewport.
 //
-// A prop record is what the server sends and gets back: { uid?, copyOf?, file, position, rotation, scale, tile? }.
-// Rotation is (yaw, pitch, roll) in radians, applied like D3DXMatrixRotationYawPitchRoll: three's 'YXZ' order.
+// A prop record is what the server sends and gets back: { uid?, copyOf?, file, position, rotation, scale, tile?,
+// material?, tintAlias?, tint?, drawDistance? }. Rotation is (yaw, pitch, roll) in radians, applied like
+// D3DXMatrixRotationYawPitchRoll: three's 'YXZ' order. material names one of the actor's texture aliases (a
+// texture variant) and tintAlias one of its tint aliases, with tint the object's own [r, g, b, 0] (0..1).
 import * as THREE from "three";
 import { ASSET_VERSION, decodeBase64, getJson } from "./api.js";
 import { loadTexture } from "./textures.js";
@@ -16,8 +18,9 @@ export class PropLibrary {
 
   // alpha is the material's use of its texture's alpha: "test" (cutout), "blend" (glass), "water" (drawn as
   // tinted water: the client's water shader takes wave normal maps) or null (a mask, ignored).
-  material(texture, alpha) {
-    const key = `${texture || ""}|${alpha || ""}`;
+  // tint ([r, g, b], 0..1) multiplies the texture, as an object's tint alias does in game.
+  material(texture, alpha, tint = null) {
+    const key = `${texture || ""}|${alpha || ""}|${tint ? tint.slice(0, 3).map((v) => v.toFixed(3)).join(",") : ""}`;
     if (alpha === "water" && !this.materials.has(key)) {
       this.materials.set(key, new THREE.MeshPhongMaterial({
         color: 0x2b7d9c, specular: 0x9fd4ff, shininess: 80, transparent: true, opacity: 0.62, depthWrite: false, side: THREE.DoubleSide,
@@ -29,6 +32,7 @@ export class PropLibrary {
         alphaTest: alpha === "test" ? 0.4 : 0, transparent: alpha === "blend", opacity: alpha === "blend" ? 0.75 : 1,
         depthWrite: alpha !== "blend", map: texture ? loadTexture(texture) : null,
       });
+      if (tint) material.color.setRGB(tint[0], tint[1], tint[2], THREE.SRGBColorSpace);
       this.materials.set(key, material);
     }
     return this.materials.get(key);
@@ -51,17 +55,45 @@ export class PropLibrary {
           const part = new THREE.Mesh(geometry, this.material(mesh.texture, mesh.alpha));
           part.castShadow = mesh.alpha !== "blend" && mesh.alpha !== "water";
           part.receiveShadow = true;
+          part.userData.base = { texture: mesh.texture, alpha: mesh.alpha };
           group.add(part);
         }
+        group.userData.aliases = data.aliases || NO_ALIASES;
         return group;
       }).catch(() => {
         const group = new THREE.Group();
         group.add(new THREE.Mesh(this.placeholder, this.placeholderMaterial));
+        group.userData.aliases = NO_ALIASES;
         return group;
       }));
     }
     return this.models.get(key);
   }
+}
+
+const NO_ALIASES = { textures: [], tints: [] };
+
+// The texture variants an actor offers (its texture alias names), when there's a choice.
+export function variantNames(aliases) {
+  const names = [...new Set((aliases?.textures || []).map((t) => t.name))];
+  return names.length > 1 ? names : [];
+}
+
+// The texture a mesh draws with under texture alias `material` (none: the actor's default alias). The mesh's
+// own texture is whichever of a slot's alias textures the material file lists, so any of them becomes the
+// one the alias names there; one the alias already names stays (a tree's two _Default textures).
+export function variantTexture(aliases, material, texture) {
+  if (!texture) return texture;
+  const entries = aliases?.textures || [];
+  const lower = texture.toLowerCase();
+  for (const slot of new Set(entries.map((t) => t.slot))) {
+    const inSlot = entries.filter((t) => t.slot === slot);
+    if (!inSlot.some((t) => t.texture.toLowerCase() === lower)) continue;
+    const name = inSlot.some((t) => t.name === material) ? material : (inSlot.find((t) => t.default) || inSlot[0]).name;
+    const named = inSlot.filter((t) => t.name === name);
+    return named.some((t) => t.texture.toLowerCase() === lower) ? texture : named[0].texture;
+  }
+  return texture;
 }
 
 export function applyTransform(object, record) {
@@ -89,6 +121,7 @@ export class PropLayer {
     this.lightMaterial = (rgb) => new THREE.MeshBasicMaterial({ color: new THREE.Color(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255) });
     this.lightGeometry = new THREE.SphereGeometry(0.8, 12, 8);
     this.showLights = true;
+    this.hiddenFiles = new Set();      // lowercase actor names hidden in the view
   }
 
   groupFor(chunk) {
@@ -116,19 +149,64 @@ export class PropLayer {
 
   addProp(chunk, record) {
     const object = new THREE.Group();
-    object.userData = { kind: "prop", record, chunk };
+    object.userData = { kind: "prop", record, chunk, aliases: NO_ALIASES };
     applyTransform(object, record);
+    object.visible = !this.hiddenFiles.has(record.file.toLowerCase());
     this.groupFor(chunk).add(object);
     this.pickables.push(object);
-    this.library.model(record.file).then((template) => {
+    this.loadMeshes(object);
+    record.object = object;
+    return object;
+  }
+
+  // The actor's meshes into the object (again, after its record's file changed).
+  loadMeshes(object) {
+    const file = object.userData.record.file;
+    object.userData.file = file;
+    for (const child of [...object.children]) object.remove(child);
+    return this.library.model(file).then((template) => {
+      if (object.userData.file !== file) return;
+      object.userData.aliases = template.userData.aliases;
       for (const child of template.children) {
         const mesh = child.clone();
+        mesh.base = child.userData.base;
         mesh.userData = object.userData;
         object.add(mesh);
       }
+      this.applyAppearance(object);
     });
-    record.object = object;
-    return object;
+  }
+
+  // The record's texture variant and tint on the object's meshes; a changed file reloads them.
+  refresh(object) {
+    const { record } = object.userData;
+    applyTransform(object, record);
+    if (object.userData.file !== record.file) return this.loadMeshes(object);
+    this.applyAppearance(object);
+    return Promise.resolve();
+  }
+
+  applyAppearance(object) {
+    const { record, aliases } = object.userData;
+    const tint = record.tintAlias && record.tint ? record.tint : null;
+    for (const mesh of object.children) {
+      if (!mesh.isMesh || !mesh.base) continue;
+      mesh.material = this.library.material(variantTexture(aliases, record.material, mesh.base.texture), mesh.base.alpha, tint);
+    }
+  }
+
+  // Hides (or shows again) every object of an actor, e.g. trees in the way of terrain work.
+  setFileHidden(file, hidden) {
+    const key = file.toLowerCase();
+    if (hidden) this.hiddenFiles.add(key); else this.hiddenFiles.delete(key);
+    for (const object of this.pickables) {
+      if (object.userData.kind === "prop" && object.userData.record.file.toLowerCase() === key) object.visible = !hidden;
+    }
+  }
+
+  showAll() {
+    this.hiddenFiles.clear();
+    for (const object of this.pickables) if (object.userData.kind === "prop") object.visible = true;
   }
 
   addLight(chunk, record) {
