@@ -15,6 +15,9 @@
 
 * { box-sizing: border-box; }
 
+/* Elements styled with a display (labels, flex rows) still hide when told to. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   height: 100vh;
@@ -46,15 +49,55 @@ input[type="checkbox"] { width: auto; }
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   padding: 0 10px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
 }
-.brand { font-weight: 700; color: var(--accent); margin-right: 6px; }
-#zone-search { width: 260px; }
-#zone-title { color: var(--muted); }
-.spacer { flex: 1; }
+/* One row, always: controls keep their size and the zone's title gives way. */
+#topbar > * { flex-shrink: 0; }
+#topbar button, #topbar label { white-space: nowrap; }
+.brand { font-weight: 700; color: var(--accent); margin-right: 4px; white-space: nowrap; }
+#zone-search { width: 240px; }
+#zone-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.spacer { flex: 1 1 0; }
+.divider { width: 1px; height: 22px; background: var(--line); }
 label.inline { display: flex; align-items: center; gap: 4px; color: var(--muted); }
+
+/* Controls that belong together share their borders: the zone box and its buttons, Test in game and + servers. */
+.group { display: flex; align-items: stretch; }
+.group > * { border-radius: 0; margin-left: -1px; }
+.group > :first-child { border-radius: 4px 0 0 4px; margin-left: 0; }
+.group > :last-child { border-radius: 0 4px 4px 0; }
+.group > :focus-visible { position: relative; z-index: 1; }
+.addon { display: flex; align-items: center; gap: 4px; padding: 0 8px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); cursor: pointer; }
+.addon:hover { color: var(--text); }
+
+.pill { display: flex; align-items: center; gap: 5px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); cursor: pointer; }
+.pill:hover { color: var(--text); border-color: var(--muted); }
+
+.menu { position: relative; }
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: 10px;
+  min-width: 250px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+.menu-panel > label { display: grid; gap: 4px; color: var(--muted); }
+.menu-panel input[type="range"] { width: 100%; }
+.menu-panel .row-inline { display: flex; align-items: center; gap: 8px; }
+.menu-panel .row-inline input { flex: 1; }
+.menu-panel .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+.menu-panel .checks label { display: flex; align-items: center; gap: 6px; }
+#view-button[aria-expanded="true"] { border-color: var(--accent); }
 
 #toolbar {
   grid-area: tools;
@@ -90,13 +133,61 @@ kbd { font-size: 9px; opacity: 0.7; }
   position: absolute;
   right: 10px;
   bottom: 8px;
-  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 11px;
   text-shadow: 0 1px 2px #000;
-  pointer-events: none;
-  max-width: 60%;
-  text-align: right;
 }
+#help button { padding: 1px 8px; font-size: 11px; background: rgba(20, 23, 29, 0.85); }
+
+#keys-sheet {
+  position: absolute;
+  right: 10px;
+  bottom: 36px;
+  z-index: 25;
+  width: 440px;
+  max-height: calc(100% - 60px);
+  overflow-y: auto;
+  padding: 10px 14px;
+  background: rgba(20, 23, 29, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+#keys-sheet h4 { margin: 8px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+#keys-sheet dl { display: grid; grid-template-columns: 130px 1fr; gap: 3px 10px; margin: 0; font-size: 12px; }
+#keys-sheet dt { color: var(--accent); font-family: ui-monospace, Consolas, monospace; font-size: 11px; }
+#keys-sheet dd { margin: 0; }
+
+/* The gizmo's controls, over the top left of the view. */
+#transform-bar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 20px);
+  padding: 5px 6px;
+  background: rgba(20, 23, 29, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+#transform-bar button, #transform-bar select { padding: 3px 8px; font-size: 12px; white-space: nowrap; }
+#transform-bar .bar-group { display: flex; align-items: center; gap: 6px; }
+#transform-bar .seg { display: flex; }
+#transform-bar .seg button { border-radius: 0; margin-left: -1px; }
+#transform-bar .seg button:first-child { border-radius: 4px 0 0 4px; margin-left: 0; }
+#transform-bar .seg button:last-child { border-radius: 0 4px 4px 0; }
+#transform-bar button.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+#transform-bar button kbd { margin-left: 3px; }
+#transform-bar.idle .seg button, #transform-bar.idle #gizmo-space { opacity: 0.55; }
+.bar-label { color: var(--muted); font-size: 11px; margin-left: 4px; }
 #viewport { --cb-height: 280px; }
 #viewport.content-open #minimap { bottom: calc(var(--cb-height) + 10px); }
 #viewport.content-open #help { display: none; }

@@ -112,7 +112,8 @@ const state = {
     mode: "single", randomYaw: false, align: false, scaleMin: 1, scaleMax: 1, offset: 0,
     material: "", tintOn: false, tint: "#ffffff", spacing: 6, set: [], live: true,
   },
-  snap: { move: 0, turn: 0 },
+  // The gizmo's snapping: metres, degrees and scale steps (0 is off).
+  snap: { move: 0, turn: 0, scale: 0 },
   recentTints: [],
   findQuery: "",
   ecoColours: new Map(),
@@ -138,7 +139,11 @@ const undoStack = [];
 
 const pointer = { x: 0, y: 0, ndc: new THREE.Vector2(), inside: false, buttons: 0 };
 const look = { yaw: 0, pitch: -0.35, speed: 60 };
-const keys = new Set();
+// Keys held down, by their place on the keyboard (KeyW, ShiftLeft), so a layout, Shift or Caps Lock can't leave
+// one held: its keyup has the same code. All of them are let go whenever the page loses the keyboard (see input).
+const held = new Set();
+const isHeld = (code) => held.has(code);
+const shiftHeld = () => held.has("ShiftLeft") || held.has("ShiftRight");
 const raycaster = new THREE.Raycaster();
 let hover = null;          // terrain hit under the pointer
 let stroke = null;         // brush stroke in progress
@@ -244,6 +249,7 @@ async function openZone(name, keepCamera = false) {
   if (!keepCamera) offerDraft();
   setTool(state.tool);
   updateDirty();
+  updateTransformBar();
 }
 
 function dirtyChunks() {
@@ -587,19 +593,16 @@ function renderPanel() {
 
   if (state.tool === "select") {
     const hidden = [...props.hiddenFiles];
-    const options = (values, current, unit) => values.map((v) => `<option value="${v}" ${v === current ? "selected" : ""}>${v ? v + unit : "off"}</option>`).join("");
     panel.innerHTML = `<h3>Select</h3>
-      <p class="hint">Click a prop, light or marker; Shift+click adds or removes one; drag over the ground to box-select (Shift adds). G move, R turn, T scale, Del delete, Ctrl+D duplicate, Ctrl+C / Ctrl+V copy and paste at the pointer, End drops to the ground, H hides a model, F focuses.</p>
-      <div class="row"><label>Move snap <select id="snap-move">${options([0, 0.25, 0.5, 1, 2, 4, 8], state.snap.move, "")}</select></label>
-        <label>Turn snap <select id="snap-turn">${options([0, 5, 15, 45, 90], state.snap.turn, "°")}</select></label></div>
+      <p class="hint">Click a prop, light or marker; Shift+click adds or removes one; drag over the ground to box-select (Shift adds).
+        The bar over the view moves, turns and scales it (G, R, T), with snapping; hold Shift while dragging to snap.
+        Arrows and PgUp/PgDn nudge it, , and . turn it, - and = scale it. Keys ? lists every key.</p>
       ${hidden.length ? `<p class="hint">Hidden: ${hidden.map(escape).join(", ")}</p><div class="row"><button id="show-all">Show them again (Shift+H)</button></div>` : ""}
       <div id="inspector"></div>
       <h4>Find objects</h4>
       <input id="find-objects" placeholder="Name: rock, tree_giant, hsg_block, a player or NPC…" value="${escape(state.findQuery)}">
       <div class="list" id="found-objects"></div>
       <div class="row"><button id="select-found" disabled>Select all found</button></div>`;
-    panel.querySelector("#snap-move").addEventListener("change", (e) => { state.snap.move = +e.target.value; applySnap(); });
-    panel.querySelector("#snap-turn").addEventListener("change", (e) => { state.snap.turn = +e.target.value; applySnap(); });
     panel.querySelector("#show-all")?.addEventListener("click", () => { props.showAll(); renderPanel(); });
     const find = panel.querySelector("#find-objects");
     let timer;
@@ -1154,6 +1157,7 @@ const isLive = (object) => !!object?.userData.kind?.startsWith?.("live");
 
 // Selects one object, or with add toggles it in the selection (props and lights; a marker selects alone).
 function select(object, add = false) {
+  settleNudge();
   if (add && object && !alone(object) && !alone(selected)) {
     if (selection.has(object)) {
       selection.delete(object);
@@ -1203,9 +1207,11 @@ function selectionChanged() {
 // The gizmo moves the one selected object, or a pivot at the selection's centre that carries all of them.
 function attachGizmo() {
   gizmo.detach();
-  if (!selected) return;
-  const { kind, chunk } = selected.userData;
-  if (kind !== "marker" && kind !== "live" && !(chunk && chunk.editable)) return;
+  const kind = selected?.userData.kind, chunk = selected?.userData.chunk;
+  if (!selected || (kind !== "marker" && kind !== "live" && !(chunk && chunk.editable))) {
+    updateTransformBar();
+    return;
+  }
   if (selection.size > 1) {
     const centre = new THREE.Vector3();
     for (const object of selection) centre.add(object.position);
@@ -1216,7 +1222,8 @@ function attachGizmo() {
     gizmo.attach(pivot);
   } else gizmo.attach(selected);
   gizmo.showY = true;
-  if (kind === "light" || (kind === "marker" && gizmo.mode === "scale")) gizmo.setMode("translate");
+  if ((kind === "light" && gizmo.mode !== "translate") || (kind === "marker" && gizmo.mode === "scale")) gizmo.setMode("translate");
+  updateTransformBar();
 }
 
 const RECORD_KEYS = ["file", "position", "rotation", "scale", "material", "tintAlias", "tint", "drawDistance"];
@@ -1280,6 +1287,11 @@ function editObjects(objects, mutate) {
 }
 
 let dragStart = null;
+// Shift held as a drag starts switches snapping for it (Shift pressed or let go mid-drag does too: see keyboard).
+gizmo.addEventListener("dragging-changed", (event) => {
+  if (event.value) settleNudge();
+  applySnap(event.value && shiftHeld());
+});
 gizmo.addEventListener("dragging-changed", (event) => {
   if (!selected) return;
   if (event.value) {
@@ -1541,9 +1553,68 @@ function replaceSelectedModel() {
   });
 }
 
-function applySnap() {
-  gizmo.setTranslationSnap(state.snap.move || null);
-  gizmo.setRotationSnap(state.snap.turn ? THREE.MathUtils.degToRad(state.snap.turn) : null);
+// --- the gizmo's controls (the bar over the view) --------------------------------------------------------
+
+const SNAP_STEPS = { move: [0, 0.1, 0.25, 0.5, 1, 2, 4, 8], turn: [0, 5, 15, 45, 90], scale: [0, 0.05, 0.1, 0.25, 0.5] };
+// What Shift snaps to while dragging when no snapping is set.
+const SNAP_DEFAULTS = { move: 1, turn: 15, scale: 0.1 };
+
+// The gizmo's snapping as set, or with invert (Shift held while dragging) switched: on to the defaults, or off.
+function applySnap(invert = false) {
+  const set = state.snap.move || state.snap.turn || state.snap.scale;
+  const snap = invert ? (set ? { move: 0, turn: 0, scale: 0 } : SNAP_DEFAULTS) : state.snap;
+  gizmo.setTranslationSnap(snap.move || null);
+  gizmo.setRotationSnap(snap.turn ? THREE.MathUtils.degToRad(snap.turn) : null);
+  gizmo.setScaleSnap(snap.scale || null);
+}
+
+// Props and live objects scale; lights and markers only move (markers turn too).
+function canScale(object) {
+  return object?.userData.kind === "prop" || object?.userData.kind === "live";
+}
+
+function setGizmoMode(mode) {
+  if (mode === "scale" && selected && !canScale(selected)) return status("Only props and live objects scale.");
+  if (mode === "rotate" && selected?.userData.kind === "light") return status("Lights don't turn.");
+  gizmo.setMode(mode);
+  updateTransformBar();
+}
+
+function updateTransformBar() {
+  const bar = $("#transform-bar");
+  bar.hidden = !state.zone;
+  bar.classList.toggle("idle", !gizmo.object);
+  for (const button of bar.querySelectorAll("[data-mode]")) button.classList.toggle("active", button.dataset.mode === gizmo.mode);
+  bar.querySelector('[data-mode="scale"]').disabled = !!selected && !canScale(selected);
+  bar.querySelector('[data-mode="rotate"]').disabled = selected?.userData.kind === "light";
+  $("#gizmo-space").textContent = gizmo.space === "local" ? "Local" : "World";
+}
+
+function setupTransformBar() {
+  const fill = (id, steps, current, format, off) => {
+    $(id).innerHTML = steps.map((v) => `<option value="${v}" ${v === current ? "selected" : ""}>${v ? format(v) : off}</option>`).join("");
+  };
+  fill("#snap-move", SNAP_STEPS.move, state.snap.move, (v) => `${v} m`, "Move: free");
+  fill("#snap-turn", SNAP_STEPS.turn, state.snap.turn, (v) => `${v}°`, "Turn: free");
+  fill("#snap-scale", SNAP_STEPS.scale, state.snap.scale, (v) => `×${v}`, "Scale: free");
+  for (const kind of ["move", "turn", "scale"]) {
+    $(`#snap-${kind}`).addEventListener("change", (e) => {
+      state.snap[kind] = +e.target.value;
+      applySnap();
+      e.target.blur();
+    });
+  }
+  for (const button of $("#transform-bar").querySelectorAll("[data-mode]")) button.addEventListener("click", () => setGizmoMode(button.dataset.mode));
+  $("#gizmo-space").addEventListener("click", () => {
+    gizmo.setSpace(gizmo.space === "local" ? "world" : "local");
+    updateTransformBar();
+  });
+  const resize = (factor) => gizmo.setSize(Math.min(3, Math.max(0.3, gizmo.size * factor)));
+  $("#gizmo-smaller").addEventListener("click", () => resize(0.8));
+  $("#gizmo-larger").addEventListener("click", () => resize(1.25));
+  // Buttons hand the keyboard straight back to the view.
+  for (const button of $("#transform-bar").querySelectorAll("button")) button.addEventListener("click", () => button.blur());
+  updateTransformBar();
 }
 
 // Puts the camera back from an object along the view; nearest is how close it may come (characters are small).
@@ -1856,12 +1927,33 @@ canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 canvas.addEventListener("pointermove", (event) => {
   updatePointer(event);
   pointer.inside = true;
+  // Each move says which buttons are down, so a button let go outside the window doesn't keep the view turning
+  // or a brush painting.
+  pointer.buttons = event.buttons;
   if (pointer.buttons & 2) {
     look.yaw -= event.movementX * 0.003;
     look.pitch = Math.max(-1.55, Math.min(1.55, look.pitch - event.movementY * 0.003));
   }
+  if (!(pointer.buttons & 1)) letGoOfLeft(event);
 });
 canvas.addEventListener("pointerleave", () => { pointer.inside = false; });
+canvas.addEventListener("lostpointercapture", (event) => {
+  pointer.buttons = 0;
+  letGoOfLeft(event);
+});
+
+// Ends what a left drag started when its button came up where the canvas didn't hear it.
+function letGoOfLeft(event) {
+  if (boxSelect) {
+    boxSelect = null;
+    $("#select-box").style.display = "none";
+  }
+  if (scatter) endScatter();
+  if (stroke) {
+    rampLine.visible = false;
+    endStroke();
+  }
+}
 canvas.addEventListener("pointerdown", async (event) => {
   updatePointer(event);
   pointer.buttons = event.buttons;
@@ -1977,36 +2069,209 @@ canvas.addEventListener("wheel", (event) => {
   }
 }, { passive: false });
 
+// --- keyboard ------------------------------------------------------------------------------------------
+
+// Fields that take typing keep their keys; everything else (checkboxes, sliders, lists, buttons) leaves them to the
+// editor, so clicking one doesn't silently switch the shortcuts off.
+const TEXT_TYPES = new Set(["text", "search", "number", "email", "password", "url", "tel", ""]);
+function isTextEntry(element) {
+  if (!element?.closest) return false;
+  if (element.closest("textarea, [contenteditable]")) return true;
+  return element.tagName === "INPUT" && TEXT_TYPES.has((element.getAttribute("type") || "").toLowerCase());
+}
+
+// Browser shortcuts that would take the keyboard away from the editor (and with it the keyup of a fly key):
+// Ctrl+D bookmarks, Ctrl+E, K and L go to the address bar, Ctrl+F and G find, Ctrl+H and J open history and
+// downloads, Ctrl+O, P and U open, print and view source, F3, F6 and F7 find, the address bar and caret browsing,
+// Alt and F10 the menu. No page can stop Ctrl+W, T, N or Tab, so the editor never needs Ctrl with a fly key.
+const BROWSER_SHORTCUTS = new Set(["KeyA", "KeyC", "KeyD", "KeyE", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL",
+  "KeyO", "KeyP", "KeyS", "KeyU", "KeyV", "KeyY", "KeyZ"]);
+const BROWSER_KEYS = new Set(["F3", "F6", "F7", "F10", "AltLeft", "AltRight"]);
+const FLY_KEYS = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE"]);
+const TOOL_KEYS = { v: "select", b: "sculpt", x: "exclude", m: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone" };
+
 window.addEventListener("keydown", (event) => {
-  if (event.target.closest("input, textarea, select")) return;
+  if (BROWSER_KEYS.has(event.code)) event.preventDefault();
+  if (isTextEntry(event.target)) {
+    if (event.key === "Escape") event.target.blur();
+    return;
+  }
+  held.add(event.code);
   const key = event.key.toLowerCase();
-  if (event.ctrlKey && key === "s") { event.preventDefault(); saveAll(); return; }
-  if (event.ctrlKey && key === "z") { event.preventDefault(); undo(); return; }
-  if (event.ctrlKey && key === "d") { event.preventDefault(); duplicateSelected(); return; }
-  if (event.ctrlKey && key === "c") { event.preventDefault(); copySelected(); return; }
-  if (event.ctrlKey && key === "v") { event.preventDefault(); pasteAtPointer(); return; }
-  if (event.ctrlKey) return;
-  keys.add(key);
-  const tools = { v: "select", b: "sculpt", x: "exclude", e: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone" };
+
+  // Shift while dragging the gizmo switches snapping (on to the defaults, or off when it's set).
+  if (event.key === "Shift" && gizmo.dragging && !event.repeat) applySnap(true);
+
+  if (event.ctrlKey || event.metaKey) {
+    if (BROWSER_SHORTCUTS.has(event.code)) event.preventDefault();
+    if (event.repeat) return;
+    settleNudge();
+    if (key === "s") saveAll();
+    else if (key === "z") undo();
+    else if (key === "d") duplicateSelected();
+    else if (key === "c") copySelected();
+    else if (key === "v") pasteAtPointer();
+    return;
+  }
+  if (event.altKey) return;
+
+  // Nudges repeat while the key is held; everything else happens once per press.
+  if (nudgeKey(event)) {
+    event.preventDefault();
+    return;
+  }
+  if (event.repeat) return;
+
   const digit = "1234567890".indexOf(key);
-  if (digit >= 0 && state.tool === "sculpt" && SCULPT_MODES[digit]) { state.brush.mode = SCULPT_MODES[digit]; renderPanel(); }
+  if (key === "?") toggleKeysSheet();
+  else if (key === "escape") onEscape();
+  else if (digit >= 0 && state.tool === "sculpt" && SCULPT_MODES[digit]) { state.brush.mode = SCULPT_MODES[digit]; renderPanel(); }
   else if (digit >= 0 && digit < 2 && state.tool === "exclude") { state.exclude.mode = ["cut", "restore"][digit]; renderPanel(); }
+  else if ((event.code === "BracketLeft" || event.code === "BracketRight") && BRUSH_TOOLS.has(state.tool)) {
+    const up = event.code === "BracketRight";
+    if (event.shiftKey) state.brush.strength = Math.max(0.02, Math.min(1, state.brush.strength * (up ? 1.15 : 0.87)));
+    else state.brush.radius = Math.max(2, Math.min(128, Math.round(state.brush.radius * (up ? 1.15 : 0.87))));
+    renderPanel();
+  }
   else if (key === "i" && state.zone) eyedrop();
-  else if (key === "escape") { select(null); state.actor = null; if (ghost) { scene.remove(ghost); ghost = null; } renderPanel(); }
   else if (key === "delete" || key === "backspace") deleteSelected();
   else if (key === "o") toggleContent();
-  else if (key === "g") gizmo.setMode("translate");
-  else if (key === "r") gizmo.setMode("rotate");
-  else if (key === "t" && (selected?.userData.kind === "prop" || selected?.userData.kind === "live")) gizmo.setMode("scale");
+  else if (key === "g") setGizmoMode("translate");
+  else if (key === "r") setGizmoMode("rotate");
+  else if (key === "t") setGizmoMode("scale");
   else if (key === "f" && selected) focusOn(selected, isLive(selected) ? LIVE_FOCUS : undefined);
   else if (key === "h" && event.shiftKey) { props.showAll(); renderPanel(); }
   else if (key === "h" && selected) hideSelectedModels();
   else if (key === "end" && selected?.userData.kind === "live") dropLiveToGround(selected);
   else if (key === "end" && selected) objectAction("ground");
-  else if (tools[key] && !"wasdqe".includes(key)) setTool(tools[key]);
+  else if (TOOL_KEYS[key] && !FLY_KEYS.has(event.code)) setTool(TOOL_KEYS[key]);
 });
-window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
-window.addEventListener("blur", () => keys.clear());
+window.addEventListener("keyup", (event) => {
+  held.delete(event.code);
+  if (BROWSER_KEYS.has(event.code)) event.preventDefault();
+  if (event.key === "Shift" && gizmo.dragging) applySnap(false);
+});
+// Wherever the keyboard goes (another window, a dialog, the browser's own bar), the keys' keyups go with it.
+window.addEventListener("blur", () => held.clear());
+document.addEventListener("visibilitychange", () => { if (document.hidden) held.clear(); });
+document.addEventListener("focusin", (event) => { if (isTextEntry(event.target)) held.clear(); });
+
+// Esc closes what's open over the view first, then lets go of the selection and the content pick.
+function onEscape() {
+  if (!$("#view-menu").hidden || !$("#keys-sheet").hidden) {
+    setViewMenu(false);
+    $("#keys-sheet").hidden = true;
+    return;
+  }
+  select(null);
+  state.actor = null;
+  if (ghost) { scene.remove(ghost); ghost = null; }
+  renderPanel();
+}
+
+function toggleKeysSheet() {
+  $("#keys-sheet").hidden = !$("#keys-sheet").hidden;
+}
+
+// --- nudging -------------------------------------------------------------------------------------------
+
+// Arrows move the selection along the ground (on the world axis nearest the view's), PgUp and PgDn up and down,
+// , and . turn it, - and = scale it. Steps follow the gizmo's snapping. Presses close together make one undo
+// step; on a live object they go to the game together once the keys stop.
+const NUDGE_SETTLE = 500;
+let nudging = null;            // { objects, edit, timer } or { live, timer }
+
+function nudgeKey(event) {
+  if (!selected || BRUSH_TOOLS.has(state.tool)) return false;
+  const code = event.code;
+  if (code.startsWith("Arrow") || code === "PageUp" || code === "PageDown") {
+    const step = (state.snap.move || 0.25) * (event.shiftKey ? 4 : 1);
+    if (code === "PageUp" || code === "PageDown") return nudge({ move: new THREE.Vector3(0, code === "PageUp" ? step : -step, 0) });
+    const forward = new THREE.Vector3();
+    camera.getWorldDirection(forward);
+    const [fx, fz] = Math.abs(forward.x) > Math.abs(forward.z) ? [Math.sign(forward.x), 0] : [0, Math.sign(forward.z)];
+    const [dx, dz] = { ArrowUp: [fx, fz], ArrowDown: [-fx, -fz], ArrowRight: [-fz, fx], ArrowLeft: [fz, -fx] }[code];
+    return nudge({ move: new THREE.Vector3(dx * step, 0, dz * step) });
+  }
+  if (code === "Comma" || code === "Period") {
+    const degrees = event.shiftKey ? 90 : state.snap.turn || 15;
+    // Seen from above, . turns clockwise.
+    return nudge({ turn: THREE.MathUtils.degToRad(code === "Period" ? -degrees : degrees) });
+  }
+  if (code === "Minus" || code === "Equal" || code === "NumpadSubtract" || code === "NumpadAdd") {
+    const step = 1 + (state.snap.scale || 0.1);
+    return nudge({ scale: code === "Minus" || code === "NumpadSubtract" ? 1 / step : step });
+  }
+  return false;
+}
+
+// Applies a nudge to what's selected; true if anything could take it.
+function nudge({ move, turn, scale }) {
+  const kind = selected.userData.kind;
+  if (kind === "marker") {
+    if (scale) return false;
+    if (move) selected.position.add(move);
+    if (turn) selected.rotation.y += turn;
+    selected.userData.apply?.();
+    updateDirty();
+    attachGizmo();
+    renderInspector();
+    return true;
+  }
+  if (kind === "live") {
+    const object = selected;
+    object.rotation.reorder("YXZ");
+    if (move) object.position.add(move);
+    if (turn) object.rotation.y += turn;
+    if (scale) object.scale.setScalar(Math.min(20, Math.max(0.05, object.scale.x * scale)));
+    if (nudging?.live !== object) settleNudge();
+    live.held = object;
+    clearTimeout(nudging?.timer);
+    nudging = { live: object, timer: setTimeout(settleNudge, NUDGE_SETTLE) };
+    attachGizmo();
+    return true;
+  }
+  if (kind?.startsWith("live-")) return false;
+
+  const objects = selectedObjects().filter((o) => o.userData.chunk?.editable);
+  if (!objects.length) return false;
+  const same = nudging?.objects && nudging.objects.length === objects.length && objects.every((o, i) => o === nudging.objects[i]);
+  if (!same) {
+    settleNudge();
+    nudging = { objects, edit: liveEdit(objects) };
+  }
+  const centre = turn && objects.length > 1
+    ? objects.reduce((sum, o) => sum.add(o.position), new THREE.Vector3()).divideScalar(objects.length) : null;
+  const [sin, cos] = turn ? [Math.sin(turn), Math.cos(turn)] : [0, 1];
+  nudging.edit.apply((record, object) => {
+    const position = [...record.position];
+    if (move) [0, 1, 2].forEach((k) => { position[k] += move.getComponent(k); });
+    if (centre) {
+      // Several turn together round their centre, as the gizmo turns them.
+      const dx = position[0] - centre.x, dz = position[2] - centre.z;
+      position[0] = centre.x + dx * cos + dz * sin;
+      position[2] = centre.z - dx * sin + dz * cos;
+    }
+    record.position = position;
+    if (object.userData.kind !== "prop") return;
+    if (turn) record.rotation = [record.rotation[0] + turn, record.rotation[1], record.rotation[2]];
+    if (scale) record.scale = Math.min(100, Math.max(0.01, record.scale * scale));
+  });
+  clearTimeout(nudging.timer);
+  nudging.timer = setTimeout(settleNudge, NUDGE_SETTLE);
+  attachGizmo();
+  return true;
+}
+
+// Ends a run of nudges: one undo step, or the live object's change sent to the game.
+function settleNudge() {
+  if (!nudging) return;
+  const done = nudging;
+  nudging = null;
+  clearTimeout(done.timer);
+  if (done.edit) done.edit.commit();
+  if (done.live) liveStep(live.commit(done.live), "Moved in game.");
+}
 
 // --- brush strokes and undo ----------------------------------------------------------------------------
 
@@ -2030,8 +2295,8 @@ function applyStroke(dt) {
   snapshotChunks(terrain.editableChunksNear(hover.x, hover.z, radius));
   if (state.tool === "sculpt") {
     let m = mode;
-    if (keys.has("shift") && m === "raise") m = "lower";
-    else if (keys.has("shift") && m === "lower") m = "raise";
+    if (shiftHeld() && m === "raise") m = "lower";
+    else if (shiftHeld() && m === "lower") m = "raise";
     if (mode === "ramp") {
       // Applied on release; meanwhile a line shows where it goes.
       if (stroke.start) setRampLine(stroke.start, hover);
@@ -2069,6 +2334,7 @@ function endStroke() {
 }
 
 function undo() {
+  settleNudge();
   const step = undoStack.pop();
   if (!step) return status("Nothing to undo.");
   step();
@@ -2406,14 +2672,19 @@ function frame() {
   const forward = new THREE.Vector3(), right = new THREE.Vector3();
   camera.getWorldDirection(forward);
   right.crossVectors(forward, camera.up).normalize();
-  const speed = look.speed * (keys.has("shift") ? 4 : 1) * dt;
-  if (!document.activeElement?.closest?.("input, textarea, select")) {
-    if (keys.has("w")) camera.position.addScaledVector(forward, speed);
-    if (keys.has("s")) camera.position.addScaledVector(forward, -speed);
-    if (keys.has("d")) camera.position.addScaledVector(right, speed);
-    if (keys.has("a")) camera.position.addScaledVector(right, -speed);
-    if (keys.has("e")) camera.position.y += speed;
-    if (keys.has("q")) camera.position.y -= speed;
+  // A page that has lost the keyboard (the browser's menu or address bar, a dialog) never hears its keys go up.
+  if (held.size && !document.hasFocus()) held.clear();
+  const speed = look.speed * (shiftHeld() ? 4 : 1) * dt;
+  const typing = isTextEntry(document.activeElement);
+  // Not while Ctrl, Alt or Meta is down: those keys are shortcuts then (Ctrl+S saves, it doesn't fly back).
+  const chord = ["ControlLeft", "ControlRight", "AltLeft", "AltRight", "MetaLeft", "MetaRight"].some(isHeld);
+  if (!typing && !chord) {
+    if (isHeld("KeyW")) camera.position.addScaledVector(forward, speed);
+    if (isHeld("KeyS")) camera.position.addScaledVector(forward, -speed);
+    if (isHeld("KeyD")) camera.position.addScaledVector(right, speed);
+    if (isHeld("KeyA")) camera.position.addScaledVector(right, -speed);
+    if (isHeld("KeyE")) camera.position.y += speed;
+    if (isHeld("KeyQ")) camera.position.y -= speed;
   }
   camera.updateMatrixWorld();
 
@@ -2515,6 +2786,17 @@ $("#show-details").addEventListener("change", (e) => { terrain.uniforms.detailSt
 $("#show-shadows").addEventListener("change", (e) => { sun.castShadow = e.target.checked; });
 $("#show-grid").addEventListener("change", (e) => { terrain.uniforms.showGrid.value = e.target.checked ? 1 : 0; });
 $("#show-lights").addEventListener("change", (e) => props.setLightsVisible(e.target.checked));
+
+// The View menu: view distance, time of day and what's drawn. A click anywhere else closes it.
+function setViewMenu(open) {
+  $("#view-menu").hidden = !open;
+  $("#view-button").setAttribute("aria-expanded", String(open));
+}
+$("#view-button").addEventListener("click", () => setViewMenu($("#view-menu").hidden));
+document.addEventListener("pointerdown", (event) => {
+  if (!$("#view-menu").hidden && !event.target.closest(".menu")) setViewMenu(false);
+});
+$("#keys-button").addEventListener("click", (event) => { toggleKeysSheet(); event.currentTarget.blur(); });
 window.addEventListener("beforeunload", (e) => { if (dirtyChunks().length || state.zoneDirty) e.preventDefault(); });
 
 const dialog = $("#new-zone-dialog");
@@ -2550,8 +2832,9 @@ dialog.addEventListener("close", async () => {
 });
 
 // For poking at the editor from the browser console.
-window.zoneEditor = { THREE, scene, camera, look, gizmo, terrain, props, library, state, selection, openZone, saveAll, addChunk, setTool, select, selectMany };
+window.zoneEditor = { THREE, scene, camera, look, gizmo, terrain, props, library, live, state, selection, openZone, saveAll, addChunk, setTool, select, selectMany };
 
+setupTransformBar();
 noZonePanel();
 updateDirty();
 loadZones().then(() => {

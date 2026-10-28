@@ -78,10 +78,10 @@ for a housing zone, `!house grant <house id>` and then `!house enter`.
 
 | Tool | Key | |
 | --- | --- | --- |
-| Select | V | Click a prop, light or marker; Shift+click or drag a box to select several. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, Ctrl+C/V copy and paste, End drop to ground, H hide, F focus. A prop dragged into another chunk moves into it. |
+| Select | V | Click a prop, light or marker; Shift+click or drag a box to select several. G move, R rotate, T scale (or the transform bar over the view), arrows and PgUp/PgDn nudge, `,` `.` turn, `-` `=` scale, Del delete, Ctrl+D duplicate, Ctrl+C/V copy and paste, End drop to ground, H hide, F focus. A prop dragged into another chunk moves into it. |
 | Sculpt | B | Raise and lower (Shift swaps them), smooth, flatten (to where the stroke started), slope (onto the plane under the brush where the stroke started, for lumpy hillsides), level (to a set height; Alt+click picks it), ramp (drag from one point to another), terrace (steps of a set height), erode (cliffs slide to a 35° slope), sharpen and noise. Keys 1 to 0 pick them. |
 | Exclude | X | Cut holes in the ground for cave mouths and interiors, or restore it. Shift+click a cave model to limit the brush to inside its bounds, or cut all the ground inside it at once. Holes leave the ground's mesh and collision; a tile cut out entirely keeps one buried, degenerate triangle so its collision tree stays valid. |
-| Eco | E | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). Alt+click picks the eco under the pointer and its tint from the colour map, which painting then uses instead. A tile holds up to 5 ecos. |
+| Eco | M | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). Alt+click picks the eco under the pointer and its tint from the colour map, which painting then uses instead. A tile holds up to 5 ecos. |
 | Colour | C | Paint the colour map directly; Alt+click picks a colour. |
 | Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. |
 | Props | P | Place objects from the content browser (O): click a tile, then the ground, or drag a tile into the view. Shift+wheel turns the preview. Or scatter them with a brush. See Objects below. |
@@ -97,10 +97,18 @@ buildings, ...) and name. Characters and gear stay hidden unless asked for. Thum
 browser and kept in `ZoneEditor/.cache/thumbs`.
 
 Fly with the right mouse button and WASD/QE (Shift for speed, the wheel changes speed; in brush tools the
-wheel sizes the brush and Ctrl+wheel sets strength; every brush has a falloff: smooth, linear, sphere or
-flat). I is the eyedropper: the ground under the pointer sets the level height, the eco to paint and its
-tint, and the colour; the status bar shows the eco under the pointer. Ctrl+Z undoes, Ctrl+S saves. The
-minimap shows chunks green and unsaved ones gold; click it to fly there.
+wheel or `[` `]` sizes the brush and Ctrl+wheel or Shift+`[` `]` sets strength; every brush has a falloff:
+smooth, linear, sphere or flat). I is the eyedropper: the ground under the pointer sets the level height,
+the eco to paint and its tint, and the colour; the status bar shows the eco under the pointer. Ctrl+Z
+undoes, Ctrl+S saves. The minimap shows chunks green and unsaved ones gold; click it to fly there. **View**
+in the top bar holds the view distance, time of day and what's drawn (detail textures, shadows, tile grid,
+point lights); **Keys ?** (or `?`) lists every key.
+
+Flying goes by the keys' place on the keyboard, so WASD/QE work on any layout. A text box keeps its typing,
+but a ticked checkbox or a slider doesn't swallow the editor's keys. The browser's own shortcuts that clash
+(Ctrl+D bookmark, Ctrl+S save page, F3 find, Alt and F10 menus, ...) are held back while the editor has
+focus; Ctrl+W, Ctrl+T and Ctrl+N can't be. Flying stops when the window loses focus, so a key let go
+elsewhere doesn't leave the camera drifting.
 
 ## Objects
 
@@ -115,8 +123,16 @@ object also has a draw distance (0 is the client's default).
 
 **Selecting.** Shift+click adds or removes an object; dragging over the ground in the Select tool selects
 everything in the box (Shift adds). Several selected move, turn (R) and scale (T) together round their
-centre, and share an inspector: their look and draw distance, and the actions. Move and turn snapping are
-in the Select tool. Find objects lists the loaded objects by name, nearest first, to select one or all.
+centre, and share an inspector: their look and draw distance, and the actions. Find objects lists the loaded
+objects by name, nearest first, to select one or all.
+
+**Moving, turning and scaling.** While something is selected the transform bar over the view picks the
+gizmo (Move G, Rotate R, Scale T), World or Local axes, its size, and snapping for each: move in metres,
+turn in degrees, scale in steps. Holding Shift while dragging switches snapping off, or on at the default
+steps when it's off. The keyboard nudges without the gizmo: the arrows move along the ground (along the world
+axis nearest to where the camera looks), PgUp and PgDn up and down, by the move snap or 0.25 m; `,` and `.`
+turn by the turn snap or 15°; `-` and `=` scale. Shift makes a nudge 4× (90° for turns). A run of nudges is
+one undo step.
 
 **Actions** (on everything selected): drop to the ground (End), align to the slope, stand upright, random
 turn, random scale (in the Props tool's range), reset; select all like this; hide the model (H, Shift+H
@@ -134,7 +150,7 @@ slope, sit above or sink into the ground, and take a texture variant and tint.
 It draws the world as the client does, with its coordinates as they are. The ground is the colour map with
 each eco's detail texture blended in by the eco weights (up to 4 per chunk). Props use their own normals and
 diffuse textures, uploaded as the client's DDS files with their mipmaps; cutout foliage, glass and water
-follow their material definitions. Lighting comes from the sky file in use, by time of day (the Time slider):
+follow their material definitions. Lighting comes from the sky file in use, by time of day (View → Time of day):
 sun colour, brightness and direction, fog, and sky and ground light from its ambient gradient. Without a zone
 sky it follows the environment of the tile under the camera, like the client. The sun casts shadows near the
 camera, and the zone's own point lights nearest the camera light the scene.
@@ -151,9 +167,9 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   their own actors as the client puts them together (see How it works). Players glide between the server's
   updates and show on the minimap; names show close up. The Select tool's search finds them by name too.
 - **Placed objects are editable, live.** They glow faintly. Select one and G, R and T move, turn (yaw, pitch
-  and roll) and scale it; the inspector takes exact numbers, drops it to the ground (End), duplicates (Ctrl+D)
-  and deletes it (Del). Each change goes to the server when the gizmo lets go: it's saved, and players in view
-  see it at once. Ctrl+Z undoes it on the server.
+  and roll) and scale it, as do the nudge keys; the inspector takes exact numbers, drops it to the ground
+  (End), duplicates (Ctrl+D) and deletes it (Del). Each change goes to the server when the gizmo lets go (or
+  the nudging stops): it's saved, and players in view see it at once. Ctrl+Z undoes it on the server.
 - **Placing live.** In the Props tool, with *Place in the running game* ticked (the default from the panel), a
   click places the content pick as a placed model, with the tool's turn, scale, slope and height options. Only
   actors with a `Models.txt` row can be spawned (the game sends models by id); others go in the zone's files.
