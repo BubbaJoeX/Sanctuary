@@ -15,6 +15,14 @@ public static class BaseMiniGamePacket
     public const byte DataLocked = 0x01;
     public const byte DataUnlocked = 0x02;
     public const byte RequestStartGame = 0x05;
+    /// <summary>
+    /// The client closing a game it started or the start screen (Clone Wars' RequestCancelActiveMinigame).
+    /// </summary>
+    public const byte RequestCancelGame = 0x06;
+    /// <summary>
+    /// The client leaving a game (Clone Wars' LeaveInstance).
+    /// </summary>
+    public const byte RequestLeaveGame = 0x07;
     public const byte Payload = 0x0E;
     public const byte Info = 0x10;
     public const byte StartGame = 0x11;

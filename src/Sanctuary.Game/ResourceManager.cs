@@ -50,6 +50,10 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string ZoneEnvironmentsDirectory = Path.Combine(ZonesDirectory, "Environments");
     public static readonly string HousesFile = Path.Combine(BaseDirectory, "Houses.json");
     public static readonly string PetsFile = Path.Combine(BaseDirectory, "Pets.json");
+    /// <summary>
+    /// The minigames (one .json per game family), with each game's own data in a folder of its name.
+    /// </summary>
+    public static readonly string MinigamesDirectory = Path.Combine(BaseDirectory, "Minigames");
     public static readonly string MountsFile = Path.Combine(BaseDirectory, "Mounts.json");
     public static readonly string ProfilesFile = Path.Combine(BaseDirectory, "Profiles.json");
     public static readonly string QuickChatsFile = Path.Combine(BaseDirectory, "QuickChats.json");
@@ -102,6 +106,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public HouseDefinitionCollection Houses { get; }
     public MountDefinitionCollection Mounts { get; }
     public PetDefinitionCollection Pets { get; }
+    public MinigameDefinitionCollection Minigames { get; }
     public PlayerTitleCollection PlayerTitles { get; }
     public ProfileDefinitionCollection Profiles { get; }
     public QuickChatDefinitionCollection QuickChats { get; }
@@ -165,6 +170,7 @@ public class ResourceManager : IResourceManager, IDisposable
         Houses = new(_logger);
         Mounts = new(_logger);
         Pets = new(_logger);
+        Minigames = new(_logger);
         Profiles = new(_logger);
         QuickChats = new(_logger);
         PlayerTitles = new(_logger);
@@ -198,6 +204,7 @@ public class ResourceManager : IResourceManager, IDisposable
             ["itemcategorygroups"] = () => Reload(ItemCategoryGroups, () => ItemCategoryGroups.Load(ItemCategoryGroupsFile)),
             ["houses"] = () => Reload(Houses, () => Houses.Load(HousesFile)),
             ["mounts"] = () => Reload(Mounts, () => Mounts.Load(MountsFile)),
+            ["minigames"] = () => Reload(Minigames, () => Minigames.Load(MinigamesDirectory)),
             ["profiles"] = () => Reload(Profiles, () => Profiles.Load(ProfilesFile)),
             ["quickchats"] = () => Reload(QuickChats, () => QuickChats.Load(QuickChatsFile)),
             ["titles"] = () => Reload(PlayerTitles, () => PlayerTitles.Load(PlayerTitlesFile)),
@@ -420,6 +427,9 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!Pets.Load(PetsFile))
             return false;
 
+        if (!Minigames.Load(MinigamesDirectory))
+            return false;
+
         if (!Mounts.Load(MountsFile))
             return false;
 
@@ -499,7 +509,9 @@ public class ResourceManager : IResourceManager, IDisposable
         var isCollectionNodeSpawn = directoryPath is not null &&
             directoryPath.StartsWith(collectionNodeSpawnPrefix, StringComparison.OrdinalIgnoreCase);
 
-        if (!isTopLevelResource && !isCollectionNodeSpawn)
+        var isMinigame = string.Equals(directoryPath, MinigamesDirectory, StringComparison.OrdinalIgnoreCase);
+
+        if (!isTopLevelResource && !isCollectionNodeSpawn && !isMinigame)
             return;
 
         try
@@ -552,6 +564,9 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = Houses.Load(HousesFile);
             else if (e.FullPath == PetsFile)
                 loaded = Pets.Load(PetsFile);
+            else if (isMinigame &&
+                string.Equals(Path.GetExtension(e.FullPath), ".json", StringComparison.OrdinalIgnoreCase))
+                loaded = Reload(Minigames, () => Minigames.Load(MinigamesDirectory));
             else if (e.FullPath == MountsFile)
                 loaded = Mounts.Load(MountsFile);
             else if (e.FullPath == ProfilesFile)

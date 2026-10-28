@@ -3,6 +3,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Game.Minigames;
 using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
@@ -10,8 +11,8 @@ using Sanctuary.Packet.Common.Attributes;
 namespace Sanctuary.Gateway.Handlers;
 
 /// <summary>
-/// Activity service requests from the Games window. A list refresh re-sends the activities; anything else
-/// (joining an activity, ...) is logged until it's implemented.
+/// Activity service requests from the Games window: a list refresh re-sends the activities and joining one opens
+/// its minigame's start screen. Anything else is logged until it's implemented.
 /// </summary>
 [PacketHandler]
 public static class BaseActivityServicePacketHandler
@@ -41,8 +42,8 @@ public static class BaseActivityServicePacketHandler
             var activityId = BitConverter.ToInt32(data[4..]);
             _logger.LogInformation("{player} joined activity {activity}.", connection.Player.Name.FullName, activityId);
 
-            // Activities are minigames so far (the daily wheel); start it on the client.
-            BaseZone.StartMinigameActivity(connection.Player, activityId);
+            // Activities are minigames so far; open the game's start screen.
+            MinigameManager.Join(connection.Player, activityId);
             return true;
         }
 
