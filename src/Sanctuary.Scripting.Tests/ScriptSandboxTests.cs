@@ -119,6 +119,14 @@ public class ScriptSandboxTests
             WarpedTo = (zoneId, position, heading);
             return zoneId == 1036;
         }
+
+        public int? StartedMinigame { get; private set; }
+
+        public bool StartMinigame(int minigameId)
+        {
+            StartedMinigame = minigameId;
+            return minigameId == 91;
+        }
     }
 
     private static MockScriptNpc CreateNpc() => new(new MockScriptZone(NullLogger.Instance));
@@ -169,6 +177,7 @@ public class ScriptSandboxTests
                 player:message(tostring(player:giveStars(25)))
                 player:message(tostring(player:warp(1036, 1, 2, 3, 90)) .. " " .. tostring(player:warp(1)))
                 player:message(tostring(player.isKnockedOut) .. " " .. tostring(player:revive()) .. " " .. tostring(player:revive(80)))
+                player:message(tostring(player:startMinigame(91)))
             end
             """, "test");
 
@@ -188,7 +197,8 @@ public class ScriptSandboxTests
             "true false 20",
             "true",
             "true false",
-            "true true false"
+            "true true false",
+            "true"
         }, player.Messages);
 
         Assert.AreEqual(1, player.Inventory[10]);
@@ -196,6 +206,7 @@ public class ScriptSandboxTests
         Assert.AreEqual(1, player.WarpedTo?.Zone);
         Assert.IsNull(player.WarpedTo?.Position);
         Assert.AreEqual(50, player.RevivedAt, "revive() stands them up with half their health.");
+        Assert.AreEqual(91, player.StartedMinigame);
     }
 
     [TestMethod]

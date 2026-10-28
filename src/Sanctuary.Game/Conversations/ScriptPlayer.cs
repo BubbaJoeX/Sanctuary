@@ -5,6 +5,7 @@ using System.Numerics;
 using Sanctuary.Core.Extensions;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
+using Sanctuary.Game.Minigames;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Game.Resources.Definitions.Zones;
@@ -107,6 +108,8 @@ public sealed class ScriptPlayer(Player player, IRewardManager rewardManager, IQ
     public bool TakeCoins(int amount) => rewardManager.TryTakeCoins(player, amount);
 
     public bool GiveStars(int amount) => rewardManager.TryGrantExperience(player, player.ApplyExperienceBoost(amount));
+
+    public bool StartMinigame(int minigameId) => MinigameManager.Join(player, minigameId);
 
     public bool Warp(int zoneId, (float x, float y, float z)? position, float? heading)
     {

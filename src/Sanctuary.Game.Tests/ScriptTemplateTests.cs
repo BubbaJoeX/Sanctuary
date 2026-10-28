@@ -130,6 +130,7 @@ public sealed class ScriptTemplateTests
         public bool TakeCoins(int amount) => false;
         public bool GiveStars(int amount) => true;
         public bool Warp(int zoneId, (float x, float y, float z)? position, float? heading) => false;
+        public bool StartMinigame(int minigameId) => false;
     }
 
     private const string Sample = """
