@@ -11,7 +11,7 @@ across the tile and f32 y, the index count and u16 indices; then the placed coll
 counts). Only the ground is kept, not the tiles' objects.
 
 Example:
-  python zone_server_terrain.py --zone lavendercoast --chunks D:/Sanctuary/src/Resources/ClientMods
+  python zone_server_terrain.py --zone lavendercoast --chunks D:/FreeRealms/Sanctuary/src/Resources/ClientMods
 """
 
 import re
