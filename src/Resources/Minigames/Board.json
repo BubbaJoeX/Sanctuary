@@ -1,0 +1,85 @@
+// Chess and checkers against the computer (Sanctuary.Game/Minigames/Board). MiniGameData.txt has many identical
+// rows for each (chess 20, 65-67, 543-550; checkers 21, 68-70, 541-542); one per difficulty is listed. Level is
+// the computer's strength, 1 to 5.
+[
+  {
+    "Id": 20,
+    "Comment": "Chess",
+    "Game": "Chess",
+    "Swf": "game_chess.swf",
+    "NameId": 950,
+    "DescriptionId": 951,
+    "IconId": 917,
+    "Difficulty": 1,
+    "Category": 18,
+    "DetailImage": "chess_detail.dds",
+    "ThumbnailImage": "chess_thumb.dds",
+    "Level": 1,
+    "Coins": 20,
+    "Stars": 10
+  },
+  {
+    "Id": 546,
+    "Comment": "Chess",
+    "Game": "Chess",
+    "Swf": "game_chess.swf",
+    "NameId": 950,
+    "DescriptionId": 951,
+    "IconId": 917,
+    "Difficulty": 2,
+    "Category": 18,
+    "DetailImage": "chess_detail.dds",
+    "ThumbnailImage": "chess_thumb.dds",
+    "Level": 2,
+    "Coins": 30,
+    "Stars": 15
+  },
+  {
+    "Id": 66,
+    "Comment": "Chess",
+    "Game": "Chess",
+    "Swf": "game_chess.swf",
+    "NameId": 950,
+    "DescriptionId": 951,
+    "IconId": 917,
+    "Difficulty": 3,
+    "Category": 18,
+    "DetailImage": "chess_detail.dds",
+    "ThumbnailImage": "chess_thumb.dds",
+    "Level": 3,
+    "Coins": 45,
+    "Stars": 25
+  },
+  {
+    "Id": 67,
+    "Comment": "Chess",
+    "Game": "Chess",
+    "Swf": "game_chess.swf",
+    "NameId": 950,
+    "DescriptionId": 951,
+    "IconId": 917,
+    "Difficulty": 5,
+    "Category": 18,
+    "DetailImage": "chess_detail.dds",
+    "ThumbnailImage": "chess_thumb.dds",
+    "Level": 5,
+    "Coins": 75,
+    "Stars": 40
+  },
+  {
+    "Id": 21,
+    "Comment": "Checkers",
+    "Game": "Checkers",
+    "Swf": "game_checkers.swf",
+    "NameId": 900,
+    "DescriptionId": 901,
+    "IconId": 917,
+    "Difficulty": 2,
+    "Category": 18,
+    "DetailImage": "checkers_detail.dds",
+    "ThumbnailImage": "checkers_thumb.dds",
+    "Level": 3,
+    "Coins": 30,
+    "Stars": 15
+  }
+]
