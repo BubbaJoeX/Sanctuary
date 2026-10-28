@@ -203,7 +203,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json({"path": self.workspace.pick_zone_file(json.loads(body or b"{}").get("start"))})
 
     def post_play(self, query, body):
-        self.send_json(self.workspace.play(bool(json.loads(body or b"{}").get("servers"))))
+        data = json.loads(body or b"{}")
+        self.send_json(self.workspace.play(bool(data.get("servers")), data.get("zone"), data.get("cells") or []))
 
     def post_zone_eco(self, query, body):
         data = json.loads(body)
@@ -234,7 +235,8 @@ class Handler(BaseHTTPRequestHandler):
         project.restore_ecos(meta.get("ecos") or [])
         results = project.save_chunks(saves)
         zone = project.save_zone(meta.get("settings") or {})
-        self.send_json({"chunks": results, "zone": zone})
+        live = self.workspace.publish_live(zone["files"])
+        self.send_json({"chunks": results, "zone": zone, "live": live})
 
 
 def serve(workspace: Workspace, host: str, port: int) -> ThreadingHTTPServer:

@@ -20,6 +20,13 @@ const LABEL_RANGE = 70;
 const RANGE_CHECK = 0.5;
 // Placed objects, which can be edited here, glow faintly so they stand out from the zone's baked props.
 const LIVE_GLOW = 0x0b4a57;
+// After a save reaches the client's live files, the referee's own character goes to ground at least this far from the
+// saved chunks for a moment and straight back, so the client drops them and reads them again. It keeps a chunk it
+// has within about a kilometre (only re-placing its props), and with no ground to stand on it drops nothing. Only
+// when the character stands this close to one; farther off, the client reads the new files when it gets there.
+const REFRESH_AWAY = 2048;
+const REFRESH_PAUSE = 2000;
+const REFRESH_NEAR = 1500;
 // The client's tint shaders double the colour in gamma space (a mid-grey texture shows the tint as it is); the
 // viewport lights in linear space, where that's 2^2.2.
 const MODULATE_2X = Math.pow(2, 2.2);
@@ -528,6 +535,32 @@ export class LiveLayer {
 
   async kick(player) {
     return !!(await this.send(`Couldn't kick ${player.userData.label}`, `/players/${player.userData.live.id}/kick`, "POST", {}));
+  }
+
+  // Shows saved chunks in the referee's own client, which reads them from the editor's live files when it loads that
+  // ground again: their character steps over to ground far from them and back to where it stood. changed are the
+  // saved chunks' centres, ground every chunk centre in the zone (somewhere to stand). Says why when it didn't go:
+  // "offline" (no game here), "no-character", "elsewhere" (in another zone), "far" (nowhere near them) or "small"
+  // (no ground far enough away).
+  async refreshView(changed, ground) {
+    if (!this.zone) return { refreshed: false, reason: "offline" };
+    const me = await request("/me");
+    const player = me?.character ? (await request("/players")).find((p) => p.name === me.character) : null;
+    if (!player) return { refreshed: false, reason: "no-character" };
+    const name = player.name;
+    if (player.zone !== this.zone.key) return { refreshed: false, reason: "elsewhere", name };
+    const from = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+    if (!changed.some((c) => from(c, player) < REFRESH_NEAR)) return { refreshed: false, reason: "far", name };
+    const spot = ground
+      .filter((g) => from(g, player) >= REFRESH_AWAY && changed.every((c) => from(g, c) >= REFRESH_AWAY))
+      .sort((a, b) => from(a, player) - from(b, player))[0];
+    if (!spot) return { refreshed: false, reason: "small", name };
+
+    const path = `/players/${player.id}/teleport`;
+    await request(path, "POST", { zone: this.zone.key, x: spot.x, z: spot.z });
+    await new Promise((resolve) => setTimeout(resolve, REFRESH_PAUSE));
+    await request(path, "POST", { zone: this.zone.key, x: player.x, y: player.y, z: player.z });
+    return { refreshed: true, name };
   }
 }
 

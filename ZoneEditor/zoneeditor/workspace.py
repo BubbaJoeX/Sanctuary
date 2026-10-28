@@ -17,10 +17,12 @@ import copy
 import hashlib
 import json
 import math
+import os
 import re
 import shutil
 import struct
 import threading
+import time
 import zlib
 from collections import OrderedDict
 from pathlib import Path
@@ -38,6 +40,11 @@ CHUNK_STEP = CHUNK_TILES                       # chunk names step 4 tiles in row
 # What the editor changes in a zone definition; the rest of the file is left as it is.
 DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky"]
 PAYLOAD_CACHE = 32                             # chunk payloads kept per zone, about 5 MB each
+# Loose files in this folder of the client beat its packs and the manifest it downloaded: it lists their names when
+# it starts and reads a file each time it loads it. A client the editor starts gets the zone's files there.
+LIVE_FOLDER = "zone-editor-live"
+LIVE_KINDS = (".gzne", ".gcnk", ".gck2")
+LIVE_CHECK = 5                                 # seconds between checks that the client still runs
 
 
 INLINE_NUMBERS = re.compile(r"\[\s*(-?[\d.eE+-]+(?:,\s*-?[\d.eE+-]+)*)\s*\]")
@@ -189,6 +196,15 @@ class Workspace:
         self._colours = {}
         self._usage = None
         self._usage_thread = None
+        self._live_lock = threading.Lock()
+        self._live_thread = None
+        self._live_record = self.cache_dir / "live.json"
+        self.live = json.loads(self._live_record.read_text(encoding="utf-8")) if self._live_record.exists() else None
+        if self.live_dir.exists():
+            # Left by an editor stopped before its client: kept while the client runs, then cleared.
+            self._watch_live()
+        else:
+            self._drop_live()
 
     # --- listings ------------------------------------------------------------------------------------
 
@@ -631,28 +647,114 @@ class Workspace:
         except RuntimeError as error:
             return {"applied": False, "message": str(error)}
 
-    def play(self, servers: bool) -> dict:
+    def play(self, servers: bool, zone: str | None = None, cells: list = ()) -> dict:
         """Closes the client, hides replaced stock assets and starts it again with launch.ps1: the servers
-        too when servers is set, since zone definitions and houses load at startup."""
+        too when servers is set, since zone definitions and houses load at startup. The zone's files round cells
+        go to the client as live files (seed_live), so later saves reach it without another restart."""
         import subprocess
-        import time
 
         import install_client_mods
 
-        subprocess.run(["taskkill", "/IM", "FreeRealms.exe", "/F"], capture_output=True)
-        for _ in range(40):
-            if not install_client_mods.client_running():
-                break
-            time.sleep(0.25)
-        unlock = self.unlock_client()
         script = self.root / "launch.ps1"
         if not script.exists():
             raise FileNotFoundError(f"{script} not found; start the client yourself")
-        arguments = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
-                     "-NoBuild" if servers else "-ClientOnly"]
-        result = subprocess.run(arguments, capture_output=True, text=True, timeout=300, cwd=self.root)
-        return {"ok": result.returncode == 0, "servers": servers, "unlock": unlock,
+        # Held until the client is up, so the live files aren't cleared in between for want of a client.
+        with self._live_lock:
+            subprocess.run(["taskkill", "/IM", "FreeRealms.exe", "/F"], capture_output=True)
+            for _ in range(40):
+                if not install_client_mods.client_running():
+                    break
+                time.sleep(0.25)
+            unlock = self.unlock_client()
+            live = self.seed_live(zone, cells)
+            arguments = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
+                         "-NoBuild" if servers else "-ClientOnly"]
+            result = subprocess.run(arguments, capture_output=True, text=True, timeout=300, cwd=self.root)
+        return {"ok": result.returncode == 0, "servers": servers, "unlock": unlock, "live": live,
                 "output": (result.stdout + result.stderr).strip()[-1500:]}
+
+    # --- live files ----------------------------------------------------------------------------------
+
+    @property
+    def live_dir(self) -> Path:
+        return self.client_dir / LIVE_FOLDER
+
+    def seed_live(self, zone: str | None, cells) -> dict:
+        """Puts a zone's files in the client's live folder before it starts: the zone file, and the chunks and
+        colour maps of cells (the editor's view). The client lists those names once, at startup, so a save that
+        rewrites them (publish_live) shows in game when the ground round them loads again; anything else waits
+        for the next start."""
+        self._drop_live()
+        if not zone:
+            return {"zone": None, "files": 0, "chunks": 0}
+        project = self.project(zone)
+        names = [project.name + ".gzne"]
+        for row, col in sorted({(int(r), int(c)) for r, c in cells} & project.chunk_cells.keys()):
+            for name in (f"{project.name}_{row}_{col}.gcnk", f"{project.name}_{row}_{col}.gck2"):
+                if project._has(name):
+                    names.append(name)
+        self.live_dir.mkdir(parents=True, exist_ok=True)
+        for name in names:
+            (self.live_dir / name).write_bytes(project._read(name))
+        self.live = {"zone": project.name, "files": names}
+        self._live_record.parent.mkdir(parents=True, exist_ok=True)
+        self._live_record.write_text(json.dumps(self.live), encoding="utf-8")
+        self._watch_live()
+        return {"zone": project.name, "files": len(names), "chunks": sum(name.endswith(".gcnk") for name in names)}
+
+    def publish_live(self, paths: list) -> dict | None:
+        """Copies a save's client files over the live files the running client listed (seed_live): each one is
+        written beside its place and renamed into it, so the client never reads half a file. updated names what
+        went, missed what the client didn't list. None while no client started from the editor runs."""
+        import install_client_mods
+
+        with self._live_lock:
+            if not self.live or not self.live_dir.is_dir() or not install_client_mods.client_running():
+                return None
+            listed = {name.lower(): name for name in self.live["files"]}
+            updated, missed = {}, {}
+            for path in map(Path, paths):
+                name = path.name.removesuffix(".z")
+                if not name.lower().endswith(LIVE_KINDS):
+                    continue
+                target = listed.get(name.lower())
+                if target is None:
+                    missed[name.lower()] = name
+                elif target not in updated.values():
+                    part = self.live_dir / (target + ".part")
+                    part.write_bytes(decompress(path.read_bytes()))
+                    os.replace(part, self.live_dir / target)
+                    updated[target.lower()] = target
+            return {"zone": self.live["zone"], "updated": list(updated.values()), "missed": list(missed.values())}
+
+    def clear_live(self) -> bool:
+        """Removes the live files once no client runs, so they can't shadow later updates. True when gone."""
+        import install_client_mods
+
+        with self._live_lock:
+            if self.live_dir.exists() and install_client_mods.client_running():
+                return False
+            self._drop_live()
+            return True
+
+    def _drop_live(self):
+        shutil.rmtree(self.live_dir, ignore_errors=True)
+        self.live = None
+        self._live_record.unlink(missing_ok=True)
+
+    def _watch_live(self):
+        """Clears the live files soon after the client closes."""
+        if self._live_thread and self._live_thread.is_alive():
+            return
+
+        def watch():
+            while True:
+                time.sleep(LIVE_CHECK)
+                if self.clear_live():
+                    return
+
+        self._live_thread = threading.Thread(target=watch, name="live-files", daemon=True)
+        self._live_thread.start()
 
     # --- output folders ------------------------------------------------------------------------------
 

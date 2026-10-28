@@ -2,7 +2,7 @@
 import * as THREE from "three";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { ASSET_VERSION, frame as frameBody, getJson, postJson, save, unframe } from "./api.js";
-import { CHUNK, FALLOFFS, STEP, TerrainChunk, TerrainManager, environmentColour } from "./terrain.js";
+import { CHUNK, FALLOFFS, STEP, TILE, TerrainChunk, TerrainManager, environmentColour } from "./terrain.js";
 import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform, variantNames } from "./props.js";
 import { ContentBrowser } from "./content.js";
 import { LiveLayer } from "./live.js";
@@ -2384,7 +2384,8 @@ function serialize(record, kind) {
   return { uid, copyOf, tile, file, position, rotation, scale, material, tintAlias, tint, drawDistance };
 }
 
-async function saveAll() {
+// showLive: whether a save the running client takes live also reloads its view (not when it's about to restart).
+async function saveAll({ showLive = true } = {}) {
   if (!state.zone) return;
   const chunks = dirtyChunks();
   const settings = { ...state.settings };
@@ -2417,13 +2418,23 @@ async function saveAll() {
     const zone = result.zone;
     if (zone.serverData) $("#play-servers").checked = true;
     const unlock = zone.unlock;
+    // What went straight to the running client's live files needs no restart, and no unhiding from its packs.
+    const published = result.live;
+    const sent = published?.updated ?? [];
+    const sentNames = new Set(sent.map((name) => name.toLowerCase()));
+    const overrides = zone.overrides.filter((name) => !sentNames.has(name.toLowerCase()));
     const notes = [
       zone.mirrored.length ? `Copied ${zone.mirrored.length} into the running servers' folders; the asset server serves them now.` : "",
-      zone.overrides.length && unlock?.applied ? `Hid the client's stock copy of ${zone.overrides.length} file(s), so it downloads yours.` : "",
-      zone.overrides.length && !unlock?.applied ? "The client is running, so it still reads its stock copies: Test in game closes it and fixes that." : "",
-      zone.serverData ? "Zone or house data changed: Test in game with + servers to load it." : "Test in game restarts the client to load it.",
+      overrides.length && unlock?.applied ? `Hid the client's stock copy of ${overrides.length} file(s), so it downloads yours.` : "",
+      overrides.length && !unlock?.applied ? "The client is running, so it still reads its stock copies: Test in game closes it and fixes that." : "",
+      sent.length ? `Sent ${sent.length} file(s) to the running client.` : "",
+      sent.some((name) => name.toLowerCase().endsWith(".gzne")) ? "The zone file changed: it loads when you next enter the zone in game." : "",
+      published?.missed.length ? `${published.missed.length} file(s) aren't among the client's live files (it lists them when it starts): Test in game to load them.` : "",
+      zone.serverData ? "Zone or house data changed: Test in game with + servers to load it."
+        : sent.length && !published.missed.length ? "" : "Test in game restarts the client to load it.",
     ].filter(Boolean);
     toast(`Saved ${unique.length} file(s):\n${unique.slice(0, 12).map((f) => f.split(/[\\/]/).slice(-2).join("/")).join("\n")}${unique.length > 12 ? "\n…" : ""}\n${notes.join("\n")}`, "ok");
+    if (sent.length && showLive) showInGame(sent);
     await autosaving;
     await clearDraft(state.zone.id);
     const position = camera.position.clone(), yaw = look.yaw, pitch = look.pitch;
@@ -2437,6 +2448,27 @@ async function saveAll() {
   } finally {
     $("#save").disabled = false;
     updateDirty();
+  }
+}
+
+// After a save reached the running client's live files: its chunks show once the client loads that ground again,
+// which it does when the referee's character steps far off and comes back (LiveLayer.refreshView).
+async function showInGame(names) {
+  const centre = (row, col) => ({ x: (+col + 2) * TILE, z: (+row + 2) * TILE });
+  const changed = names.map((name) => name.match(/_(-?\d+)_(-?\d+)\.gc(?:nk|k2)$/i)).filter(Boolean)
+    .map(([, row, col]) => centre(row, col));
+  if (!changed.length || !state.zone) return;
+  try {
+    const result = await live.refreshView(changed, state.zone.chunks.map((c) => centre(c.row, c.col)));
+    status({
+      offline: "In game, go a couple of kilometres off and come back to see it.",
+      "no-character": "None of your characters is in the game; the client shows it the next time it loads that ground.",
+      elsewhere: `${result.name} is in another zone; the client shows it when they come here.`,
+      far: `The client shows it when ${result.name} gets there.`,
+      small: "The zone has no ground far enough away to step over to: re-enter it in game to see it.",
+    }[result.reason] ?? `Reloaded the ground round ${result.name} in game.`);
+  } catch (error) {
+    toast(`Couldn't reload it in game: ${error.message}`, "error");
   }
 }
 
@@ -2758,16 +2790,19 @@ $("#open-file").addEventListener("click", openZoneFile);
 $("#zone-search").addEventListener("keydown", (e) => { if (e.key === "Enter") openZone(e.target.value.trim()).then(buildWalls); });
 $("#save").addEventListener("click", saveAll);
 $("#play").addEventListener("click", async () => {
-  if (dirtyChunks().length || state.zoneDirty) await saveAll();
+  if (dirtyChunks().length || state.zoneDirty) await saveAll({ showLive: false });
   const servers = $("#play-servers").checked;
   $("#play").disabled = true;
   toast(servers ? "Restarting the servers and the client…" : "Restarting the client…");
   try {
-    const result = await postJson("api/play", { servers });
+    // The chunks in view go to the client as live files, so saving them later shows in game without a restart.
+    const cells = [...terrain.chunks.values()].map((chunk) => [chunk.row, chunk.col]);
+    const result = await postJson("api/play", { servers, zone: state.zone?.id, cells });
     const unlock = result.unlock?.applied
       ? (result.unlock.hidden.length ? `\nHid ${result.unlock.hidden.length} stock file(s) from the client's packs.` : "")
       : `\n${result.unlock?.message || ""}`;
-    toast(`${result.ok ? (servers ? "Servers and client restarted." : "Client restarted.") : "launch.ps1 failed:"}${unlock}\n${result.output.split("\n").slice(-4).join("\n")}`, result.ok ? "ok" : "error");
+    const liveNote = result.live?.chunks ? `\nSaves to the ${result.live.chunks} chunks round the view now show in game without a restart.` : "";
+    toast(`${result.ok ? (servers ? "Servers and client restarted." : "Client restarted.") : "launch.ps1 failed:"}${unlock}${liveNote}\n${result.output.split("\n").slice(-4).join("\n")}`, result.ok ? "ok" : "error");
     if (result.ok && servers) $("#play-servers").checked = false;
   } catch (error) {
     toast(`Test in game failed: ${error.message}`, "error");
