@@ -18,6 +18,7 @@ using Sanctuary.Game.Groups;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Trading;
 using Sanctuary.Gateway;
+using Sanctuary.Gateway.Admin;
 using Sanctuary.Scripting;
 using Sanctuary.UdpLibrary.Configuration;
 using Sanctuary.UdpLibrary.Enumerations;
@@ -59,6 +60,9 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
         .ValidateOnStart();
 
     serviceCollection.AddSingleton(hostBuilderContext.Configuration.GetSection(NpcChatOptions.Section).Get<NpcChatOptions>() ?? new NpcChatOptions());
+
+    serviceCollection.AddOptions<AdminApiOptions>()
+        .BindConfiguration(AdminApiOptions.Section);
 
     // Database
     serviceCollection.AddDatabase(hostBuilderContext.Configuration);
@@ -104,6 +108,9 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     });
 
     serviceCollection.AddHostedService<GatewayService>();
+
+    // The admin panel's link into the live game; off until AdminApi:Key is set.
+    serviceCollection.AddHostedService<AdminApiService>();
 
     // Managers
     serviceCollection.AddSingleton<IZoneManager, ZoneManager>();

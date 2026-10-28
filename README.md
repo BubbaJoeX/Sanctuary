@@ -92,6 +92,7 @@ What the server runs today, beyond logging in and walking around:
 * **Trading** - Trade from a player's menu: both sides offer items and coins, lock in, and accept, and the swap is saved in one go. Equipped and no-trade items stay put.
 * **Hosted events** - Event staff (Mod and up) open an event at their spot with `!host open <event>`, which tells everyone online to type `!join`. Joining takes players there from anywhere, unless they're mid-fight or knocked out. `!host summon` gathers everyone who joined, `!host prize <event> <itemId> [qty]` and `!host coins <event> <amount>` reward them, `!host who` lists them, and `!host close` and `!host end` stop new joins and finish the event. `!event on/off <key>` still spawns or despawns the event's NPCs.
 * **Referee Picks and the admin site** - The welcome screen's Referee Picks panel holds up to four cards that teleport players to a point of interest or open the Coin Shop, house browser, friends list, Hero's Journal, My Stuff or achievements. Referees (Mod and up) edit them in game with `!pick`, or sign in with their game account to the admin site the WebAPI serves at `/admin` (`http://127.0.0.1:20040/admin` by default) and add, reorder, preview and save cards there. Both write the `RefereePicks` table, which the Gateway reads every 10 seconds, so players online get new picks without a restart. `!pick reset` and the site's Restore stock picks button bring back `src/Resources/RefereePicks.json`. Five failed sign-ins a minute from one address are refused; host the site behind HTTPS when it's reachable from outside.
+* **Live world editing (admin API)** - The Gateway runs a small admin API for the OSFR AdminPanel (see [Admin API](#admin-api)). Referees sign in to the panel with their game account and change the running world: its 3D map editor (the zone editor, opened from the panel) shows each zone's players, NPCs and mobs as the client draws them, and props, world NPCs and placed models moved, turned, scaled, placed, copied or deleted there change in game at once for everyone in view and are saved. Any actor with a `Models.txt` row can be placed as a still, solid model (the "Placed model" NPC, 45000 in `src/Resources/Npcs.json`) and later baked into the zone's own files. The panel also lists and moves players, messages and kicks them, broadcasts, locks the world, sets the message of the day and the clock speed, turns events on and off, reloads resources and runs chat commands as the referee's character. Every change goes to the `Audit` log, and each referee can undo their own edits.
 * **Mysterious Merchant** - Cragara travels the open world (`src/Scripts/Zone/MysteryMerchant.lua`). Each hour she opens shop in the next of ten towns for 45 minutes, warns 5 minutes before she packs up, and then vanishes until the next hour. Chat announces each stop, and players who enter the world are told where she is. She sells the server's custom items for coins: the Retro Hover-Car, the OSFR Foam Costume, streetwear, sport underwear and two new hairstyle cards. NPC merchants sell everything on their own lists, not only what the coin store stocks, as long as the player is still in reach.
 * **Scripting** - Zone and GM-authored Lua scripts can run events with all of the above. They can read a player's health, job, rank, coins and group, take items and coins, give stars, warp players between zones, revive knocked-out players, hurt mobs or have NPCs attack players, and react to mob hits, kills and respawns, players entering or leaving a zone, events starting and ending, and players joining a hosted event. See `src/Scripts/README.md`.
 * **Also** - Quests and the Hero's Journal, collections, housing, pets, mounts, guilds, friends, the coin store, the daily wheel and the Referee (GM) tools.
@@ -194,6 +195,34 @@ Before you can use this software, ensure you have the following installed:
 To spawn an npc ```/npc spawn <NameId> <ModelId> [TextureAlias]``` TextureAlias is optional
 
 _For more examples, please refer to the [Documentation](https://github.com/Open-Source-Free-Realms/Sanctuary/wiki)_
+
+### Admin API
+
+The Gateway's admin API is off until it has a key. Give it one (at least 24 characters) in `src/Sanctuary.Gateway/gateway.local.json`, and the same key to the AdminPanel's backend (`Sanctuary:AdminApiKey`):
+
+```json
+{
+  "AdminApi": {
+    "Urls": "http://127.0.0.1:20050",
+    "Key": "<a long random string>"
+  }
+}
+```
+
+It listens on loopback by default; the AdminPanel's backend is its only client, signing referees in with their game accounts and passing their requests on. Every request carries the key as a bearer token and, but for sign-in, names the referee acting (`X-Sanctuary-User`), whose admin or mod flag is checked on each request.
+
+| Route | What it does |
+| --- | --- |
+| `POST /api/login` | Checks a referee's game username and password |
+| `GET /api/status`, `PUT /api/settings` | Players online, world lock, message of the day, clock speed |
+| `POST /api/broadcast`, `PUT /api/events/{key}` | Broadcasts (optionally as a banner, or to one zone); turns events on and off |
+| `GET /api/players`, `POST /api/players/{id}/teleport\|message\|kick` | Players online and what a referee can do about them |
+| `GET /api/commands`, `POST /api/command` | Chat commands, run as the referee's character in the world, with what they answered |
+| `GET /api/zones`, `GET /api/zones/{key}/heightmap` | The running zones, and a zone's ground as a height grid |
+| `GET /api/zones/{key}/live` | Server-sent events: players, placed objects and (with `?npcs=true`) the zone's other NPCs, with each one's look (its actors, texture and tint aliases and tints) |
+| `POST /api/zones/{key}/props\|npcs\|models` | Places a furniture prop, a world NPC or any model |
+| `PATCH\|DELETE /api/zones/{key}/objects/{id}`, `POST …/copy` | Moves, turns (yaw, pitch, roll), scales, renames, copies or deletes a placed object |
+| `POST /api/zones/{key}/undo` | Undoes the referee's last edit in the zone |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
