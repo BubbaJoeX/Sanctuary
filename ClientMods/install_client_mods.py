@@ -67,6 +67,10 @@ WINDOW_PATCHES = [
         ('Width="1024"', 'Width="1300"'),
     ]),
     (Path("UI/UiModules/Main/wndNavigationBar.xml"), [("UI\\navigation.swf", "UI\\sanctuaryNavigation.swf")]),
+    # The pet's HUD: name bar, Stats card and remote.
+    (Path("UI/UiModules/Main/wndPetNameBar.xml"), [("UI\\PetNameBar.swf", "UI\\sanctuaryPetNameBar.swf")]),
+    (Path("UI/UiModules/Main/wndPetDetails.xml"), [("UI\\aboutpet.swf", "UI\\sanctuaryAboutPet.swf")]),
+    (Path("UI/UiModules/Main/wndPetRemote.xml"), [("UI\\petController.swf", "UI\\sanctuaryPetController.swf")]),
     (Path("UI/UiModules/Main/wndMysteryRewardBrowser.xml"), [("UI\\MysteryRewardBrowser.swf", "UI\\sanctuaryMysteryRewardBrowser.swf")]),
     (Path("UI/UiModules/Main/wndMysteryRewardBrowserSmall.xml"),
      [("UI\\MysteryRewardBrowserSmall.swf", "UI\\sanctuaryMysteryRewardBrowserSmall.swf")]),

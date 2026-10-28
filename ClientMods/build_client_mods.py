@@ -76,7 +76,14 @@ MODS = [
     ("dialog", "sanctuaryDialog", "\\frame_1\\DoAction", [script_dir / "dialog" / "dialog_hide.as"], []),
     ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction", [script_dir / "housing" / "tray.as"], []),
     ("marketplace", "sanctuaryMarketplace", "\\frame_1\\DoAction", [script_dir / "marketplace" / "coin_store_only.as"], []),
-    ("navigation", "sanctuaryNavigation", "\\frame_1\\DoAction", [script_dir / "navigation" / "coin_store_tabs.as"], []),
+    # The tab bar: the Marketplace's tabs and the pet care bar (pets/pet_action_bar.as restyles it for both).
+    ("navigation", "sanctuaryNavigation", "\\frame_1\\DoAction",
+     [script_dir / "navigation" / "coin_store_tabs.as", script_dir / "pets" / "pet_action_bar.as"], []),
+    # The pet's HUD while it's out: the name bar, the Stats card and the remote (portrait, dismiss, tricks).
+    ("PetNameBar", "sanctuaryPetNameBar", "\\frame_1\\DoAction", [script_dir / "pets" / "pet_name_bar.as"], []),
+    ("aboutpet", "sanctuaryAboutPet", "\\frame_1\\DoAction", [script_dir / "pets" / "pet_stats.as"], []),
+    ("petController", "sanctuaryPetController", "\\frame_1\\DoAction",
+     [script_dir / "pets" / "pet_controller.as"], []),
     ("MysteryRewardBrowser", "sanctuaryMysteryRewardBrowser", "\\frame_1\\DoAction",
      [script_dir / "MysteryRewardBrowser" / NO_STATION_CASH], []),
     # Same side panel as MysteryRewardBrowser.
@@ -208,6 +215,8 @@ REMOVED_DEPTHS = {
     "aboutme": [5, 82, 86, 88, 90, 92],
     # The top bar's backing, redrawn around the buttons that are left (hud/top_bar.as).
     "FRUtilNavigation": [1],
+    # The pet Stats card's inner panel, title plate and bar troughs.
+    "aboutpet": [3, 4, 10],
     # The system menu's squirrel medallion (one shape with the squirrel; it's redrawn from TEXTURE_SYMBOLS).
     "options": [8],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
