@@ -29857,6 +29857,9 @@
   },
   {
     "Id": 33624,
+    "Scripts": [
+      "cragara"
+    ],
     "SubTextNameId": 440942,
     "NameId": 440941,
     "ModelId": 4103,
@@ -29879,7 +29882,147 @@
         "Unknown2": 0,
         "Enabled": true
       }
-    ]
+    ],
+    "InteractionList": {
+      "Unknown": true,
+      "Interactions": [
+        {
+          "Id": 3767,
+          "IconId": 22665,
+          "ButtonText": 3227,
+          "Type": 17,
+          "Param1": 0,
+          "Param2": 0,
+          "TooltipId": 0
+        }
+      ],
+      "Name": "",
+      "Unknown2": true
+    },
+    "InteractionUnknown": false,
+    "MerchantList": {
+      "Unknown": 33624,
+      "Unknown4": 440941,
+      "Entries": [
+        {
+          "ItemDefinitionId": 9000004,
+          "Unknown8": 243,
+          "IconId": 20001,
+          "TintId": 250,
+          "NameId": 9100002,
+          "DescriptionId": 9100003,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000005,
+          "Unknown8": 243,
+          "IconId": 20002,
+          "TintId": 262,
+          "NameId": 9100004,
+          "DescriptionId": 9100005,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000006,
+          "Unknown8": 13500,
+          "IconId": 20003,
+          "TintId": 0,
+          "NameId": 9100006,
+          "DescriptionId": 9100007,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000007,
+          "Unknown8": 45,
+          "IconId": 20004,
+          "TintId": 0,
+          "NameId": 9100008,
+          "DescriptionId": 9100009,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000008,
+          "Unknown8": 243,
+          "IconId": 20005,
+          "TintId": 228,
+          "NameId": 9100010,
+          "DescriptionId": 9100011,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 1,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000009,
+          "Unknown8": 243,
+          "IconId": 20006,
+          "TintId": 244,
+          "NameId": 9100012,
+          "DescriptionId": 9100013,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 1,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000010,
+          "Unknown8": 243,
+          "IconId": 20007,
+          "TintId": 228,
+          "NameId": 9100014,
+          "DescriptionId": 9100015,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 2,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000011,
+          "Unknown8": 486,
+          "IconId": 20008,
+          "TintId": 0,
+          "NameId": 9100016,
+          "DescriptionId": 9100017,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 9000012,
+          "Unknown8": 486,
+          "IconId": 20009,
+          "TintId": 0,
+          "NameId": 9100018,
+          "DescriptionId": 9100019,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        }
+      ]
+    }
   },
   {
     "Id": 33625,
