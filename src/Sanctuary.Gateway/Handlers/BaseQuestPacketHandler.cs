@@ -33,6 +33,7 @@ public static class BaseQuestPacketHandler
             QuestReplyPacket.OpCode => QuestReplyPacketHandler.HandlePacket(connection, reader.Span),
             QuestAbandonedPacket.OpCode => QuestAbandonedPacketHandler.HandlePacket(connection, reader.Span),
             QuestEndReplyPacket.OpCode => QuestEndReplyPacketHandler.HandlePacket(connection, reader.Span),
+            QuestStartBreadcrumbPacket.OpCode => QuestStartBreadcrumbPacketHandler.HandlePacket(connection, reader.Span),
             _ => HandleUnknownOpCode(subOpCode)
         };
     }

@@ -713,6 +713,19 @@ public class Npc : IScriptableNpc, IEntity
         if (player is ScriptPlayer scriptPlayer)
             Zone.NpcContent.StartConversation(scriptPlayer.Player, this, nodeId);
     }
+
+    public bool IsMob => Combat is not null;
+
+    int IScriptableNpc.Health => Combat?.Hitpoints ?? 0;
+    int IScriptableNpc.MaxHealth => Combat?.MaxHitpoints ?? 0;
+    bool IScriptableNpc.IsDead => Combat?.IsDead ?? false;
+    ulong IScriptableNpc.TargetGuid => Combat is { IsDead: false } combat ? combat.TargetGuid : 0;
+
+    public int Hurt(IScriptablePlayer attacker, int damage) =>
+        Combat is { } combat && attacker is ScriptPlayer { Player: var player } ? combat.TakeDamage(player, damage) : 0;
+
+    public int Attack(IScriptablePlayer player, int damage) =>
+        player is ScriptPlayer { Player: var target } && target.Zone == Zone ? target.TakeDamage(damage, this) : 0;
     
     private const byte SetBaseAnimationFlag = 1;
 

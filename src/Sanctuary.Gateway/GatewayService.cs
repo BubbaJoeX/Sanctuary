@@ -158,6 +158,9 @@ public class GatewayService : BackgroundService
 
         _server.OnStarted();
 
+        // Picks edited on the WebAPI's admin site reach players through the shared table.
+        _ = _serviceProvider.GetRequiredService<IRefereePickManager>().WatchAsync(cancellationToken);
+
         // Main server loop.
         while (!cancellationToken.IsCancellationRequested && clientConnection.Status != Status.Disconnected)
         {

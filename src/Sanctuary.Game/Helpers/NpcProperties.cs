@@ -188,6 +188,21 @@ public sealed class NpcProperties
         });
     }
 
+    /// <summary>
+    /// Sets the NPC's or prop's pitch and roll (radians) for everyone in view, keeping its heading (the zone
+    /// editor's gizmo turns all three at once).
+    /// </summary>
+    public static void SetTilt(Npc npc, float pitch, float roll)
+    {
+        var heading = GetHeading(npc.Rotation);
+
+        pitch = Wrap(pitch);
+        roll = Wrap(roll);
+
+        // Props and furniture stay placed objects when level (see Rotate).
+        Change(npc, () => npc.Tilt = pitch == 0f && roll == 0f && !npc.IsWorldProp && !npc.IsHouseFixture ? null : new Vector4(heading, pitch, roll, 0f));
+    }
+
     private static float Wrap(float radians)
     {
         radians %= 2f * MathF.PI;

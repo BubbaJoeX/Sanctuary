@@ -102,6 +102,17 @@ public interface IZone : IScriptableZone, IDisposable
 
     bool HasNavMesh { get; }
 
+    /// <summary>
+    /// Whether walking straight from <paramref name="start"/> to <paramref name="goal"/> stays on the navmesh
+    /// (always true without one).
+    /// </summary>
+    bool IsStraightWalkClear(Vector3 start, Vector3 goal);
+
+    /// <summary>
+    /// How far toward <paramref name="goal"/> a straight walk gets before a wall or ledge (the goal without a navmesh).
+    /// </summary>
+    Vector3 ClampStraightWalk(Vector3 start, Vector3 goal);
+
     bool TryFindNavMeshPath(Vector3 start, Vector3 goal, Queue<Vector3> waypoints);
 
     bool TryFindClientNavMeshPath(Vector3 start, Vector3 goal, Queue<Vector3> waypoints);

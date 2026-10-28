@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="DotRecast.Core" />
     <PackageReference Include="DotRecast.Detour" />
+    <PackageReference Include="DotRecast.Recast" />
     <PackageReference Include="Sep" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>

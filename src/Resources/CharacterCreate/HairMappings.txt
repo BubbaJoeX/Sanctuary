@@ -82,3 +82,5 @@
 81^human_m_hair_FRCfauxhawk_<hairtype>.adr^
 82^human_m_hair_FRCjustin_<hairtype>.adr^
 83^human_m_hair_FRCshaggy_<hairtype>.adr^
+1000^<race>_m_hair_frmcpcrop_<hairtype>.adr^
+1001^<race>_f_hair_frmcptopbun_<hairtype>.adr^

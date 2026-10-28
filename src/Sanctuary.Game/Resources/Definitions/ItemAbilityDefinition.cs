@@ -70,6 +70,12 @@ public class ItemAbilityDefinition
     public ItemAbilityAttackDefinition? Attack { get; set; }
 
     /// <summary>
+    /// Stands a knocked-out ally back up where they lie (the Resurrection Scroll). The item isn't used up
+    /// when there's nobody to revive.
+    /// </summary>
+    public ItemAbilityReviveDefinition? Revive { get; set; }
+
+    /// <summary>
     /// Whether it does anything to the user besides the cast effect: a restore, a new look or a timed buff.
     /// </summary>
     public bool AffectsUser => ModelId != 0 || DurationMs > 0 || Health is not null || Energy is not null;
@@ -119,6 +125,24 @@ public class ItemAbilityAttackDefinition
     /// Shown on each mob for as long as <see cref="Control"/> holds it.
     /// </summary>
     public int ControlEffectId { get; set; }
+}
+
+public class ItemAbilityReviveDefinition
+{
+    /// <summary>
+    /// Health the ally gets up with, as a percent of their maximum.
+    /// </summary>
+    public float HealthPercent { get; set; }
+
+    /// <summary>
+    /// How far away the clicked (or nearest) knocked-out ally can be.
+    /// </summary>
+    public float Range { get; set; } = 10f;
+
+    /// <summary>
+    /// Played on the ally as they get up.
+    /// </summary>
+    public int EffectId { get; set; }
 }
 
 public class ItemAbilityRestoreDefinition

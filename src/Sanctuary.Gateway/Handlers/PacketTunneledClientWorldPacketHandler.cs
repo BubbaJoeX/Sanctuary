@@ -51,6 +51,7 @@ public static class PacketTunneledClientWorldPacketHandler
             OneTimeSessionRequestPacket.OpCode => OneTimeSessionRequestPacketHandler.HandlePacket(connection, packetTunneledClientWorldPacket.Payload),
             BaseGuildPacket.OpCode => BaseGuildPacketHandler.HandlePacket(connection, reader),
             BaseGroupPacket.OpCode => BaseGroupPacketHandler.HandlePacket(connection, reader),
+            BaseTradePacket.OpCode => BaseTradePacketHandler.HandlePacket(connection, reader),
             PacketAddClientPortraitCrc.OpCode => PacketAddClientPortraitCrcHandler.HandlePacket(connection, packetTunneledClientWorldPacket.Payload),
             BaseFotomatPacket.OpCode => BaseFotomatPacketHandler.HandlePacket(connection, reader),
             WallOfDataBasePacket.OpCode => WallOfDataBasePacketHandler.HandlePacket(connection, reader),

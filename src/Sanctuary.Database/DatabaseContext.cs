@@ -29,6 +29,7 @@ public abstract class DatabaseContext : DbContext
     public DbSet<DbRedeemCode> RedeemCodes => Set<DbRedeemCode>();
     public DbSet<DbRedeemCodeUse> RedeemCodeUses => Set<DbRedeemCodeUse>();
     public DbSet<DbWorldKit> WorldKits => Set<DbWorldKit>();
+    public DbSet<DbRefereePick> RefereePicks => Set<DbRefereePick>();
     public DbSet<DbCharacterQuest> CharacterQuests => Set<DbCharacterQuest>();
     public DbSet<DbCharacterQuestProgress> CharacterQuestProgress => Set<DbCharacterQuestProgress>();
 

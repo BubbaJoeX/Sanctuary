@@ -53,7 +53,7 @@ public static class WelcomeScreenHelper
     private const string PatchNoteTag = "[[SANCTUARY_NOTE]]";
     private const int PatchNoteAnnouncementId = 2000;
 
-    public static AnnouncementDataSendPacket GetAnnouncementsPacket(IEnumerable<AnnouncementInfo>? announcements = null)
+    public static AnnouncementDataSendPacket GetAnnouncementsPacket(IEnumerable<WelcomeCard> refereePicks, IEnumerable<AnnouncementInfo>? announcements = null)
     {
         if (announcements is not null)
             return new AnnouncementDataSendPacket { Announcements = announcements.ToList() };
@@ -81,7 +81,7 @@ public static class WelcomeScreenHelper
             Announcements =
             [
                 .. news,
-                .. RefereePicks.Current.Select((card, i) => GetCardAnnouncement(card, RefereePickTag, RefereePickAnnouncementId + i)),
+                .. refereePicks.Select((card, i) => GetCardAnnouncement(card, RefereePickTag, RefereePickAnnouncementId + i)),
                 .. PatchNotes.Current.Select((note, i) => GetCardAnnouncement(new WelcomeCard(note.Date, note.Subject), PatchNoteTag, PatchNoteAnnouncementId + i))
             ]
         };

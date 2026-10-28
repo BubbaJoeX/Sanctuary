@@ -483,6 +483,8 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!NavMeshes.Load(NavMeshDirectory))
             return false;
 
+        NavMeshes.BuildMissing(Terrains, NavMeshDirectory);
+
         return true;
     }
 

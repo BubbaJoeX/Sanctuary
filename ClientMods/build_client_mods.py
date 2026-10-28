@@ -7,7 +7,8 @@ so mods are published under new names, and install_client_mods.py points the cli
 
 Mods:
   sanctuaryChatWindowCtrl.gfx (+ .lst.z) - chat window with the referee (GM) panel, popped in from a Referee
-                                           tab on the screen edge for referees (chatWindowCtrl/gm_panel.as).
+                                           tab on the screen edge for referees (chatWindowCtrl/gm_panel.as), and
+                                          chat on fading navy glass (chatWindowCtrl/chat_style.as).
   sanctuaryGameDock.gfx (+ .lst.z)       - main hub with the Marketplace icon as the Coin Shop
                                            (gamedock/coin_shop_button.as appended).
   sanctuaryDialog.gfx (+ .lst.z)         - NPC dialog that stays hidden when sent empty, so GM conversations
@@ -66,15 +67,28 @@ COMPRESSED_MAGIC = 0xA1B2C3D4
 
 NO_STATION_CASH = "no_station_cash.as"
 
+# The minigame patches, each appended after their shared theme library.
+MG = script_dir / "minigames"
+THEME = MG / "mg_theme.as"
+
 # (stock movie, published name, script inside the movie to append to, patch sources, recolored symbols to add)
 MODS = [
-    ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction", [script_dir / "chatWindowCtrl" / "gm_panel.as"], []),
+    ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction",
+     [script_dir / "chatWindowCtrl" / "gm_panel.as", script_dir / "chatWindowCtrl" / "chat_style.as"], []),
     ("gamedock", "sanctuaryGameDock", "\\frame_1\\DoAction",
      [script_dir / "gamedock" / "coin_shop_button.as"], []),
     ("dialog", "sanctuaryDialog", "\\frame_1\\DoAction", [script_dir / "dialog" / "dialog_hide.as"], []),
-    ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction", [script_dir / "housing" / "tray.as"], []),
+    ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "tray.as", script_dir / "housing" / "tray_style.as"], []),
     ("marketplace", "sanctuaryMarketplace", "\\frame_1\\DoAction", [script_dir / "marketplace" / "coin_store_only.as"], []),
-    ("navigation", "sanctuaryNavigation", "\\frame_1\\DoAction", [script_dir / "navigation" / "coin_store_tabs.as"], []),
+    # The tab bar: the Marketplace's tabs and the pet care bar (pets/pet_action_bar.as restyles it for both).
+    ("navigation", "sanctuaryNavigation", "\\frame_1\\DoAction",
+     [script_dir / "navigation" / "coin_store_tabs.as", script_dir / "pets" / "pet_action_bar.as"], []),
+    # The pet's HUD while it's out: the name bar, the Stats card and the remote (portrait, dismiss, tricks).
+    ("PetNameBar", "sanctuaryPetNameBar", "\\frame_1\\DoAction", [script_dir / "pets" / "pet_name_bar.as"], []),
+    ("aboutpet", "sanctuaryAboutPet", "\\frame_1\\DoAction", [script_dir / "pets" / "pet_stats.as"], []),
+    ("petController", "sanctuaryPetController", "\\frame_1\\DoAction",
+     [script_dir / "pets" / "pet_controller.as"], []),
     ("MysteryRewardBrowser", "sanctuaryMysteryRewardBrowser", "\\frame_1\\DoAction",
      [script_dir / "MysteryRewardBrowser" / NO_STATION_CASH], []),
     # Same side panel as MysteryRewardBrowser.
@@ -83,18 +97,271 @@ MODS = [
     ("PaidNameChange", "sanctuaryPaidNameChange", "\\frame_1\\DoAction", [script_dir / "PaidNameChange" / NO_STATION_CASH], []),
     ("UnifiedMessageWindow", "sanctuaryUnifiedMessageWindow", "\\frame_1\\DoAction",
      [script_dir / "UnifiedMessageWindow" / NO_STATION_CASH], []),
-    ("aboutme", "sanctuaryAboutMe", "\\frame_1\\DoAction", [script_dir / "aboutme" / NO_STATION_CASH], []),
+    ("aboutme", "sanctuaryAboutMe", "\\frame_1\\DoAction",
+     [script_dir / "aboutme" / NO_STATION_CASH, script_dir / "aboutme" / "profile_card.as"], []),
     ("welcome", "sanctuaryWelcome", "\\frame_1\\DoAction",
      [script_dir / "welcome" / NO_STATION_CASH, script_dir / "welcome" / "home.as"], []),
     ("ActivityPortal", "sanctuaryActivityPortal", "\\frame_1\\DoAction", [script_dir / "ActivityPortal" / NO_STATION_CASH], []),
-    ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction", [script_dir / "HousingPreview" / NO_STATION_CASH], []),
+    ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction",
+     [script_dir / "HousingPreview" / NO_STATION_CASH, script_dir / "housing" / "preview_panel.as"], []),
     ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
     ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "main_menu.as"], []),
     ("atlas", "sanctuaryAtlas", "\\frame_1\\DoAction", [script_dir / "atlas" / "lavender_coast.as"], []),
+    ("equipmentscreen_new", "sanctuaryEquipmentScreen", "\\frame_1\\DoAction",
+     [script_dir / "equipment" / "equipment_pane.as"], []),
+    ("inventory", "sanctuaryInventory", "\\frame_1\\DoAction", [script_dir / "inventory" / "stuff_browser.as"], []),
+    # The tile browser: Games, Pets, Rides and Houses (wndBrowserV2) and the farming browser (wndFarmingBrowser).
+    ("Browser_V2", "sanctuaryBrowserV2", "\\frame_1\\DoAction",
+     [script_dir / "browser" / "tile_browser.as", script_dir / "browser" / "farming_extras.as"], []),
+    ("CollectionsBrowser", "sanctuaryCollectionsBrowser", "\\frame_1\\DoAction",
+     [script_dir / "collections" / "collections_browser.as"], []),
+    ("achievements", "sanctuaryAchievements", "\\frame_1\\DoAction",
+     [script_dir / "achievements" / "achievements_page.as"], []),
+    # The Jobs window (the Main Menu's Jobs tile).
+    ("FRJobBrowser", "sanctuaryFRJobBrowser", "\\frame_1\\DoAction", [script_dir / "jobs" / "job_browser.as"], []),
+    # The system menu (wndOptions: the top bar's gear or Esc).
+    ("options", "sanctuaryOptions", "\\frame_1\\DoAction", [script_dir / "system_menu" / "system_menu.as"], []),
+    # The Game Options window (wndOptionsPanel): the Main Menu's style and a More Options page.
+    ("optionsPanel", "sanctuaryOptionsPanel", "\\frame_1\\DoAction", [script_dir / "options" / "game_options.as"], []),
+    # The top bar without its screenshot and Ask for Help buttons (FRAME_SCRIPTS gives it a script to append to),
+    # and the video recorder/screenshot HUD whose record button sat in it, hidden.
+    ("FRUtilNavigation", "sanctuaryFRUtilNavigation", "\\frame_1\\DoAction", [script_dir / "hud" / "top_bar.as"], []),
+    ("video_new", "sanctuaryVideoNew", "\\frame_1\\DoAction", [script_dir / "hud" / "no_video_capture.as"], []),
+    # The friends dock (wndSocial): repainted by RESKINS and redrawn by its script.
+    ("social", "sanctuarySocial", "\\frame_2\\DoAction", [script_dir / "social" / "friends_dock.as"], []),
+    # The decorate-mode lot panel (top right: the house's name, owner, rating and Submit or Vote).
+    ("housingSidePanel", "sanctuaryHousingSidePanel", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "lot_panel.as"], []),
+    # The Housing Options window (the tray's Housing Options button).
+    ("HousingOptions", "sanctuaryHousingOptions", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "housing_options.as"], []),
+    # The Decorate / Exit button shown in your house.
+    ("housingEditButton", "sanctuaryHousingEditButton", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "edit_button.as"], []),
+    # The pop-up row of house buttons.
+    ("housingSubMenu", "sanctuaryHousingSubMenu", "\\frame_1\\DoAction", [script_dir / "housing" / "sub_menu.as"], []),
+    # The Housing Directory (published houses to visit and rate).
+    ("HousingBrowser", "sanctuaryHousingBrowser", "\\frame_1\\DoAction", [script_dir / "housing" / "directory.as"], []),
+    # Farming: the Farm-O-Matic (wndFarmOMatic) and its sample picker (wndSampleList), the farm's side panel
+    # (wndFarmingSidePanel) and the timed farming action bar (wndActionProgress).
+    ("farmomatic", "sanctuaryFarmOMatic", "\\frame_1\\DoAction", [script_dir / "farming" / "farm_o_matic.as"], []),
+    ("sampleList", "sanctuarySampleList", "\\frame_1\\DoAction", [script_dir / "farming" / "sample_list.as"], []),
+    ("FarmingSidePanel", "sanctuaryFarmingSidePanel", "\\frame_1\\DoAction",
+     [script_dir / "farming" / "farming_side_panel.as"], []),
+    ("actionProgress", "sanctuaryActionProgress", "\\frame_1\\DoAction",
+     [script_dir / "farming" / "action_progress.as"], []),
+    # The NPC merchant window (wndNpcMerchantV2; the old wndNpcMerchant's Lua opens it too).
+    ("NPCMerchantV2", "sanctuaryNPCMerchantV2", "\\frame_1\\DoAction", [script_dir / "merchant" / "merchant_store.as"], []),
+    # The older drop-down browser: crafting and factory recipes, collections, pets, vehicles and classes (wndBrowser)
+    # and the Farmers Market (wndFarmersMarketBrowser).
+    ("Browser", "sanctuaryBrowser", "\\frame_1\\DoAction", [script_dir / "browser" / "list_browser.as"], []),
+    # The in-world HUD in the Main Menu's style: tooltips, the target frame, the interaction prompt, the
+    # knocked-out window, notifications, the stars/coins button and the level and progress bars.
+    ("ToolTipSystem", "sanctuaryToolTipSystem", "\\frame_1\\DoAction", [script_dir / "hud" / "tooltips.as"], []),
+    ("target", "sanctuaryTarget", "\\frame_1\\DoAction", [script_dir / "hud" / "target_frame.as"], []),
+    ("interactionPrompt", "sanctuaryInteractionPrompt", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "interaction_prompt.as"], []),
+    ("revive_window", "sanctuaryReviveWindow", "\\frame_1\\DoAction", [script_dir / "hud" / "revive_window.as"], []),
+    ("notifications", "sanctuaryNotifications", "\\frame_1\\DoAction", [script_dir / "hud" / "notifications.as"], []),
+    ("notificationSm", "sanctuaryNotificationSm", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "notification_small.as"], []),
+    ("notificationsQuests", "sanctuaryNotificationsQuests", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "quest_notifications.as"], []),
+    ("achievementNotification", "sanctuaryAchievementNotification", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "achievement_toast.as"], []),
+    ("XpButton", "sanctuaryXpButton", "\\frame_1\\DoAction", [script_dir / "hud" / "xp_button.as"], []),
+    ("FRLevelProgressBar", "sanctuaryFRLevelProgressBar", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "level_progress.as"], []),
+    # The progress bar (wndFRProgressBar and the pet's wndPetProgressBar).
+    ("FRProgressBar", "sanctuaryFRProgressBar", "\\frame_1\\DoAction", [script_dir / "hud" / "progress_bar.as"], []),
+    # The radial menu, quick chat menu, tutorial pointer, "!" flash and floating world text in the Main Menu's style.
+    ("radial_menu", "sanctuaryRadialMenu", "\\frame_1\\DoAction", [script_dir / "hud" / "radial_menu.as"], []),
+    ("cannedchat", "sanctuaryCannedChat", "\\frame_1\\DoAction", [script_dir / "hud" / "canned_chat.as"], []),
+    ("ArrowIndicator", "sanctuaryArrowIndicator", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "arrow_indicator.as"], []),
+    ("payattention", "sanctuaryPayAttention", "\\frame_1\\DoAction", [script_dir / "hud" / "pay_attention.as"], []),
+    ("scenetext", "sanctuarySceneText", "\\frame_1\\DoAction", [script_dir / "hud" / "scene_text.as"], []),
+    # The Hero's Journal (wndQuestScreen).
+    ("questjournal", "sanctuaryQuestJournal", "\\frame_1\\DoAction", [script_dir / "dialogs" / "quest_journal.as"], []),
+    # The quest offer and turn-in dialog (wndQuestStart, wndQuestEnd).
+    ("queststart", "sanctuaryQuestStart", "\\frame_1\\DoAction", [script_dir / "dialogs" / "quest_start.as"], []),
+    # The quest tracker on the HUD (wndQuestHelper).
+    ("quest_helper", "sanctuaryQuestHelper", "\\frame_1\\DoAction", [script_dir / "dialogs" / "quest_helper.as"], []),
+    # The objectives list (wndObjectives, and wndMiniGameTasks in minigames).
+    ("objectiveHelper", "sanctuaryObjectiveHelper", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "objective_tracker.as"], []),
+    # The generic dialogs: message boxes (wndMessageWindow, wndUtilityWindow, wndMessageWindowV2), Yes/No, errors.
+    ("messageWindow", "sanctuaryMessageWindow", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "message_window.as"], []),
+    ("messageWindowV2", "sanctuaryMessageWindowV2", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "message_window_v2.as"], []),
+    ("ConfirmationWindow", "sanctuaryConfirmationWindow", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "confirmation_window.as"], []),
+    ("error", "sanctuaryError", "\\frame_1\\DoAction", [script_dir / "dialogs" / "error_window.as"], []),
+    # The guide's tip bubble for new players (wndDirectedPlayPrompt).
+    ("DirectedPlayPrompt", "sanctuaryDirectedPlayPrompt", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "directed_play_prompt.as"], []),
+    # Membership and Station Cash leftovers: hidden, and the modal ones close themselves when Lua shows them.
+    ("FRMembership", "sanctuaryFRMembership", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "membership_store.as"], []),
+    ("SCAvailable", "sanctuarySCAvailable", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "station_cash_nag.as"], []),
+    ("hud_membership_button", "sanctuaryHudMembershipButton", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "membership_button.as"], []),
+    ("MarketplaceRentalNag", "sanctuaryMarketplaceRentalNag", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "rental_nag.as"], []),
+    ("JobTrialExpired", "sanctuaryJobTrialExpired", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "job_trial_expired.as"], []),
+    ("NewItemRem", "sanctuaryNewItemRem", "\\frame_1\\DoAction", [script_dir / "retired" / "new_items_nag.as"], []),
+    ("NpxPlayMore", "sanctuaryNpxPlayMore", "\\frame_1\\DoAction", [script_dir / "retired" / "play_more_nag.as"], []),
+    # The quest-limit Upgrade dialog, now a "journal full" notice.
+    ("upgrade_dialog", "sanctuaryUpgradeDialog", "\\frame_1\\DoAction",
+     [script_dir / "retired" / "journal_full.as"], []),
+    # The character select panel beside the hero lineup (wndCharacterSelectV2).
+    ("characterSelectV2", "sanctuaryCharacterSelectV2", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_select.as"], []),
+    # Making a character: the type picker, the customizer, the name wheels and the custom name entry.
+    ("characterCreateType", "sanctuaryCharacterCreateType", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_create_type.as"], []),
+    ("charCreate", "sanctuaryCharCreate", "\\frame_1\\DoAction", [script_dir / "login" / "character_create.as"], []),
+    ("characterNameScreen", "sanctuaryCharacterNameScreen", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_name.as"], []),
+    ("characterCustomNameScreen", "sanctuaryCharacterCustomNameScreen", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_custom_name.as"], []),
+    # The loading widgets, in the loading screen's colours (loading_large has no main timeline script: FRAME_SCRIPTS).
+    ("loading_large", "sanctuaryLoadingLarge", "\\frame_1\\DoAction", [script_dir / "login" / "loading_large.as"], []),
+    ("loading_progress", "sanctuaryLoadingProgress", "\\frame_1\\DoAction",
+     [script_dir / "login" / "loading_progress.as"], []),
+    ("AssetLoadingStatus", "sanctuaryAssetLoadingStatus", "\\frame_1\\DoAction",
+     [script_dir / "login" / "asset_loading_status.as"], []),
+    # Tutorials and first-time windows.
+    ("tutorial_dialog", "sanctuaryTutorialDialog", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "tutorial_dialog.as"], []),
+    ("NewPlayerFTEWindow", "sanctuaryNewPlayerFTEWindow", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "fte_new_player.as"], []),
+    ("CombatFTEWindow", "sanctuaryCombatFTEWindow", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "fte_combat.as"], []),
+    ("FTELogoutReward", "sanctuaryFTELogoutReward", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "fte_logout_reward.as"], []),
+    ("tutorial_arrow", "sanctuaryTutorialArrow", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "tutorial_arrow.as"], []),
+    ("tutorialButton", "sanctuaryTutorialButton", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "tutorial_button.as"], []),
+    # The character screen's Abilities tab, inspecting a player, renaming, trading, the friend picker, the guild
+    # prompt, the unit and group frames, the activity calendar, matchmaking, the mystery chest, key bindings, and
+    # a collection's or recipe's page.
+    ("AbilitiesScreen", "sanctuaryAbilitiesScreen", "\\frame_1\\DoAction",
+     [script_dir / "abilities" / "abilities_screen.as"], []),
+    ("PlayerInspect", "sanctuaryPlayerInspect", "\\frame_1\\DoAction",
+     [script_dir / "character" / "player_inspect.as"], []),
+    ("CharacterNameChange", "sanctuaryCharacterNameChange", "\\frame_1\\DoAction",
+     [script_dir / "character" / "name_change.as"], []),
+    ("player_trade", "sanctuaryPlayerTrade", "\\frame_1\\DoAction", [script_dir / "social" / "player_trade.as"], []),
+    ("tradeConfirmation", "sanctuaryTradeConfirmation", "\\frame_1\\DoAction",
+     [script_dir / "social" / "trade_confirmation.as"], []),
+    ("friendPicker", "sanctuaryFriendPicker", "\\frame_1\\DoAction", [script_dir / "social" / "friend_picker.as"], []),
+    ("guildDialog", "sanctuaryGuildDialog", "\\frame_1\\DoAction", [script_dir / "social" / "guild_dialog.as"], []),
+    ("combatGroupWindow", "sanctuaryCombatGroupWindow", "\\frame_1\\DoAction",
+     [script_dir / "social" / "combat_group.as"], []),
+    ("activityCalendar", "sanctuaryActivityCalendar", "\\frame_1\\DoAction",
+     [script_dir / "activities" / "activity_calendar.as"], []),
+    ("quickMatch", "sanctuaryQuickMatch", "\\frame_1\\DoAction", [script_dir / "activities" / "quick_match.as"], []),
+    ("MysteryChest", "sanctuaryMysteryChest", "\\frame_1\\DoAction",
+     [script_dir / "activities" / "mystery_chest.as"], []),
+    ("keybinds", "sanctuaryKeyBinds", "\\frame_1\\DoAction", [script_dir / "options" / "key_binds.as"], []),
+    ("collection_details", "sanctuaryCollectionDetails", "\\frame_1\\DoAction",
+     [script_dir / "collections" / "collection_details.as"], []),
+    ("recipe_details", "sanctuaryRecipeDetails", "\\frame_1\\DoAction",
+     [script_dir / "recipes" / "recipe_details.as"], []),
+    # The release notes window (wndUpdateNotes), in the home screen's Patch Notes style (FRAME_SCRIPTS gives it a script).
+    ("UpdateNotes", "sanctuaryUpdateNotes", "\\frame_1\\DoAction", [script_dir / "dialogs" / "update_notes.as"], []),
+    # The What's New panel and the nudge window (wndWhatsNewPanel, wndNudgeWindow).
+    ("WhatsNewPanel", "sanctuaryWhatsNewPanel", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "whats_new_panel.as"], []),
+    ("VipMessageWindow", "sanctuaryVipMessageWindow", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "vip_message_window.as"], []),
+    ("credits", "sanctuaryCredits", "\\frame_1\\DoAction", [script_dir / "dialogs" / "credits.as"], []),
+    # The comic reader; its buttons are repainted gold (RESKINS).
+    ("ComicBook", "sanctuaryComicBook", "\\frame_1\\DoAction", [script_dir / "dialogs" / "comic_book.as"], []),
+    ("bugsubmission", "sanctuaryBugSubmission", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "bug_submission.as"], []),
+    # The Communicator (wndCommunicator); its rows are repainted navy (RESKINS).
+    ("Communicator", "sanctuaryCommunicator", "\\frame_1\\DoAction", [script_dir / "dialogs" / "communicator.as"], []),
+    # SOE's Station Cash and membership purchase gateway: hidden, and closes itself when Lua shows it.
+    ("FRGateway", "sanctuaryFRGateway", "\\frame_1\\DoAction", [script_dir / "retired" / "fr_gateway.as"], []),
+    # Minigames in the Main Menu's style: minigames/mg_theme.as (shared look and helpers), then each movie's own patch.
+    # The shared frame pieces: start screen, top bar, timer (wndFlashTimer, wndRaceTimer, wndPiratesTimer), score/level
+    # HUDs, countdown, between-stages card, detail window, score screen, launch panes, tutorial and group lobby.
+    ("MinigameStartScreen", "sanctuaryMinigameStartScreen", "\\frame_1\\DoAction",
+     [THEME, MG / "MinigameStartScreen.as"], []),
+    ("MinigameTitleBar", "sanctuaryMinigameTitleBar", "\\frame_1\\DoAction", [THEME, MG / "MinigameTitleBar.as"], []),
+    ("timer", "sanctuaryTimer", "\\frame_1\\DoAction", [THEME, MG / "timer.as"], []),
+    ("score", "sanctuaryScore", "\\frame_1\\DoAction", [THEME, MG / "score.as"], []),
+    ("minigameLevel", "sanctuaryMinigameLevel", "\\frame_1\\DoAction", [THEME, MG / "minigameLevel.as"], []),
+    ("countdown3", "sanctuaryCountdown", "\\frame_1\\DoAction", [THEME, MG / "countdown3.as"], []),
+    ("MinigameEndStageScreen", "sanctuaryMinigameEndStageScreen", "\\frame_1\\DoAction",
+     [THEME, MG / "MinigameEndStageScreen.as"], []),
+    ("MinigameDetail", "sanctuaryMinigameDetail", "\\frame_1\\DoAction", [THEME, MG / "MinigameDetail.as"], []),
+    ("scoreScreen", "sanctuaryScoreScreen", "\\frame_1\\DoAction", [THEME, MG / "scoreScreen.as"], []),
+    ("minigameStatusDescPane", "sanctuaryMinigameStatusDescPane", "\\frame_1\\DoAction",
+     [THEME, MG / "minigameStatusDescPane.as"], []),
+    ("minigameStatusGroupPane", "sanctuaryMinigameStatusGroupPane", "\\frame_1\\DoAction",
+     [THEME, MG / "minigameStatusGroupPane.as"], []),
+    ("minigameStatusObjPane", "sanctuaryMinigameStatusObjPane", "\\frame_1\\DoAction",
+     [THEME, MG / "minigameStatusObjPane.as"], []),
+    ("minigameTutorial", "sanctuaryMinigameTutorial", "\\frame_1\\DoAction", [THEME, MG / "minigameTutorial.as"], []),
+    ("lobbyTop", "sanctuaryLobbyTop", "\\frame_1\\DoAction", [THEME, MG / "lobbyTop.as"], []),
+    ("lobbyLeft", "sanctuaryLobbyLeft", "\\frame_1\\DoAction", [THEME, MG / "lobbyLeft.as"], []),
+    ("lobbyLeftSoccer", "sanctuaryLobbyLeftSoccer", "\\frame_1\\DoAction", [THEME, MG / "lobbyLeftSoccer.as"], []),
+    ("lobbyBottom", "sanctuaryLobbyBottom", "\\frame_1\\DoAction", [THEME, MG / "lobbyBottom.as"], []),
+    # Fishing.
+    ("fishFinder", "sanctuaryFishFinder", "\\frame_1\\DoAction", [THEME, MG / "fishFinder.as"], []),
+    ("fishingMeter_REV2", "sanctuaryFishingMeter", "\\frame_1\\DoAction", [THEME, MG / "fishingMeter_REV2.as"], []),
+    ("fishingmeters_bbe", "sanctuaryFishingMeters", "\\frame_1\\DoAction", [THEME, MG / "fishingmeters_bbe.as"], []),
+    ("fishingStatus", "sanctuaryFishingStatus", "\\frame_1\\DoAction", [THEME, MG / "fishingStatus.as"], []),
+    ("caughtStatus", "sanctuaryCaughtStatus", "\\frame_1\\DoAction", [THEME, MG / "caughtStatus.as"], []),
+    ("icon_reel", "sanctuaryIconReel", "\\frame_1\\DoAction", [THEME, MG / "icon_reel.as"], []),
+    ("icon_fish_combo_bbe", "sanctuaryIconFishCombo", "\\frame_1\\DoAction",
+     [THEME, MG / "icon_fish_combo_bbe.as"], []),
+    ("fish_moving_target", "sanctuaryFishMovingTarget", "\\frame_1\\DoAction",
+     [THEME, MG / "fish_moving_target.as"], []),
+    # Racing and the demolition derby (wndRaceProxArrow1..8 use raceProxArrow, wndRaceProxArrow9 its copy; one patch for
+    # both).
+    ("raceResults", "sanctuaryRaceResults", "\\frame_1\\DoAction", [THEME, MG / "raceResults.as"], []),
+    ("raceOrder", "sanctuaryRaceOrder", "\\frame_1\\DoAction", [THEME, MG / "raceOrder.as"], []),
+    ("racePlaceMin", "sanctuaryRacePlaceMin", "\\frame_1\\DoAction", [THEME, MG / "racePlaceMin.as"], []),
+    ("raceLap", "sanctuaryRaceLap", "\\frame_1\\DoAction", [THEME, MG / "raceLap.as"], []),
+    ("raceBoostBar", "sanctuaryRaceBoostBar", "\\frame_1\\DoAction", [THEME, MG / "raceBoostBar.as"], []),
+    ("itemSlots", "sanctuaryItemSlots", "\\frame_1\\DoAction", [THEME, MG / "itemSlots.as"], []),
+    ("race_mini_map", "sanctuaryRaceMiniMap", "\\frame_1\\DoAction", [THEME, MG / "race_mini_map.as"], []),
+    ("raceBackwards", "sanctuaryRaceBackwards", "\\frame_1\\DoAction", [THEME, MG / "raceBackwards.as"], []),
+    ("raceProxArrow", "sanctuaryRaceProxArrow", "\\frame_1\\DoAction", [THEME, MG / "raceProxArrow.as"], []),
+    ("raceProxArrow9", "sanctuaryRaceProxArrow9", "\\frame_1\\DoAction", [THEME, MG / "raceProxArrow.as"], []),
+    ("derbyResults", "sanctuaryDerbyResults", "\\frame_1\\DoAction", [THEME, MG / "derbyResults.as"], []),
+    ("derbyCrown", "sanctuaryDerbyCrown", "\\frame_1\\DoAction", [THEME, MG / "derbyCrown.as"], []),
+    ("demoHealthBar", "sanctuaryDemoHealthBar", "\\frame_1\\DoAction", [THEME, MG / "demoHealthBar.as"], []),
+    # Soccer and Pirates (SSS_popups is the between-rounds banner of both). The pack names are case sensitive: SSS_timer.
+    ("SSS_score", "sanctuarySSSScore", "\\frame_1\\DoAction", [THEME, MG / "SSS_score.as"], []),
+    ("SSS_timer", "sanctuarySSSTimer", "\\frame_1\\DoAction", [THEME, MG / "SSS_timer.as"], []),
+    ("scr_charge_meter_bbe", "sanctuaryScrChargeMeter", "\\frame_1\\DoAction",
+     [THEME, MG / "scr_charge_meter_bbe.as"], []),
+    ("SSS_popups", "sanctuarySSSPopups", "\\frame_1\\DoAction", [THEME, MG / "SSS_popups.as"], []),
+    ("SSS_halftimeBoard", "sanctuarySSSHalftimeBoard", "\\frame_1\\DoAction", [THEME, MG / "SSS_halftimeBoard.as"], []),
+    ("pir_resultscreen_bbe", "sanctuaryPirResultScreen", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_resultscreen_bbe.as"], []),
+    ("pir_shipselection_bbe", "sanctuaryPirShipSelection", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_shipselection_bbe.as"], []),
+    ("pir_player_ship_hold_bbe", "sanctuaryPirStandings", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_player_ship_hold_bbe.as"], []),
+    ("pir_instructions_bbe", "sanctuaryPirInstructions", "\\frame_1\\DoAction",
+     [THEME, MG / "pir_instructions_bbe.as"], []),
+    # The Adventurer's Journal (wndStoryBook): its cover, corners and lists repainted (RESKINS), the rest drawn.
+    ("StoryBook", "sanctuaryStoryBook", "\\frame_1\\DoAction", [script_dir / "dialogs" / "story_book.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
-    ("FRUtilNavigation", "sanctuaryFRUtilNavigation", None, [], []),
+    ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
+    ("starCounter", "sanctuaryStarCounter", None, [], []),
+    ("quickitem", "sanctuaryQuickItem", None, [], []),
     ("mini_map", "sanctuaryMiniMap", None, [], []),
-    ("social", "sanctuarySocial", None, [], []),
 ]
 
 # Stock movie -> [(external texture, texture to use instead)]. Station Cash no longer exists, so the
@@ -103,6 +370,8 @@ TEXTURE_SWAPS = {
     "gamedock": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
     # The welcome screen's header wallet, which now shows coins.
     "welcome": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
+    # The house preview's price (housing/preview_panel.as).
+    "HousingPreview": [("img12560206623044729416.dds", "img11900526720825140648.dds")],
 }
 
 # Stock movie -> [(client texture, export name, size, hue shift in degrees)]. Each texture is cropped to
@@ -125,6 +394,44 @@ TEXTURE_SYMBOLS = {
         ("img7070878317473001703.dds", "sanctuaryIconRefereeTree", 64, 155),
         ("img16372258640993360071.dds", "sanctuaryIconWheel", 96, 0),
         ("img3694898642873637100.dds", "sanctuaryIconScroll", 64, 0),
+    ],
+    # The profile card (aboutme/profile_card.as): its stat tiles' icons and the portrait's placeholder.
+    "aboutme": [
+        ("img12661814977694140028.dds", "sanctuaryProfileCoin", 96, 0),
+        ("img15906260194121039444.dds", "sanctuaryProfileTrophy", 96, 0),
+        ("img1469495624995028744.dds", "sanctuaryProfileBook", 96, 0),
+        ("img1837001925841496856.dds", "sanctuaryProfileJournal", 96, 0),
+        ("img5645809723664368221.dds", "sanctuaryProfileSilhouette", 96, 0),
+    ],
+    # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
+    "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The Pirates ship picker's medallion (minigames/pir_shipselection_bbe.as): the ship from its stock ornament.
+    "pir_shipselection_bbe": [("img17624406294467281186.dds", "sanctuaryPirShip", 96, 0)],
+    # The release notes window (dialogs/update_notes.as): the home screen's scroll beside its title.
+    "UpdateNotes": [("img3694898642873637100.dds", "sanctuaryNotesScroll", 64, 0)],
+    # The loading widgets' spinner centre (login/loading_large.as, asset_loading_status.as): the hub tree in the OSFR
+    # loading screen's blue.
+    "loading_large": [("img7070878317473001703.dds", "sanctuaryLoadingTree", 64, 120)],
+    "AssetLoadingStatus": [("img7070878317473001703.dds", "sanctuaryLoadingTree", 64, 120)],
+    # The Hero's Journal (dialogs/quest_journal.as): the Main Menu's journal beside its title.
+    "questjournal": [("img1837001925841496856.dds", "sanctuaryJournalBook", 64, 0)],
+    # The list browser (browser/list_browser.as): the farming browser's seed bag, the Farmers Market's emblem.
+    "Browser": [("img10017304919226766628.dds", "sanctuaryMarketSeeds", 64, 0)],
+    # The merchant window (merchant/merchant_store.as): the coin store coin, in the crest, the wallet and the empty art socket.
+    "NPCMerchantV2": [("img12661814977694140028.dds", "sanctuaryMerchantCoin", 96, 0)],
+    # The farm's side panel (farming/farming_side_panel.as): the item crate from its stock Items row, in a frosted socket.
+    "FarmingSidePanel": [("img5256080051719801053.dds", "sanctuaryFarmItems", 32, 0)],
+    # The Collections window (collections/collections_browser.as): the Main Menu's Collections book by its title.
+    "CollectionsBrowser": [("img1469495624995028744.dds", "sanctuaryCollectionsBook", 64, 0)],
+    # The system menu (system_menu/system_menu.as): the squirrel from its stock medallion, peeking over the panel, and
+    # its rows' icons: the top bar's gear (Game Options), an ant (Report a Bug), the Main Menu's house (Teleport to
+    # Safety) and the home screen's scroll (Credits).
+    "options": [
+        ("img2567116644699575565.dds", "sanctuarySystemSquirrel", 128, 0),
+        ("img16931730996583072235.dds", "sanctuarySystemGear", 32, 0),
+        ("icon_item_ant_solid_32.dds", "sanctuarySystemBug", 32, 0),
+        ("img11740438261774166106.dds", "sanctuarySystemHouse", 64, 0),
+        ("img3694898642873637100.dds", "sanctuarySystemScroll", 64, 0),
     ],
     # The Main Menu (MyStuffBrowser/main_menu.as): its own tile art, with the coin store coin for Shop.
     "MyStuffBrowser": [
@@ -156,16 +463,126 @@ TEXT_SYMBOLS = {
     "MyStuffBrowser": [("sanctuaryMainMenuTitle", "Main Menu", 46, (255, 246, 196), (255, 168, 36))],
 }
 
+# Stock movies with no main timeline script, which get an empty one on frame 1 for their patch to be appended to.
+FRAME_SCRIPTS = {
+    "FRUtilNavigation", "loading_large", "UpdateNotes",
+    # Minigame movies with no main timeline script on frame 1: the between-stages card, the countdown (its only
+    # script is on frame 152), fishing's reel and combo icons and the fishing tutorial's target (frame 75).
+    "MinigameEndStageScreen", "countdown3", "icon_reel", "icon_fish_combo_bbe", "fish_moving_target",
+}
+
 # Stock movie -> root timeline depths whose placements are dropped: plain shapes, which ActionScript can't hide.
 REMOVED_DEPTHS = {
     # The member badge's orange plate.
     "welcome": [115],
+    # The profile card's stock panels and stat icons.
+    "aboutme": [5, 82, 86, 88, 90, 92],
+    # The top bar's backing, redrawn around the buttons that are left (hud/top_bar.as).
+    "FRUtilNavigation": [1],
+    # The pet Stats card's inner panel, title plate and bar troughs.
+    "aboutpet": [3, 4, 10],
+    # The system menu's squirrel medallion (one shape with the squirrel; it's redrawn from TEXTURE_SYMBOLS).
+    "options": [8],
+    # The Game Options window's close button (an unnamed exitButton.swf clip); options/game_options.as draws a gold one.
+    "optionsPanel": [246],
+    # The furniture tray's items panel (housing/tray.as covered it; housing/tray_style.as draws a recess in its place).
+    "housingEditPanel": [3],
+    # The Housing Directory's crest glass (housing/directory.as puts the house beside its title).
+    "HousingBrowser": [130],
+    # The action progress bar's track and its gloss (farming/action_progress.as redraws the bar).
+    "actionProgress": [1, 4],
+    # The knocked-out window's panel (a root shape); hud/revive_window.as draws a navy one.
+    "revive_window": [1],
+    # The character select's stock panel (redrawn by login/character_select.as).
+    "characterSelectV2": [1],
+    # The character creator's blue bezel round the 3D view (login/character_create.as draws a navy one).
+    "charCreate": [4],
+    # The type picker's panel and its two unnamed question lines ("What are you?", "What is you favorite race ?").
+    "characterCreateType": [1, 12, 13],
+    # The custom name entry's banner.
+    "characterCustomNameScreen": [1],
+    # The Key Bindings window's title (unnamed S##KeyBinding text); options/key_binds.as draws a gold one.
+    "keybinds": [33],
+    # The What's New panel's Chatty medallion over the frame (dialogs/whats_new_panel.as).
+    "WhatsNewPanel": [26],
+    # The VIP window's divider and the star plate behind its title (dialogs/vip_message_window.as).
+    "VipMessageWindow": [1, 5],
+    # The minigame detail window's stock frame: one shape with the orange rim, vines and panels.
+    "MinigameDetail": [4],
+    # The score screen's blue sunburst frame (minigames/scoreScreen.as draws the navy one).
+    "scoreScreen": [3],
+    # The lobby player column's curved panel and the three divider lines between its slots.
+    "lobbyLeft": [1, 78, 80, 82],
+    # The soccer lobby column's curved panel and the line under the leader.
+    "lobbyLeftSoccer": [1, 56],
+    # The lobby game card's curved panel.
+    "lobbyBottom": [1],
+    # The soccer scoreboard's two pale glass bars (minigames/SSS_score.as redraws them).
+    "SSS_score": [2],
+    # The kick meter's purple tube (a navy glass one is drawn under the fill).
+    "scr_charge_meter_bbe": [9],
+    # The Pirates result screen's sunburst frame.
+    "pir_resultscreen_bbe": [1],
+    # The ship picker's frame with its ship ornament (redrawn from TEXTURE_SYMBOLS).
+    "pir_shipselection_bbe": [2],
+    # The halftime board's outer frame.
+    "SSS_halftimeBoard": [5],
+    # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
+    # AS can't reach it) and the grid's divider lines.
+    "inventory": [1, 39],
 }
 
 # Stock movie -> {client texture: hud/reskin.py recipe}. The texture is repainted at the size the movie draws
 # it and embedded in its place, so the HUD keeps its layout: purple, brown and beige chrome becomes navy glass,
 # frosted glass and gold, and the minimap gets a new ring.
 RESKINS = {
+    # The Adventurer's Journal (dialogs/story_book.as): the book's brown cover as navy glass with a gold rim, gold
+    # corner guards and ivory page edges round the untouched parchment; the maps' plum photo corners in gold; the
+    # other quests' rows navy and their track radio gold; the scrollbars' tracks navy with gold thumbs and arrows;
+    # and the region tab's ribbon navy under the drawn tab.
+    "StoryBook": {
+        "img10426551855641310554.dds": "book",
+        "img13614505725828598415.dds": "photo_corners", "img12552210125843894562.dds": "photo_corners",
+        "img16586129237713058862.dds": "navy", "img12684507239407976167.dds": "navy",
+        "img16438643002358585739.dds": "gold", "img4389146408587448710.dds": "gold",
+        "img9983271769940045275.dds": "navy", "img17153395553286337060.dds": "navy",
+        "img9033961778514284693.dds": "gold", "img326751631706103848.dds": "gold",
+        "img6048521301218706258.dds": "gold", "img1145991426751665751.dds": "gold",
+    },
+    # The racing HUD's purple boost wedge in gold, and the item tray in navy glass.
+    "raceBoostBar": {"img114046457190065444.dds": "gold"},
+    "itemSlots": {"img114046457190065444.dds": "gold", "img4930726603458950520.dds": "navy"},
+    # The derby meters: the wedge and the bar's purple outline in gold, the health bar's silver glass blue.
+    "demoHealthBar": {"img114046457190065444.dds": "gold", "img13381864230809240022.dds": "gold",
+                      "img7827531780234456233.dds": "glass"},
+    # The proximity arrows' dark purple arrow in gold.
+    "raceProxArrow": {"img1722408374110331531.dds": "gold"},
+    "raceProxArrow9": {"img1722408374110331531.dds": "gold"},
+    # The comic reader's Back, Next and Teleport buttons, gold (dialogs/comic_book.as).
+    "ComicBook": {"img17833834512335390436.dds": "gold", "img2890311447890245816.dds": "gold",
+                  "img11554051185741859593.dds": "gold"},
+    # The Communicator's message rows and count pill in navy, the portrait wells glass, the close button gold.
+    "Communicator": {"img6543649261988115921.dds": "navy", "img5666523385181486117.dds": "glass",
+                     "img13115225108423942551.dds": "navy",
+                     "img11703706485306448850.dds": "gold", "img11195698492298293249.dds": "gold",
+                     "img6059153550170124511.dds": "gold", "img3500904800706947234.dds": "gold"},
+    # The radial menu: its ring as the minimap's gold ring and the label plates in navy (hud/radial_menu.as).
+    "radial_menu": {"img4750046603015685743.dds": "ring", "img11228090852709686526.dds": "navy"},
+    # The quick chat menu's category bubbles (navy, gold while hovered) and their arrow. Phrase bubbles keep the
+    # player's chat colour.
+    "cannedchat": {
+        "img12140604662160847177.dds": "navy", "img4997185316532755464.dds": "navy", "img7548901485572912647.dds": "navy",
+        "img6401013202749714986.dds": "gold", "img10775080979299020641.dds": "gold", "img14350388175976606256.dds": "gold",
+        "img9994214018751199257.dds": "gold",
+    },
+    # The tutorial pointer's arrow and target frame.
+    "ArrowIndicator": {"img2130584057677802313.dds": "gold", "img15140367998647858953.dds": "gold"},
+    # The Hero's Journal button: its round slot, like the dock's.
+    "HerosJournalButton": {"img17894775867228385230.dds": "glass"},
+    # The star counter's purple plate.
+    "starCounter": {"img8526826553413029235.dds": "navy"},
+    # The quick item button: navy, gold on hover.
+    "quickitem": {"img300518202272676291.dds": "navy", "img429499426389397090.dds": "gold"},
     # The dock: title plate, slot frames, action bar base and its round slots (health and mana keep their colors).
     "gamedock": {
         "img7261148070336999820.dds": "navy", "img1059227586001590212.dds": "navy",
@@ -175,8 +592,6 @@ RESKINS = {
         "img17894775867228385230.dds": "glass", "img13179357351024049733.dds": "glass",
         "img3433151271243245196.dds": "glass", "img3660832219945813116.dds": "glass",
     },
-    # The top utility bar.
-    "FRUtilNavigation": {"img3488721174386834823.dds": "navy"},
     # The minimap: its backdrop, ring and zoom buttons.
     "mini_map": {
         "img4695131534032394228.dds": "navy", "img10708622630870636103.dds": "ring",
@@ -432,6 +847,14 @@ def export_font(java, jar, stock, temp):
     return font
 
 
+def add_frame_script(xml):
+    """Adds an empty DoAction to the main timeline's first frame."""
+    head, tags, tail = split_tags(xml)
+    first_frame = next(i for i, tag in enumerate(tags) if tag.startswith(TAG_PREFIX + '"ShowFrameTag"'))
+    tags.insert(first_frame, TAG_PREFIX + '"DoActionTag" actionBytes="00" forceWriteAsLong="false"/>')
+    return head + "".join(tags) + tail
+
+
 def remove_root_depths(xml, depths):
     head, tags, tail = split_tags(xml)
     placement = re.escape(TAG_PREFIX) + r'"(?:PlaceObject|RemoveObject)\d?Tag"[^>]*\bdepth="(\d+)"'
@@ -476,7 +899,9 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
         removed = REMOVED_DEPTHS.get(stock_name, [])
         reskins = RESKINS.get(stock_name, {})
 
-        if symbols or swaps or textures or images or texts or removed or reskins:
+        frame_script = stock_name in FRAME_SCRIPTS
+
+        if symbols or swaps or textures or images or texts or removed or reskins or frame_script:
             ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
             xml = (temp / "stock.xml").read_text(encoding="utf-8")
             for symbol in symbols:
@@ -497,6 +922,8 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
                 xml = remove_root_depths(xml, removed)
             if reskins:
                 xml = apply_reskins(xml, stock, reskins)
+            if frame_script:
+                xml = add_frame_script(xml)
             (temp / "stock.xml").write_text(xml, encoding="utf-8")
             ffdec(java, jar, "-xml2swf", temp / "stock.xml", temp / "stock.gfx")
             stock_path = temp / "stock.gfx"

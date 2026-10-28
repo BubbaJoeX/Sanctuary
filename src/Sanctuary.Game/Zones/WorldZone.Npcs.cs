@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 
@@ -93,9 +94,18 @@ public sealed partial class WorldZone
         if (!worldNpc.Collidable)
             npc.SetCollidable(false);
 
-        // Clickable for everyone, so players can target it and referees get the edit menu.
-        npc.HasCursor = true;
-        npc.CursorId = InteractionMenuHelper.RefereeCursorId;
+        // A placed object (a model spawned from the zone editor, a trampoline) is a prop: solid, still and
+        // silent, without the referee cursor (referees edit it in god mode, as they do props).
+        if (definition.IsPlacedObject)
+        {
+            npc.IsWorldProp = true;
+        }
+        else
+        {
+            // Clickable for everyone, so players can target it and referees get the edit menu.
+            npc.HasCursor = true;
+            npc.CursorId = InteractionMenuHelper.RefereeCursorId;
+        }
 
         var position = new Vector4(worldNpc.PositionX, worldNpc.PositionY, worldNpc.PositionZ, 1.0f);
         var rotation = new Quaternion(worldNpc.RotationX, worldNpc.RotationY, worldNpc.RotationZ, worldNpc.RotationW);
@@ -104,6 +114,10 @@ public sealed partial class WorldZone
         npc.SpawnRotation = rotation;
 
         NpcProperties.Apply(npc, worldNpc.Properties);
+
+        // As a zone's own placed objects spawn (BaseZone): the client neither simulates nor animates them.
+        if (definition.IsPlacedObject)
+            npc.Tilt ??= new Vector4(NpcProperties.GetHeading(rotation), 0f, 0f, 0f);
 
         npc.UpdatePosition(position, rotation);
 
@@ -200,7 +214,15 @@ public sealed partial class WorldZone
         return true;
     }
 
-    public bool TryCreateWorldNpc(Player player, NpcDefinition definition, [MaybeNullWhen(false)] out Npc npc)
+    public bool TryCreateWorldNpc(Player player, NpcDefinition definition, [MaybeNullWhen(false)] out Npc npc) =>
+        TryCreateWorldNpc(definition, player.Position, player.Rotation, GuidHelper.GetPlayerId(player.Guid), out npc);
+
+    /// <summary>
+    /// Spawns a world NPC at a spot for everyone and saves it. <paramref name="createdBy"/> is a character id.
+    /// <paramref name="model"/> gives it another model than its definition's (a placed model), named after it.
+    /// </summary>
+    public bool TryCreateWorldNpc(NpcDefinition definition, Vector4 position, Quaternion rotation, ulong? createdBy,
+        [MaybeNullWhen(false)] out Npc npc, ModelDefinition? model = null)
     {
         npc = null;
 
@@ -209,31 +231,32 @@ public sealed partial class WorldZone
             // Unregistered; only read for the entity defaults.
             var defaults = new Npc(this);
 
-            var scale = definition.Scale
-                ?? (_resourceManager.Models.TryGetValue(definition.ModelId, out var model) && model.Scale != 0f ? model.Scale : 1f);
+            var modelId = model?.Id ?? definition.ModelId;
+            var scale = (model is null ? definition.Scale : null)
+                ?? (_resourceManager.Models.TryGetValue(modelId, out var modelDefinition) && modelDefinition.Scale != 0f ? modelDefinition.Scale : 1f);
 
             var worldNpc = new DbWorldNpc
             {
                 Zone = DefinitionId,
                 Definition = definition.Id,
-                Name = definition.Name,
-                NameId = definition.NameId,
-                ModelId = definition.ModelId,
+                Name = model is null ? definition.Name : Path.GetFileNameWithoutExtension(model.ModelFileName),
+                NameId = model is null ? definition.NameId : 0,
+                ModelId = modelId,
                 Scale = scale,
                 Animation = defaults.Animation,
                 Disposition = defaults.Disposition,
-                HideNamePlate = defaults.HideNamePlate,
+                HideNamePlate = definition.IsPlacedObject || defaults.HideNamePlate,
                 Behavior = (int)NpcBehavior.Stay,
                 WanderRadius = DefaultWanderRadius,
                 Speed = defaults.Speed,
-                PositionX = player.Position.X,
-                PositionY = player.Position.Y,
-                PositionZ = player.Position.Z,
-                RotationX = player.Rotation.X,
-                RotationY = player.Rotation.Y,
-                RotationZ = player.Rotation.Z,
-                RotationW = player.Rotation.W,
-                CreatedBy = GuidHelper.GetPlayerId(player.Guid)
+                PositionX = position.X,
+                PositionY = position.Y,
+                PositionZ = position.Z,
+                RotationX = rotation.X,
+                RotationY = rotation.Y,
+                RotationZ = rotation.Z,
+                RotationW = rotation.W,
+                CreatedBy = createdBy
             };
 
             using var dbContext = _dbContextFactory.CreateDbContext();
@@ -363,6 +386,8 @@ public sealed partial class WorldZone
             return true;
         }
     }
+
+    public override bool IsEventActive(string eventKey) => _worldEventManager.IsActive(eventKey);
 
     public void OnWorldEventChanged(string eventKey, bool active)
     {

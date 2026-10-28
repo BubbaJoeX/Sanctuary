@@ -45,7 +45,9 @@ CLIENT_EXTENSIONS_LUA = (script_dir / "lua" / "client_extensions.lua", Path("Res
 CLIENT_LUA = [(REFEREE_LUA, "referee client tools"), (CLIENT_EXTENSIONS_LUA, "client extensions")]
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
-PACK_DATA_ALIGNMENT = 8192
+# Each chunk's index sits in one block of this size, with the chunk's data after it: the client reads no more of an
+# index than this, so a longer one loses every entry past it ("swf not found"), and the stock packs never exceed it.
+PACK_INDEX_BLOCK = 8192
 
 # Skies the zone editor wrote (ClientMods/sky). The client reads Resources/SKY from disk; they don't stream.
 SKY_DIR = script_dir / "sky"
@@ -78,6 +80,10 @@ WINDOW_PATCHES = [
         ('Width="1024"', 'Width="1300"'),
     ]),
     (Path("UI/UiModules/Main/wndNavigationBar.xml"), [("UI\\navigation.swf", "UI\\sanctuaryNavigation.swf")]),
+    # The pet's HUD: name bar, Stats card and remote.
+    (Path("UI/UiModules/Main/wndPetNameBar.xml"), [("UI\\PetNameBar.swf", "UI\\sanctuaryPetNameBar.swf")]),
+    (Path("UI/UiModules/Main/wndPetDetails.xml"), [("UI\\aboutpet.swf", "UI\\sanctuaryAboutPet.swf")]),
+    (Path("UI/UiModules/Main/wndPetRemote.xml"), [("UI\\petController.swf", "UI\\sanctuaryPetController.swf")]),
     (Path("UI/UiModules/Main/wndMysteryRewardBrowser.xml"), [("UI\\MysteryRewardBrowser.swf", "UI\\sanctuaryMysteryRewardBrowser.swf")]),
     (Path("UI/UiModules/Main/wndMysteryRewardBrowserSmall.xml"),
      [("UI\\MysteryRewardBrowserSmall.swf", "UI\\sanctuaryMysteryRewardBrowserSmall.swf")]),
@@ -96,9 +102,181 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndMyStuffBrowser.xml"), [("UI\\MyStuffBrowser.swf", "UI\\sanctuaryMyStuffBrowser.swf")]),
     # The repainted HUD (RESKINS in build_client_mods.py).
     (Path("UI/UiModules/Main/wndFRUtilNavigation.xml"), [("UI\\FRUtilNavigation.swf", "UI\\sanctuaryFRUtilNavigation.swf")]),
+    # The video recorder/screenshot HUD, hidden (hud/no_video_capture.as).
+    (Path("UI/UiModules/Main/wndVideoCaptureHud.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
+    (Path("UI/UiModules/Main/wndScreenCapture.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
+    (Path("UI/UiModules/Main/wndOptions.xml"), [("UI\\options.swf", "UI\\sanctuaryOptions.swf")]),
+    (Path("UI/UiModules/Main/wndOptionsPanel.xml"), [("UI\\optionsPanel.swf", "UI\\sanctuaryOptionsPanel.swf")]),
     (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
     (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
     (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),
+    (Path("UI/UiModules/Main/wndEquipmentPane.xml"),
+     [("UI\\equipmentscreen_new.swf", "UI\\sanctuaryEquipmentScreen.swf")]),
+    (Path("UI/UiModules/Main/wndInventory.xml"), [("UI\\inventory.swf", "UI\\sanctuaryInventory.swf")]),
+    # The tile browser (Games, Pets, Rides, Houses) and the farming browser share one movie.
+    (Path("UI/UiModules/Main/wndBrowserV2.xml"), [("UI\\Browser_V2.swf", "UI\\sanctuaryBrowserV2.swf")]),
+    (Path("UI/UiModules/Main/wndFarmingBrowser.xml"), [("UI\\Browser_V2.swf", "UI\\sanctuaryBrowserV2.swf")]),
+    (Path("UI/UiModules/Main/wndCollectionsBrowser.xml"),
+     [("UI\\CollectionsBrowser.swf", "UI\\sanctuaryCollectionsBrowser.swf")]),
+    (Path("UI/UiModules/Main/wndAchievements.xml"), [("UI\\achievements.swf", "UI\\sanctuaryAchievements.swf")]),
+    (Path("UI/UiModules/Main/wndFRJobBrowser.xml"), [("UI\\FRJobBrowser.swf", "UI\\sanctuaryFRJobBrowser.swf")]),
+    # The rest of the housing UI (housing/*.as).
+    (Path("UI/UiModules/Main/wndHousingSidePanel.xml"), [("UI\\housingSidePanel.swf", "UI\\sanctuaryHousingSidePanel.swf")]),
+    (Path("UI/UiModules/Main/wndHousingOptions.xml"), [("UI\\HousingOptions.swf", "UI\\sanctuaryHousingOptions.swf")]),
+    (Path("UI/UiModules/Main/wndHousingEditButton.xml"), [("UI\\housingEditButton.swf", "UI\\sanctuaryHousingEditButton.swf")]),
+    (Path("UI/UiModules/Main/wndHousingSubMenu.xml"), [("UI\\housingSubMenu.swf", "UI\\sanctuaryHousingSubMenu.swf")]),
+    (Path("UI/UiModules/Main/wndHousingBrowser.xml"), [("UI\\HousingBrowser.swf", "UI\\sanctuaryHousingBrowser.swf")]),
+    # Farming: the Farm-O-Matic, its sample picker, the farm's side panel and the action progress bar.
+    (Path("UI/UiModules/Main/wndFarmOMatic.xml"), [("UI\\farmomatic.swf", "UI\\sanctuaryFarmOMatic.swf")]),
+    (Path("UI/UiModules/Main/wndSampleList.xml"), [("UI\\sampleList.swf", "UI\\sanctuarySampleList.swf")]),
+    (Path("UI/UiModules/Main/wndFarmingSidePanel.xml"), [("UI\\FarmingSidePanel.swf", "UI\\sanctuaryFarmingSidePanel.swf")]),
+    (Path("UI/UiModules/Main/wndActionProgress.xml"), [("UI\\actionProgress.swf", "UI\\sanctuaryActionProgress.swf")]),
+    (Path("UI/UiModules/Main/wndNpcMerchantV2.xml"), [("UI\\NPCMerchantV2.swf", "UI\\sanctuaryNPCMerchantV2.swf")]),
+    # The older drop-down browser (recipes, collections, pets, vehicles, classes) and the Farmers Market share one movie.
+    (Path("UI/UiModules/Main/wndBrowser.xml"), [("UI\\Browser.swf", "UI\\sanctuaryBrowser.swf")]),
+    (Path("UI/UiModules/Main/wndFarmersMarketBrowser.xml"), [("UI\\Browser.swf", "UI\\sanctuaryBrowser.swf")]),
+    # The in-world HUD (hud/*.as) and its repainted buttons.
+    (Path("UI/UiModules/Main/wndToolTip.xml"), [("UI\\ToolTipSystem.swf", "UI\\sanctuaryToolTipSystem.swf")]),
+    (Path("UI/UiModules/Main/wndTarget.xml"), [("UI\\target.swf", "UI\\sanctuaryTarget.swf")]),
+    (Path("UI/UiModules/Main/wndInteractionPrompt.xml"), [("UI\\interactionPrompt.swf", "UI\\sanctuaryInteractionPrompt.swf")]),
+    (Path("UI/UiModules/Main/wndRespawn.xml"), [("UI\\revive_window.swf", "UI\\sanctuaryReviveWindow.swf")]),
+    (Path("UI/UiModules/Main/wndNotification.xml"), [("UI\\notifications.swf", "UI\\sanctuaryNotifications.swf")]),
+    (Path("UI/UiModules/Main/wndNotificationSm.xml"), [("UI\\notificationSm.swf", "UI\\sanctuaryNotificationSm.swf")]),
+    (Path("UI/UiModules/Main/wndNotificationQuests.xml"), [("UI\\notificationsQuests.swf", "UI\\sanctuaryNotificationsQuests.swf")]),
+    (Path("UI/UiModules/Main/wndAchievementNotification.xml"), [("UI\\achievementNotification.swf", "UI\\sanctuaryAchievementNotification.swf")]),
+    (Path("UI/UiModules/Main/wndXpButton.xml"), [("UI\\XpButton.swf", "UI\\sanctuaryXpButton.swf")]),
+    (Path("UI/UiModules/Main/wndLevelProgressPane.xml"), [("UI\\FRLevelProgressBar.swf", "UI\\sanctuaryFRLevelProgressBar.swf")]),
+    (Path("UI/UiModules/Main/wndFRProgressBar.xml"), [("UI\\FRProgressBar.swf", "UI\\sanctuaryFRProgressBar.swf")]),
+    (Path("UI/UiModules/Main/wndPetProgressBar.xml"), [("UI\\FRProgressBar.swf", "UI\\sanctuaryFRProgressBar.swf")]),
+    (Path("UI/UiModules/Main/wndHerosJournalButton.xml"), [("UI\\HerosJournalButton.swf", "UI\\sanctuaryHerosJournalButton.swf")]),
+    (Path("UI/UiModules/Main/wndStarCounter.xml"), [("UI\\starCounter.swf", "UI\\sanctuaryStarCounter.swf")]),
+    (Path("UI/UiModules/Main/wndQuickItem.xml"), [("UI\\quickitem.swf", "UI\\sanctuaryQuickItem.swf")]),
+    (Path("UI/UiModules/Main/wndRadialMenu.xml"), [("UI\\radial_menu.swf", "UI\\sanctuaryRadialMenu.swf")]),
+    (Path("UI/UiModules/Main/wndCannedChat.xml"), [("UI\\cannedchat.swf", "UI\\sanctuaryCannedChat.swf")]),
+    (Path("UI/UiModules/Main/wndArrowIndicator.xml"), [("UI\\ArrowIndicator.swf", "UI\\sanctuaryArrowIndicator.swf")]),
+    (Path("UI/UiModules/Main/wndPayAttention.xml"), [("UI\\payattention.swf", "UI\\sanctuaryPayAttention.swf")]),
+    (Path("UI/UiModules/Main/wndSceneText.xml"), [("UI\\scenetext.swf", "UI\\sanctuarySceneText.swf")]),
+    # Quests, the generic dialogs and the retired membership/Station Cash windows.
+    (Path("UI/UiModules/Main/wndQuestScreen.xml"), [("UI\\questjournal.swf", "UI\\sanctuaryQuestJournal.swf")]),
+    (Path("UI/UiModules/Main/wndQuestStart.xml"), [("UI\\queststart.swf", "UI\\sanctuaryQuestStart.swf")]),
+    (Path("UI/UiModules/Main/wndQuestEnd.xml"), [("UI\\queststart.swf", "UI\\sanctuaryQuestStart.swf")]),
+    (Path("UI/UiModules/Main/wndQuestHelper.xml"), [("UI\\quest_helper.swf", "UI\\sanctuaryQuestHelper.swf")]),
+    (Path("UI/UiModules/Main/wndObjectives.xml"), [("UI\\objectiveHelper.swf", "UI\\sanctuaryObjectiveHelper.swf")]),
+    (Path("UI/UiModules/Main/wndMiniGameTasks.xml"), [("UI\\objectiveHelper.swf", "UI\\sanctuaryObjectiveHelper.swf")]),
+    (Path("UI/UiModules/Main/wndMessageWindow.xml"), [("UI\\messageWindow.swf", "UI\\sanctuaryMessageWindow.swf")]),
+    (Path("UI/UiModules/Main/wndUtilityWindow.xml"), [("UI\\messageWindow.swf", "UI\\sanctuaryMessageWindow.swf")]),
+    (Path("UI/UiModules/Main/wndMessageWindowV2.xml"), [("UI\\messageWindowV2.swf", "UI\\sanctuaryMessageWindowV2.swf")]),
+    (Path("UI/UiModules/Main/wndConfirmationWindow.xml"), [("UI\\ConfirmationWindow.swf", "UI\\sanctuaryConfirmationWindow.swf")]),
+    (Path("UI/UiModules/Main/wndError.xml"), [("UI\\error.swf", "UI\\sanctuaryError.swf")]),
+    (Path("UI/UiModules/Main/wndDirectedPlayPrompt.xml"), [("UI\\DirectedPlayPrompt.swf", "UI\\sanctuaryDirectedPlayPrompt.swf")]),
+    (Path("UI/UiModules/Main/wndFRMembership.xml"), [("UI\\FRMembership.swf", "UI\\sanctuaryFRMembership.swf")]),
+    (Path("UI/UiModules/Main/wndSCAvailable.xml"), [("UI\\SCAvailable.swf", "UI\\sanctuarySCAvailable.swf")]),
+    (Path("UI/UiModules/Main/wndUpgradeButton.xml"), [("UI\\hud_membership_button.swf", "UI\\sanctuaryHudMembershipButton.swf")]),
+    (Path("UI/UiModules/Main/wndMarketplaceRentalNag.xml"), [("UI\\MarketplaceRentalNag.swf", "UI\\sanctuaryMarketplaceRentalNag.swf")]),
+    (Path("UI/UiModules/Main/wndJobTrialExpired.xml"), [("UI\\JobTrialExpired.swf", "UI\\sanctuaryJobTrialExpired.swf")]),
+    (Path("UI/UiModules/Main/wndNewItemRem.xml"), [("UI\\NewItemRem.swf", "UI\\sanctuaryNewItemRem.swf")]),
+    (Path("UI/UiModules/Main/wndNpxPlayMore.xml"), [("UI\\NpxPlayMore.swf", "UI\\sanctuaryNpxPlayMore.swf")]),
+    (Path("UI/UiModules/Main/wndUpgradeDialog.xml"), [("UI\\upgrade_dialog.swf", "UI\\sanctuaryUpgradeDialog.swf")]),
+    # Character select and creation, the loading widgets and the tutorials (login/*.as).
+    (Path("UI/UiModules/Main/wndCharacterSelectV2.xml"), [("UI\\CharacterSelectV2.swf", "UI\\sanctuaryCharacterSelectV2.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterCreateType.xml"), [("UI\\characterCreateType.swf", "UI\\sanctuaryCharacterCreateType.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterCreate.xml"), [("UI\\charCreate.swf", "UI\\sanctuaryCharCreate.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterNameScreen.xml"), [("UI\\characterNameScreen.swf", "UI\\sanctuaryCharacterNameScreen.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterCustomNameScreen.xml"), [("UI\\characterCustomNameScreen.swf", "UI\\sanctuaryCharacterCustomNameScreen.swf")]),
+    (Path("UI/UiModules/Main/wndLoadingLarge.xml"), [("UI\\loading_large.swf", "UI\\sanctuaryLoadingLarge.swf")]),
+    (Path("UI/UiModules/Main/wndLoadingProgress.xml"), [("UI\\loading_progress.swf", "UI\\sanctuaryLoadingProgress.swf")]),
+    (Path("UI/UiModules/Main/wndAssetLoadingStatus.xml"), [("UI\\AssetLoadingStatus.swf", "UI\\sanctuaryAssetLoadingStatus.swf")]),
+    (Path("UI/UiModules/Main/wndTutorialDialog.xml"), [("UI\\tutorial_dialog.swf", "UI\\sanctuaryTutorialDialog.swf")]),
+    (Path("UI/UiModules/Main/wndNewPlayerFTEWindow.xml"), [("UI\\NewPlayerFTEWindow.swf", "UI\\sanctuaryNewPlayerFTEWindow.swf")]),
+    (Path("UI/UiModules/Main/wndCombatFTEWindow.xml"), [("UI\\CombatFTEWindow.swf", "UI\\sanctuaryCombatFTEWindow.swf")]),
+    (Path("UI/UiModules/Main/wndFTELogoutReward.xml"), [("UI\\FTELogoutReward.swf", "UI\\sanctuaryFTELogoutReward.swf")]),
+    (Path("UI/UiModules/Main/wndTutorialArrow.xml"), [("UI\\tutorial_arrow.swf", "UI\\sanctuaryTutorialArrow.swf")]),
+    (Path("UI/UiModules/Main/wndTutorialButton.xml"), [("UI\\tutorialButton.swf", "UI\\sanctuaryTutorialButton.swf")]),
+    # The character, social, activity and details windows.
+    (Path("UI/UiModules/Main/wndAbilitiesScreen.xml"), [("UI\\AbilitiesScreen.swf", "UI\\sanctuaryAbilitiesScreen.swf")]),
+    (Path("UI/UiModules/Main/wndPlayerInspect.xml"), [("UI\\PlayerInspect.swf", "UI\\sanctuaryPlayerInspect.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterNameChange.xml"), [("UI\\CharacterNameChange.swf", "UI\\sanctuaryCharacterNameChange.swf")]),
+    (Path("UI/UiModules/Main/wndPlayerTrade.xml"), [("UI\\player_trade.swf", "UI\\sanctuaryPlayerTrade.swf")]),
+    (Path("UI/UiModules/Main/wndTradeConfirmation.xml"), [("UI\\tradeConfirmation.swf", "UI\\sanctuaryTradeConfirmation.swf")]),
+    (Path("UI/UiModules/Main/wndFriendPicker.xml"), [("UI\\friendPicker.swf", "UI\\sanctuaryFriendPicker.swf")]),
+    (Path("UI/UiModules/Main/wndGuildDialog.xml"), [("UI\\guildDialog.swf", "UI\\sanctuaryGuildDialog.swf")]),
+    (Path("UI/UiModules/Main/wndCombatGroup.xml"), [("UI\\combatGroupWindow.swf", "UI\\sanctuaryCombatGroupWindow.swf")]),
+    (Path("UI/UiModules/Main/wndActivityCalendar.xml"), [("UI\\activityCalendar.swf", "UI\\sanctuaryActivityCalendar.swf")]),
+    (Path("UI/UiModules/Main/wndQuickMatch.xml"), [("UI\\quickMatch.swf", "UI\\sanctuaryQuickMatch.swf")]),
+    (Path("UI/UiModules/Main/wndMysteryChest.xml"), [("UI\\MysteryChest.swf", "UI\\sanctuaryMysteryChest.swf")]),
+    (Path("UI/UiModules/Main/wndKeyBinds.xml"), [("UI\\keybinds.swf", "UI\\sanctuaryKeyBinds.swf")]),
+    (Path("UI/UiModules/Main/wndCollectionDetails.xml"), [("UI\\collection_details.swf", "UI\\sanctuaryCollectionDetails.swf")]),
+    (Path("UI/UiModules/Main/wndRecipeDetails.xml"), [("UI\\recipe_details.swf", "UI\\sanctuaryRecipeDetails.swf")]),
+    # The release notes, What's New, VIP, credits, comic, bug report and Communicator windows, and the retired
+    # purchase gateway.
+    (Path("UI/UiModules/Main/wndUpdateNotes.xml"), [("UI\\UpdateNotes.swf", "UI\\sanctuaryUpdateNotes.swf")]),
+    (Path("UI/UiModules/Main/wndWhatsNewPanel.xml"), [("UI\\WhatsNewPanel.swf", "UI\\sanctuaryWhatsNewPanel.swf")]),
+    (Path("UI/UiModules/Main/wndNudgeWindow.xml"), [("UI\\WhatsNewPanel.swf", "UI\\sanctuaryWhatsNewPanel.swf")]),
+    (Path("UI/UiModules/Main/wndVipMessageWindow.xml"), [("UI\\VipMessageWindow.swf", "UI\\sanctuaryVipMessageWindow.swf")]),
+    (Path("UI/UiModules/Main/wndCredits.xml"), [("UI\\credits.swf", "UI\\sanctuaryCredits.swf")]),
+    (Path("UI/UiModules/Main/wndComicBook.xml"), [("UI\\ComicBook.swf", "UI\\sanctuaryComicBook.swf")]),
+    (Path("UI/UiModules/Main/wndBugSubmission.xml"), [("UI\\bugsubmission.swf", "UI\\sanctuaryBugSubmission.swf")]),
+    (Path("UI/UiModules/Main/wndCommunicator.xml"), [("UI\\Communicator.swf", "UI\\sanctuaryCommunicator.swf")]),
+    (Path("UI/UiModules/Main/wndFRGateway.xml"), [("UI\\FRGateway.swf", "UI\\sanctuaryFRGateway.swf")]),
+    (Path("UI/UiModules/Main/wndStoryBook.xml"), [("UI\\StoryBook.swf", "UI\\sanctuaryStoryBook.swf")]),
+    # Minigames in the Main Menu's style (minigames/*.as).
+    (Path("UI/UiModules/Main/wndMinigameStartScreen.xml"), [("UI\\MinigameStartScreen.swf", "UI\\sanctuaryMinigameStartScreen.swf")]),
+    (Path("UI/UiModules/Main/wndMinigameTitleBar.xml"), [("UI\\MinigameTitleBar.swf", "UI\\sanctuaryMinigameTitleBar.swf")]),
+    (Path("UI/UiModules/Main/wndFlashTimer.xml"), [("UI\\timer.swf", "UI\\sanctuaryTimer.swf")]),
+    (Path("UI/UiModules/Main/wndRaceTimer.xml"), [("UI\\timer.swf", "UI\\sanctuaryTimer.swf")]),
+    (Path("UI/UiModules/Main/wndPiratesTimer.xml"), [("UI\\timer.swf", "UI\\sanctuaryTimer.swf")]),
+    (Path("UI/UiModules/Main/wndFlashScore.xml"), [("UI\\score.swf", "UI\\sanctuaryScore.swf")]),
+    (Path("UI/UiModules/Main/wndMiniGameLevel.xml"), [("UI\\minigameLevel.swf", "UI\\sanctuaryMinigameLevel.swf")]),
+    (Path("UI/UiModules/Main/wndCountdown.xml"), [("UI\\countdown3.swf", "UI\\sanctuaryCountdown.swf")]),
+    (Path("UI/UiModules/Main/wndMiniGameEndStageScreen.xml"), [("UI\\MinigameEndStageScreen.swf", "UI\\sanctuaryMinigameEndStageScreen.swf")]),
+    (Path("UI/UiModules/Main/wndMinigameDetail.xml"), [("UI\\MinigameDetail.swf", "UI\\sanctuaryMinigameDetail.swf")]),
+    (Path("UI/UiModules/Main/wndScoreScreen.xml"), [("UI\\scoreScreen.swf", "UI\\sanctuaryScoreScreen.swf")]),
+    (Path("UI/UiModules/Main/wndMinigameStatusDescPane.xml"), [("UI\\minigameStatusDescPane.swf", "UI\\sanctuaryMinigameStatusDescPane.swf")]),
+    (Path("UI/UiModules/Main/wndMinigameStatusGroupPane.xml"), [("UI\\minigameStatusGroupPane.swf", "UI\\sanctuaryMinigameStatusGroupPane.swf")]),
+    (Path("UI/UiModules/Main/wndMinigameStatusObjPane.xml"), [("UI\\minigameStatusObjPane.swf", "UI\\sanctuaryMinigameStatusObjPane.swf")]),
+    (Path("UI/UiModules/Main/wndMiniGameTutorial.xml"), [("UI\\minigameTutorial.swf", "UI\\sanctuaryMinigameTutorial.swf")]),
+    (Path("UI/UiModules/Main/wndLobbyTop.xml"), [("UI\\lobbyTop.swf", "UI\\sanctuaryLobbyTop.swf")]),
+    (Path("UI/UiModules/Main/wndLobbyLeft.xml"), [("UI\\lobbyLeft.swf", "UI\\sanctuaryLobbyLeft.swf")]),
+    (Path("UI/UiModules/Main/wndLobbyLeftSoccer.xml"), [("UI\\lobbyLeftSoccer.swf", "UI\\sanctuaryLobbyLeftSoccer.swf")]),
+    (Path("UI/UiModules/Main/wndLobbyBottom.xml"), [("UI\\lobbyBottom.swf", "UI\\sanctuaryLobbyBottom.swf")]),
+    (Path("UI/UiModules/Main/wndFishFinder.xml"), [("UI\\fishFinder.swf", "UI\\sanctuaryFishFinder.swf")]),
+    (Path("UI/UiModules/Main/wndFishingTensionMeter.xml"), [("UI\\fishingMeter_REV2.swf", "UI\\sanctuaryFishingMeter.swf")]),
+    (Path("UI/UiModules/Main/wndFishingDistanceMeter.xml"), [("UI\\fishingmeters_bbe.swf", "UI\\sanctuaryFishingMeters.swf")]),
+    (Path("UI/UiModules/Main/wndFishingStatusText.xml"), [("UI\\fishingStatus.swf", "UI\\sanctuaryFishingStatus.swf")]),
+    (Path("UI/UiModules/Main/wndFishingCaughtStatusText.xml"), [("UI\\caughtStatus.swf", "UI\\sanctuaryCaughtStatus.swf")]),
+    (Path("UI/UiModules/Main/wndFishingReel.xml"), [("UI\\icon_reel.swf", "UI\\sanctuaryIconReel.swf")]),
+    (Path("UI/UiModules/Main/wndFishingCombo.xml"), [("UI\\icon_fish_combo_bbe.swf", "UI\\sanctuaryIconFishCombo.swf")]),
+    (Path("UI/UiModules/Main/wndFishingTutorialSplat.xml"), [("UI\\fish_moving_target.swf", "UI\\sanctuaryFishMovingTarget.swf")]),
+    (Path("UI/UiModules/Main/wndRaceResults.xml"), [("UI\\raceResults.swf", "UI\\sanctuaryRaceResults.swf")]),
+    (Path("UI/UiModules/Main/wndRaceOrder.xml"), [("UI\\raceOrder.swf", "UI\\sanctuaryRaceOrder.swf")]),
+    (Path("UI/UiModules/Main/wndRacePlaceKeeper.xml"), [("UI\\racePlaceMin.swf", "UI\\sanctuaryRacePlaceMin.swf")]),
+    (Path("UI/UiModules/Main/wndLapCount.xml"), [("UI\\raceLap.swf", "UI\\sanctuaryRaceLap.swf")]),
+    (Path("UI/UiModules/Main/wndRaceBoostBar.xml"), [("UI\\raceBoostBar.swf", "UI\\sanctuaryRaceBoostBar.swf")]),
+    (Path("UI/UiModules/Main/wndRaceItemSlots.xml"), [("UI\\itemSlots.swf", "UI\\sanctuaryItemSlots.swf")]),
+    (Path("UI/UiModules/Main/wndRaceMiniMap.xml"), [("UI\\race_mini_map.swf", "UI\\sanctuaryRaceMiniMap.swf")]),
+    (Path("UI/UiModules/Main/wndRaceBackwards.xml"), [("UI\\raceBackwards.swf", "UI\\sanctuaryRaceBackwards.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow1.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow2.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow3.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow4.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow5.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow6.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow7.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow8.xml"), [("UI\\raceProxArrow.swf", "UI\\sanctuaryRaceProxArrow.swf")]),
+    (Path("UI/UiModules/Main/wndRaceProxArrow9.xml"), [("UI\\raceProxArrow9.swf", "UI\\sanctuaryRaceProxArrow9.swf")]),
+    (Path("UI/UiModules/Main/wndDerbyResults.xml"), [("UI\\derbyResults.swf", "UI\\sanctuaryDerbyResults.swf")]),
+    (Path("UI/UiModules/Main/wndDerbyCrown.xml"), [("UI\\derbyCrown.swf", "UI\\sanctuaryDerbyCrown.swf")]),
+    (Path("UI/UiModules/Main/wndDemoHealthBar.xml"), [("UI\\demoHealthBar.swf", "UI\\sanctuaryDemoHealthBar.swf")]),
+    (Path("UI/UiModules/Main/wndSSSScores.xml"), [("UI\\SSS_score.swf", "UI\\sanctuarySSSScore.swf")]),
+    (Path("UI/UiModules/Main/wndSSSTimer.xml"), [("UI\\sss_timer.swf", "UI\\sanctuarySSSTimer.swf")]),
+    (Path("UI/UiModules/Main/wndSSSChargeMeter.xml"), [("UI\\scr_charge_meter_bbe.swf", "UI\\sanctuaryScrChargeMeter.swf")]),
+    (Path("UI/UiModules/Main/wndSSSPopups.xml"), [("UI\\SSS_popups.swf", "UI\\sanctuarySSSPopups.swf")]),
+    (Path("UI/UiModules/Main/wndPiratesPopups.xml"), [("UI\\SSS_popups.swf", "UI\\sanctuarySSSPopups.swf")]),
+    (Path("UI/UiModules/Main/wndSSSHalftimeBoard.xml"), [("UI\\SSS_halftimeBoard.swf", "UI\\sanctuarySSSHalftimeBoard.swf")]),
+    (Path("UI/UiModules/Main/wndPiratesResultScreen.xml"), [("UI\\pir_resultscreen_bbe.swf", "UI\\sanctuaryPirResultScreen.swf")]),
+    (Path("UI/UiModules/Main/wndPiratesShipSelection.xml"), [("UI\\pir_shipselection_bbe.swf", "UI\\sanctuaryPirShipSelection.swf")]),
+    (Path("UI/UiModules/Main/wndPiratesStandings.xml"), [("UI\\pir_player_ship_hold_bbe.swf", "UI\\sanctuaryPirStandings.swf")]),
+    (Path("UI/UiModules/Main/wndPiratesInstructions.xml"), [("UI\\pir_instructions_bbe.swf", "UI\\sanctuaryPirInstructions.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [
@@ -129,25 +307,40 @@ def load_mods():
     return mods
 
 
-def write_pack(path, assets):
-    # Single chunk: next chunk offset (0 = last), entry count, then
-    # (name length, name, data offset, data size, crc32) per entry, all big-endian.
-    index = struct.pack(">II", 0, len(assets))
-    index_size = len(index) + sum(4 + len(name.encode()) + 12 for name, _ in assets)
-
-    offset = max(PACK_DATA_ALIGNMENT, index_size)
-    blobs = []
+def pack_chunks(assets):
+    """Splits the assets into chunks whose index fits one PACK_INDEX_BLOCK."""
+    chunks = [[]]
+    size = 8
     for name, data in assets:
-        encoded = name.encode()
-        index += struct.pack(">I", len(encoded)) + encoded + struct.pack(">III", offset, len(data), zlib.crc32(data))
-        blobs.append(data)
-        offset += len(data)
+        entry = 4 + len(name.encode()) + 12
+        if chunks[-1] and size + entry > PACK_INDEX_BLOCK:
+            chunks.append([])
+            size = 8
+        chunks[-1].append((name, data))
+        size += entry
+    return chunks
 
+
+def write_pack(path, assets):
+    # Chunks, like the stock packs: each starts with its index (next chunk offset, 0 = last; entry count; then
+    # name length, name, data offset, data size and crc32 per entry, all big-endian) in a PACK_INDEX_BLOCK, followed
+    # by its entries' data.
+    chunks = pack_chunks(assets)
     with path.open("wb") as f:
-        f.write(index)
-        f.write(b"\0" * (max(PACK_DATA_ALIGNMENT, index_size) - len(index)))
-        for blob in blobs:
-            f.write(blob)
+        start = 0
+        for i, chunk in enumerate(chunks):
+            offset = start + PACK_INDEX_BLOCK
+            end = offset + sum(len(data) for _, data in chunk)
+            index = struct.pack(">II", end if i < len(chunks) - 1 else 0, len(chunk))
+            for name, data in chunk:
+                encoded = name.encode()
+                index += struct.pack(">I", len(encoded)) + encoded + struct.pack(">III", offset, len(data), zlib.crc32(data))
+                offset += len(data)
+            f.write(index)
+            f.write(b"\0" * (PACK_INDEX_BLOCK - len(index)))
+            for _, data in chunk:
+                f.write(data)
+            start = end
 
 
 def next_pack_path(client_dir):

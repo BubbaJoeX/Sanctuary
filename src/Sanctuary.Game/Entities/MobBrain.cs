@@ -36,7 +36,7 @@ public enum MobActionType
 /// <param name="Engaged">The target is new to this fight (the moment a player gets "attacked by" it).</param>
 public readonly record struct MobAction(MobActionType Type, ulong TargetGuid = 0, Vector3 Destination = default, bool Engaged = false);
 
-/// <param name="CanBeAttacked">Alive, not a referee in god mode, and able to fight back.</param>
+/// <param name="CanBeAttacked">Alive, not just revived, not a referee in god mode, and able to fight back.</param>
 public readonly record struct MobCandidate(ulong Guid, Vector3 Position, bool CanBeAttacked);
 
 /// <summary>

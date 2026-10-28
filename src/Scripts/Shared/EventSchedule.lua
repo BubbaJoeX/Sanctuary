@@ -4,6 +4,7 @@ EventSchedule.SecondsPerMinute = 60
 EventSchedule.SecondsPerHour = 60 * EventSchedule.SecondsPerMinute
 
 EventSchedule.BruceStageSeconds = 2 * EventSchedule.SecondsPerHour
+EventSchedule.MerchantStopSeconds = EventSchedule.SecondsPerHour
 
 function EventSchedule.secondOfDay(time)
     local date = os.date("*t", time)

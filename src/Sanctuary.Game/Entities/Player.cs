@@ -106,6 +106,12 @@ public sealed class Player : ClientPcData, IEntity
     public ConcurrentSet<ulong> Snoopers { get; } = [];
 
     /// <summary>
+    /// While set, also collects the system messages sent to this player, so the admin panel can show what a
+    /// command it ran as this referee answered.
+    /// </summary>
+    public ConcurrentQueue<string>? SystemMessageCapture { get; set; }
+
+    /// <summary>
     /// Where a referee stood before their last !gm goto/go/gather jump; !gm back returns there.
     /// </summary>
     public (int ZoneDefinitionId, ulong? OwnerId, Vector4 Position, Quaternion Rotation)? ReturnPoint { get; set; }
@@ -262,6 +268,31 @@ public sealed class Player : ClientPcData, IEntity
     }
 
     public void CancelScheduledSlotPacket(int actionBarId, int slotIndex) => _delayedSlotPackets.TryRemove((actionBarId, slotIndex), out _);
+
+    /// <summary>
+    /// Empties every action bar slot holding <paramref name="itemId"/>, after the item left the inventory.
+    /// </summary>
+    public void RemoveItemFromActionBars(int itemId)
+    {
+        foreach (var (actionBarId, slotItemGuids) in ActionBarItemGuids)
+        {
+            foreach (var slot in slotItemGuids.Where(entry => entry.Value == itemId).Select(entry => entry.Key).ToList())
+            {
+                slotItemGuids.Remove(slot);
+                CancelScheduledSlotPacket(actionBarId, slot);
+
+                var slotPacket = new ClientUpdatePacketUpdateActionBarSlot { Data = { Id = actionBarId, Slot = slot } };
+                slotPacket.Slot.IsEmpty = true;
+
+                SendTunneled(slotPacket);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether any job has <paramref name="itemId"/> equipped.
+    /// </summary>
+    public bool IsItemEquipped(int itemId) => Profiles.Any(profile => profile.Items.Values.Any(item => item.Id == itemId));
 
     public Vector4 StartingZonePosition { get; set; }
     public Quaternion StartingZoneRotation { get; set; }
@@ -1074,6 +1105,12 @@ public sealed class Player : ClientPcData, IEntity
 
         commandPacketInteractionList.List.Interactions.Add(InspectInteraction.Data);
 
+        if (!player.Ignores.Any(x => x.Guid == Guid))
+            commandPacketInteractionList.List.Interactions.Add(TradeInteraction.Data);
+
+        if (GroupInviteInteraction.CanInvite(player, this))
+            commandPacketInteractionList.List.Interactions.Add(GroupInviteInteraction.Data);
+
         if (Friends.Any(x => x.Guid == player.Guid))
         {
             commandPacketInteractionList.List.Interactions.Add(RemoveFriendInteraction.Data);
@@ -1672,8 +1709,18 @@ public sealed class Player : ClientPcData, IEntity
 
     public bool IsDead => _hitpoints <= 0;
 
+    /// <summary>
+    /// Knocked out by a mob and still down: waiting to recover at the zone's start, or for an ally to revive them.
+    /// </summary>
+    public bool IsKnockedOut => IsDead && _knockOut.IsDown;
+
+    /// <summary>
+    /// Just revived, so mobs leave them be for a moment (see <see cref="CombatRules.ReviveProtectionSeconds"/>).
+    /// </summary>
+    public bool IsReviveProtected => _knockOut.IsProtected(Environment.TickCount64);
+
     private long _lastCombatAt = long.MinValue;
-    private long? _respawnAt;
+    private readonly KnockOutTimer _knockOut = new();
 
     public bool IsInCombat => Environment.TickCount64 - _lastCombatAt < CombatRules.OutOfCombatSeconds * 1000L;
 
@@ -1701,6 +1748,9 @@ public sealed class Player : ClientPcData, IEntity
     public void EnterCombat()
     {
         MarkInCombat();
+
+        // A revived player who picks a fight is fair game again.
+        _knockOut.EndProtection();
 
         if (IsInCombatJob)
             return;
@@ -1767,7 +1817,7 @@ public sealed class Player : ClientPcData, IEntity
         // Running heal over time potions end with the fight.
         RemoveEffectGroup("Health");
 
-        _respawnAt = Environment.TickCount64 + CombatRules.PlayerRespawnSeconds * 1000L;
+        _knockOut.KnockOut(Environment.TickCount64);
 
         SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = KnockedOutCharacterState }, true);
 
@@ -1778,12 +1828,7 @@ public sealed class Player : ClientPcData, IEntity
 
     private void UpdateRespawn()
     {
-        if (_respawnAt is not { } respawnAt || Environment.TickCount64 < respawnAt)
-            return;
-
-        _respawnAt = null;
-
-        if (!IsDead)
+        if (!_knockOut.TryRecover(Environment.TickCount64) || !IsDead)
             return;
 
         var position = Zone.SpawnPosition;
@@ -1805,6 +1850,34 @@ public sealed class Player : ClientPcData, IEntity
         SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = IdleCharacterState }, true);
 
         _lastCombatAt = long.MinValue;
+    }
+
+    /// <summary>
+    /// Stands a knocked-out player back up where they lie with <paramref name="hitpoints"/> (at least 1), instead of
+    /// at the zone's start: everyone around sees them get up, and mobs leave them be for
+    /// <see cref="CombatRules.ReviveProtectionSeconds"/>. False if they aren't knocked out (or already got up).
+    /// </summary>
+    public bool Revive(int hitpoints, ulong reviverGuid = 0)
+    {
+        if (!IsDead || !_knockOut.TryRevive(Environment.TickCount64))
+            return false;
+
+        Hitpoints = Math.Max(1, hitpoints);
+
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = IdleCharacterState }, true);
+
+        // Own floating number, and the bar others see over this player.
+        SendTunneledToVisible(new PlayerUpdatePacketHitPointModification
+        {
+            SourceGuid = reviverGuid != 0 ? reviverGuid : Guid,
+            TargetGuid = Guid,
+            ShowDelta = true,
+            MaxHitpoints = MaxHitpoints,
+            CurrentHitpoints = _hitpoints,
+            Delta = _hitpoints
+        }, true);
+
+        return true;
     }
 
     /// <summary>

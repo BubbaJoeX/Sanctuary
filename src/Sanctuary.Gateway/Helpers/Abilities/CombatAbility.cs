@@ -32,7 +32,10 @@ public sealed class CombatAbility(AbilityServices services)
 
     public bool HandleAbility(Player player, AbilityPacketClientRequestStartAbility packet)
     {
-        if (player.IsDead || !player.TryGetToolbarAbility(packet.Data.Slot, out var kit, out var ability))
+        if (player.IsDead)
+            return ConsumableAbility.SendFailure(player, ConsumableAbility.KnockedOutStringId);
+
+        if (!player.TryGetToolbarAbility(packet.Data.Slot, out var kit, out var ability))
             return ConsumableAbility.SendFailure(player);
 
         var now = Environment.TickCount64;

@@ -1708,6 +1708,16 @@
     }
   },
   {
+    "AbilityId": 1654,
+    "Comment": "Resurrection Scroll DEPRECATED",
+    "CooldownMs": 10000,
+    "Revive": {
+      "HealthPercent": 50,
+      "Range": 10,
+      "EffectId": 4002
+    }
+  },
+  {
     "AbilityId": 1913,
     "Comment": "Batwing Cookie",
     "Group": "Transform",

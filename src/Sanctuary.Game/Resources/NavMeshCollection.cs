@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.IO;
 
 using Microsoft.Extensions.Logging;
@@ -46,5 +48,53 @@ public class NavMeshCollection : ObservableConcurrentDictionary<string, DtNavMes
 
         _logger.LogInformation("Loaded {Count} navmesh(es) from \"{Path}\".", Count, directoryPath);
         return true;
+    }
+
+    /// <summary>
+    /// Builds a navmesh for every zone with terrain but no navmesh, and saves it with the others so later starts
+    /// just load it. Delete a zone's .navmesh to rebuild it after its terrain changes.
+    /// </summary>
+    public void BuildMissing(TerrainCollection terrains, string directoryPath)
+    {
+        foreach (var (zoneName, terrain) in terrains)
+        {
+            if (ContainsKey(zoneName))
+                continue;
+
+            var stopwatch = Stopwatch.StartNew();
+
+            DtNavMesh? navMesh;
+
+            try
+            {
+                navMesh = NavMeshBuilder.Build(terrain);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Failed to build a navmesh for zone \"{ZoneName}\" from its terrain.", zoneName);
+                continue;
+            }
+
+            if (navMesh is null)
+            {
+                _logger.LogWarning("Zone \"{ZoneName}\"'s terrain has nothing walkable; it gets no navmesh.", zoneName);
+                continue;
+            }
+
+            this[zoneName] = navMesh;
+
+            _logger.LogInformation("Built a navmesh for zone \"{ZoneName}\" from its terrain in {Seconds:F1}s.",
+                zoneName, stopwatch.Elapsed.TotalSeconds);
+
+            try
+            {
+                Directory.CreateDirectory(directoryPath);
+                NavMeshBuilder.Save(Path.Combine(directoryPath, zoneName + ".navmesh"), navMesh);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                _logger.LogWarning(exception, "Couldn't save zone \"{ZoneName}\"'s navmesh; it will be built again next start.", zoneName);
+            }
+        }
     }
 }

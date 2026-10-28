@@ -60,4 +60,19 @@ public interface INpcContentManager
     void Choose(Player player, ulong npcGuid, int nodeId, int index);
 
     void EndConversation(Player player);
+
+    /// <summary>
+    /// A player hurt a mob without killing it: its script's onHurt(player, amount).
+    /// </summary>
+    void OnMobHurt(Npc npc, Player attacker, int damage);
+
+    /// <summary>
+    /// A player landed a mob's killing blow: its script's onDeath(killer) and the zone's mobKilled event.
+    /// </summary>
+    void OnMobDied(Npc npc, Player killer);
+
+    /// <summary>
+    /// A mob came back after its respawn time: its script's onRespawn().
+    /// </summary>
+    void OnMobRespawned(Npc npc);
 }

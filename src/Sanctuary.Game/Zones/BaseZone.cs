@@ -184,6 +184,18 @@ public abstract class BaseZone : IZone, IDisposable
 
     public bool HasNavMesh => _navMeshPathfinder is not null;
 
+    public bool IsStraightWalkClear(Vector3 start, Vector3 goal) =>
+        _navMeshPathfinder is null || _navMeshPathfinder.TryWalkStraight(start, goal, out _);
+
+    public Vector3 ClampStraightWalk(Vector3 start, Vector3 goal)
+    {
+        if (_navMeshPathfinder is null)
+            return goal;
+
+        _navMeshPathfinder.TryWalkStraight(start, goal, out var end);
+        return end;
+    }
+
     public bool TryFindNavMeshPath(Vector3 start, Vector3 goal, Queue<Vector3> waypoints) =>
         _navMeshPathfinder is not null && _navMeshPathfinder.TryFindPath(start, goal, waypoints);
 
@@ -420,6 +432,10 @@ public abstract class BaseZone : IZone, IDisposable
 
     public virtual void OnClientFinishedLoading(Player player)
     {
+        var scriptContext = GetOrCreateScriptContext();
+
+        if (scriptContext.HasCallbacks("playerEnter"))
+            scriptContext.FireEvent("playerEnter", NpcContent.WrapPlayer(player));
     }
 
     private void SendQuickChatData(Player player)
@@ -1348,8 +1364,13 @@ public abstract class BaseZone : IZone, IDisposable
 
     public bool TryRemovePlayer(ulong guid)
     {
-        if (!_players.TryRemove(guid, out _))
+        if (!_players.TryRemove(guid, out var player))
             return false;
+
+        var scriptContext = GetOrCreateScriptContext();
+
+        if (scriptContext.HasCallbacks("playerLeave"))
+            scriptContext.FireEvent("playerLeave", NpcContent.WrapPlayer(player));
 
         BoomboxHelper.RemovePlayer(this, guid);
 
@@ -1637,6 +1658,8 @@ public abstract class BaseZone : IZone, IDisposable
 
     public virtual bool IsSeasonActive(string seasonName) => false;
 
+    public virtual bool IsEventActive(string eventKey) => false;
+
     public void Broadcast(string message)
     {
         var broadcastPacketZone = new BroadcastPacketZone { Message = message };
@@ -1655,6 +1678,20 @@ public abstract class BaseZone : IZone, IDisposable
             if (Vector2.Distance(new Vector2(player.Position.X, player.Position.Z), center) <= radius)
                 player.SendTunneled(broadcastPacketZone);
         }
+    }
+
+    public int PlayerCount => _players.Count;
+
+    public IReadOnlyList<IScriptablePlayer> GetPlayers() => [.. Players.Select(NpcContent.WrapPlayer)];
+
+    public IScriptablePlayer? GetPlayer(ulong guid, string? name)
+    {
+        var player = guid != 0
+            ? _players.GetValueOrDefault(guid)
+            : Players.FirstOrDefault(x => string.Equals(x.Name.FullName, name, StringComparison.OrdinalIgnoreCase))
+                ?? Players.FirstOrDefault(x => string.Equals(x.Name.FirstName, name, StringComparison.OrdinalIgnoreCase));
+
+        return player is null ? null : NpcContent.WrapPlayer(player);
     }
 
     #endregion

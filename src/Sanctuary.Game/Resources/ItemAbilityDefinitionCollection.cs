@@ -80,9 +80,10 @@ public class ItemAbilityDefinitionCollection : ObservableConcurrentDictionary<in
         && (entry.DurationMs > 0 || entry.MovementSpeedBonus == 0 && entry.Scale == 0 && entry.Stats.Count == 0
             && (entry.AuraEffectId == 0 || IsOverTime(entry.Health) || IsOverTime(entry.Energy)))
         && IsValid(entry.Attack)
+        && IsValid(entry.Revive)
         && (entry.RewardTable is null || !string.IsNullOrWhiteSpace(entry.RewardTable))
         && (entry.CastEffectId != 0 || entry.DurationMs > 0 || entry.Health is not null || entry.Energy is not null || entry.Attack is not null
-            || entry.RewardTable is not null);
+            || entry.RewardTable is not null || entry.Revive is not null);
 
     public static bool IsOverTime(ItemAbilityRestoreDefinition? restore) => restore is { OverMs: > 0 };
 
@@ -98,6 +99,12 @@ public class ItemAbilityDefinitionCollection : ObservableConcurrentDictionary<in
            && attack.HitEffectId >= 0 && attack.ControlEffectId >= 0
            // It has to do something to the mob.
            && (attack.Damage > 0 || attack.Control != MobControl.None);
+
+    private static bool IsValid(ItemAbilityReviveDefinition? revive) =>
+        revive is null
+        || float.IsFinite(revive.HealthPercent) && revive.HealthPercent > 0 && revive.HealthPercent <= 100
+           && float.IsFinite(revive.Range) && revive.Range > 0
+           && revive.EffectId >= 0;
 
     private static bool IsValid(ItemAbilityRestoreDefinition? restore) =>
         restore is null

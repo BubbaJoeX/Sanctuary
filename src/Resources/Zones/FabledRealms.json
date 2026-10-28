@@ -20,7 +20,8 @@
   "Scripts": [
     "FabledRealms",
     "BruceConcert",
-    "HalloweenDanceOff"
+    "HalloweenDanceOff",
+    "MysteryMerchant"
   ],
   "EnabledClientAreaIds": [
     4173

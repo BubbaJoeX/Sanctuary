@@ -148,7 +148,37 @@ public class ScriptContext
         }
     }
 
-    public void FireEvent(string eventName)
+    public void FireEvent(string eventName) => FireEvent(eventName, _eventArguments);
+
+    /// <summary>
+    /// Fires an event whose callbacks get the owner (e.g. the zone), then a player.
+    /// </summary>
+    public void FireEvent(string eventName, IScriptablePlayer player) =>
+        FireEvent(eventName, [.. _eventArguments, new LuaValue(new PlayerUserData(player))]);
+
+    /// <summary>
+    /// Fires an event whose callbacks get the owner, then an NPC and the player involved (or nil).
+    /// </summary>
+    public void FireEvent(string eventName, IScriptableNpc npc, IScriptablePlayer? player) =>
+        FireEvent(eventName, [.. _eventArguments, new LuaValue(NpcUserData.GetOrCreate(npc)),
+            player is null ? LuaValue.Nil : new LuaValue(new PlayerUserData(player))]);
+
+    /// <summary>
+    /// Fires an event whose callbacks get the owner, then a piece of text (e.g. an event key).
+    /// </summary>
+    public void FireEvent(string eventName, string argument) =>
+        FireEvent(eventName, [.. _eventArguments, argument]);
+
+    /// <summary>
+    /// Fires an event whose callbacks get the owner, then a player and a piece of text.
+    /// </summary>
+    public void FireEvent(string eventName, IScriptablePlayer player, string argument) =>
+        FireEvent(eventName, [.. _eventArguments, new LuaValue(new PlayerUserData(player)), argument]);
+
+    public bool HasCallbacks(string eventName) =>
+        _eventCallbacks.TryGetValue(eventName, out var callbacks) && !callbacks.Snapshot.IsEmpty;
+
+    private void FireEvent(string eventName, LuaValue[] arguments)
     {
         if (!_eventCallbacks.TryGetValue(eventName, out var callbacks))
             return;
@@ -156,15 +186,15 @@ public class ScriptContext
         foreach (var handler in callbacks.Snapshot)
         {
             // Fire and forget; safe since InvokeCallbackAsync does not throw.
-            _ = InvokeCallbackAsync(eventName, handler);
+            _ = InvokeCallbackAsync(eventName, handler, arguments);
         }
     }
 
-    private async Task InvokeCallbackAsync(string eventName, LuaFunction handler)
+    private async Task InvokeCallbackAsync(string eventName, LuaFunction handler, LuaValue[] arguments)
     {
         try
         {
-            await _runtime.CallAsync(handler, _eventArguments);
+            await _runtime.CallAsync(handler, arguments);
         }
         catch (Exception ex)
         {
