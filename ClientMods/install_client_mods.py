@@ -93,6 +93,7 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndVideoCaptureHud.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
     (Path("UI/UiModules/Main/wndScreenCapture.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
     (Path("UI/UiModules/Main/wndOptions.xml"), [("UI\\options.swf", "UI\\sanctuaryOptions.swf")]),
+    (Path("UI/UiModules/Main/wndOptionsPanel.xml"), [("UI\\optionsPanel.swf", "UI\\sanctuaryOptionsPanel.swf")]),
     (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
     (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
     (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),

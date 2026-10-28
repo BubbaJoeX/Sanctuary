@@ -9,6 +9,9 @@
 -- (BaseClient_CurrentPOI_OnDataUpdate and NotificationHandler:LoadingZone); these add Sanctuary's own, with the
 -- badges build_client_mods.py makes (REGION_BADGES).
 --
+-- Game Options: tells the window's More Options page (options/game_options.as) the current values of the two
+-- settings it adds.
+--
 -- Lua 5.1, run by the client. Safe to load more than once.
 
 SanctuaryClient = SanctuaryClient or {}
@@ -56,5 +59,19 @@ function NotificationHandler:LoadingZone(areaId)
    movie:Reset()
    movie:Invoke("playZoneAnimation", Ui.GetString("note_nowEntering"), badge .. ".swf", "0xCCCCFF")
    Ui.PlaySoundFromDefinition(16125)
+end
+
+-- The More Options page shows two settings the stock Lua handles but OptionElements.txt never lists, so nothing
+-- tells the window their values; this does, after the stock rows.
+SanctuaryClient.StockOptionsUpdateSettings = SanctuaryClient.StockOptionsUpdateSettings or Options.UpdateSettings
+
+function Options:UpdateSettings(...)
+   local result = SanctuaryClient.StockOptionsUpdateSettings(self, ...)
+   local movie = GfxCtrl.Find(self.optionsPanelSwf)
+   if movie then
+      movie:Invoke("goSetValue", "setShowAllNamePlates", Options:CheckStoredOption("NamePlateSettings", "ShowAllNamePlates", 1))
+      movie:Invoke("goSetValue", "SetOptionShowTrainers", Ui.GetUserOptionsValue("MinimapOptions", "ShowTrainers", 1))
+   end
+   return result
 end
 -- ===== End Sanctuary client extensions =====

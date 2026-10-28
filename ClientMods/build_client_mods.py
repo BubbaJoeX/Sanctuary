@@ -114,6 +114,8 @@ MODS = [
     ("FRJobBrowser", "sanctuaryFRJobBrowser", "\\frame_1\\DoAction", [script_dir / "jobs" / "job_browser.as"], []),
     # The system menu (wndOptions: the top bar's gear or Esc).
     ("options", "sanctuaryOptions", "\\frame_1\\DoAction", [script_dir / "system_menu" / "system_menu.as"], []),
+    # The Game Options window (wndOptionsPanel): the Main Menu's style and a More Options page.
+    ("optionsPanel", "sanctuaryOptionsPanel", "\\frame_1\\DoAction", [script_dir / "options" / "game_options.as"], []),
     # The top bar without its screenshot and Ask for Help buttons (FRAME_SCRIPTS gives it a script to append to),
     # and the video recorder/screenshot HUD whose record button sat in it, hidden.
     ("FRUtilNavigation", "sanctuaryFRUtilNavigation", "\\frame_1\\DoAction", [script_dir / "hud" / "top_bar.as"], []),
@@ -219,6 +221,8 @@ REMOVED_DEPTHS = {
     "aboutpet": [3, 4, 10],
     # The system menu's squirrel medallion (one shape with the squirrel; it's redrawn from TEXTURE_SYMBOLS).
     "options": [8],
+    # The Game Options window's close button (an unnamed exitButton.swf clip); options/game_options.as draws a gold one.
+    "optionsPanel": [246],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
