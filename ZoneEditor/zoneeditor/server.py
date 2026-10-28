@@ -216,6 +216,10 @@ class Handler(BaseHTTPRequestHandler):
         """Shows the desktop's file dialog for a zone file: {"path": ...}, or {"path": null} if cancelled."""
         self.send_json({"path": self.workspace.pick_zone_file(json.loads(body or b"{}").get("start"))})
 
+    def post_live_seed(self, query, body):
+        """Live files for a client launch.ps1 is about to start on its own (Workspace.seed_last)."""
+        self.send_json(self.workspace.seed_last())
+
     def post_play(self, query, body):
         data = json.loads(body or b"{}")
         self.send_json(self.workspace.play(bool(data.get("servers")), data.get("zone"), data.get("cells") or []))

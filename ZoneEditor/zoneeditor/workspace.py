@@ -45,6 +45,9 @@ PAYLOAD_CACHE = 32                             # chunk payloads kept per zone, a
 LIVE_FOLDER = "zone-editor-live"
 LIVE_KINDS = (".gzne", ".gcnk", ".gck2")
 LIVE_CHECK = 5                                 # seconds between checks that the client still runs
+LIVE_GRACE = 90                                # seconds a launched client has to start before its live files go
+LAUNCH_SERVER = "localhost:20042"              # the login server launch.ps1 points its clients at ($LoginServer)
+LAUNCH_TIMEOUT = 300                           # seconds launch.ps1 has to start the servers and client
 
 
 INLINE_NUMBERS = re.compile(r"\[\s*(-?[\d.eE+-]+(?:,\s*-?[\d.eE+-]+)*)\s*\]")
@@ -198,7 +201,10 @@ class Workspace:
         self._usage_thread = None
         self._live_lock = threading.Lock()
         self._live_thread = None
+        self._launching = False                # a client is being started: its live files stay
+        self._grace_until = 0.0
         self._live_record = self.cache_dir / "live.json"
+        self._seed_record = self.cache_dir / "live-seed.json"   # the last Test in game's zone and chunks
         self.live = json.loads(self._live_record.read_text(encoding="utf-8")) if self._live_record.exists() else None
         if self.live_dir.exists():
             # Left by an editor stopped before its client: kept while the client runs, then cleared.
@@ -674,25 +680,65 @@ class Workspace:
         go to the client as live files (seed_live), so later saves reach it without another restart."""
         import subprocess
 
-        import install_client_mods
-
         script = self.root / "launch.ps1"
         if not script.exists():
             raise FileNotFoundError(f"{script} not found; start the client yourself")
-        # Held until the client is up, so the live files aren't cleared in between for want of a client.
-        with self._live_lock:
-            subprocess.run(["taskkill", "/IM", "FreeRealms.exe", "/F"], capture_output=True)
-            for _ in range(40):
-                if not install_client_mods.client_running():
-                    break
-                time.sleep(0.25)
-            unlock = self.unlock_client()
-            live = self.seed_live(zone, cells)
+        self._launching = True
+        try:
+            with self._live_lock:
+                self._stop_clients()
+                for _ in range(40):
+                    if not self._clients():
+                        break
+                    time.sleep(0.25)
+                unlock = self.unlock_client()
+                live = self.seed_live(zone, cells)
+            # Its output goes to a file, not a pipe: the servers it starts inherit its handles and would hold a pipe
+            # open long after it's done, and the editor would wait on it for good.
+            log = self.root / "run" / "editor-launch.log"
+            log.parent.mkdir(parents=True, exist_ok=True)
             arguments = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
                          "-NoBuild" if servers else "-ClientOnly"]
-            result = subprocess.run(arguments, capture_output=True, text=True, timeout=300, cwd=self.root)
+            # The live files are seeded already; launch.ps1 seeds them itself for clients it starts on its own.
+            environment = {**os.environ, "ZONE_EDITOR_SEEDED": "1"}
+            with log.open("w", encoding="utf-8", errors="replace") as output:
+                result = subprocess.run(arguments, stdin=subprocess.DEVNULL, stdout=output, stderr=subprocess.STDOUT,
+                                        timeout=LAUNCH_TIMEOUT, cwd=self.root, env=environment)
+        finally:
+            self._launching = False
+            self._grace_until = time.monotonic() + LIVE_GRACE
         return {"ok": result.returncode == 0, "servers": servers, "unlock": unlock, "live": live,
-                "output": (result.stdout + result.stderr).strip()[-1500:]}
+                "output": log.read_text(encoding="utf-8", errors="replace").strip()[-1500:]}
+
+    def _clients(self) -> list:
+        """The game clients launch.ps1 points at this checkout's servers (other sessions' stay out of it)."""
+        import subprocess
+
+        command = ("Get-CimInstance Win32_Process -Filter \"Name='FreeRealms.exe'\" | "
+                   f"Where-Object {{ $_.CommandLine -match 'Server={re.escape(LAUNCH_SERVER)}(\\s|$)' }} | "
+                   "ForEach-Object { $_.ProcessId }")
+        result = subprocess.run(["powershell", "-NoProfile", "-Command", command], capture_output=True, text=True,
+                                stdin=subprocess.DEVNULL, timeout=30)
+        return [int(line) for line in result.stdout.split() if line.isdigit()]
+
+    def _stop_clients(self):
+        import subprocess
+
+        for pid in self._clients():
+            subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True, stdin=subprocess.DEVNULL)
+
+    def seed_last(self) -> dict:
+        """Live files for a client launch.ps1 starts on its own: the zone and chunks Test in game last seeded."""
+        if not self._seed_record.exists():
+            return {"zone": None, "files": 0, "chunks": 0}
+        last = json.loads(self._seed_record.read_text(encoding="utf-8"))
+        with self._live_lock:
+            try:
+                live = self.seed_live(last["zone"], last["cells"])
+            except (KeyError, ValueError, OSError) as error:
+                return {"zone": None, "files": 0, "chunks": 0, "error": str(error)}
+            self._grace_until = time.monotonic() + LIVE_GRACE
+        return live
 
     # --- live files ----------------------------------------------------------------------------------
 
@@ -720,6 +766,7 @@ class Workspace:
         self.live = {"zone": project.name, "files": names}
         self._live_record.parent.mkdir(parents=True, exist_ok=True)
         self._live_record.write_text(json.dumps(self.live), encoding="utf-8")
+        self._seed_record.write_text(json.dumps({"zone": zone, "cells": [list(c) for c in cells]}), encoding="utf-8")
         self._watch_live()
         return {"zone": project.name, "files": len(names), "chunks": sum(name.endswith(".gcnk") for name in names)}
 
@@ -753,7 +800,8 @@ class Workspace:
         import install_client_mods
 
         with self._live_lock:
-            if self.live_dir.exists() and install_client_mods.client_running():
+            starting = self._launching or time.monotonic() < self._grace_until
+            if self.live_dir.exists() and (starting or install_client_mods.client_running()):
                 return False
             self._drop_live()
             return True

@@ -28,6 +28,8 @@ const LIVE_GLOW = 0x0b4a57;
 const REFRESH_AWAY = 2048;
 const REFRESH_PAUSE = 2000;
 const REFRESH_NEAR = 1500;
+// Milliseconds before reopening a dropped feed, longer each try.
+const RECONNECT_DELAYS = [1000, 2000, 5000, 10000];
 // The client's tint shaders double the colour in gamma space (a mid-grey texture shows the tint as it is); the
 // viewport lights in linear space, where that's 2^2.2.
 const MODULATE_2X = Math.pow(2, 2.2);
@@ -222,6 +224,9 @@ export class LiveLayer {
     this.held = null;           // the object being dragged: its server updates wait
     this.source = null;
     this.connected = false;
+    this.following = null;      // the zone name the feed follows, kept while it reconnects
+    this.retry = null;
+    this.retries = 0;
     this.visible = true;
     this.sinceRangeCheck = RANGE_CHECK;
   }
@@ -241,24 +246,60 @@ export class LiveLayer {
   // Follows the server's zone with this name, if it's a running world zone.
   open(name) {
     this.close();
+    this.following = name;
+    this.retries = 0;
+    return this.follow();
+  }
+
+  follow() {
+    const name = this.following;
     if (!this.available || !name) return null;
     this.zone = this.zones.find((z) => z.editable && z.name.toLowerCase() === name.toLowerCase()) ?? null;
     if (!this.zone) { this.hooks.status?.(); return null; }
 
     const source = new EventSource(`${GAME}/zones/${encodeURIComponent(this.zone.key)}/live?npcs=true`);
     this.source = source;
-    source.onopen = () => { this.connected = true; this.hooks.status?.(); };
-    source.onerror = () => { this.connected = false; this.hooks.status?.(); };
+    source.onopen = () => { this.connected = true; this.retries = 0; this.hooks.status?.(); };
+    source.onerror = () => {
+      this.connected = false;
+      this.hooks.status?.();
+      // The browser retries a dropped stream by itself, but not one the panel answered with an error (the Gateway
+      // down or restarting).
+      if (source.readyState === EventSource.CLOSED) this.reconnect();
+    };
     source.addEventListener("looks", (event) => this.addLooks(JSON.parse(event.data)));
     source.addEventListener("players", (event) => this.updatePlayers(JSON.parse(event.data)));
     source.addEventListener("objects", (event) => this.updateObjects(JSON.parse(event.data)));
     source.addEventListener("npcs", (event) => this.updateNpcs(JSON.parse(event.data)));
-    source.addEventListener("closed", () => this.close());
+    source.addEventListener("closed", () => this.reconnect());
     this.hooks.status?.();
     return this.zone;
   }
 
+  // The feed ended (the Gateway restarted, the zone stopped): it's opened again, a little later each time until the
+  // server answers, and its first updates have everyone and everything again, so the view never stays out of step.
+  reconnect() {
+    if (this.retry || !this.following) return;
+    this.source?.close();
+    this.source = null;
+    this.connected = false;
+    this.hooks.status?.();
+    const delay = RECONNECT_DELAYS[Math.min(this.retries++, RECONNECT_DELAYS.length - 1)];
+    this.retry = setTimeout(async () => {
+      this.retry = null;
+      const name = this.following;
+      if (!name) return;
+      // The zones again: a restarted server may run them under new keys, or not yet.
+      await this.connect();
+      if (this.following !== name) return;
+      if (!this.follow()) this.reconnect();
+    }, delay);
+  }
+
   close() {
+    this.following = null;
+    clearTimeout(this.retry);
+    this.retry = null;
     this.source?.close();
     this.source = null;
     this.connected = false;
@@ -602,7 +643,7 @@ export class LiveLayer {
   }
 
   // Shows saved chunks in the referee's own client, which reads them from the editor's live files when it loads that
-  // ground again: their character steps over to ground far from them and back to where it stood. changed are the
+  // ground again: their character steps over to solid ground far from them and back to where it stood. changed are the
   // saved chunks' centres, ground every chunk centre in the zone (somewhere to stand). Says why when it didn't go:
   // "offline" (no game here), "no-character", "elsewhere" (in another zone), "far" (nowhere near them) or "small"
   // (no ground far enough away).
@@ -615,9 +656,12 @@ export class LiveLayer {
     if (player.zone !== this.zone.key) return { refreshed: false, reason: "elsewhere", name };
     const from = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
     if (!changed.some((c) => from(c, player) < REFRESH_NEAR)) return { refreshed: false, reason: "far", name };
+    // Of the ground far enough off, the spot nearest the middle of the zone: its edges can have chunks the client
+    // can't load (out of bounds, missing on the asset server), and with nothing loaded under it, it drops nothing.
+    const middle = { x: ground.reduce((sum, g) => sum + g.x, 0) / ground.length, z: ground.reduce((sum, g) => sum + g.z, 0) / ground.length };
     const spot = ground
       .filter((g) => from(g, player) >= REFRESH_AWAY && changed.every((c) => from(g, c) >= REFRESH_AWAY))
-      .sort((a, b) => from(a, player) - from(b, player))[0];
+      .sort((a, b) => from(a, middle) - from(b, middle))[0];
     if (!spot) return { refreshed: false, reason: "small", name };
 
     const path = `/players/${player.id}/teleport`;
