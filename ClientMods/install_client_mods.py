@@ -194,6 +194,17 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndKeyBinds.xml"), [("UI\\keybinds.swf", "UI\\sanctuaryKeyBinds.swf")]),
     (Path("UI/UiModules/Main/wndCollectionDetails.xml"), [("UI\\collection_details.swf", "UI\\sanctuaryCollectionDetails.swf")]),
     (Path("UI/UiModules/Main/wndRecipeDetails.xml"), [("UI\\recipe_details.swf", "UI\\sanctuaryRecipeDetails.swf")]),
+    # The release notes, What's New, VIP, credits, comic, bug report and Communicator windows, and the retired
+    # purchase gateway.
+    (Path("UI/UiModules/Main/wndUpdateNotes.xml"), [("UI\\UpdateNotes.swf", "UI\\sanctuaryUpdateNotes.swf")]),
+    (Path("UI/UiModules/Main/wndWhatsNewPanel.xml"), [("UI\\WhatsNewPanel.swf", "UI\\sanctuaryWhatsNewPanel.swf")]),
+    (Path("UI/UiModules/Main/wndNudgeWindow.xml"), [("UI\\WhatsNewPanel.swf", "UI\\sanctuaryWhatsNewPanel.swf")]),
+    (Path("UI/UiModules/Main/wndVipMessageWindow.xml"), [("UI\\VipMessageWindow.swf", "UI\\sanctuaryVipMessageWindow.swf")]),
+    (Path("UI/UiModules/Main/wndCredits.xml"), [("UI\\credits.swf", "UI\\sanctuaryCredits.swf")]),
+    (Path("UI/UiModules/Main/wndComicBook.xml"), [("UI\\ComicBook.swf", "UI\\sanctuaryComicBook.swf")]),
+    (Path("UI/UiModules/Main/wndBugSubmission.xml"), [("UI\\bugsubmission.swf", "UI\\sanctuaryBugSubmission.swf")]),
+    (Path("UI/UiModules/Main/wndCommunicator.xml"), [("UI\\Communicator.swf", "UI\\sanctuaryCommunicator.swf")]),
+    (Path("UI/UiModules/Main/wndFRGateway.xml"), [("UI\\FRGateway.swf", "UI\\sanctuaryFRGateway.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

@@ -269,6 +269,22 @@ MODS = [
      [script_dir / "collections" / "collection_details.as"], []),
     ("recipe_details", "sanctuaryRecipeDetails", "\\frame_1\\DoAction",
      [script_dir / "recipes" / "recipe_details.as"], []),
+    # The release notes window (wndUpdateNotes), in the home screen's Patch Notes style (FRAME_SCRIPTS gives it a script).
+    ("UpdateNotes", "sanctuaryUpdateNotes", "\\frame_1\\DoAction", [script_dir / "dialogs" / "update_notes.as"], []),
+    # The What's New panel and the nudge window (wndWhatsNewPanel, wndNudgeWindow).
+    ("WhatsNewPanel", "sanctuaryWhatsNewPanel", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "whats_new_panel.as"], []),
+    ("VipMessageWindow", "sanctuaryVipMessageWindow", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "vip_message_window.as"], []),
+    ("credits", "sanctuaryCredits", "\\frame_1\\DoAction", [script_dir / "dialogs" / "credits.as"], []),
+    # The comic reader; its buttons are repainted gold (RESKINS).
+    ("ComicBook", "sanctuaryComicBook", "\\frame_1\\DoAction", [script_dir / "dialogs" / "comic_book.as"], []),
+    ("bugsubmission", "sanctuaryBugSubmission", "\\frame_1\\DoAction",
+     [script_dir / "dialogs" / "bug_submission.as"], []),
+    # The Communicator (wndCommunicator); its rows are repainted navy (RESKINS).
+    ("Communicator", "sanctuaryCommunicator", "\\frame_1\\DoAction", [script_dir / "dialogs" / "communicator.as"], []),
+    # SOE's Station Cash and membership purchase gateway: hidden, and closes itself when Lua shows it.
+    ("FRGateway", "sanctuaryFRGateway", "\\frame_1\\DoAction", [script_dir / "retired" / "fr_gateway.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
     ("starCounter", "sanctuaryStarCounter", None, [], []),
@@ -317,6 +333,8 @@ TEXTURE_SYMBOLS = {
     ],
     # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The release notes window (dialogs/update_notes.as): the home screen's scroll beside its title.
+    "UpdateNotes": [("img3694898642873637100.dds", "sanctuaryNotesScroll", 64, 0)],
     # The loading widgets' spinner centre (login/loading_large.as, asset_loading_status.as): the hub tree in the OSFR
     # loading screen's blue.
     "loading_large": [("img7070878317473001703.dds", "sanctuaryLoadingTree", 64, 120)],
@@ -372,7 +390,7 @@ TEXT_SYMBOLS = {
 }
 
 # Stock movies with no main timeline script, which get an empty one on frame 1 for their patch to be appended to.
-FRAME_SCRIPTS = {"FRUtilNavigation", "loading_large"}
+FRAME_SCRIPTS = {"FRUtilNavigation", "loading_large", "UpdateNotes"}
 
 # Stock movie -> root timeline depths whose placements are dropped: plain shapes, which ActionScript can't hide.
 REMOVED_DEPTHS = {
@@ -406,6 +424,10 @@ REMOVED_DEPTHS = {
     "characterCustomNameScreen": [1],
     # The Key Bindings window's title (unnamed S##KeyBinding text); options/key_binds.as draws a gold one.
     "keybinds": [33],
+    # The What's New panel's Chatty medallion over the frame (dialogs/whats_new_panel.as).
+    "WhatsNewPanel": [26],
+    # The VIP window's divider and the star plate behind its title (dialogs/vip_message_window.as).
+    "VipMessageWindow": [1, 5],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
@@ -415,6 +437,14 @@ REMOVED_DEPTHS = {
 # it and embedded in its place, so the HUD keeps its layout: purple, brown and beige chrome becomes navy glass,
 # frosted glass and gold, and the minimap gets a new ring.
 RESKINS = {
+    # The comic reader's Back, Next and Teleport buttons, gold (dialogs/comic_book.as).
+    "ComicBook": {"img17833834512335390436.dds": "gold", "img2890311447890245816.dds": "gold",
+                  "img11554051185741859593.dds": "gold"},
+    # The Communicator's message rows and count pill in navy, the portrait wells glass, the close button gold.
+    "Communicator": {"img6543649261988115921.dds": "navy", "img5666523385181486117.dds": "glass",
+                     "img13115225108423942551.dds": "navy",
+                     "img11703706485306448850.dds": "gold", "img11195698492298293249.dds": "gold",
+                     "img6059153550170124511.dds": "gold", "img3500904800706947234.dds": "gold"},
     # The radial menu: its ring as the minimap's gold ring and the label plates in navy (hud/radial_menu.as).
     "radial_menu": {"img4750046603015685743.dds": "ring", "img11228090852709686526.dds": "navy"},
     # The quick chat menu's category bubbles (navy, gold while hovered) and their arrow. Phrase bubbles keep the
