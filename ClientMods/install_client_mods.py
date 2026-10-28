@@ -179,6 +179,21 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndFTELogoutReward.xml"), [("UI\\FTELogoutReward.swf", "UI\\sanctuaryFTELogoutReward.swf")]),
     (Path("UI/UiModules/Main/wndTutorialArrow.xml"), [("UI\\tutorial_arrow.swf", "UI\\sanctuaryTutorialArrow.swf")]),
     (Path("UI/UiModules/Main/wndTutorialButton.xml"), [("UI\\tutorialButton.swf", "UI\\sanctuaryTutorialButton.swf")]),
+    # The character, social, activity and details windows.
+    (Path("UI/UiModules/Main/wndAbilitiesScreen.xml"), [("UI\\AbilitiesScreen.swf", "UI\\sanctuaryAbilitiesScreen.swf")]),
+    (Path("UI/UiModules/Main/wndPlayerInspect.xml"), [("UI\\PlayerInspect.swf", "UI\\sanctuaryPlayerInspect.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterNameChange.xml"), [("UI\\CharacterNameChange.swf", "UI\\sanctuaryCharacterNameChange.swf")]),
+    (Path("UI/UiModules/Main/wndPlayerTrade.xml"), [("UI\\player_trade.swf", "UI\\sanctuaryPlayerTrade.swf")]),
+    (Path("UI/UiModules/Main/wndTradeConfirmation.xml"), [("UI\\tradeConfirmation.swf", "UI\\sanctuaryTradeConfirmation.swf")]),
+    (Path("UI/UiModules/Main/wndFriendPicker.xml"), [("UI\\friendPicker.swf", "UI\\sanctuaryFriendPicker.swf")]),
+    (Path("UI/UiModules/Main/wndGuildDialog.xml"), [("UI\\guildDialog.swf", "UI\\sanctuaryGuildDialog.swf")]),
+    (Path("UI/UiModules/Main/wndCombatGroup.xml"), [("UI\\combatGroupWindow.swf", "UI\\sanctuaryCombatGroupWindow.swf")]),
+    (Path("UI/UiModules/Main/wndActivityCalendar.xml"), [("UI\\activityCalendar.swf", "UI\\sanctuaryActivityCalendar.swf")]),
+    (Path("UI/UiModules/Main/wndQuickMatch.xml"), [("UI\\quickMatch.swf", "UI\\sanctuaryQuickMatch.swf")]),
+    (Path("UI/UiModules/Main/wndMysteryChest.xml"), [("UI\\MysteryChest.swf", "UI\\sanctuaryMysteryChest.swf")]),
+    (Path("UI/UiModules/Main/wndKeyBinds.xml"), [("UI\\keybinds.swf", "UI\\sanctuaryKeyBinds.swf")]),
+    (Path("UI/UiModules/Main/wndCollectionDetails.xml"), [("UI\\collection_details.swf", "UI\\sanctuaryCollectionDetails.swf")]),
+    (Path("UI/UiModules/Main/wndRecipeDetails.xml"), [("UI\\recipe_details.swf", "UI\\sanctuaryRecipeDetails.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

@@ -243,6 +243,32 @@ MODS = [
      [script_dir / "login" / "tutorial" / "tutorial_arrow.as"], []),
     ("tutorialButton", "sanctuaryTutorialButton", "\\frame_1\\DoAction",
      [script_dir / "login" / "tutorial" / "tutorial_button.as"], []),
+    # The character screen's Abilities tab, inspecting a player, renaming, trading, the friend picker, the guild
+    # prompt, the unit and group frames, the activity calendar, matchmaking, the mystery chest, key bindings, and
+    # a collection's or recipe's page.
+    ("AbilitiesScreen", "sanctuaryAbilitiesScreen", "\\frame_1\\DoAction",
+     [script_dir / "abilities" / "abilities_screen.as"], []),
+    ("PlayerInspect", "sanctuaryPlayerInspect", "\\frame_1\\DoAction",
+     [script_dir / "character" / "player_inspect.as"], []),
+    ("CharacterNameChange", "sanctuaryCharacterNameChange", "\\frame_1\\DoAction",
+     [script_dir / "character" / "name_change.as"], []),
+    ("player_trade", "sanctuaryPlayerTrade", "\\frame_1\\DoAction", [script_dir / "social" / "player_trade.as"], []),
+    ("tradeConfirmation", "sanctuaryTradeConfirmation", "\\frame_1\\DoAction",
+     [script_dir / "social" / "trade_confirmation.as"], []),
+    ("friendPicker", "sanctuaryFriendPicker", "\\frame_1\\DoAction", [script_dir / "social" / "friend_picker.as"], []),
+    ("guildDialog", "sanctuaryGuildDialog", "\\frame_1\\DoAction", [script_dir / "social" / "guild_dialog.as"], []),
+    ("combatGroupWindow", "sanctuaryCombatGroupWindow", "\\frame_1\\DoAction",
+     [script_dir / "social" / "combat_group.as"], []),
+    ("activityCalendar", "sanctuaryActivityCalendar", "\\frame_1\\DoAction",
+     [script_dir / "activities" / "activity_calendar.as"], []),
+    ("quickMatch", "sanctuaryQuickMatch", "\\frame_1\\DoAction", [script_dir / "activities" / "quick_match.as"], []),
+    ("MysteryChest", "sanctuaryMysteryChest", "\\frame_1\\DoAction",
+     [script_dir / "activities" / "mystery_chest.as"], []),
+    ("keybinds", "sanctuaryKeyBinds", "\\frame_1\\DoAction", [script_dir / "options" / "key_binds.as"], []),
+    ("collection_details", "sanctuaryCollectionDetails", "\\frame_1\\DoAction",
+     [script_dir / "collections" / "collection_details.as"], []),
+    ("recipe_details", "sanctuaryRecipeDetails", "\\frame_1\\DoAction",
+     [script_dir / "recipes" / "recipe_details.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
     ("starCounter", "sanctuaryStarCounter", None, [], []),
@@ -378,6 +404,8 @@ REMOVED_DEPTHS = {
     "characterCreateType": [1, 12, 13],
     # The custom name entry's banner.
     "characterCustomNameScreen": [1],
+    # The Key Bindings window's title (unnamed S##KeyBinding text); options/key_binds.as draws a gold one.
+    "keybinds": [33],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
