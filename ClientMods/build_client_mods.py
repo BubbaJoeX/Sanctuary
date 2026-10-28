@@ -7,7 +7,8 @@ so mods are published under new names, and install_client_mods.py points the cli
 
 Mods:
   sanctuaryChatWindowCtrl.gfx (+ .lst.z) - chat window with the referee (GM) panel, popped in from a Referee
-                                           tab on the screen edge for referees (chatWindowCtrl/gm_panel.as).
+                                           tab on the screen edge for referees (chatWindowCtrl/gm_panel.as), and
+                                          chat on fading navy glass (chatWindowCtrl/chat_style.as).
   sanctuaryGameDock.gfx (+ .lst.z)       - main hub with the Marketplace icon as the Coin Shop
                                            (gamedock/coin_shop_button.as appended).
   sanctuaryDialog.gfx (+ .lst.z)         - NPC dialog that stays hidden when sent empty, so GM conversations
@@ -68,7 +69,8 @@ NO_STATION_CASH = "no_station_cash.as"
 
 # (stock movie, published name, script inside the movie to append to, patch sources, recolored symbols to add)
 MODS = [
-    ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction", [script_dir / "chatWindowCtrl" / "gm_panel.as"], []),
+    ("chatWindowCtrl", "sanctuaryChatWindowCtrl", "\\frame_2\\DoAction",
+     [script_dir / "chatWindowCtrl" / "gm_panel.as", script_dir / "chatWindowCtrl" / "chat_style.as"], []),
     ("gamedock", "sanctuaryGameDock", "\\frame_1\\DoAction",
      [script_dir / "gamedock" / "coin_shop_button.as"], []),
     ("dialog", "sanctuaryDialog", "\\frame_1\\DoAction", [script_dir / "dialog" / "dialog_hide.as"], []),
