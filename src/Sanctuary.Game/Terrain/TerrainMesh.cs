@@ -11,6 +11,20 @@ public sealed class TerrainMesh
     public required float TileSize { get; init; }
     public required IReadOnlyDictionary<(int X, int Z), TerrainTile> Tiles { get; init; }
 
+    /// <summary>
+    /// Every tile's triangles as one mesh, for building a navmesh.
+    /// </summary>
+    public (float[] Vertices, int[] Faces) GetTriangles()
+    {
+        List<float> vertices = [];
+        List<int> faces = [];
+
+        foreach (var tile in Tiles.Values)
+            tile.AppendTriangles(vertices, faces);
+
+        return ([.. vertices], [.. faces]);
+    }
+
     public bool TryGetGroundHeight(float x, float z, float fromY, float maxDrop, out float height)
     {
         var tileKey = ((int)MathF.Floor(x / TileSize), (int)MathF.Floor(z / TileSize));

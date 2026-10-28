@@ -91,6 +91,26 @@ public sealed class TerrainTile
 
     private int GetCell(float offset) => Math.Clamp((int)MathF.Floor(offset / _cellSize), 0, CellsPerSide - 1);
 
+    /// <summary>
+    /// Adds this tile's triangles to a shared vertex list (x, y, z each) and face list (three vertex numbers each).
+    /// </summary>
+    public void AppendTriangles(List<float> vertices, List<int> faces)
+    {
+        var firstVertex = vertices.Count / 3;
+
+        foreach (var vertex in _vertices)
+        {
+            vertices.Add(vertex.X);
+            vertices.Add(vertex.Y);
+            vertices.Add(vertex.Z);
+        }
+
+        var indexCount = _shortIndices?.Length ?? _indices!.Length;
+
+        for (var index = 0; index < indexCount; index++)
+            faces.Add(firstVertex + GetIndex(index));
+    }
+
     private int GetIndex(int index) => _shortIndices is not null ? _shortIndices[index] : _indices![index];
 
     private void GetCellBounds(int triangle, out int minCellX, out int maxCellX, out int minCellZ, out int maxCellZ)
