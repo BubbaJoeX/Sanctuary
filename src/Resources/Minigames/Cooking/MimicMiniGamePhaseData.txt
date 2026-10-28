@@ -1,0 +1,313 @@
+# Cooking recipes (game_cooking.swf): the rounds of each dish, in the movie's own MimicMiniGamePhaseData.txt
+# layout (Cooking.CookingGameServer.OnLevelData). The server sends a recipe's rows to the movie as OnPhaseDataMsg,
+# one row each. Lines starting with # are for people and are never sent.
+#
+# ID^GAME^SEQUENCE^DURATION^OBJECTIVE_ID^START_ID^END_ID^STAGE_TYPE^DATA1^...^DATA11
+#   GAME      the recipe: the MiniGameData.txt id of its game (the Level of its Mimic.json entry)
+#   SEQUENCE  the round, from 1; rows with the same GAME and SEQUENCE are alternatives, one picked each play
+#   DURATION  seconds on the round's timer
+#   DATA1     the round's ingredient (Cooking.CookingIngredient), or the dish for addIngredients, cook and stir
+#
+# STAGE_TYPE, and what DATA2 on mean (the movie clamps each to the range given):
+#    1 tenderize       hits needed (1-30), start speed, acceleration (1-100), top speed (25-100), hits per smash (1-10),
+#                      points per hit, hammer size + % (0-300)
+#    2 chop            chops (1-20), clicks per chop (1-5), slices per chop (1-10), points per slice
+#    3 smashFruit      smashes per fruit (1-15), fruits (1-6), hammer size + %, meter speeds (medium, high),
+#                      hits per medium smash (2-10) and high smash (3-20), points per weak, medium and high smash
+#    4 crack           cracks per egg, eggs (1-5), points per egg, hammer size + %, meter speeds (medium, high)
+#    6 measure         good precision % (5-50), perfect precision %, points for good, points for perfect
+#    7 stir            turns (1-50), % chance the arrow turns around, points per turn, bonus per turn the right way
+#    8 saw             pieces, motion per piece (3-20), points per piece (500 and up)
+#    9 grate           swipes (3-15), seconds the bowl takes to cross (1-15), how far it moves (0-480),
+#                      points per catch, catches between cheers (3-10, 0 for 5)
+#   10 slice           pieces, drift allowed for a bad, good and perfect cut, points per bad, good and perfect cut,
+#                      pieces a perfect cut takes off (1-5)
+#   11 cook            seconds before the heat starts (1-10), % cooked when light, medium, perfect and burnt,
+#                      points for raw, light, medium, perfect and burnt pieces (DATA5 must not be 0)
+#   12 cut             points per good cut, points per perfect cut
+#   13 setHeat         (unused), points for the round
+#   17 addIngredients  1 to list the ingredients in the order they were prepared (else last first), points per one
+#
+# The movie only has art for: slice Tumtumnip, Moonbean, Choychoy, Snowturnip, Nettleshroom, Frostradish,
+# Glowtruffle, Onion; cut the eight fish; tenderize and saw Mystery, Bear, Bat and Spider Meat; grate Chugaroot,
+# Chocolate, Honeytwig; chop the five leaves; smash the eight fruits and Tomato; crack Egg; churn (setHeat) Vanilla
+# or Chocolate Ice Cream; measure the broths, Slugmud, Rootbeer and Spaghetti (its sauce); add to a Meat or Fish
+# Saute, Sundae, Omelet, Meat Stew, Fish Soup or Spaghetti; cook the sautes and Spaghetti; stir the stew, the soup
+# and Spaghetti. What was sliced, cut, grated, tenderized, smashed or chopped is what the add round asks for, so
+# every recipe prepares something first (five things at most: the list shows five).
+
+# 46 Strong Arm Stew (difficulty 1): tenderize Bear Meat, slice Tumtumnip, measure Brown Broth, add to the Meat Stew, stir the Meat Stew
+4601^46^1^30^0^0^0^1^9^8^25^5^50^3^150^40^0^0^0
+4602^46^2^30^0^0^0^10^12^5^200^60^25^100^200^400^2^0^0
+4603^46^3^25^0^0^0^6^49^20^8^400^1000^0^0^0^0^0^0
+4604^46^4^30^0^0^0^17^46^1^500^0^0^0^0^0^0^0^0
+4605^46^5^30^0^0^0^7^46^6^0^150^50^0^0^0^0^0^0
+
+# 173 Simone's Spiralmint Steak (difficulty 1): tenderize Bear Meat, chop Spiralmint, slice Moonbean, add to the Meat Saute, cook the Meat Saute
+17301^173^1^30^0^0^0^1^9^8^25^5^50^3^150^40^0^0^0
+17302^173^2^25^0^0^0^2^26^6^1^3^150^0^0^0^0^0^0
+17303^173^3^30^0^0^0^10^13^8^200^60^25^100^200^400^2^0^0
+17304^173^4^30^0^0^0^17^42^1^500^0^0^0^0^0^0^0^0
+17305^173^5^35^0^0^0^11^42^3^30^55^80^100^0^400^800^1600^50
+
+# 174 Savory Spiralmint Soup (difficulty 1): chop Spiralmint, slice Snowturnip, measure Grey Broth, add to the Fish Soup, stir the Fish Soup
+17401^174^1^25^0^0^0^2^26^6^1^3^150^0^0^0^0^0^0
+17402^174^2^30^0^0^0^10^15^7^200^60^25^100^200^400^2^0^0
+17403^174^3^25^0^0^0^6^48^20^8^400^1000^0^0^0^0^0^0
+17404^174^4^30^0^0^0^17^47^1^500^0^0^0^0^0^0^0^0
+17405^174^5^30^0^0^0^7^47^6^0^150^50^0^0^0^0^0^0
+
+# 175 Gummyfruit Gumbo (difficulty 1): tenderize Spider Meat, smash Gummyfruit, measure Thick Broth, add to the Meat Stew, stir the Meat Stew
+17501^175^1^30^0^0^0^1^11^8^25^5^50^3^150^40^0^0^0
+17502^175^2^30^0^0^0^3^40^2^2^40^30^40^2^3^100^200^400
+17503^175^3^25^0^0^0^6^53^20^8^400^1000^0^0^0^0^0^0
+17504^175^4^30^0^0^0^17^46^1^500^0^0^0^0^0^0^0^0
+17505^175^5^30^0^0^0^7^46^6^0^150^50^0^0^0^0^0^0
+
+# 176 Three Leaf Omelette (difficulty 1): crack Egg, chop Rainleaf, chop Sunleaf, chop Florenleaf, add to the Omelet
+17601^176^1^30^0^0^0^4^23^2^3^200^40^30^40^0^0^0^0
+17602^176^2^25^0^0^0^2^24^6^1^3^150^0^0^0^0^0^0
+17603^176^3^25^0^0^0^2^25^6^1^3^150^0^0^0^0^0^0
+17604^176^4^25^0^0^0^2^28^6^1^3^150^0^0^0^0^0^0
+17605^176^5^30^0^0^0^17^45^1^500^0^0^0^0^0^0^0^0
+
+# 177 Tangy Tumtumnip Mishmash (difficulty 1): slice Tumtumnip, slice Choychoy, smash Stickfruit, add to the Meat Saute, cook the Meat Saute
+17701^177^1^30^0^0^0^10^12^5^200^60^25^100^200^400^2^0^0
+17702^177^2^30^0^0^0^10^14^8^200^60^25^100^200^400^2^0^0
+17703^177^3^30^0^0^0^3^36^2^2^40^30^40^2^3^100^200^400
+17704^177^4^30^0^0^0^17^42^1^500^0^0^0^0^0^0^0^0
+17705^177^5^35^0^0^0^11^42^3^30^55^80^100^0^400^800^1600^50
+
+# 178 Burnetta's Curious Creation (difficulty 1): cut Coldscale, smash Bumbleberry, measure Purple Broth, add to the Fish Soup, stir the Fish Soup
+17801^178^1^30^0^0^0^12^6^300^600^0^0^0^0^0^0^0^0
+17802^178^2^30^0^0^0^3^39^2^2^40^30^40^2^3^100^200^400
+17803^178^3^25^0^0^0^6^51^20^8^400^1000^0^0^0^0^0^0
+17804^178^4^30^0^0^0^17^47^1^500^0^0^0^0^0^0^0^0
+17805^178^5^30^0^0^0^7^47^6^0^150^50^0^0^0^0^0^0
+
+# 179 Crispy Choychoy Delight (difficulty 1): slice Choychoy, tenderize Bat Meat, slice Snowturnip, add to the Meat Saute, cook the Meat Saute
+17901^179^1^30^0^0^0^10^14^8^200^60^25^100^200^400^2^0^0
+17902^179^2^30^0^0^0^1^10^8^25^5^50^3^150^40^0^0^0
+17903^179^3^30^0^0^0^10^15^7^200^60^25^100^200^400^2^0^0
+17904^179^4^30^0^0^0^17^42^1^500^0^0^0^0^0^0^0^0
+17905^179^5^35^0^0^0^11^42^3^30^55^80^100^0^400^800^1600^50
+
+# 180 Mystery Pot Roast (difficulty 1): saw Mystery Meat, tenderize Mystery Meat, slice Frostradish, measure Brown Broth, add to the Meat Stew, stir the Meat Stew
+18001^180^1^25^0^0^0^8^8^4^8^500^0^0^0^0^0^0^0
+18002^180^2^30^0^0^0^1^8^8^25^5^50^3^150^40^0^0^0
+18003^180^3^30^0^0^0^10^17^9^200^60^25^100^200^400^2^0^0
+18004^180^4^25^0^0^0^6^49^20^8^400^1000^0^0^0^0^0^0
+18005^180^5^30^0^0^0^17^46^1^500^0^0^0^0^0^0^0^0
+18006^180^6^30^0^0^0^7^46^6^0^150^50^0^0^0^0^0^0
+
+# 181 Slugmud Surprise (difficulty 1): tenderize Spider Meat, slice Nettleshroom, measure Slugmud, add to the Meat Stew, stir the Meat Stew
+18101^181^1^30^0^0^0^1^11^8^25^5^50^3^150^40^0^0^0
+18102^181^2^30^0^0^0^10^16^5^200^60^25^100^200^400^2^0^0
+18103^181^3^25^0^0^0^6^19^20^8^400^1000^0^0^0^0^0^0
+18104^181^4^30^0^0^0^17^46^1^500^0^0^0^0^0^0^0^0
+18105^181^5^30^0^0^0^7^46^6^0^150^50^0^0^0^0^0^0
+
+# 182 Glerga's Gourmet Goulash (difficulty 1): tenderize Bear Meat, slice Glowtruffle, grate Chugaroot, measure Red Broth, add to the Meat Stew, stir the Meat Stew
+18201^182^1^30^0^0^0^1^9^8^25^5^50^3^150^40^0^0^0
+18202^182^2^30^0^0^0^10^18^4^200^60^25^100^200^400^2^0^0
+18203^182^3^30^0^0^0^9^31^6^6^120^150^5^0^0^0^0^0
+18204^182^4^25^0^0^0^6^52^20^8^400^1000^0^0^0^0^0^0
+18205^182^5^30^0^0^0^17^46^1^500^0^0^0^0^0^0^0^0
+18206^182^6^30^0^0^0^7^46^6^0^150^50^0^0^0^0^0^0
+
+# 183 Gummyfruit Topped Sundae (difficulty 1): churn Vanilla Ice Cream, smash Gummyfruit, add to the Sundae
+18301^183^1^30^0^0^0^13^21^0^1000^0^0^0^0^0^0^0^0
+18302^183^2^30^0^0^0^3^40^2^2^40^30^40^2^3^100^200^400
+18303^183^3^30^0^0^0^17^44^1^500^0^0^0^0^0^0^0^0
+
+# 184 Sizzling Snowberry Saute (difficulty 3): tenderize Bear Meat, smash Snowberry, slice Frostradish, slice Snowturnip, add to the Meat Saute, cook the Meat Saute
+18401^184^1^25^0^0^0^1^9^12^35^10^70^3^200^20^0^0^0
+18402^184^2^25^0^0^0^3^38^3^3^20^45^60^2^4^150^300^600
+18403^184^3^25^0^0^0^10^17^12^200^45^18^150^300^600^2^0^0
+18404^184^4^25^0^0^0^10^15^10^200^45^18^150^300^600^2^0^0
+18405^184^5^25^0^0^0^17^42^0^600^0^0^0^0^0^0^0^0
+18406^184^6^30^0^0^0^11^42^2^30^50^75^92^0^500^1000^2000^50
+
+# 185 Fried Starnut Stick (difficulty 3): cut Frostgill, smash Starnut, slice Moonbean, add to the Fish Saute, cook the Fish Saute
+18501^185^1^25^0^0^0^12^7^400^800^0^0^0^0^0^0^0^0
+18502^185^2^25^0^0^0^3^34^3^3^20^45^60^2^4^150^300^600
+18503^185^3^25^0^0^0^10^13^10^200^45^18^150^300^600^2^0^0
+18504^185^4^25^0^0^0^17^43^0^600^0^0^0^0^0^0^0^0
+18505^185^5^30^0^0^0^11^43^2^30^50^75^92^0^500^1000^2000^50
+
+# 186 Starnut Sundae (difficulty 3): churn Chocolate Ice Cream, smash Starnut, grate Chocolate, add to the Sundae
+18601^186^1^25^0^0^0^13^22^0^1500^0^0^0^0^0^0^0^0
+18602^186^2^25^0^0^0^3^34^3^3^20^45^60^2^4^150^300^600
+18603^186^3^25^0^0^0^9^32^9^4^240^200^5^0^0^0^0^0
+18604^186^4^25^0^0^0^17^44^0^600^0^0^0^0^0^0^0^0
+
+# 187 Stainberry Chocolate Gumdrop (difficulty 3): churn Chocolate Ice Cream, smash Stainberry, grate Chocolate, smash Gummyfruit, add to the Sundae
+18701^187^1^25^0^0^0^13^22^0^1500^0^0^0^0^0^0^0^0
+18702^187^2^25^0^0^0^3^41^3^3^20^45^60^2^4^150^300^600
+18703^187^3^25^0^0^0^9^32^9^4^240^200^5^0^0^0^0^0
+18704^187^4^25^0^0^0^3^40^3^3^20^45^60^2^4^150^300^600
+18705^187^5^25^0^0^0^17^44^0^600^0^0^0^0^0^0^0^0
+
+# 188 Rainleaf Wrapped Dumpling (difficulty 3): cut Toothy Tetra, chop Rainleaf, slice Tumtumnip, add to the Fish Saute, cook the Fish Saute
+18801^188^1^25^0^0^0^12^5^400^800^0^0^0^0^0^0^0^0
+18802^188^2^22^0^0^0^2^24^9^2^2^200^0^0^0^0^0^0
+18803^188^3^25^0^0^0^10^12^6^200^45^18^150^300^600^2^0^0
+18804^188^4^25^0^0^0^17^43^0^600^0^0^0^0^0^0^0^0
+18805^188^5^30^0^0^0^11^43^2^30^50^75^92^0^500^1000^2000^50
+
+# 189 Merri's Marinated Mystery Meat (difficulty 3): saw Mystery Meat, tenderize Mystery Meat, chop Scragglevine, slice Glowtruffle, add to the Meat Saute, cook the Meat Saute
+18901^189^1^20^0^0^0^8^8^6^12^600^0^0^0^0^0^0^0
+18902^189^2^25^0^0^0^1^8^12^35^10^70^3^200^20^0^0^0
+18903^189^3^22^0^0^0^2^27^9^2^2^200^0^0^0^0^0^0
+18904^189^4^25^0^0^0^10^18^6^200^45^18^150^300^600^2^0^0
+18905^189^5^25^0^0^0^17^42^0^600^0^0^0^0^0^0^0^0
+18906^189^6^30^0^0^0^11^42^2^30^50^75^92^0^500^1000^2000^50
+
+# 190 Royal Stew du Jour (difficulty 3): tenderize Bear Meat, slice Glowtruffle, slice Moonbean, grate Honeytwig, measure Yellow Broth, add to the Meat Stew, stir the Meat Stew
+19001^190^1^25^0^0^0^1^9^12^35^10^70^3^200^20^0^0^0
+19002^190^2^25^0^0^0^10^18^6^200^45^18^150^300^600^2^0^0
+19003^190^3^25^0^0^0^10^13^10^200^45^18^150^300^600^2^0^0
+19004^190^4^25^0^0^0^9^33^9^4^240^200^5^0^0^0^0^0
+19005^190^5^22^0^0^0^6^50^14^5^600^1500^0^0^0^0^0^0
+19006^190^6^25^0^0^0^17^46^0^600^0^0^0^0^0^0^0^0
+19007^190^7^25^0^0^0^7^46^10^20^200^75^0^0^0^0^0^0
+
+# 191 Seared Stainberry (difficulty 3): tenderize Bat Meat, smash Stainberry, slice Nettleshroom, add to the Meat Saute, cook the Meat Saute
+19101^191^1^25^0^0^0^1^10^12^35^10^70^3^200^20^0^0^0
+19102^191^2^25^0^0^0^3^41^3^3^20^45^60^2^4^150^300^600
+19103^191^3^25^0^0^0^10^16^6^200^45^18^150^300^600^2^0^0
+19104^191^4^25^0^0^0^17^42^0^600^0^0^0^0^0^0^0^0
+19105^191^5^30^0^0^0^11^42^2^30^50^75^92^0^500^1000^2000^50
+
+# 192 Spicy Vegetable Stirfry (difficulty 3): slice Choychoy, slice Frostradish, slice Nettleshroom, smash Tomato, add to the Meat Saute, cook the Meat Saute
+19201^192^1^25^0^0^0^10^14^11^200^45^18^150^300^600^2^0^0
+19202^192^2^25^0^0^0^10^17^12^200^45^18^150^300^600^2^0^0
+19203^192^3^25^0^0^0^10^16^6^200^45^18^150^300^600^2^0^0
+19204^192^4^25^0^0^0^3^56^3^3^20^45^60^2^4^150^300^600
+19205^192^5^25^0^0^0^17^42^0^600^0^0^0^0^0^0^0^0
+19206^192^6^30^0^0^0^11^42^2^30^50^75^92^0^500^1000^2000^50
+
+# 193 Oddly Colored Omelette (difficulty 3): crack Egg, slice Glowtruffle, chop Scragglevine, grate Chugaroot, add to the Omelet
+19301^193^1^25^0^0^0^4^23^3^4^300^20^45^60^0^0^0^0
+19302^193^2^25^0^0^0^10^18^6^200^45^18^150^300^600^2^0^0
+19303^193^3^22^0^0^0^2^27^9^2^2^200^0^0^0^0^0^0
+19304^193^4^25^0^0^0^9^31^9^4^240^200^5^0^0^0^0^0
+19305^193^5^25^0^0^0^17^45^0^600^0^0^0^0^0^0^0^0
+
+# 194 De'Flor Family Fried Dumplings (difficulty 3): cut Coldscale, chop Florenleaf, slice Snowturnip, smash Punkin, add to the Fish Saute, cook the Fish Saute
+19401^194^1^25^0^0^0^12^6^400^800^0^0^0^0^0^0^0^0
+19402^194^2^22^0^0^0^2^28^9^2^2^200^0^0^0^0^0^0
+19403^194^3^25^0^0^0^10^15^10^200^45^18^150^300^600^2^0^0
+19404^194^4^25^0^0^0^3^35^3^3^20^45^60^2^4^150^300^600
+19405^194^5^25^0^0^0^17^43^0^600^0^0^0^0^0^0^0^0
+19406^194^6^30^0^0^0^11^43^2^30^50^75^92^0^500^1000^2000^50
+
+# 195 Honey Roasted Moonbean (difficulty 5): saw Spider Meat, tenderize Spider Meat, slice Moonbean, grate Honeytwig, slice Glowtruffle, add to the Meat Saute, cook the Meat Saute
+19501^195^1^18^0^0^0^8^11^8^16^700^0^0^0^0^0^0^0
+19502^195^2^20^0^0^0^1^11^16^45^15^90^3^250^0^0^0^0
+19503^195^3^20^0^0^0^10^13^13^200^30^12^200^400^800^1^0^0
+19504^195^4^20^0^0^0^9^33^12^3^360^250^5^0^0^0^0^0
+19505^195^5^20^0^0^0^10^18^7^200^30^12^200^400^800^1^0^0
+19506^195^6^20^0^0^0^17^42^0^700^0^0^0^0^0^0^0^0
+19507^195^7^25^0^0^0^11^42^1^25^45^72^85^0^600^1200^2400^50
+
+# 196 Moonbean Sundae Sweettreat (difficulty 5): churn Vanilla Ice Cream, slice Moonbean, smash Bumbleberry, grate Honeytwig, add to the Sundae
+19601^196^1^20^0^0^0^13^21^0^2000^0^0^0^0^0^0^0^0
+19602^196^2^20^0^0^0^10^13^13^200^30^12^200^400^800^1^0^0
+19603^196^3^20^0^0^0^3^39^4^4^0^60^80^3^5^200^400^800
+19604^196^4^20^0^0^0^9^33^12^3^360^250^5^0^0^0^0^0
+19605^196^5^20^0^0^0^17^44^0^700^0^0^0^0^0^0^0^0
+
+# 197 Candied Briarmelon (difficulty 5): smash Briarmelon, grate Honeytwig, smash Stickfruit, chop Spiralmint, add to the Meat Saute, cook the Meat Saute
+19701^197^1^20^0^0^0^3^37^4^4^0^60^80^3^5^200^400^800
+19702^197^2^20^0^0^0^9^33^12^3^360^250^5^0^0^0^0^0
+19703^197^3^20^0^0^0^3^36^4^4^0^60^80^3^5^200^400^800
+19704^197^4^18^0^0^0^2^26^12^2^2^250^0^0^0^0^0^0
+19705^197^5^20^0^0^0^17^42^0^700^0^0^0^0^0^0^0^0
+19706^197^6^25^0^0^0^11^42^1^25^45^72^85^0^600^1200^2400^50
+
+# 198 Briarmelon Surprise (difficulty 5): tenderize Bat Meat, smash Briarmelon, slice Frostradish, grate Chugaroot, measure Rootbeer, add to the Meat Stew, stir the Meat Stew
+19801^198^1^20^0^0^0^1^10^16^45^15^90^3^250^0^0^0^0
+19802^198^2^20^0^0^0^3^37^4^4^0^60^80^3^5^200^400^800
+19803^198^3^20^0^0^0^10^17^15^200^30^12^200^400^800^1^0^0
+19804^198^4^20^0^0^0^9^31^12^3^360^250^5^0^0^0^0^0
+19805^198^5^18^0^0^0^6^20^10^3^800^2000^0^0^0^0^0^0
+19806^198^6^20^0^0^0^17^46^0^700^0^0^0^0^0^0^0^0
+19807^198^7^22^0^0^0^7^46^15^40^250^100^0^0^0^0^0^0
+
+# 199 Moonbean Mousse (difficulty 5): churn Chocolate Ice Cream, slice Moonbean, grate Chocolate, smash Snowberry, add to the Sundae
+19901^199^1^20^0^0^0^13^22^0^2000^0^0^0^0^0^0^0^0
+19902^199^2^20^0^0^0^10^13^13^200^30^12^200^400^800^1^0^0
+19903^199^3^20^0^0^0^9^32^12^3^360^250^5^0^0^0^0^0
+19904^199^4^20^0^0^0^3^38^4^4^0^60^80^3^5^200^400^800
+19905^199^5^20^0^0^0^17^44^0^700^0^0^0^0^0^0^0^0
+
+# 662 Honey Milk Sundae (difficulty 1): churn Vanilla Ice Cream, grate Honeytwig, add to the Sundae
+66201^662^1^30^0^0^0^13^21^0^1000^0^0^0^0^0^0^0^0
+66202^662^2^30^0^0^0^9^33^6^6^120^150^5^0^0^0^0^0
+66203^662^3^30^0^0^0^17^44^1^500^0^0^0^0^0^0^0^0
+
+# 665 Spaghetti with Meatballs (difficulty 1): smash Tomato, slice Onion, add to the Spaghetti, cook the Spaghetti, measure the sauce, stir the Spaghetti
+66501^665^1^30^0^0^0^3^56^2^2^40^30^40^2^3^100^200^400
+66502^665^2^30^0^0^0^10^57^5^200^60^25^100^200^400^2^0^0
+66503^665^3^30^0^0^0^17^54^1^500^0^0^0^0^0^0^0^0
+66504^665^4^35^0^0^0^11^54^3^30^55^80^100^0^400^800^1600^50
+66505^665^5^25^0^0^0^6^54^20^8^400^1000^0^0^0^0^0^0
+66506^665^6^30^0^0^0^7^54^6^0^150^50^0^0^0^0^0^0
+
+# 675 Purple-Nosed Sharkin Soup (difficulty 1): cut Purple-Nosed Shark, slice Frostradish, chop Scragglevine, measure Grey Broth, add to the Fish Soup, stir the Fish Soup
+67501^675^1^30^0^0^0^12^1^300^600^0^0^0^0^0^0^0^0
+67502^675^2^30^0^0^0^10^17^9^200^60^25^100^200^400^2^0^0
+67503^675^3^25^0^0^0^2^27^6^1^3^150^0^0^0^0^0^0
+67504^675^4^25^0^0^0^6^48^20^8^400^1000^0^0^0^0^0^0
+67505^675^5^30^0^0^0^17^47^1^500^0^0^0^0^0^0^0^0
+67506^675^6^30^0^0^0^7^47^6^0^150^50^0^0^0^0^0^0
+
+# 676 Flutterfish Medley (difficulty 1): cut Flutterfish, slice Moonbean, slice Tumtumnip, add to the Fish Saute, cook the Fish Saute
+67601^676^1^30^0^0^0^12^3^300^600^0^0^0^0^0^0^0^0
+67602^676^2^30^0^0^0^10^13^8^200^60^25^100^200^400^2^0^0
+67603^676^3^30^0^0^0^10^12^5^200^60^25^100^200^400^2^0^0
+67604^676^4^30^0^0^0^17^43^1^500^0^0^0^0^0^0^0^0
+67605^676^5^35^0^0^0^11^43^3^30^55^80^100^0^400^800^1600^50
+
+# 677 Butter Flyfish Flambe (difficulty 1): cut Butter Flyfish, smash Punkin, add to the Fish Saute, cook the Fish Saute
+67701^677^1^30^0^0^0^12^2^300^600^0^0^0^0^0^0^0^0
+67702^677^2^30^0^0^0^3^35^2^2^40^30^40^2^3^100^200^400
+67703^677^3^30^0^0^0^17^43^1^500^0^0^0^0^0^0^0^0
+67704^677^4^35^0^0^0^11^43^3^30^55^80^100^0^400^800^1600^50
+
+# 678 Toothy Tetra Vitamins (difficulty 1): cut Toothy Tetra, chop Sunleaf, smash Snowberry, measure Yellow Broth, add to the Fish Soup, stir the Fish Soup
+67801^678^1^30^0^0^0^12^5^300^600^0^0^0^0^0^0^0^0
+67802^678^2^25^0^0^0^2^25^6^1^3^150^0^0^0^0^0^0
+67803^678^3^30^0^0^0^3^38^2^2^40^30^40^2^3^100^200^400
+67804^678^4^25^0^0^0^6^50^20^8^400^1000^0^0^0^0^0^0
+67805^678^5^30^0^0^0^17^47^1^500^0^0^0^0^0^0^0^0
+67806^678^6^30^0^0^0^7^47^6^0^150^50^0^0^0^0^0^0
+
+# 679 Baconfish Bits (difficulty 1): cut Baconfish, slice Glowtruffle, add to the Fish Saute, cook the Fish Saute
+67901^679^1^30^0^0^0^12^0^300^600^0^0^0^0^0^0^0^0
+67902^679^2^30^0^0^0^10^18^4^200^60^25^100^200^400^2^0^0
+67903^679^3^30^0^0^0^17^43^1^500^0^0^0^0^0^0^0^0
+67904^679^4^35^0^0^0^11^43^3^30^55^80^100^0^400^800^1600^50
+
+# 680 Feral Catfish Oil (difficulty 1): cut Feral Catfish, slice Nettleshroom, measure Thick Broth, add to the Fish Soup, stir the Fish Soup
+68001^680^1^30^0^0^0^12^4^300^600^0^0^0^0^0^0^0^0
+68002^680^2^30^0^0^0^10^16^5^200^60^25^100^200^400^2^0^0
+68003^680^3^25^0^0^0^6^53^20^8^400^1000^0^0^0^0^0^0
+68004^680^4^30^0^0^0^17^47^1^500^0^0^0^0^0^0^0^0
+68005^680^5^30^0^0^0^7^47^6^0^150^50^0^0^0^0^0^0
+
+# 1101 Jacque's Secret Recipe (difficulty 1): tenderize Spider Meat, slice Glowtruffle, smash Stainberry, measure Rootbeer, add to the Meat Stew, stir the Meat Stew
+110101^1101^1^30^0^0^0^1^11^8^25^5^50^3^150^40^0^0^0
+110102^1101^2^30^0^0^0^10^18^4^200^60^25^100^200^400^2^0^0
+110103^1101^3^30^0^0^0^3^41^2^2^40^30^40^2^3^100^200^400
+110104^1101^4^25^0^0^0^6^20^20^8^400^1000^0^0^0^0^0^0
+110105^1101^5^30^0^0^0^17^46^1^500^0^0^0^0^0^0^0^0
+110106^1101^6^30^0^0^0^7^46^6^0^150^50^0^0^0^0^0^0
+
+# 1102 Jacque's Dinner Rolls (difficulty 1): grate Honeytwig, slice Snowturnip, chop Florenleaf, add to the Meat Saute, cook the Meat Saute
+110201^1102^1^30^0^0^0^9^33^6^6^120^150^5^0^0^0^0^0
+110202^1102^2^30^0^0^0^10^15^7^200^60^25^100^200^400^2^0^0
+110203^1102^3^25^0^0^0^2^28^6^1^3^150^0^0^0^0^0^0
+110204^1102^4^30^0^0^0^17^42^1^500^0^0^0^0^0^0^0^0
+110205^1102^5^35^0^0^0^11^42^3^30^55^80^100^0^400^800^1600^50
