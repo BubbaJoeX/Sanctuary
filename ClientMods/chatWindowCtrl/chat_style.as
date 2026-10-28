@@ -767,14 +767,17 @@ onListResize = function(dataObj)
    return result;
 };
 
-// Membership no longer exists, so the Members Only channel gets no tab.
+// Membership no longer exists, so the Members Only channel gets no tab. AddMOFilter is the only thing that adds it,
+// and it does nothing now. (Skipping the tab inside addFilter instead hung the client: AddMOFilter adds the tab
+// only while getFilter finds none and then calls setShowChannel, which makes the client call AddMOFilter again,
+// so with the tab never added the two called each other forever as soon as chat came back.)
+AddMOFilter = function()
+{
+};
+
 var csStockAddFilter = addFilter;
 addFilter = function(guid, name, isWhisper, place)
 {
-   if(String(name).indexOf("Members Only") >= 0)
-   {
-      return undefined;
-   }
    var result = csStockAddFilter.apply(_root, arguments);
    csSkinTabs();
    csLayout();
