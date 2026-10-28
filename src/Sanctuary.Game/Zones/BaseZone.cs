@@ -184,6 +184,18 @@ public abstract class BaseZone : IZone, IDisposable
 
     public bool HasNavMesh => _navMeshPathfinder is not null;
 
+    public bool IsStraightWalkClear(Vector3 start, Vector3 goal) =>
+        _navMeshPathfinder is null || _navMeshPathfinder.TryWalkStraight(start, goal, out _);
+
+    public Vector3 ClampStraightWalk(Vector3 start, Vector3 goal)
+    {
+        if (_navMeshPathfinder is null)
+            return goal;
+
+        _navMeshPathfinder.TryWalkStraight(start, goal, out var end);
+        return end;
+    }
+
     public bool TryFindNavMeshPath(Vector3 start, Vector3 goal, Queue<Vector3> waypoints) =>
         _navMeshPathfinder is not null && _navMeshPathfinder.TryFindPath(start, goal, waypoints);
 

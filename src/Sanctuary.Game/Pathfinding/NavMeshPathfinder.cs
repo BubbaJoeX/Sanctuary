@@ -25,6 +25,47 @@ public sealed class NavMeshPathfinder
         _query = new DtNavMeshQuery(navMesh);
     }
 
+    /// <summary>
+    /// Walks the navmesh in a straight line from <paramref name="start"/> toward <paramref name="goal"/>. True when
+    /// nothing is in the way; otherwise <paramref name="end"/> is the last walkable point before the wall or edge
+    /// (the start itself when it isn't on the navmesh).
+    /// </summary>
+    public bool TryWalkStraight(Vector3 start, Vector3 goal, out Vector3 end)
+    {
+        end = start;
+
+        var startPosition = new RcVec3f(start.X, start.Y, start.Z);
+        var goalPosition = new RcVec3f(goal.X, goal.Y, goal.Z);
+
+        lock (_lock)
+        {
+            _query.FindNearestPoly(startPosition, NearestPolyExtents, _filter, out var startRef, out var startOnMesh, out _);
+
+            if (startRef == 0)
+                return false;
+
+            var status = _query.Raycast(startRef, startOnMesh, goalPosition, _filter, out var t, out _, _pathPolys, out var pathCount, MaxPathPolys);
+
+            if (status.Failed())
+                return false;
+
+            // A t past 1 (float.MaxValue) means the ray reached the goal.
+            if (t >= 1f)
+            {
+                end = goal;
+                return true;
+            }
+
+            var hit = RcVec3f.Lerp(startOnMesh, goalPosition, t);
+
+            if (pathCount > 0 && _query.GetPolyHeight(_pathPolys[pathCount - 1], hit, out var height).Succeeded())
+                hit.Y = height;
+
+            end = new Vector3(hit.X, hit.Y, hit.Z);
+            return false;
+        }
+    }
+
     public bool TryFindPath(Vector3 start, Vector3 goal, Queue<Vector3> waypoints)
     {
         var startPosition = new RcVec3f(start.X, start.Y, start.Z);

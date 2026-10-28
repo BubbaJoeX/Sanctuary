@@ -49,7 +49,15 @@ public static class ClientPathRequestPacketHandler
         var start = clientPathRequestPacket.FromPosition.ToVector3();
         var waypoints = new Queue<Vector3>();
 
-        if (connection.Player.Zone.TryFindClientNavMeshPath(start, clientPathRequestPacket.ToPosition.ToVector3(), waypoints))
+        var goal = clientPathRequestPacket.ToPosition.ToVector3();
+
+        if (!connection.Player.Zone.HasNavMesh)
+        {
+            // No navmesh to plan with: a straight trail still points the way.
+            clientPathReplyPacket.Points.Add(Raise(start));
+            clientPathReplyPacket.Points.Add(Raise(goal));
+        }
+        else if (connection.Player.Zone.TryFindClientNavMeshPath(start, goal, waypoints))
         {
             clientPathReplyPacket.Points.Add(Raise(start));
 

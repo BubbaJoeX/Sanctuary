@@ -482,7 +482,14 @@ public sealed class NpcCombat
         // Fast enough to look like a shove rather than a walk; EndControl puts its speed back.
         _speedBeforeKnockback = _npc.Speed;
         _npc.Speed = MathF.Max(_npc.Speed, distance * 1000f / KnockbackMoveMs);
-        _npc.MoveTo(position + away * distance, direct: true);
+
+        var goal = position + away * distance;
+
+        // Up against the wall or ledge behind it, not through it.
+        if (_npc.Zone is { } zone)
+            goal = zone.ClampStraightWalk(position, goal);
+
+        _npc.MoveTo(goal, direct: true);
     }
 
     private void Flee(long now)
@@ -505,7 +512,14 @@ public sealed class NpcCombat
         away.Y = 0f;
         away = away.LengthSquared() > 0.0001f ? Vector3.Normalize(away) : Vector3.UnitX;
 
-        _npc.MoveTo(position + away * FleeStepDistance);
+        var fleeGoal = position + away * FleeStepDistance;
+        var reachable = _npc.Zone.ClampStraightWalk(position, fleeGoal);
+
+        // Straight away while there's room; backed against a wall, the pathfinder looks for a way round.
+        if (Vector3.DistanceSquared(position, reachable) >= FleeStepDistance * FleeStepDistance / 4f)
+            _npc.MoveTo(reachable, direct: true);
+        else
+            _npc.MoveTo(fleeGoal);
     }
 
     private void TickDamageOverTime(long now)
@@ -562,7 +576,8 @@ public sealed class NpcCombat
         _nextChaseAt = now + ChaseRepathMs;
         _chaseGoal = goal;
 
-        _npc.MoveTo(goal, direct: distance <= DirectChaseDistance);
+        // Close by it runs straight at them, unless a wall or ledge is in the way; then it goes around.
+        _npc.MoveTo(goal, direct: distance <= DirectChaseDistance && _npc.Zone.IsStraightWalkClear(position, goal));
     }
 
     private void Attack(Player target)
