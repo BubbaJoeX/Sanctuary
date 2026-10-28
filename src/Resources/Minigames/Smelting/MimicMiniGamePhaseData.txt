@@ -1,0 +1,51 @@
+# Smelting bars (game_smelting.swf): the four rounds of each bar, in the movie's own MimicMiniGamePhaseData.txt
+# layout (Smelting.SmeltingGameServer.OnLevelData). The server sends a bar's rows to the movie as OnPhaseDataMsg,
+# one row each. Lines starting with # are for people and are never sent.
+#
+# ID^GAME^SEQUENCE^DURATION^OBJECTIVE_ID^START_ID^END_ID^STAGE_TYPE^DATA1^...^DATA11
+#   GAME      the bar: the MiniGameData.txt id of its game (the Level of its Mimic.json entry)
+#   SEQUENCE  the round, from 1; rows with the same GAME and SEQUENCE are alternatives, one picked each play
+#   DURATION  seconds on the round's timer
+#
+# STAGE_TYPE (100 + the movie's stage) and what DATA1 on mean (the movie clamps some to the range given):
+#   101 break down the ore  ore (1 Copper, 2 Tin, 3 Iron, 4 Silver, 5 Gold), starting yield (1-5, x20 %),
+#                           hits for the outer and the inner layer, hammer size + % (0-300), hammer meter speed,
+#                           hits a medium and a strong blow count for (1-5), points per weak, medium and strong blow
+#   102 fill the furnace    powder line in % of the furnace (1-100), good precision %, perfect precision %,
+#                           points for good, points for perfect
+#   103 heat the furnace    heat to reach, heat lost while not pumping (x0.05 a tick), points for the round (500-50000)
+#   104 mold the metal      how much a spill wastes, points per bar poured (500-50000)
+#
+# The ore round must come first: it sets the ore every later round is colored and measured for.
+# The defaults these replace, from Smelting.SmeltingData: hits Copper 1/1, Tin 1/1, Iron 2/1, Silver 2/2, Gold 3/2;
+# powder line Copper 65, Tin 70, Iron 75, Silver 80, Gold 85; precision 8 and 3; spill 2.5.
+
+# 77 Copper Bar (difficulty 1): break down the ore, fill the furnace to 65%, heat it to 100, mold the metal
+7701^77^1^42^0^0^0^101^1^5^1^1^60^30^2^3^75^150^300
+7702^77^2^38^0^0^0^102^65^12^5^750^1500^0^0^0^0^0^0
+7703^77^3^38^0^0^0^103^100^8^1000^0^0^0^0^0^0^0^0
+7704^77^4^33^0^0^0^104^2^750^0^0^0^0^0^0^0^0^0
+
+# 134 Tin Bar (difficulty 2): break down the ore, fill the furnace to 70%, heat it to 125, mold the metal
+13401^134^1^39^0^0^0^101^2^5^1^1^45^40^2^3^100^200^400
+13402^134^2^36^0^0^0^102^70^10^4^1000^2000^0^0^0^0^0^0
+13403^134^3^36^0^0^0^103^125^10^1500^0^0^0^0^0^0^0^0
+13404^134^4^31^0^0^0^104^2^1000^0^0^0^0^0^0^0^0^0
+
+# 135 Iron Bar (difficulty 3): break down the ore, fill the furnace to 75%, heat it to 150, mold the metal
+13501^135^1^36^0^0^0^101^3^5^2^1^30^50^2^3^125^250^500
+13502^135^2^34^0^0^0^102^75^8^3^1250^2500^0^0^0^0^0^0
+13503^135^3^34^0^0^0^103^150^12^2000^0^0^0^0^0^0^0^0
+13504^135^4^29^0^0^0^104^3^1250^0^0^0^0^0^0^0^0^0
+
+# 136 Silver Bar (difficulty 4): break down the ore, fill the furnace to 80%, heat it to 175, mold the metal
+13601^136^1^33^0^0^0^101^4^5^2^2^15^60^2^3^150^300^600
+13602^136^2^32^0^0^0^102^80^7^3^1500^3000^0^0^0^0^0^0
+13603^136^3^32^0^0^0^103^175^14^2500^0^0^0^0^0^0^0^0
+13604^136^4^27^0^0^0^104^3^1500^0^0^0^0^0^0^0^0^0
+
+# 137 Gold Bar (difficulty 5): break down the ore, fill the furnace to 85%, heat it to 200, mold the metal
+13701^137^1^30^0^0^0^101^5^5^3^2^0^70^2^3^175^350^700
+13702^137^2^30^0^0^0^102^85^6^2^1750^3500^0^0^0^0^0^0
+13703^137^3^30^0^0^0^103^200^16^3000^0^0^0^0^0^0^0^0
+13704^137^4^25^0^0^0^104^4^1750^0^0^0^0^0^0^0^0^0

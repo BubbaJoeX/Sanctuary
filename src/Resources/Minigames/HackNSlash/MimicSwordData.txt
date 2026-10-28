@@ -1,0 +1,9 @@
+# Hack 'n' Slash's dummy, in the movie's own MimicSwordData.txt layout (SwordTesting.SwordGameServer.OnSwordData),
+# sent to the movie as OnCustomDataMsg. Lines starting with # are for people and are never sent.
+#
+# ID^GAME^LIVES^HELM^SHIELD^BODY_ARMOR^LEGS_ARMOR^HEAD^BODY
+#   GAME   the game: its MiniGameData.txt id (the Level of its Mimic.json entry)
+#   LIVES  the techniques the player may fail before the dummy wins
+#   the rest: how many hits each piece of the dummy's armor and body takes (the movie's defaults are 3 5 5 7 3 4)
+
+7901^79^3^3^5^5^7^3^4

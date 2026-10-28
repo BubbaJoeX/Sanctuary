@@ -1,0 +1,22 @@
+# Hack 'n' Slash (game_sword.swf): the techniques of each round, in the movie's own MimicMiniGamePhaseData.txt
+# layout (SwordTesting.SwordGameServer.OnLevelData). The server sends the rows to the movie as OnPhaseDataMsg,
+# one row each. Lines starting with # are for people and are never sent.
+#
+# ID^GAME^SEQUENCE^DURATION^OBJECTIVE_ID^START_ID^END_ID^STAGE_TYPE^DATA1^...^DATA5
+#   GAME      the game: its MiniGameData.txt id (the Level of its Mimic.json entry)
+#   SEQUENCE  the round, from 1
+#   DURATION  (unused: each technique has its own 5 second timer)
+#   DATA1     the points a Sword Rain step drops
+#   DATA2-5   the techniques the movie picks the round's one from (0 for none):
+#              1 Cut Thrust, 2 Mirror Cut, 3 Spinning Cut, 4 Buckle Cut, 5 Double Buckle, 6 Center Push,
+#              7 Triple Thrust, 8 Z Strike, 9 Snake Bite*, 10 One Two Slash, 11 Wind Strike, 12 Wind Slash,
+#              13 Tiger Claws*, 14 Maelstrom*, 15 North Star, 16 The Mark, 17 Vendetta, 18 Viper Fang*,
+#              19 Maelstrom II*, 20 North Star II, 21 Full Moon, 22 Dismemberer   (* finishers)
+
+# 79 Hack 'n' Slash: two- and three-step cuts first, the long techniques next, a finisher last
+7901^79^1^5^0^0^0^200^6^1^2^4^0
+7902^79^2^5^0^0^0^200^6^3^5^6^7
+7903^79^3^5^0^0^0^200^8^8^10^16^17
+7904^79^4^5^0^0^0^200^8^11^12^15^22
+7905^79^5^5^0^0^0^200^8^20^21^16^17
+7906^79^6^5^0^0^0^200^10^9^13^14^18
