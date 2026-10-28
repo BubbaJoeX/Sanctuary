@@ -99,6 +99,8 @@ MODS = [
     ("Browser_V2", "sanctuaryBrowserV2", "\\frame_1\\DoAction", [script_dir / "browser" / "tile_browser.as"], []),
     ("CollectionsBrowser", "sanctuaryCollectionsBrowser", "\\frame_1\\DoAction",
      [script_dir / "collections" / "collections_browser.as"], []),
+    ("achievements", "sanctuaryAchievements", "\\frame_1\\DoAction",
+     [script_dir / "achievements" / "achievements_page.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("FRUtilNavigation", "sanctuaryFRUtilNavigation", None, [], []),
     ("mini_map", "sanctuaryMiniMap", None, [], []),

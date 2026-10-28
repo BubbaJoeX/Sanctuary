@@ -96,6 +96,7 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndFarmingBrowser.xml"), [("UI\\Browser_V2.swf", "UI\\sanctuaryBrowserV2.swf")]),
     (Path("UI/UiModules/Main/wndCollectionsBrowser.xml"),
      [("UI\\CollectionsBrowser.swf", "UI\\sanctuaryCollectionsBrowser.swf")]),
+    (Path("UI/UiModules/Main/wndAchievements.xml"), [("UI\\achievements.swf", "UI\\sanctuaryAchievements.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [
