@@ -223,6 +223,14 @@ public sealed partial class WorldZone
     }
 
     public bool TryPlaceWorldFixture(Player player, int itemDefinitionId, int tintId, Vector4 position, Quaternion rotation, float scale,
+        [MaybeNullWhen(false)] out Npc npc) =>
+        TryPlaceWorldFixture(itemDefinitionId, tintId, position, rotation, scale, GuidHelper.GetPlayerId(player.Guid), out npc);
+
+    /// <summary>
+    /// Places a prop for everyone and saves it. <paramref name="rotation"/> is in the client's placement format
+    /// (yaw in X); <paramref name="createdBy"/> is a character id.
+    /// </summary>
+    public bool TryPlaceWorldFixture(int itemDefinitionId, int tintId, Vector4 position, Quaternion rotation, float scale, ulong? createdBy,
         [MaybeNullWhen(false)] out Npc npc)
     {
         npc = null;
@@ -245,7 +253,7 @@ public sealed partial class WorldZone
                 RotationZ = rotation.Z,
                 RotationW = rotation.W,
                 Scale = scale > 0.0f ? scale : 1.0f,
-                CreatedBy = GuidHelper.GetPlayerId(player.Guid)
+                CreatedBy = createdBy
             };
 
             using var dbContext = _dbContextFactory.CreateDbContext();

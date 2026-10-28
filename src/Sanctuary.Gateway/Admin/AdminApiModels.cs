@@ -1,0 +1,158 @@
+using System;
+using System.Collections.Generic;
+
+namespace Sanctuary.Gateway.Admin;
+
+// Requests and responses of the admin API. Guids travel as strings: they're 64-bit, which JavaScript numbers can't hold.
+// Headings are radians, 0 facing +Z and increasing towards +X.
+
+public sealed record LoginRequest(string Username, string Password);
+
+public sealed record RefereeModel(string Id, string Name, string Role, string? Character);
+
+public sealed record StatusModel(
+    DateTimeOffset StartedAt,
+    int Players,
+    int Zones,
+    bool Locked,
+    string? MotdTitle,
+    string? MotdMessage,
+    float TimeScale,
+    IReadOnlyList<EventModel> Events);
+
+public sealed record EventModel(string Key, bool Active);
+
+public sealed record EventRequest(bool Active);
+
+public sealed record SettingsRequest(bool? Locked, bool? KickPlayers, string? MotdTitle, string? MotdMessage, float? TimeScale);
+
+public sealed record BroadcastRequest(string Message, bool Banner, string? Zone);
+
+public sealed record ResourceModel(string Name);
+
+public sealed record CommandModel(string Keyword, string Usage, string Description, string Role);
+
+public sealed record CommandRequest(string Command);
+
+public sealed record CommandResult(string Character, bool Handled, IReadOnlyList<string> Lines);
+
+public sealed record PlayerModel(
+    string Id,
+    string Name,
+    string Zone,
+    string ZoneName,
+    float X,
+    float Y,
+    float Z,
+    float H,
+    string Role,
+    bool GodMode,
+    bool Frozen,
+    bool Muted);
+
+public sealed record TeleportRequest(string? Zone, float? X, float? Y, float? Z, string? ToPlayer);
+
+public sealed record MessageRequest(string Message);
+
+public sealed record ZoneModel(
+    string Key,
+    int DefinitionId,
+    string? OwnerId,
+    string Name,
+    string Type,
+    int Players,
+    int Npcs,
+    bool Editable,
+    bool HasTerrain,
+    BoundsModel? Bounds,
+    PointModel Spawn);
+
+public sealed record BoundsModel(float MinX, float MinZ, float MaxX, float MaxZ);
+
+public sealed record PointModel(float X, float Y, float Z, float H);
+
+/// <summary>
+/// A player in the live feed. <see cref="Look"/> keys their look in the feed's <c>looks</c> (see <see cref="LiveLooks"/>).
+/// </summary>
+public sealed record LivePlayer(string Id, string Name, float X, float Y, float Z, float H, string? Look);
+
+/// <summary>
+/// A placed object. <see cref="Kind"/> is prop (a furniture item), npc (a world NPC) or model (a world NPC that's a
+/// placed model). <see cref="Model"/> is its actor file, for the zone editor to draw; pitch and roll are radians.
+/// </summary>
+public sealed record LiveObject(
+    string Id,
+    string Kind,
+    int Def,
+    string Label,
+    string? Model,
+    float X,
+    float Y,
+    float Z,
+    float H,
+    float Pitch,
+    float Roll,
+    float Scale,
+    string? Look);
+
+/// <summary>
+/// One of a zone's other NPCs. <see cref="Kind"/> is npc, mob, node (a collection node) or coin.
+/// </summary>
+public sealed record LiveNpc(string Id, string Label, string Kind, float X, float Y, float Z, float H, float Scale, string? Look);
+
+/// <summary>
+/// What changed among a zone's other NPCs since the last update; <see cref="Reset"/> on the first, which has them all.
+/// </summary>
+public sealed record LiveNpcChanges(bool Reset, IReadOnlyList<LiveNpc> Upsert, IReadOnlyList<string> Remove);
+
+public sealed record ObjectDetail(
+    string Id,
+    string Kind,
+    int Def,
+    string Label,
+    float X,
+    float Y,
+    float Z,
+    float H,
+    float Scale,
+    int? Tint,
+    bool Collidable,
+    string? Name,
+    int? ModelId,
+    string? Event,
+    bool HasScript);
+
+/// <summary>
+/// A new prop (<see cref="Def"/> a furniture item id) or NPC (an NPC definition id). Without <see cref="Y"/> it
+/// stands on the ground.
+/// </summary>
+public sealed record PlaceRequest(int Def, float X, float? Y, float Z, float H, float? Scale, int? Tint);
+
+/// <summary>
+/// A placed model: any actor with a Models.txt row, spawned as a still, solid world NPC.
+/// </summary>
+public sealed record ModelPlaceRequest(string Model, float X, float? Y, float Z, float H, float? Pitch, float? Roll, float? Scale);
+
+/// <summary>
+/// Changes to a placed object. With <see cref="Snap"/> and no <see cref="Y"/>, a move keeps its height above the ground.
+/// </summary>
+public sealed record ObjectPatch(
+    float? X,
+    float? Y,
+    float? Z,
+    float? H,
+    bool Snap,
+    float? Pitch,
+    float? Roll,
+    float? Scale,
+    int? Tint,
+    bool? Collidable,
+    string? Name);
+
+public sealed record CopyRequest(float X, float Z, float? H);
+
+public sealed record EditResult(string? Id, int Undo);
+
+public sealed record UndoResult(string? Undid, int Undo);
+
+public sealed record CatalogEntry(int Id, string Name, string? Model);

@@ -31,6 +31,11 @@ public sealed record TileSnapshot(DbWorldFixture? Fixture, DbWorldNpc? WorldNpc)
 /// </summary>
 public sealed partial class WorldZone
 {
+    /// <summary>
+    /// Every placed prop and world NPC in the zone (the admin panel's map).
+    /// </summary>
+    public IReadOnlyList<TileEntity> GetTileEntities() => [.. GetAllTileEntities()];
+
     public IReadOnlyList<TileEntity> GetTileEntities(Vector4 center, float radius)
     {
         var radiusSquared = radius * radius;

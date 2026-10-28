@@ -106,6 +106,12 @@ public sealed class Player : ClientPcData, IEntity
     public ConcurrentSet<ulong> Snoopers { get; } = [];
 
     /// <summary>
+    /// While set, also collects the system messages sent to this player, so the admin panel can show what a
+    /// command it ran as this referee answered.
+    /// </summary>
+    public ConcurrentQueue<string>? SystemMessageCapture { get; set; }
+
+    /// <summary>
     /// Where a referee stood before their last !gm goto/go/gather jump; !gm back returns there.
     /// </summary>
     public (int ZoneDefinitionId, ulong? OwnerId, Vector4 Position, Quaternion Rotation)? ReturnPoint { get; set; }
