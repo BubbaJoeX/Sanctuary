@@ -113,6 +113,7 @@ class LocaleStrings:
         self.resources = resources
         self.registry_path = resources / STRINGS_FILE
         self._texts = None
+        self._stamp = None
 
     # --- the files -------------------------------------------------------------------------------------
 
@@ -141,12 +142,15 @@ class LocaleStrings:
     # --- reading ---------------------------------------------------------------------------------------
 
     def _load(self) -> dict[int, str]:
-        """Every string by key, as players get them."""
-        if self._texts is None:
+        """Every string by key, as players get them (read again when the patch on disk changes)."""
+        patch = self.resources / PATCH_DIR
+        stamp = tuple(p.stat().st_mtime_ns if p.exists() else None for p in (patch / f"{LOCALE}_data.dat", patch / f"{LOCALE}_data.dir"))
+        if self._texts is None or self._stamp != stamp:
             dat, dir_ = self.current()
             _, rows, _ = _parse(dat, dir_)
             self._texts = {key: dat[offset:offset + length].decode("utf-8", "replace").split("\t", 2)[-1]
                            for key, offset, length, _ in rows}
+            self._stamp = stamp
         return self._texts
 
     def text(self, string_id: int) -> str | None:
