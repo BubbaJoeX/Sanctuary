@@ -170,6 +170,13 @@ MODS = [
      [script_dir / "hud" / "level_progress.as"], []),
     # The progress bar (wndFRProgressBar and the pet's wndPetProgressBar).
     ("FRProgressBar", "sanctuaryFRProgressBar", "\\frame_1\\DoAction", [script_dir / "hud" / "progress_bar.as"], []),
+    # The radial menu, quick chat menu, tutorial pointer, "!" flash and floating world text in the Main Menu's style.
+    ("radial_menu", "sanctuaryRadialMenu", "\\frame_1\\DoAction", [script_dir / "hud" / "radial_menu.as"], []),
+    ("cannedchat", "sanctuaryCannedChat", "\\frame_1\\DoAction", [script_dir / "hud" / "canned_chat.as"], []),
+    ("ArrowIndicator", "sanctuaryArrowIndicator", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "arrow_indicator.as"], []),
+    ("payattention", "sanctuaryPayAttention", "\\frame_1\\DoAction", [script_dir / "hud" / "pay_attention.as"], []),
+    ("scenetext", "sanctuarySceneText", "\\frame_1\\DoAction", [script_dir / "hud" / "scene_text.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
     ("starCounter", "sanctuaryStarCounter", None, [], []),
@@ -300,6 +307,17 @@ REMOVED_DEPTHS = {
 # it and embedded in its place, so the HUD keeps its layout: purple, brown and beige chrome becomes navy glass,
 # frosted glass and gold, and the minimap gets a new ring.
 RESKINS = {
+    # The radial menu: its ring as the minimap's gold ring and the label plates in navy (hud/radial_menu.as).
+    "radial_menu": {"img4750046603015685743.dds": "ring", "img11228090852709686526.dds": "navy"},
+    # The quick chat menu's category bubbles (navy, gold while hovered) and their arrow. Phrase bubbles keep the
+    # player's chat colour.
+    "cannedchat": {
+        "img12140604662160847177.dds": "navy", "img4997185316532755464.dds": "navy", "img7548901485572912647.dds": "navy",
+        "img6401013202749714986.dds": "gold", "img10775080979299020641.dds": "gold", "img14350388175976606256.dds": "gold",
+        "img9994214018751199257.dds": "gold",
+    },
+    # The tutorial pointer's arrow and target frame.
+    "ArrowIndicator": {"img2130584057677802313.dds": "gold", "img15140367998647858953.dds": "gold"},
     # The Hero's Journal button: its round slot, like the dock's.
     "HerosJournalButton": {"img17894775867228385230.dds": "glass"},
     # The star counter's purple plate.

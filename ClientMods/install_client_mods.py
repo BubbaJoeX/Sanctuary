@@ -138,6 +138,11 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndHerosJournalButton.xml"), [("UI\\HerosJournalButton.swf", "UI\\sanctuaryHerosJournalButton.swf")]),
     (Path("UI/UiModules/Main/wndStarCounter.xml"), [("UI\\starCounter.swf", "UI\\sanctuaryStarCounter.swf")]),
     (Path("UI/UiModules/Main/wndQuickItem.xml"), [("UI\\quickitem.swf", "UI\\sanctuaryQuickItem.swf")]),
+    (Path("UI/UiModules/Main/wndRadialMenu.xml"), [("UI\\radial_menu.swf", "UI\\sanctuaryRadialMenu.swf")]),
+    (Path("UI/UiModules/Main/wndCannedChat.xml"), [("UI\\cannedchat.swf", "UI\\sanctuaryCannedChat.swf")]),
+    (Path("UI/UiModules/Main/wndArrowIndicator.xml"), [("UI\\ArrowIndicator.swf", "UI\\sanctuaryArrowIndicator.swf")]),
+    (Path("UI/UiModules/Main/wndPayAttention.xml"), [("UI\\payattention.swf", "UI\\sanctuaryPayAttention.swf")]),
+    (Path("UI/UiModules/Main/wndSceneText.xml"), [("UI\\scenetext.swf", "UI\\sanctuarySceneText.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [
