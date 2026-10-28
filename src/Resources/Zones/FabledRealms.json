@@ -9,13 +9,13 @@
   "EndLatitude": 80,
   "EndLongitude": 96,
   "SpawnPosition": [
-    -1904.883,
-    -39.7098,
-    412.6024
+    -1916.913,
+    -39.71,
+    392.311
   ],
   "SpawnRotation": [
-    0.5531712,
-    0.8330676
+    0.739219,
+    0.673465
   ],
   "Scripts": [
     "FabledRealms",
