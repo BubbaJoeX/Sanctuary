@@ -240,27 +240,43 @@ function mgText(mc, name, txt, x, y, w, h, size, color, align)
    return t;
 }
 
-// An empty clip below every timeline child of parent (the lowest free depth).
-function mgUnder(parent, name)
+// The first free depth in parent from depth from, stepping by step, or undefined if none turns up within
+// MG_DEPTH_TRIES. The client's getInstanceAtDepth can report every depth taken, so an unbounded search never ends
+// (it froze the game as the HUD came back with the minigame timer loaded).
+var MG_DEPTH_TRIES = 64;
+
+function mgFreeDepth(parent, from, step)
 {
-   var d = -16384;
-   while(parent.getInstanceAtDepth(d) != undefined)
+   if(parent == undefined || isNaN(from))
    {
-      d++;
+      return undefined;
    }
-   return parent.createEmptyMovieClip(name,d);
+   var d = from;
+   var i;
+   for(i = 0; i < MG_DEPTH_TRIES; i++)
+   {
+      if(parent.getInstanceAtDepth(d) == undefined)
+      {
+         return d;
+      }
+      d += step;
+   }
+   return undefined;
 }
 
-// An empty clip just below clip, inside its parent.
+// An empty clip below every timeline child of parent (the lowest free depth), or above them if none is found.
+function mgUnder(parent, name)
+{
+   var d = mgFreeDepth(parent,-16384,1);
+   return parent.createEmptyMovieClip(name,d != undefined ? d : parent.getNextHighestDepth());
+}
+
+// An empty clip just below clip, inside its parent, or above everything in it if no free depth is found.
 function mgBelow(clip, name)
 {
    var p = clip._parent;
-   var d = clip.getDepth() - 1;
-   while(p.getInstanceAtDepth(d) != undefined)
-   {
-      d--;
-   }
-   return p.createEmptyMovieClip(name,d);
+   var d = mgFreeDepth(p,clip.getDepth() - 1,-1);
+   return p.createEmptyMovieClip(name,d != undefined ? d : p.getNextHighestDepth());
 }
 
 // --- the driver: skins, held alphas and light text, every frame ------------------------
@@ -272,12 +288,8 @@ function mgDriver()
    {
       // It draws nothing. It takes the lowest free dynamic depth, so the stock code's getNextHighestDepth still has
       // room above it, and a timeline rewind (which only clears timeline depths) leaves it be.
-      var depth = 0;
-      while(_root.getInstanceAtDepth(depth) != undefined)
-      {
-         depth++;
-      }
-      d = _root.createEmptyMovieClip("mgDriverClip",depth);
+      var depth = mgFreeDepth(_root,0,1);
+      d = _root.createEmptyMovieClip("mgDriverClip",depth != undefined ? depth : _root.getNextHighestDepth());
       d.skins = [];
       d.texts = [];
       d.holds = [];

@@ -14,13 +14,10 @@ function cd3Build()
    {
       return;
    }
-   // The lowest free dynamic depth: timeline rewinds don't clear it, and it draws nothing.
-   var d = 0;
-   while(_root.getInstanceAtDepth(d) != undefined)
-   {
-      d++;
-   }
-   var w = _root.createEmptyMovieClip("cd3Watch",d);
+   // The lowest free dynamic depth: timeline rewinds don't clear it, and it draws nothing (mgFreeDepth: a bounded
+   // search, since the client's getInstanceAtDepth can report every depth taken).
+   var d = mgFreeDepth(_root,0,1);
+   var w = _root.createEmptyMovieClip("cd3Watch",d != undefined ? d : _root.getNextHighestDepth());
    w.onEnterFrame = cd3Watch;
 }
 
