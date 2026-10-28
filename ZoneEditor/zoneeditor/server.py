@@ -102,7 +102,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def get_chunk(self, query, body):
         project = self.workspace.project(query["zone"])
-        meta, heights, weights, colour = project.chunk_payload(int(query["row"]), int(query["col"]), query.get("lite") == "1")
+        meta, heights, weights, colour = project.chunk_payload(int(query["row"]), int(query["col"]))
         self.send(200, frame(meta, [heights, weights, colour]), "application/octet-stream")
 
     def get_model(self, query, body):
@@ -161,6 +161,33 @@ class Handler(BaseHTTPRequestHandler):
             int(data.get("depth", 2)), float(data.get("height", 0)), data.get("ecoZone"), data.get("ecoIndex"),
             data.get("ecoKey"))
         self.send_json(project.meta())
+
+    def get_draft(self, query, body):
+        self.send_json(self.workspace.draft(query["zone"]))
+
+    def get_draft_chunk(self, query, body):
+        data = self.workspace.draft_chunk(query["zone"], int(query["row"]), int(query["col"]))
+        self.send(200, data, "application/octet-stream")
+
+    def post_draft_chunk(self, query, body):
+        """An autosaved chunk: the same framing as a chunk going to the browser (meta, then its blobs). One with
+        nothing dirty leaves the draft."""
+        meta, _ = unframe(body)
+        keep = any(meta.get("dirty", {}).values())
+        self.workspace.save_draft_chunk(query["zone"], meta["row"], meta["col"], body if keep else None)
+        self.send_json({"ok": True})
+
+    def post_draft_zone(self, query, body):
+        self.workspace.save_draft_zone(query["zone"], json.loads(body))
+        self.send_json({"ok": True})
+
+    def post_draft_clear(self, query, body):
+        self.workspace.clear_draft(query["zone"])
+        self.send_json({"ok": True})
+
+    def post_pick_zone(self, query, body):
+        """Shows the desktop's file dialog for a zone file: {"path": ...}, or {"path": null} if cancelled."""
+        self.send_json({"path": self.workspace.pick_zone_file(json.loads(body or b"{}").get("start"))})
 
     def post_play(self, query, body):
         self.send_json(self.workspace.play(bool(json.loads(body or b"{}").get("servers"))))

@@ -44,12 +44,11 @@ export function frame(meta, blobs) {
   return out;
 }
 
-export async function loadChunk(zone, row, col, lite) {
-  const response = await fetch(`/api/chunk?zone=${encodeURIComponent(zone)}&row=${row}&col=${col}${lite ? "&lite=1" : ""}`);
+export async function loadChunk(zone, row, col) {
+  const response = await fetch(`/api/chunk?zone=${encodeURIComponent(zone)}&row=${row}&col=${col}`);
   if (!response.ok) throw new Error((await response.json()).error);
   const { meta, blobs } = unframe(await response.arrayBuffer());
-  const image = await createImageBitmap(new Blob([blobs[2]], { type: "image/png" }), { colorSpaceConversion: "none", premultiplyAlpha: "none" });
-  return { meta, heights: new Float32Array(blobs[0]), weights: new Uint8Array(blobs[1]), image };
+  return { meta, heights: new Float32Array(blobs[0]), weights: new Uint8Array(blobs[1]), colour: new Uint8Array(blobs[2]) };
 }
 
 export async function save(meta, blobs) {

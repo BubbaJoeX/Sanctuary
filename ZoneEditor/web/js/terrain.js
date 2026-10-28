@@ -93,8 +93,16 @@ export function environmentColour(id) {
   return id <= 0 ? [60, 60, 60] : ENV_PALETTE[id % ENV_PALETTE.length];
 }
 
-function falloff(t) {
-  return t >= 1 ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * t);
+// A brush's weight at t, its distance from the centre over the radius: "smooth" eases out, "linear" is a
+// cone, "sphere" a dome that stays strong to the rim, "flat" full strength everywhere inside.
+export const FALLOFFS = ["smooth", "linear", "sphere", "flat"];
+
+function falloff(t, shape = "smooth") {
+  if (t >= 1) return 0;
+  if (shape === "linear") return 1 - t;
+  if (shape === "sphere") return Math.sqrt(1 - t * t);
+  if (shape === "flat") return 1;
+  return 0.5 + 0.5 * Math.cos(Math.PI * t);
 }
 
 function hash2(x, z) {
@@ -129,7 +137,18 @@ export class TerrainChunk {
     this.colourSize = data.colourSize;
     this.colour = data.colour;                      // RGBA, [x][z]
     this.tileDirty = new Array(16).fill(this.isNew);
-    this.dirty = { heights: this.isNew, ecos: this.isNew, colour: this.isNew, objects: this.isNew, lights: this.isNew, environment: this.isNew };
+    // Every change sets one of these, which also counts it for autosave (edits vs. what's been autosaved).
+    this.edits = this.isNew ? 1 : 0;
+    this.autosaved = 0;
+    const flags = { heights: this.isNew, ecos: this.isNew, colour: this.isNew, objects: this.isNew, lights: this.isNew, environment: this.isNew };
+    Object.assign(flags, data.dirty || {});
+    this.dirty = new Proxy(flags, {
+      set: (target, key, value) => {
+        target[key] = value;
+        if (value) this.edits++;
+        return true;
+      },
+    });
 
     this.colourTexture = new THREE.DataTexture(this.colour, this.colourSize, this.colourSize, THREE.RGBAFormat);
     this.colourTexture.colorSpace = THREE.SRGBColorSpace;
@@ -225,21 +244,12 @@ export class TerrainChunk {
         uvs.set([j / (n - 1), i / (n - 1)], v * 2);
       }
     }
-    const indices = [];
-    for (let i = 0; i < n - 1; i++) {
-      for (let j = 0; j < n - 1; j++) {
-        const a = i * n + j, b = a + 1, c = a + n, d = c + 1;
-        if ([a, b, c, d].some((k) => Number.isNaN(this.heights[k]))) continue;
-        // Counter-clockwise seen from above (+y), so the ground's front faces point up.
-        indices.push(a, b, c, b, d, c);
-      }
-    }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
     geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
-    geometry.setIndex(indices.length > 65535 ? new THREE.Uint32BufferAttribute(indices, 1) : new THREE.Uint16BufferAttribute(indices, 1));
     this.geometry = geometry;
+    this.updateIndex();
     this.updateNormals();
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
@@ -268,6 +278,20 @@ export class TerrainChunk {
       }
     }
     this.geometry.attributes.normal.needsUpdate = true;
+  }
+
+  // The triangles, leaving out cells with a hole (NaN) corner; again after cells are cut out or restored.
+  updateIndex() {
+    const n = SAMPLES, indices = [];
+    for (let i = 0; i < n - 1; i++) {
+      for (let j = 0; j < n - 1; j++) {
+        const a = i * n + j, b = a + 1, c = a + n, d = c + 1;
+        if ([a, b, c, d].some((k) => Number.isNaN(this.heights[k]))) continue;
+        // Counter-clockwise seen from above (+y), so the ground's front faces point up.
+        indices.push(a, b, c, b, d, c);
+      }
+    }
+    this.geometry.setIndex(new THREE.Uint16BufferAttribute(indices, 1));
   }
 
   updatePositions() {
@@ -334,6 +358,7 @@ export class TerrainManager {
     this.radius = 2;
     this.selectedEco = null;
     this.anisotropy = 1;
+    this.falloff = "smooth";       // FALLOFFS: the brushes' shape
     this.details = new Map();      // eco index -> { texture, mean, period }
     this.uniforms = {
       ecoOverlay: { value: 0 },
@@ -361,7 +386,7 @@ export class TerrainManager {
       const eco = this.zone.ecos.find((e) => e.index === ecoIndex);
       if (!eco) return null;
       const entry = { texture: loadTexture(eco.texture), mean: new THREE.Color(0.5, 0.5, 0.5), period: 256 / Math.max(eco.repeat || 8, 1) };
-      fetch(`/api/eco-colour?zone=${encodeURIComponent(this.zone.name)}&index=${ecoIndex}`).then((r) => r.json())
+      fetch(`/api/eco-colour?zone=${encodeURIComponent(this.zone.id)}&index=${ecoIndex}`).then((r) => r.json())
         .then(([r, g, b]) => entry.mean.setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace)).catch(() => {});
       this.details.set(ecoIndex, entry);
     }
@@ -396,7 +421,7 @@ export class TerrainManager {
     wanted.sort((a, b) => a[0] - b[0]);
     for (const [, key] of wanted) {
       if (this.chunks.has(key) || this.loading.has(key)) continue;
-      if (this.loading.size >= 3) break;
+      if (this.loading.size >= 4) break;
       const cell = this.cells.get(key);
       const promise = this.load(cell).finally(() => this.loading.delete(key));
       this.loading.set(key, promise);
@@ -408,31 +433,29 @@ export class TerrainManager {
   }
 
   async load(cell) {
-    const zoneName = this.zone.name;
+    const zoneId = this.zone.id;
     let data;
     try {
-      data = await loadChunk(zoneName, cell.row, cell.col, false);
+      data = await loadChunk(zoneId, cell.row, cell.col);
     } catch (error) {
       this.events.status(`Chunk ${cell.row}_${cell.col}: ${error.message}`);
       cell.failed = true;
       this.cells.delete(`${cell.row}_${cell.col}`);
       return;
     }
-    if (!this.zone || this.zone.name !== zoneName) return;
-    const size = data.image.width;
-    const canvas = new OffscreenCanvas(size, size);
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    context.drawImage(data.image, 0, 0);
-    const colour = new Uint8Array(context.getImageData(0, 0, size, size).data.buffer);
+    // A restored draft of it may have arrived first; the draft wins.
+    if (!this.zone || this.zone.id !== zoneId || this.chunks.has(`${cell.row}_${cell.col}`)) return;
     const chunk = new TerrainChunk(this, cell.row, cell.col, {
       editable: data.meta.editable, version: data.meta.version, heights: data.heights,
       ecos: data.meta.ecos, weights: data.weights, tiles: data.meta.tiles,
-      objects: data.meta.objects, lights: data.meta.lights, colour, colourSize: size,
+      objects: data.meta.objects, lights: data.meta.lights, colour: data.colour, colourSize: data.meta.colourSize,
     });
     this.add(chunk);
   }
 
   add(chunk) {
+    const existing = this.chunks.get(chunk.key);
+    if (existing && existing !== chunk) this.unload(existing);
     this.chunks.set(chunk.key, chunk);
     this.root.add(chunk.group);
     if (this.selectedEco !== null) chunk.updateEcoTexture(this.selectedEco);
@@ -535,41 +558,25 @@ export class TerrainManager {
       x + radius >= c.x0 && x - radius <= c.x0 + CHUNK && z + radius >= c.z0 && z - radius <= c.z0 + CHUNK);
   }
 
-  sculpt(mode, x, z, radius, strength, dt, target) {
-    const changes = [];
-    const rate = strength * dt;
+  // The editable height samples within radius of (x, z): [chunk, i, j, px, pz, distance / radius].
+  samplesNear(x, z, radius) {
+    const result = [];
     for (const chunk of this.editableChunksNear(x, z, radius)) {
       const i0 = Math.max(0, Math.ceil((x - radius - chunk.x0) / STEP)), i1 = Math.min(SAMPLES - 1, Math.floor((x + radius - chunk.x0) / STEP));
       const j0 = Math.max(0, Math.ceil((z - radius - chunk.z0) / STEP)), j1 = Math.min(SAMPLES - 1, Math.floor((z + radius - chunk.z0) / STEP));
       for (let i = i0; i <= i1; i++) {
         for (let j = j0; j <= j1; j++) {
           const px = chunk.x0 + i * STEP, pz = chunk.z0 + j * STEP;
-          const w = falloff(Math.hypot(px - x, pz - z) / radius);
-          if (w <= 0 || this.pinned(chunk, i, j)) continue;
-          const v = i * SAMPLES + j;
-          const h = chunk.heights[v];
-          if (Number.isNaN(h)) continue;
-          let next = h;
-          if (mode === "raise") next = h + rate * 40 * w;
-          else if (mode === "lower") next = h - rate * 40 * w;
-          else if (mode === "smooth" || mode === "flatten") {
-            let goal = target;
-            if (mode === "smooth") {
-              let sum = 0, count = 0;
-              for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) {
-                const s = chunk.sample(i + a, j + b);
-                if (!Number.isNaN(s)) { sum += s; count++; }
-              }
-              goal = sum / count;
-            }
-            next = h + (goal - h) * Math.min(1, rate * 6 * w);
-          } else if (mode === "noise") {
-            next = h + (valueNoise(px / 9, pz / 9) - 0.5) * rate * 50 * w;
-          } else if (mode === "level") next = h + (target - h) * Math.min(1, w * 4);
-          changes.push([chunk, i, j, next]);
+          const t = Math.hypot(px - x, pz - z) / radius;
+          if (t < 1 && !this.pinned(chunk, i, j)) result.push([chunk, i, j, px, pz, t]);
         }
       }
     }
+    return result;
+  }
+
+  // Writes new heights ([chunk, i, j, height]) and refreshes what they touch; NaN cuts a hole.
+  applyHeights(changes, holes = false) {
     const touched = new Set();
     for (const [chunk, i, j, next] of changes) {
       chunk.heights[i * SAMPLES + j] = next;
@@ -578,10 +585,125 @@ export class TerrainManager {
     }
     for (const chunk of touched) {
       chunk.dirty.heights = true;
+      if (holes) chunk.updateIndex();
       chunk.updatePositions();
+      chunk.updateNormals();
     }
     for (const chunk of touched) for (const other of this.neighbours(chunk)) if (!touched.has(other)) other.updateNormals();
     return touched.size;
+  }
+
+  // The mean over the 5 x 5 samples around (i, j), reaching into neighbouring chunks.
+  localMean(chunk, i, j) {
+    let sum = 0, count = 0;
+    for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) {
+      const s = chunk.sample(i + a, j + b);
+      if (!Number.isNaN(s)) { sum += s; count++; }
+    }
+    return count ? sum / count : chunk.sample(i, j);
+  }
+
+  // The plane (h = a x + b z + c) that best fits the ground within radius of (x, z), for the slope brush.
+  fitPlane(x, z, radius) {
+    let n = 0, sx = 0, sz = 0, sh = 0, sxx = 0, szz = 0, sxz = 0, sxh = 0, szh = 0;
+    for (const [chunk, i, j, px, pz] of this.samplesNear(x, z, radius)) {
+      const h = chunk.heights[i * SAMPLES + j];
+      if (Number.isNaN(h)) continue;
+      const dx = px - x, dz = pz - z;
+      n++; sx += dx; sz += dz; sh += h; sxx += dx * dx; szz += dz * dz; sxz += dx * dz; sxh += dx * h; szh += dz * h;
+    }
+    if (n < 3) return null;
+    // Normal equations of the least-squares fit, solved by Cramer's rule.
+    const m = [[sxx, sxz, sx], [sxz, szz, sz], [sx, sz, n]], r = [sxh, szh, sh];
+    const det = (q) => q[0][0] * (q[1][1] * q[2][2] - q[1][2] * q[2][1]) - q[0][1] * (q[1][0] * q[2][2] - q[1][2] * q[2][0]) + q[0][2] * (q[1][0] * q[2][1] - q[1][1] * q[2][0]);
+    const d = det(m);
+    if (Math.abs(d) < 1e-9) return null;
+    const solve = (k) => det(m.map((row, ri) => row.map((v, ci) => (ci === k ? r[ri] : v)))) / d;
+    const a = solve(0), b = solve(1), c = solve(2);
+    return (px, pz) => a * (px - x) + b * (pz - z) + c;
+  }
+
+  // mode: raise, lower, smooth, sharpen, flatten (to options.target), slope (to options.plane), level (to
+  // options.target, fast), terrace (steps of options.step), erode (slides cliffs down to a 35 degree slope)
+  // or noise.
+  sculpt(mode, x, z, radius, strength, dt, options = {}) {
+    const changes = [];
+    const rate = strength * dt;
+    const talus = STEP * Math.tan(THREE.MathUtils.degToRad(35));
+    for (const [chunk, i, j, px, pz, t] of this.samplesNear(x, z, radius)) {
+      const w = falloff(t, this.falloff);
+      if (w <= 0) continue;
+      const h = chunk.heights[i * SAMPLES + j];
+      if (Number.isNaN(h)) continue;
+      const pull = (goal, speed = 6) => h + (goal - h) * Math.min(1, rate * speed * w);
+      let next = h;
+      if (mode === "raise") next = h + rate * 40 * w;
+      else if (mode === "lower") next = h - rate * 40 * w;
+      else if (mode === "smooth") next = pull(this.localMean(chunk, i, j));
+      else if (mode === "sharpen") next = h + (h - this.localMean(chunk, i, j)) * Math.min(1, rate * 3 * w);
+      else if (mode === "flatten") next = pull(options.target);
+      else if (mode === "slope") next = options.plane ? pull(options.plane(px, pz)) : h;
+      else if (mode === "level") next = h + (options.target - h) * Math.min(1, w * 4);
+      else if (mode === "terrace") {
+        const step = Math.max(0.5, options.step || 4);
+        next = pull(Math.round(h / step) * step, 4);
+      } else if (mode === "erode") {
+        let delta = 0;
+        for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const d = h - chunk.sample(i + a, j + b);
+          if (Number.isNaN(d)) continue;
+          if (d > talus) delta -= (d - talus) / 4;
+          else if (-d > talus) delta += (-d - talus) / 4;
+        }
+        next = h + delta * Math.min(1, rate * 8 * w);
+      } else if (mode === "noise") next = h + (valueNoise(px / 9, pz / 9) - 0.5) * rate * 50 * w;
+      if (next !== h) changes.push([chunk, i, j, next]);
+    }
+    return this.applyHeights(changes);
+  }
+
+  // A straight ramp from start to end ({x, y, z}), as wide as the radius: the ground along it is pulled
+  // to the line between the two heights, with the brush's falloff across its width.
+  ramp(start, end, radius, strength) {
+    const dx = end.x - start.x, dz = end.z - start.z, length2 = dx * dx + dz * dz;
+    if (length2 < 1) return 0;
+    const reach = Math.sqrt(length2) / 2 + radius;
+    const changes = [];
+    for (const [chunk, i, j, px, pz] of this.samplesNear((start.x + end.x) / 2, (start.z + end.z) / 2, reach)) {
+      const s = ((px - start.x) * dx + (pz - start.z) * dz) / length2;
+      if (s < 0 || s > 1) continue;
+      const across = Math.hypot(px - (start.x + s * dx), pz - (start.z + s * dz)) / radius;
+      const w = falloff(across, this.falloff) * Math.min(1, strength * 2);
+      const h = chunk.heights[i * SAMPLES + j];
+      if (w <= 0 || Number.isNaN(h)) continue;
+      changes.push([chunk, i, j, h + (start.y + s * (end.y - start.y) - h) * w]);
+    }
+    return this.applyHeights(changes);
+  }
+
+  // Cuts the ground within radius out (holes, as under a cave's mouth), or restores it. inside(x, y, z),
+  // when given, limits the cut to samples it accepts. Cut heights are kept to restore; ground that was a
+  // hole when it loaded comes back at its neighbours' mean height.
+  exclude(x, z, radius, restore, inside = null) {
+    const changes = [];
+    for (const [chunk, i, j, px, pz] of this.samplesNear(x, z, radius)) {
+      const v = i * SAMPLES + j, h = chunk.heights[v];
+      chunk.cut ??= new Map();
+      if (restore) {
+        if (!Number.isNaN(h)) continue;
+        let back = chunk.cut.get(v);
+        if (back === undefined) back = this.localMean(chunk, i, j);
+        if (Number.isNaN(back)) continue;
+        if (inside && !inside(px, back, pz)) continue;
+        chunk.cut.delete(v);
+        changes.push([chunk, i, j, back]);
+      } else {
+        if (Number.isNaN(h) || (inside && !inside(px, h, pz))) continue;
+        chunk.cut.set(v, h);
+        changes.push([chunk, i, j, NaN]);
+      }
+    }
+    return this.applyHeights(changes, true);
   }
 
   // Paints eco ecoIndex; tint (rgb or null) also paints the colour map towards that eco's colour.
@@ -595,7 +717,7 @@ export class TerrainManager {
       const u0 = Math.max(0, Math.floor((z - radius - chunk.z0) * 2)), u1 = Math.min(ECO - 1, Math.ceil((z + radius - chunk.z0) * 2));
       for (let ti = t0; ti <= t1; ti++) {
         for (let tj = u0; tj <= u1; tj++) {
-          const w = falloff(Math.hypot(chunk.x0 + (ti + 0.5) / 2 - x, chunk.z0 + (tj + 0.5) / 2 - z) / radius) * a;
+          const w = falloff(Math.hypot(chunk.x0 + (ti + 0.5) / 2 - x, chunk.z0 + (tj + 0.5) / 2 - z) / radius, this.falloff) * a;
           if (w <= 0) continue;
           const base = (ti * ECO + tj) * channels;
           let total = 0;
@@ -631,7 +753,7 @@ export class TerrainManager {
     const u0 = Math.max(0, Math.floor((z - radius - chunk.z0) * scale)), u1 = Math.min(size - 1, Math.ceil((z + radius - chunk.z0) * scale));
     for (let ti = t0; ti <= t1; ti++) {
       for (let tj = u0; tj <= u1; tj++) {
-        const w = falloff(Math.hypot(chunk.x0 + (ti + 0.5) / scale - x, chunk.z0 + (tj + 0.5) / scale - z) / radius) * amount;
+        const w = falloff(Math.hypot(chunk.x0 + (ti + 0.5) / scale - x, chunk.z0 + (tj + 0.5) / scale - z) / radius, this.falloff) * amount;
         if (w <= 0) continue;
         const p = (ti * size + tj) * 4;
         for (let c = 0; c < 3; c++) chunk.colour[p + c] = Math.round(chunk.colour[p + c] * (1 - w) + rgb[c] * w);
@@ -649,6 +771,18 @@ export class TerrainManager {
     const tj = Math.min(chunk.colourSize - 1, Math.floor((z - chunk.z0) * scale));
     const p = (ti * chunk.colourSize + tj) * 4;
     return [chunk.colour[p], chunk.colour[p + 1], chunk.colour[p + 2]];
+  }
+
+  // The ecos blended at (x, z), heaviest first: [{ index, weight }] with weights 0..1.
+  sampleEcos(x, z) {
+    const chunk = this.chunkAt(x, z);
+    const count = chunk?.ecos.length;
+    if (!count) return [];
+    const ti = Math.min(ECO - 1, Math.max(0, Math.floor((x - chunk.x0) * ECO / CHUNK)));
+    const tj = Math.min(ECO - 1, Math.max(0, Math.floor((z - chunk.z0) * ECO / CHUNK)));
+    const base = (ti * ECO + tj) * count;
+    return chunk.ecos.map((index, c) => ({ index, weight: chunk.weights[base + c] / 255 }))
+      .filter((e) => e.weight > 0).sort((a, b) => b.weight - a.weight);
   }
 
   paintEnvironment(id, x, z, radius) {

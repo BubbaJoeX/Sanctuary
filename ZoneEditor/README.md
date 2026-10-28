@@ -34,6 +34,22 @@ with `~` instead, recorded in `sanctuary_stock_overrides.txt`), so the client do
 any new one. That needs the client closed; Test in game does it, and `install_client_mods.py` applies it to
 other clients (`--uninstall` puts the names back).
 
+## Opening a zone file
+
+By name, a zone's files come from wherever the client would get them: ClientMods first, then the client's
+packs, then the asset server. **Open file…** (or a `.gzne` / `.gzne.z` path typed in the zone box) opens a
+zone from a folder instead: its `.gzne`, `.gcnk` and `.gck2` files come only from that folder, never stock,
+so a chunk that isn't there isn't in the zone. Saving writes the changed files back into that folder (in the
+form they have there, compressed or not) and publishes them to ClientMods as usual, with the folder's zone
+file on the first save. Textures, models and ecos still come from the client. The last few files opened are
+listed in the zone box.
+
+## Autosave
+
+Every 15 seconds (and when the tab is hidden) the chunks edited since the last autosave and the zone's
+settings go to `ZoneEditor/.cache/drafts/<zone>`. Saving clears the draft; opening a zone that has one
+(after a crash, or a closed tab) offers to restore it, and declining discards it.
+
 ## Saving and testing
 
 | File | What it is |
@@ -63,8 +79,9 @@ for a housing zone, `!house grant <house id>` and then `!house enter`.
 | Tool | Key | |
 | --- | --- | --- |
 | Select | V | Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus. A prop dragged into another chunk moves into it. |
-| Sculpt | B | Raise, lower (Shift swaps them), smooth, flatten (to where the stroke started), level (to a set height), noise. |
-| Eco | E | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). A tile holds up to 5 ecos. |
+| Sculpt | B | Raise and lower (Shift swaps them), smooth, flatten (to where the stroke started), slope (onto the plane under the brush where the stroke started, for lumpy hillsides), level (to a set height; Alt+click picks it), ramp (drag from one point to another), terrace (steps of a set height), erode (cliffs slide to a 35° slope), sharpen and noise. Keys 1 to 0 pick them. |
+| Exclude | X | Cut holes in the ground for cave mouths and interiors, or restore it. Shift+click a cave model to limit the brush to inside its bounds, or cut all the ground inside it at once. Holes leave the ground's mesh and collision; a tile cut out entirely keeps one buried, degenerate triangle so its collision tree stays valid. |
+| Eco | E | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). Alt+click picks the eco under the pointer and its tint from the colour map, which painting then uses instead. A tile holds up to 5 ecos. |
 | Colour | C | Paint the colour map directly; Alt+click picks a colour. |
 | Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. |
 | Props | P | Place objects from the content browser (O): click a tile, then the ground, or drag a tile into the view. Shift+wheel turns the preview. |
@@ -80,8 +97,10 @@ buildings, ...) and name. Characters and gear stay hidden unless asked for. Thum
 browser and kept in `ZoneEditor/.cache/thumbs`.
 
 Fly with the right mouse button and WASD/QE (Shift for speed, the wheel changes speed; in brush tools the
-wheel sizes the brush and Ctrl+wheel sets strength). Ctrl+Z undoes, Ctrl+S saves. The minimap shows chunks
-green and unsaved ones gold; click it to fly there.
+wheel sizes the brush and Ctrl+wheel sets strength; every brush has a falloff: smooth, linear, sphere or
+flat). I is the eyedropper: the ground under the pointer sets the level height, the eco to paint and its
+tint, and the colour; the status bar shows the eco under the pointer. Ctrl+Z undoes, Ctrl+S saves. The
+minimap shows chunks green and unsaved ones gold; click it to fly there.
 
 ## The viewport
 

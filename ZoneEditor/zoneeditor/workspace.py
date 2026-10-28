@@ -6,25 +6,27 @@ Houses.json. When the servers have been built, the same files are copied into th
 (src/Sanctuary.WebAPI/bin/*/*/ClientMods, src/Sanctuary.Gateway/bin/*/*/Resources) so a restart
 picks them up without a rebuild.
 
-Stock names can't be replaced (see assets.py), so in a stock zone such as FabledRealms the stock
-chunks are read-only and only new chunks, in the empty cells inside the zone's bounds, are editable.
-A new zone (or a copy of one) is all new names and entirely editable.
+Every chunk is editable. Saving one of a stock zone's (FabledRealms) also hides the client's own copy in
+its read-only packs, so it downloads the edited one (unlock_client). A zone opened from a .gzne file
+reads its zone files only from that file's folder, never stock, and saves write back there as well.
 """
 
 from __future__ import annotations
 
 import copy
-import io
+import hashlib
 import json
 import re
 import shutil
 import threading
+import zlib
+from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
 
 from . import formats, models, terrain
-from .assets import AssetSource, compress
+from .assets import AssetSource, compress, decompress
 from .formats import CHUNK_TILES, ECO_MAP_SIZE, TILE_SIZE, Chunk, ColourMap, Light, Object, Zone
 
 NAME = re.compile(r"^[a-z][a-z0-9_]{2,47}$")
@@ -33,6 +35,7 @@ CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache"
 CHUNK_STEP = CHUNK_TILES                       # chunk names step 4 tiles in row and col
 # What the editor changes in a zone definition; the rest of the file is left as it is.
 DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky"]
+PAYLOAD_CACHE = 32                             # chunk payloads kept per zone, about 5 MB each
 
 
 INLINE_NUMBERS = re.compile(r"\[\s*(-?[\d.eE+-]+(?:,\s*-?[\d.eE+-]+)*)\s*\]")
@@ -155,12 +158,6 @@ def _set_environments(env: dict, cells: dict):
         rows[z - env["StartLongitude"]][x - env["StartLatitude"]] = environment
 
 
-def png(rgb: np.ndarray) -> bytes:
-    from PIL import Image
-
-    out = io.BytesIO()
-    Image.fromarray(rgb).save(out, "PNG", compress_level=1)
-    return out.getvalue()
 
 
 class Workspace:
@@ -264,6 +261,60 @@ class Workspace:
         path = self.cache_dir / "thumbs" / (actor.lower() + ".png")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(png)
+
+    # --- drafts --------------------------------------------------------------------------------------
+    # Unsaved work the editor autosaves, so a crash loses at most a few seconds of it. Drafts are kept
+    # beside the editor, never published; saving a zone clears its draft.
+
+    def _draft_dir(self, zone: str) -> Path:
+        """By zone name, or for a zone opened from a file (zone is its path) by a hash of the path."""
+        if "/" in zone or "\\" in zone:
+            folder = "file_" + hashlib.sha1(str(Path(zone).resolve()).lower().encode()).hexdigest()[:12]
+        elif re.fullmatch(r"[A-Za-z0-9_\-]+", zone):
+            folder = zone.lower()
+        else:
+            raise ValueError(f"{zone} is not a zone name")
+        return self.cache_dir / "drafts" / folder
+
+    def save_draft_chunk(self, zone: str, row: int, col: int, body: bytes | None):
+        """Autosaves a chunk; None drops it from the draft (its edits were undone)."""
+        path = self._draft_dir(zone) / f"{int(row)}_{int(col)}.bin"
+        if body is None:
+            path.unlink(missing_ok=True)
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_suffix(".tmp")
+        temporary.write_bytes(zlib.compress(body, 1))
+        temporary.replace(path)
+
+    def save_draft_zone(self, zone: str, settings: dict):
+        path = self._draft_dir(zone) / "zone.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(settings), encoding="utf-8")
+
+    def draft(self, zone: str) -> dict | None:
+        folder = self._draft_dir(zone)
+        if not folder.is_dir():
+            return None
+        chunks = []
+        for path in sorted(folder.glob("*.bin")):
+            row, col = map(int, path.stem.split("_"))
+            chunks.append({"row": row, "col": col, "time": path.stat().st_mtime})
+        zone_file = folder / "zone.json"
+        settings = json.loads(zone_file.read_text(encoding="utf-8")) if zone_file.exists() else None
+        if not chunks and settings is None:
+            return None
+        times = [c["time"] for c in chunks] + ([zone_file.stat().st_mtime] if settings is not None else [])
+        return {"time": max(times), "chunks": chunks, "zone": settings}
+
+    def draft_chunk(self, zone: str, row: int, col: int) -> bytes:
+        path = self._draft_dir(zone) / f"{int(row)}_{int(col)}.bin"
+        if not path.exists():
+            raise KeyError(f"no draft of {row}_{col}")
+        return zlib.decompress(path.read_bytes())
+
+    def clear_draft(self, zone: str):
+        shutil.rmtree(self._draft_dir(zone), ignore_errors=True)
 
     def eco_definitions(self) -> list:
         return sorted(name[:-4] for name in self.assets.names(".eco"))
@@ -372,11 +423,35 @@ class Workspace:
         return colour
 
     def project(self, name: str) -> "ZoneProject":
+        """A zone by name, or by the path of a .gzne / .gzne.z file to open that copy of it (see ZoneProject)."""
+        file = None
+        if "/" in name or "\\" in name:
+            file = Path(name).expanduser().resolve()
+            if not file.name.lower().removesuffix(".z").endswith(".gzne"):
+                raise ValueError(f"{name} is not a zone file (.gzne or .gzne.z)")
+            if not file.is_file():
+                raise KeyError(f"No file {file}")
+            name = str(file)
         with self.lock:
             key = name.lower()
             if key not in self.projects:
-                self.projects[key] = ZoneProject(self, name)
+                self.projects[key] = ZoneProject(self, name, file)
             return self.projects[key]
+
+    def pick_zone_file(self, start: str | None = None) -> str | None:
+        """Asks for a zone file with the desktop's own file dialog; None if it was cancelled."""
+        import subprocess
+        import sys
+
+        folder = Path(start).parent if start and Path(start).parent.is_dir() else self.mods_dir
+        script = ("import sys, tkinter, tkinter.filedialog as d\n"
+                  "root = tkinter.Tk(); root.withdraw(); root.attributes('-topmost', True)\n"
+                  "print(d.askopenfilename(parent=root, title='Open a zone file', initialdir=sys.argv[1],"
+                  " filetypes=[('Zone files', '*.gzne *.gzne.z'), ('All files', '*.*')]))")
+        result = subprocess.run([sys.executable, "-c", script, str(folder)], capture_output=True, text=True, timeout=3600)
+        if result.returncode:
+            raise RuntimeError(result.stderr.strip().splitlines()[-1] if result.stderr.strip() else "the file dialog failed")
+        return str(Path(result.stdout.strip())) if result.stdout.strip() else None
 
     # --- new zones -----------------------------------------------------------------------------------
 
@@ -569,19 +644,30 @@ class Workspace:
 
 
 class ZoneProject:
-    def __init__(self, workspace: Workspace, name: str):
+    """One zone being edited. By name it reads the zone's files wherever the client would (ClientMods, then
+    stock); opened from a file it reads them only from that file's folder, so nothing comes from stock, and
+    saves write back there as well as publishing to ClientMods."""
+
+    def __init__(self, workspace: Workspace, name: str, file: Path | None = None):
         self.ws = workspace
         assets = workspace.assets
-        listed = assets.manifest.get(name.lower() + ".gzne")
-        mod = assets.mod_path(name + ".gzne")
-        if mod:
-            self.name = mod.name.removesuffix(".z")[: -len(".gzne")]
-        elif listed:
-            self.name = listed[0].removesuffix(".z")[: -len(".gzne")]
+        self.id = name                         # what the browser asks for it by: the name, or the file's path
+        self.file = file
+        self.folder = file.parent if file else None
+        if file:
+            self.name = file.name.removesuffix(".z")[: -len(".gzne")]
         else:
-            raise KeyError(f"No zone named {name}")
-        self.stock = assets.is_stock(self.name + ".gzne")
-        self.zone = Zone.read(assets.read(self.name + ".gzne"))
+            listed = assets.manifest.get(name.lower() + ".gzne")
+            mod = assets.mod_path(name + ".gzne")
+            if mod:
+                self.name = mod.name.removesuffix(".z")[: -len(".gzne")]
+            elif listed:
+                self.name = listed[0].removesuffix(".z")[: -len(".gzne")]
+            else:
+                raise KeyError(f"No zone named {name}")
+            self.id = self.name
+        self.stock = not file and assets.is_stock(self.name + ".gzne")
+        self.zone = Zone.read(self._read(self.name + ".gzne"))
         self.zone_dirty = False
         self.environment_cells = {}            # (x tile, z tile) -> environment, for the server's grid
         self.lock = threading.RLock()
@@ -589,14 +675,21 @@ class ZoneProject:
 
         pattern = re.compile(re.escape(self.name.lower()) + r"_(-?\d+)_(-?\d+)\.gcnk$")
         self.chunk_cells = {}
-        for asset in assets.names(".gcnk"):
-            match = pattern.match(asset)
-            if match:
-                row, col = int(match.group(1)), int(match.group(2))
-                self.chunk_cells[(row, col)] = "stock" if assets.is_stock(asset) else "mod"
+        if file:
+            for path in self.folder.iterdir():
+                match = pattern.match(path.name.lower().removesuffix(".z"))
+                if match:
+                    self.chunk_cells[(int(match.group(1)), int(match.group(2)))] = "file"
+        else:
+            for asset in assets.names(".gcnk"):
+                match = pattern.match(asset)
+                if match:
+                    row, col = int(match.group(1)), int(match.group(2))
+                    self.chunk_cells[(row, col)] = "stock" if assets.is_stock(asset) else "mod"
         self.chunks = {}
         self.originals = {}
         self.snapshot = {}
+        self.payloads = OrderedDict()          # (row, col) -> chunk_payload, the most recently sent last
 
         definitions = workspace.definitions()
         self.definition_path, self.definition = definitions.get(self.name.lower(), (None, None))
@@ -604,6 +697,24 @@ class ZoneProject:
         self.environments = json.loads(environment_path.read_text(encoding="utf-8-sig")) if environment_path.exists() else None
 
     # --- reading -------------------------------------------------------------------------------------
+
+    def _local(self, name: str) -> Path | None:
+        """A zone file in the opened file's folder, plain or compressed."""
+        for path in (self.folder / name, self.folder / (name + ".z")):
+            if path.is_file():
+                return path
+        return None
+
+    def _has(self, name: str) -> bool:
+        return self._local(name) is not None if self.folder else self.ws.assets.exists(name)
+
+    def _read(self, name: str) -> bytes:
+        if not self.folder:
+            return self.ws.assets.read(name)
+        path = self._local(name)
+        if path is None:
+            raise KeyError(f"No {name} in {self.folder}")
+        return decompress(path.read_bytes())
 
     def editable(self, row: int, col: int) -> bool:
         # Every chunk: a saved stock chunk is hidden from the client's read-only packs (Workspace.unlock_client).
@@ -618,14 +729,14 @@ class ZoneProject:
             if (row, col) not in self.chunks:
                 if (row, col) not in self.chunk_cells:
                     return None
-                blob = self.ws.assets.read(f"{self.name}_{row}_{col}.gcnk")
+                blob = self._read(f"{self.name}_{row}_{col}.gcnk")
                 self.chunks[(row, col)] = Chunk.read(blob)
                 self.originals[(row, col)] = self.chunks[(row, col)]
             return self.chunks[(row, col)]
 
     def colour(self, row: int, col: int) -> ColourMap | None:
         name = f"{self.name}_{row}_{col}.gck2"
-        return ColourMap.read(self.ws.assets.read(name)) if self.ws.assets.exists(name) else None
+        return ColourMap.read(self._read(name)) if self._has(name) else None
 
     def eco_colour(self, index: int) -> list:
         eco = next((e for e in self.zone.ecos if e.index == index), None)
@@ -639,7 +750,8 @@ class ZoneProject:
         if self.definition:
             houses = [h for h in self.ws._houses() if h.get("ZoneId") == self.definition.get("Id")]
         return {
-            "name": self.name, "stock": self.stock, "version": z.version,
+            "id": self.id, "name": self.name, "file": str(self.file) if self.file else None,
+            "stock": self.stock, "version": z.version,
             # A Sanctuary zone that install_client_mods.py put in the client's read-only pack: locked like stock.
             "installed": self.stock and self.ws.assets.mod_path(self.name + ".gzne") is not None,
             "bounds": {"startX": z.start_x, "startZ": z.start_z, "endX": z.end_x, "endZ": z.end_z},
@@ -654,18 +766,25 @@ class ZoneProject:
             "skies": self.ws.skies(),
         }
 
-    def chunk_payload(self, row: int, col: int, lite: bool = False):
-        """(meta, heights f32 [129 x 129], eco weights u8 [512 x 512 x n], colour PNG [1024 x 1024, x by z]).
+    def chunk_payload(self, row: int, col: int):
+        """(meta, heights f32 [129 x 129], eco weights u8 [512 x 512 x n], colour RGBA u8 [1024 x 1024, x by z]).
 
-        lite (for chunks the editor only shows) leaves out the weights and halves the colour map.
+        The colour map goes raw rather than as an image: decoding it is most of the work, and the browser
+        paints on the raw pixels anyway. The last few payloads are kept, as the viewport drops chunks
+        behind the camera and asks for them again.
         """
+        with self.lock:
+            if (row, col) in self.payloads:
+                self.payloads.move_to_end((row, col))
+                return self.payloads[(row, col)]
         chunk = self.chunk(row, col)
         if chunk is None:
             raise KeyError(f"No chunk {row}_{col}")
         heights = terrain.rasterize(chunk, row, col)
         ecos, weights = formats.chunk_eco_weights(chunk)
         colour = self.colour(row, col)
-        rgb = terrain.colour_to_xz(colour) if colour else np.full((1024, 1024, 3), 128, np.uint8)
+        rgba = np.full((1024, 1024, 4), 255, np.uint8)
+        rgba[..., :3] = terrain.colour_to_xz(colour) if colour else 128
 
         objects = []
         lights = []
@@ -683,12 +802,14 @@ class ZoneProject:
         meta = {
             "row": row, "col": col, "version": chunk.version, "editable": self.editable(row, col),
             "tiles": [{"row": t.row, "col": t.col, "environment": t.environment, "ecos": t.ecos} for t in chunk.tiles],
-            "ecos": ecos, "objects": objects, "lights": lights,
+            "ecos": ecos, "objects": objects, "lights": lights, "colourSize": rgba.shape[0],
         }
-        if lite:
-            meta["ecos"] = []
-            return meta, heights.astype("<f4").tobytes(), b"", png(np.ascontiguousarray(rgb[::2, ::2]))
-        return meta, heights.astype("<f4").tobytes(), np.ascontiguousarray(weights).tobytes(), png(rgb)
+        payload = meta, heights.astype("<f4").tobytes(), np.ascontiguousarray(weights).tobytes(), rgba.tobytes()
+        with self.lock:
+            self.payloads[(row, col)] = payload
+            while len(self.payloads) > PAYLOAD_CACHE:
+                self.payloads.popitem(last=False)
+        return payload
 
     # --- writing -------------------------------------------------------------------------------------
 
@@ -784,30 +905,41 @@ class ZoneProject:
             self._apply_objects(chunk, row, col, meta.get("objects", []))
             self._apply_lights(chunk, row, col, meta.get("lights", []))
 
-            gcnk = self.ws.mods_dir / f"{self.name}_{row}_{col}.gcnk"
-            gcnk.parent.mkdir(parents=True, exist_ok=True)
-            gcnk.write_bytes(chunk.write())
-            written = [gcnk]
+            name = f"{self.name}_{row}_{col}"
+            written = self._write(name + ".gcnk", chunk.write())
             if colour is not None or new:
                 if colour is None:
                     colour = np.full((1024, 1024, 3), 128, np.uint8)
-                gck2 = gcnk.with_suffix(".gck2")
-                gck2.write_bytes(terrain.colour_from_xz(colour, self.colour(row, col) if not new else None).write())
-                written.append(gck2)
-            # A compressed copy of the same asset would also be published; this one replaces it.
-            for path in written:
-                stale = path.with_name(path.name + ".z")
-                if stale.exists():
-                    stale.unlink()
+                written += self._write(name + ".gck2", terrain.colour_from_xz(colour, self.colour(row, col) if not new else None).write())
 
             self.chunks[(row, col)] = chunk
             self.originals[(row, col)] = chunk
-            self.chunk_cells[(row, col)] = "mod"
+            self.payloads.pop((row, col), None)
+            self.chunk_cells[(row, col)] = "file" if self.file else "mod"
             self.written += written
             if new:
                 self._grow(row, col, int((meta.get("environments") or [0])[0] or 0))
             return {"files": [str(p) for p in written], "vertices": int(len(chunk.vertices)),
                     "objects": sum(len(t.objects) for t in chunk.tiles)}
+
+    def _write(self, name: str, data: bytes) -> list:
+        """Writes one of the zone's files into ClientMods (the zone file compressed, like the client's) and, for
+        a zone opened from a file, into that folder too, in the form the file already has there. The other
+        form of the same file goes, so it can't shadow this one."""
+        targets = [(self.ws.mods_dir, name.endswith(".gzne"))]
+        if self.folder and self.folder.resolve() != self.ws.mods_dir.resolve():
+            existing = self._local(name)
+            targets.insert(0, (self.folder, existing is not None and existing.name.endswith(".z")))
+        written = []
+        for folder, compressed in targets:
+            path = folder / (name + ".z" if compressed else name)
+            other = folder / (name if compressed else name + ".z")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(compress(data) if compressed else data)
+            if other.exists():
+                other.unlink()
+            written.append(path)
+        return written
 
     def _home_tile(self, chunk: Chunk, row: int, col: int, position) -> int:
         x0, z0 = terrain.chunk_origin(row, col)
@@ -931,13 +1063,13 @@ class ZoneProject:
         """
         written = []
         with self.lock:
-            if self.zone_dirty:
-                path = self.ws.mods_dir / f"{self.name}.gzne.z"
-                plain = self.ws.mods_dir / f"{self.name}.gzne"
-                if plain.exists():
-                    plain.unlink()
-                path.write_bytes(compress(self.zone.write()))
-                written.append(path)
+            # A zone opened from a file publishes its zone file with its first chunks, or ClientMods' chunks
+            # would go out with whatever .gzne the client already has.
+            published = self.ws.assets.mod_path(self.name + ".gzne")
+            unpublished = self.file is not None and self.written and (
+                published is None or decompress(published.read_bytes()) != self.zone.write())
+            if self.zone_dirty or unpublished:
+                written += self._write(f"{self.name}.gzne", self.zone.write())
 
             if self.definition is not None:
                 self.definition_path, definition = self.ws.definitions().get(self.name.lower(), (self.definition_path, self.definition))

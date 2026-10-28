@@ -344,10 +344,11 @@ def decode_dxt(data: bytes, width: int, height: int, fourcc: bytes = b"DXT1") ->
     four = ((c0 > c1) | (fourcc != b"DXT1"))[:, None]
     p2 = np.where(four, (2 * e0 + e1) / 3, (e0 + e1) / 2)
     p3 = np.where(four, (e0 + 2 * e1) / 3, 0)
-    palette = np.stack([e0, e1, p2, p3], 1)
+    # Rounded per block before the per-pixel gather, which then moves bytes rather than floats.
+    palette = np.rint(np.stack([e0, e1, p2, p3], 1)).astype(np.uint8)
     index = (bits[:, None] >> (2 * np.arange(16))) & 3
     rgb = palette[np.arange(count)[:, None], index]
-    alpha = np.full((count, 16, 1), 255, np.float32)
+    alpha = np.full((count, 16, 1), 255, np.uint8)
     if fourcc == b"DXT1":
         alpha[..., 0] = np.where((~four[:, 0])[:, None] & (index == 3), 0, 255)
     elif fourcc == b"DXT3":
@@ -364,10 +365,9 @@ def decode_dxt(data: bytes, width: int, height: int, fourcc: bytes = b"DXT1") ->
         interp8 = np.where(codes == 0, a0[:, None], np.where(codes == 1, a1[:, None], ((8 - k) * a0[:, None] + (k - 1) * a1[:, None]) / 7))
         interp6 = np.where(codes == 0, a0[:, None], np.where(codes == 1, a1[:, None],
                   np.where(codes == 6, 0, np.where(codes == 7, 255, ((6 - k) * a0[:, None] + (k - 1) * a1[:, None]) / 5))))
-        alpha[..., 0] = np.where(eight, interp8, interp6)
+        alpha[..., 0] = np.clip(np.rint(np.where(eight, interp8, interp6)), 0, 255)
     pixels = np.concatenate([rgb, alpha], -1)
-    image = pixels.reshape(height // 4, width // 4, 4, 4, 4).transpose(0, 2, 1, 3, 4).reshape(height, width, 4)
-    return np.clip(np.rint(image), 0, 255).astype(np.uint8)
+    return pixels.reshape(height // 4, width // 4, 4, 4, 4).transpose(0, 2, 1, 3, 4).reshape(height, width, 4)
 
 
 @dataclass

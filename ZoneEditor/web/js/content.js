@@ -146,6 +146,7 @@ export class ContentBrowser {
 
   build() {
     this.element.innerHTML = `
+      <div class="cb-resize" title="Drag to resize"></div>
       <div class="cb-groups"></div>
       <div class="cb-main">
         <div class="cb-bar">
@@ -167,6 +168,32 @@ export class ContentBrowser {
     const grid = this.element.querySelector(".cb-grid");
     grid.addEventListener("scroll", () => {
       if (grid.scrollTop + grid.clientHeight > grid.scrollHeight - 300) this.renderMore();
+    });
+
+    // Drag the top edge to resize the drawer; the height is remembered.
+    const viewport = this.element.parentElement;
+    const setHeight = (height) => {
+      const clamped = Math.round(Math.max(160, Math.min(height, viewport.clientHeight * 0.8)));
+      viewport.style.setProperty("--cb-height", `${clamped}px`);
+      return clamped;
+    };
+    setHeight(storageGet("zone-editor-content-height", 280));
+    const handle = this.element.querySelector(".cb-resize");
+    handle.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      handle.setPointerCapture(event.pointerId);
+      handle.classList.add("dragging");
+      const bottom = viewport.getBoundingClientRect().bottom;
+      const move = (e) => setHeight(bottom - e.clientY);
+      const up = (e) => {
+        handle.releasePointerCapture(event.pointerId);
+        handle.classList.remove("dragging");
+        handle.removeEventListener("pointermove", move);
+        handle.removeEventListener("pointerup", up);
+        storageSet("zone-editor-content-height", setHeight(bottom - e.clientY));
+      };
+      handle.addEventListener("pointermove", move);
+      handle.addEventListener("pointerup", up);
     });
   }
 

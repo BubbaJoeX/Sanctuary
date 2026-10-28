@@ -1,8 +1,8 @@
 // Sanctuary zone editor: the viewport, tools and panels.
 import * as THREE from "three";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
-import { ASSET_VERSION, getJson, postJson, save } from "./api.js";
-import { CHUNK, TerrainManager, environmentColour } from "./terrain.js";
+import { ASSET_VERSION, frame as frameBody, getJson, postJson, save, unframe } from "./api.js";
+import { CHUNK, FALLOFFS, STEP, TerrainChunk, TerrainManager, environmentColour } from "./terrain.js";
 import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform } from "./props.js";
 import { ContentBrowser } from "./content.js";
 import { parseSky, sampleSky } from "./sky.js";
@@ -82,11 +82,13 @@ const state = {
   zones: [],
   zone: null,
   tool: "select",
-  brush: { radius: 16, strength: 0.5, mode: "raise" },
+  brush: { radius: 16, strength: 0.5, mode: "raise", step: 4 },
   eco: null,
   ecoPick: null,
   ecoTint: true,
   ecoTintAmount: 0.85,
+  ecoTintPick: null,       // a tint the eyedropper took from the ground, painted instead of the eco's own colour
+  exclude: { mode: "cut", target: null, onlyInside: true },
   ecoColours: new Map(),
   colour: [96, 140, 70],
   environment: 0,
@@ -111,6 +113,22 @@ const raycaster = new THREE.Raycaster();
 let hover = null;          // terrain hit under the pointer
 let stroke = null;         // brush stroke in progress
 
+// The ramp brush's line, from where the drag started to the pointer.
+const rampLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+  new THREE.LineBasicMaterial({ color: 0xe8b84a, depthTest: false }));
+rampLine.visible = false;
+rampLine.renderOrder = 10;
+scene.add(rampLine);
+
+function setRampLine(start, end) {
+  const position = rampLine.geometry.attributes.position;
+  position.setXYZ(0, start.x, start.y + 0.5, start.z);
+  position.setXYZ(1, end.x, end.y + 0.5, end.z);
+  position.needsUpdate = true;
+  rampLine.geometry.computeBoundingSphere();
+  rampLine.visible = true;
+}
+
 function status(text) {
   $("#status-text").textContent = text;
 }
@@ -130,14 +148,17 @@ function toast(text, kind = "") {
 async function loadZones() {
   const data = await getJson("/api/zones");
   state.zones = data.zones;
-  $("#zone-list").innerHTML = data.zones.map((z) =>
-    `<option value="${z.name}">${z.stock ? "stock" : "custom"}${z.type ? " · " + z.type + " " + z.id : ""}</option>`).join("");
+  listZones();
   status(`Saving into ${data.mods} · client ${data.client}`);
 }
 
 async function openZone(name, keepCamera = false) {
   if (!name) return;
-  if (!keepCamera && dirtyChunks().length && !confirm("Discard unsaved changes?")) return;
+  if (!keepCamera && state.zone) {
+    if ((dirtyChunks().length || state.zoneDirty) && !confirm("Discard unsaved changes?")) return;
+    // Whatever this page autosaved is discarded or undone now.
+    if (drafted.size || zoneAutosaved) await clearDraft(state.zone.id);
+  }
   status(`Opening ${name}…`);
   let zone;
   try {
@@ -153,15 +174,19 @@ async function openZone(name, keepCamera = false) {
   state.customSky = null;
   state.settings = {};
   state.zoneDirty = false;
+  zoneAutosaved = "";
+  drafted.clear();
   state.eco = zone.ecos[0]?.index ?? null;
   state.newChunk.eco = state.eco;
   terrain.setZone(zone);
   terrain.setSelectedEco(state.eco);
   undoStack.length = 0;
-  try { localStorage.setItem("zone-editor-zone", zone.name); } catch { /* private mode */ }
-  $("#zone-search").value = zone.name;
+  try { localStorage.setItem("zone-editor-zone", zone.id); } catch { /* private mode */ }
+  $("#zone-search").value = zone.id;
   const editable = zone.chunks.filter((c) => c.editable).length;
-  $("#zone-title").textContent = `${zone.name} · ${zone.stock ? "stock zone" : "custom zone"} · ${zone.chunks.length} chunks${zone.definition ? " · " + zone.definition.Type + " " + zone.definition.Id : " · no Sanctuary definition"}`;
+  $("#zone-title").textContent = `${zone.name} · ${zoneSource(zone)} · ${zone.chunks.length} chunks${zone.definition ? " · " + zone.definition.Type + " " + zone.definition.Id : " · no Sanctuary definition"}`;
+  $("#zone-title").title = zone.file || "";
+  if (zone.file) rememberFile(zone.file);
   if (!keepCamera) {
     const spawn = zone.definition?.SpawnPosition;
     if (spawn) camera.position.set(spawn[0], spawn[1] + 40, spawn[2] - 60);
@@ -173,7 +198,10 @@ async function openZone(name, keepCamera = false) {
     look.pitch = -0.4;
   }
   buildMarkers();
-  if (zone.installed && !keepCamera) {
+  if (zone.file && !keepCamera) {
+    toast(`Opened ${zone.file}: its zone files come only from that folder, nothing from stock.\n` +
+      "Saving writes them back there and publishes them to ClientMods for the servers.");
+  } else if (zone.installed && !keepCamera) {
     toast(`${zone.name}'s files are in the pack install_client_mods.py wrote, which the client can't update.\n` +
       "Run install_client_mods.py again (it now leaves zone files out) before testing edits to it in game.");
   } else if (zone.stock && !keepCamera) {
@@ -182,11 +210,47 @@ async function openZone(name, keepCamera = false) {
   }
   updateLightingFromSky(zone.definition?.Sky);
   status(`${zone.name}: ${zone.chunks.length} chunks`);
+  if (!keepCamera) offerDraft();
   setTool(state.tool);
+  updateDirty();
 }
 
 function dirtyChunks() {
   return [...terrain.chunks.values()].filter((c) => c.anyDirty);
+}
+
+function zoneSource(zone) {
+  if (zone.file) return `file ${zone.file.split(/[\\/]/).slice(-2).join("\\")}`;
+  return zone.stock ? "stock zone" : "custom zone";
+}
+
+// Zone files opened recently, offered in the zone box above the zone names.
+function recentFiles() {
+  try { return JSON.parse(localStorage.getItem("zone-editor-files")) || []; } catch { return []; }
+}
+
+function rememberFile(path) {
+  const files = [path, ...recentFiles().filter((f) => f.toLowerCase() !== path.toLowerCase())].slice(0, 8);
+  try { localStorage.setItem("zone-editor-files", JSON.stringify(files)); } catch { /* private mode */ }
+  listZones();
+}
+
+function listZones() {
+  $("#zone-list").innerHTML = recentFiles().map((f) => `<option value="${escape(f)}">recent file</option>`).join("") +
+    state.zones.map((z) => `<option value="${z.name}">${z.stock ? "stock" : "custom"}${z.type ? " · " + z.type + " " + z.id : ""}</option>`).join("");
+}
+
+async function openZoneFile() {
+  const start = state.zone?.file || recentFiles()[0] || null;
+  status("Pick a zone file in the dialog…");
+  try {
+    const { path } = await postJson("/api/pick-zone", { start });
+    if (!path) return status("No file picked.");
+    await openZone(path);
+    buildWalls();
+  } catch (error) {
+    toast(`Open file failed: ${error.message}`, "error");
+  }
 }
 
 // --- markers (spawn, houses) ---------------------------------------------------------------------------
@@ -317,7 +381,18 @@ function updatePointLights() {
 
 // --- tools and panels ----------------------------------------------------------------------------------
 
-const BRUSH_TOOLS = new Set(["sculpt", "eco", "colour", "environment"]);
+const BRUSH_TOOLS = new Set(["sculpt", "exclude", "eco", "colour", "environment"]);
+// The sculpt modes, in the order the number keys pick them (1 to 0; noise has no key).
+const SCULPT_MODES = ["raise", "lower", "smooth", "flatten", "slope", "level", "ramp", "terrace", "erode", "sharpen", "noise"];
+const SCULPT_HINTS = {
+  raise: "Raises the ground; Shift lowers.", lower: "Lowers the ground; Shift raises.",
+  smooth: "Evens out bumps.", flatten: "Pulls the ground to the height where the stroke started.",
+  slope: "Pulls the ground onto the slope under the brush where the stroke started: flattens lumps without levelling a hillside.",
+  level: "Sets the ground to the level height below (Alt+click picks it from the ground).",
+  ramp: "Drag from one point to another: the ground between them becomes a straight ramp as wide as the brush.",
+  terrace: "Cuts the ground into steps of the step height.", erode: "Slides cliffs and spikes down to a natural 35° slope.",
+  sharpen: "The opposite of smooth: brings out edges and ridges.", noise: "Roughens the ground.",
+};
 
 function setTool(tool) {
   state.tool = tool;
@@ -339,24 +414,95 @@ function escape(text) {
   return String(text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 }
 
-function brushControls(modes) {
+function brushControls(modes, current = state.brush.mode) {
   return html`
-    ${modes ? `<div class="seg">${modes.map((m) => `<button data-mode="${m}" class="${state.brush.mode === m ? "active" : ""}">${m}</button>`).join("")}</div>` : ""}
+    ${modes ? `<div class="seg">${modes.map((m, k) => `<button data-mode="${m}" class="${current === m ? "active" : ""}" title="${k < 10 ? `Key ${(k + 1) % 10}` : ""}">${m}</button>`).join("")}</div>` : ""}
     <label>Radius <span id="radius-value">${state.brush.radius}</span><input id="brush-radius" type="range" min="2" max="128" value="${state.brush.radius}"></label>
-    <label>Strength <span id="strength-value">${state.brush.strength.toFixed(2)}</span><input id="brush-strength" type="range" min="0.02" max="1" step="0.01" value="${state.brush.strength}"></label>`;
+    <label>Strength <span id="strength-value">${state.brush.strength.toFixed(2)}</span><input id="brush-strength" type="range" min="0.02" max="1" step="0.01" value="${state.brush.strength}"></label>
+    <label>Falloff <select id="brush-falloff">${FALLOFFS.map((f) => `<option ${terrain.falloff === f ? "selected" : ""}>${f}</option>`).join("")}</select></label>`;
 }
 
-function bindBrush() {
+function bindBrush(setMode = (mode) => { state.brush.mode = mode; }) {
   panel.querySelector("#brush-radius")?.addEventListener("input", (e) => { state.brush.radius = +e.target.value; $("#radius-value").textContent = state.brush.radius; });
   panel.querySelector("#brush-strength")?.addEventListener("input", (e) => { state.brush.strength = +e.target.value; $("#strength-value").textContent = state.brush.strength.toFixed(2); });
+  panel.querySelector("#brush-falloff")?.addEventListener("change", (e) => { terrain.falloff = e.target.value; });
   for (const button of panel.querySelectorAll("[data-mode]")) {
-    button.addEventListener("click", () => { state.brush.mode = button.dataset.mode; renderPanel(); });
+    button.addEventListener("click", () => { setMode(button.dataset.mode); renderPanel(); });
   }
+}
+
+function ecoName(index) {
+  return state.zone?.ecos.find((e) => e.index === index)?.name ?? `eco ${index}`;
+}
+
+function rgbHex(rgb) {
+  return "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+
+// The eyedropper: what's on the ground under the pointer becomes what the brushes paint. part limits it to
+// one tool's (Alt+click: "eco" takes the eco and its tint, "colour" the colour, "sculpt" the height); I takes all.
+function eyedrop(part = null) {
+  const hit = terrainHit();
+  if (!hit) return toast("No ground under the pointer to pick from.");
+  const picked = [];
+  const tint = terrain.sampleColour(hit.x, hit.z);
+  if (!part || part === "eco") {
+    const [top] = terrain.sampleEcos(hit.x, hit.z);
+    if (top) {
+      pickEco(top.index, null);
+      picked.push(`eco ${ecoName(top.index)} (${Math.round(top.weight * 100)}%)`);
+    }
+    if (tint) { state.ecoTintPick = tint; picked.push(`tint ${rgbHex(tint)}`); }
+  }
+  if ((!part || part === "colour") && tint) {
+    state.colour = tint;
+    if (part) picked.push(`colour ${rgbHex(tint)}`);
+  }
+  if (!part || part === "sculpt") {
+    state.brush.level = Math.round(hit.y * 4) / 4;
+    picked.push(`height ${state.brush.level}`);
+  }
+  renderPanel();
+  status(`Picked ${picked.join(" · ")}`);
+}
+
+// A test for points inside a prop's bounds, in its own frame so a turned model's box turns with it.
+function insideTest(object) {
+  object.updateMatrixWorld(true);
+  const inverse = object.matrixWorld.clone().invert();
+  const box = new THREE.Box3(), relative = new THREE.Matrix4();
+  object.traverse((node) => {
+    if (!node.isMesh || !node.geometry) return;
+    if (!node.geometry.boundingBox) node.geometry.computeBoundingBox();
+    box.union(node.geometry.boundingBox.clone().applyMatrix4(relative.multiplyMatrices(inverse, node.matrixWorld)));
+  });
+  const point = new THREE.Vector3();
+  return (x, y, z) => box.containsPoint(point.set(x, y, z).applyMatrix4(inverse));
+}
+
+function excludeTarget() {
+  const target = state.exclude.target;
+  return target?.parent ? target : null;
+}
+
+// Cuts out (or restores) all the ground inside the exclude target's bounds, as one undo step.
+function cutInsideTarget(restore) {
+  const target = excludeTarget();
+  if (!target) return toast("Shift+click a cave model first.");
+  const box = new THREE.Box3().setFromObject(target);
+  const centre = box.getCenter(new THREE.Vector3());
+  const radius = Math.hypot(box.max.x - box.min.x, box.max.z - box.min.z) / 2 + STEP;
+  stroke = { snapshot: new Map() };
+  snapshotChunks(terrain.editableChunksNear(centre.x, centre.z, radius));
+  const chunks = terrain.exclude(centre.x, centre.z, radius, restore, insideTest(target));
+  endStroke();
+  updateDirty();
+  toast(chunks ? `${restore ? "Restored" : "Cut out"} the ground inside ${target.userData.record.file} (${chunks} chunk(s)).` : "No ground inside it to change.", chunks ? "ok" : "");
 }
 
 async function ecoColour(index) {
   if (!state.ecoColours.has(index)) {
-    state.ecoColours.set(index, await getJson(`/api/eco-colour?zone=${encodeURIComponent(state.zone.name)}&index=${index}`));
+    state.ecoColours.set(index, await getJson(`/api/eco-colour?zone=${encodeURIComponent(state.zone.id)}&index=${index}`));
   }
   return state.ecoColours.get(index);
 }
@@ -381,12 +527,13 @@ function loadPalette() {
 function pickEco(index, entry) {
   state.eco = index;
   state.ecoPick = entry;
+  state.ecoTintPick = null;
   terrain.setSelectedEco(index);
 }
 
 async function ensureEco() {
   if (!state.ecoPick) return state.eco;
-  const eco = await postJson("/api/zone/eco", { zone: state.zone.name, palette: state.ecoPick.key });
+  const eco = await postJson("/api/zone/eco", { zone: state.zone.id, palette: state.ecoPick.key });
   if (!state.zone.ecos.some((e) => e.index === eco.index)) state.zone.ecos.push(eco);
   state.zoneDirty = true;
   pickEco(eco.index, null);
@@ -411,15 +558,33 @@ function renderPanel() {
     panel.innerHTML = `<h3>Select</h3><p class="hint">Click a prop, light or marker. G move, R rotate, T scale, Del delete, Ctrl+D duplicate, F focus.</p><div id="inspector"></div>`;
     renderInspector();
   } else if (state.tool === "sculpt") {
-    panel.innerHTML = `<h3>Sculpt</h3>${noEditable}${brushControls(["raise", "lower", "smooth", "flatten", "level", "noise"])}
-      <label id="level-row" style="${state.brush.mode === "level" ? "" : "display:none"}">Level height <input id="level-height" type="number" step="0.5" value="${state.brush.level ?? 0}"></label>
-      <p class="hint">Hold the left button to sculpt; Shift swaps raise/lower. Flatten levels to the height where the stroke started. Edges shared with chunks that aren't loaded stay pinned so the seams don't open.</p>`;
+    const mode = state.brush.mode;
+    panel.innerHTML = `<h3>Sculpt</h3>${noEditable}${brushControls(SCULPT_MODES)}
+      <label style="${mode === "level" ? "" : "display:none"}">Level height <input id="level-height" type="number" step="0.25" value="${state.brush.level ?? 0}"></label>
+      <label style="${mode === "terrace" ? "" : "display:none"}">Step height <input id="terrace-step" type="number" min="0.5" step="0.5" value="${state.brush.step}"></label>
+      <p class="hint"><b>${mode}</b>: ${SCULPT_HINTS[mode]}</p>
+      <p class="hint">Hold the left button to sculpt. Keys 1–0 pick a mode, Alt+click picks the ground's height, I picks height, eco and tint. Edges shared with chunks that aren't loaded stay pinned so the seams don't open.</p>`;
     bindBrush();
     panel.querySelector("#level-height").addEventListener("input", (e) => { state.brush.level = +e.target.value; });
+    panel.querySelector("#terrace-step").addEventListener("input", (e) => { state.brush.step = Math.max(0.5, +e.target.value); });
+  } else if (state.tool === "exclude") {
+    const target = excludeTarget();
+    panel.innerHTML = `<h3>Exclude</h3>${noEditable}${brushControls(["cut", "restore"], state.exclude.mode)}
+      <h4>Cave model</h4>
+      <p class="hint">${target ? `<b>${escape(target.userData.record.file)}</b>` : "None: Shift+click a cave (or any model) to cut the ground inside it."}</p>
+      <label class="check"><input id="exclude-inside" type="checkbox" ${state.exclude.onlyInside ? "checked" : ""} ${target ? "" : "disabled"}> Brush only cuts inside the model</label>
+      <div class="row"><button id="exclude-all" ${target ? "" : "disabled"}>Cut all inside it</button><button id="restore-all" ${target ? "" : "disabled"}>Restore</button></div>
+      <p class="hint">Cuts holes in the ground, so a cave's mouth and inside aren't buried under terrain; the client leaves holes out of the ground's mesh and collision. Restore puts ground back: as it was if it was cut here, else at its surroundings' height. Keys 1 cut, 2 restore.</p>`;
+    bindBrush((value) => { state.exclude.mode = value; });
+    panel.querySelector("#exclude-inside").addEventListener("change", (e) => { state.exclude.onlyInside = e.target.checked; });
+    panel.querySelector("#exclude-all").addEventListener("click", () => cutInsideTarget(false));
+    panel.querySelector("#restore-all").addEventListener("click", () => cutInsideTarget(true));
   } else if (state.tool === "eco") {
     panel.innerHTML = `<h3>Eco layers</h3>${noEditable}${brushControls()}
       <label class="check"><input id="eco-tint" type="checkbox" ${state.ecoTint ? "checked" : ""}> Also tint the colour map</label>
       <label>Tint amount <input id="eco-tint-amount" type="range" min="0" max="1" step="0.05" value="${state.ecoTintAmount}"></label>
+      <div class="row"><span>Tint: ${state.ecoTintPick ? `<span class="swatch" style="background:${rgbHex(state.ecoTintPick)}"></span>picked ${rgbHex(state.ecoTintPick)}` : "the eco's own colour"}</span>${state.ecoTintPick ? `<button id="eco-tint-reset">Use the eco's</button>` : ""}</div>
+      <p class="hint">Eyedropper: Alt+click (or I over the ground) picks the eco under the pointer and its tint, to paint more of the same.</p>
       <h4>In ${escape(zone.name)}</h4>
       <div class="list palette">${zone.ecos.map((e) => ecoRow(e, `data-eco="${e.index}"`, e.index === state.eco && !state.ecoPick)).join("")}</div>
       <h4>All ecos <span id="palette-count"></span></h4>
@@ -429,6 +594,7 @@ function renderPanel() {
     bindBrush();
     panel.querySelector("#eco-tint").addEventListener("change", (e) => { state.ecoTint = e.target.checked; });
     panel.querySelector("#eco-tint-amount").addEventListener("input", (e) => { state.ecoTintAmount = +e.target.value; });
+    panel.querySelector("#eco-tint-reset")?.addEventListener("click", () => { state.ecoTintPick = null; renderPanel(); });
     for (const row of panel.querySelectorAll("[data-eco]")) {
       row.addEventListener("click", () => { pickEco(+row.dataset.eco, null); renderPanel(); });
     }
@@ -459,10 +625,9 @@ function renderPanel() {
     search.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(fill, 150); });
     fill().catch((error) => toast(error.message, "error"));
   } else if (state.tool === "colour") {
-    const hex = "#" + state.colour.map((v) => v.toString(16).padStart(2, "0")).join("");
     panel.innerHTML = `<h3>Colour map</h3>${noEditable}${brushControls()}
-      <label>Colour <input id="paint-colour" type="color" value="${hex}"></label>
-      <p class="hint">Alt+click picks a colour from the ground. The colour map is the ground's base tint; eco detail textures draw over it in game.</p>`;
+      <label>Colour <input id="paint-colour" type="color" value="${rgbHex(state.colour)}"></label>
+      <p class="hint">Alt+click (or I) picks a colour from the ground. The colour map is the ground's base tint; eco detail textures draw over it in game.</p>`;
     bindBrush();
     panel.querySelector("#paint-colour").addEventListener("input", (e) => {
       const v = e.target.value;
@@ -524,7 +689,7 @@ function renderZonePanel() {
   const skies = zone.skies;
   const sky = state.sky !== undefined ? state.sky : definition?.Sky || "";
   panel.innerHTML = html`<h3>Zone</h3>
-    <p class="hint">${escape(zone.name)} · ${zone.stock ? "stock" : "custom"} · ${zone.chunks.length} chunks · bounds x ${zone.bounds.startX * 64}…${zone.bounds.endX * 64}, z ${zone.bounds.startZ * 64}…${zone.bounds.endZ * 64}</p>
+    <p class="hint">${escape(zone.name)} · ${escape(zoneSource(zone))} · ${zone.chunks.length} chunks · bounds x ${zone.bounds.startX * 64}…${zone.bounds.endX * 64}, z ${zone.bounds.startZ * 64}…${zone.bounds.endZ * 64}</p>
     ${definition ? `<p class="hint">Sanctuary ${definition.Type} zone ${definition.Id}. Travel there with <code>!moveplayer zone ${definition.Id} &lt;you&gt;</code> after restarting the servers.</p>` : `<p class="warn">No Sanctuary zone definition (Zones/${escape(zone.name)}.json), so the server can't send players here.</p>`}
     <h4>Spawn</h4>
     ${definition ? `<div class="row"><button id="spawn-here">Spawn at camera target</button></div><p class="hint">Or select the blue marker and move it (G) or turn it (R).</p>` : ""}
@@ -902,17 +1067,22 @@ canvas.addEventListener("pointerdown", async (event) => {
   if (!state.zone) return;
   const tool = state.tool;
   if (BRUSH_TOOLS.has(tool)) {
-    if (tool === "colour" && event.altKey) {
-      const hit = terrainHit();
-      const picked = hit && terrain.sampleColour(hit.x, hit.z);
-      if (picked) { state.colour = picked; renderPanel(); }
-      return;
+    if (event.altKey && ["sculpt", "eco", "colour"].includes(tool)) return eyedrop(tool);
+    if (tool === "exclude" && event.shiftKey) {
+      raycaster.setFromCamera(pointer.ndc, camera);
+      const propHit = props.pick(raycaster);
+      if (propHit?.object.userData.kind !== "prop") return toast("No model under the pointer.");
+      state.exclude.target = propHit.object;
+      return renderPanel();
     }
     if (tool === "eco" && state.ecoPick) {
       try { await ensureEco(); } catch (error) { return toast(error.message, "error"); }
     }
     const hit = terrainHit();
     stroke = { snapshot: new Map(), target: hit?.y ?? 0, last: performance.now() };
+    if (tool === "sculpt" && hit && state.brush.mode === "slope") stroke.plane = terrain.fitPlane(hit.x, hit.z, state.brush.radius);
+    if (tool === "sculpt" && hit && state.brush.mode === "ramp") stroke.start = { x: hit.x, y: hit.y, z: hit.z };
+    if (tool === "exclude") stroke.inside = excludeTarget() && state.exclude.onlyInside ? insideTest(excludeTarget()) : null;
     return;
   }
   if (tool === "chunks") {
@@ -944,6 +1114,15 @@ canvas.addEventListener("pointerdown", async (event) => {
 });
 canvas.addEventListener("pointerup", (event) => {
   pointer.buttons = event.buttons;
+  if (stroke?.start && hover) {
+    const { radius, strength } = state.brush;
+    const end = { x: hover.x, y: hover.y, z: hover.z };
+    snapshotChunks(terrain.editableChunksNear((stroke.start.x + end.x) / 2, (stroke.start.z + end.z) / 2,
+      Math.hypot(end.x - stroke.start.x, end.z - stroke.start.z) / 2 + radius));
+    terrain.ramp(stroke.start, end, radius, strength);
+    updateDirty();
+  }
+  rampLine.visible = false;
   if (stroke) endStroke();
 });
 canvas.addEventListener("wheel", (event) => {
@@ -969,8 +1148,12 @@ window.addEventListener("keydown", (event) => {
   if (event.ctrlKey && key === "d") { event.preventDefault(); duplicateSelected(); return; }
   if (event.ctrlKey) return;
   keys.add(key);
-  const tools = { v: "select", b: "sculpt", e: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone" };
-  if (key === "escape") { select(null); state.actor = null; if (ghost) { scene.remove(ghost); ghost = null; } renderPanel(); }
+  const tools = { v: "select", b: "sculpt", x: "exclude", e: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone" };
+  const digit = "1234567890".indexOf(key);
+  if (digit >= 0 && state.tool === "sculpt" && SCULPT_MODES[digit]) { state.brush.mode = SCULPT_MODES[digit]; renderPanel(); }
+  else if (digit >= 0 && digit < 2 && state.tool === "exclude") { state.exclude.mode = ["cut", "restore"][digit]; renderPanel(); }
+  else if (key === "i" && state.zone) eyedrop();
+  else if (key === "escape") { select(null); state.actor = null; if (ghost) { scene.remove(ghost); ghost = null; } renderPanel(); }
   else if (key === "delete" || key === "backspace") deleteSelected();
   else if (key === "o") toggleContent();
   else if (key === "g") gizmo.setMode("translate");
@@ -993,7 +1176,7 @@ function snapshotChunks(chunks) {
   for (const chunk of chunks) {
     if (stroke.snapshot.has(chunk)) continue;
     stroke.snapshot.set(chunk, {
-      heights: state.tool === "sculpt" ? chunk.heights.slice() : null,
+      heights: state.tool === "sculpt" || state.tool === "exclude" ? chunk.heights.slice() : null,
       tileDirty: chunk.tileDirty.slice(),
       ecos: state.tool === "eco" ? chunk.ecos.slice() : null,
       weights: state.tool === "eco" ? chunk.weights.slice() : null,
@@ -1011,10 +1194,18 @@ function applyStroke(dt) {
     let m = mode;
     if (keys.has("shift") && m === "raise") m = "lower";
     else if (keys.has("shift") && m === "lower") m = "raise";
+    if (mode === "ramp") {
+      // Applied on release; meanwhile a line shows where it goes.
+      if (stroke.start) setRampLine(stroke.start, hover);
+      return;
+    }
     const target = mode === "level" ? (state.brush.level ?? 0) : stroke.target;
-    terrain.sculpt(m, hover.x, hover.z, radius, strength, dt, target);
+    terrain.sculpt(m, hover.x, hover.z, radius, strength, dt, { target, plane: stroke.plane, step: state.brush.step });
+  } else if (state.tool === "exclude") {
+    terrain.exclude(hover.x, hover.z, radius, state.exclude.mode === "restore", stroke.inside);
   } else if (state.tool === "eco" && state.eco !== null) {
-    terrain.paintEco(state.eco, hover.x, hover.z, radius, strength, dt, state.ecoTint ? state.ecoColours.get(state.eco) : null, state.ecoTintAmount);
+    const tint = state.ecoTint ? state.ecoTintPick ?? state.ecoColours.get(state.eco) : null;
+    terrain.paintEco(state.eco, hover.x, hover.z, radius, strength, dt, tint, state.ecoTintAmount);
   } else if (state.tool === "colour") {
     terrain.paintColour(state.colour, hover.x, hover.z, radius, strength, dt);
   } else if (state.tool === "environment") {
@@ -1028,7 +1219,7 @@ function endStroke() {
   if (!snapshot.size) return;
   undoStack.push(() => {
     for (const [chunk, saved] of snapshot) {
-      if (saved.heights) { chunk.heights.set(saved.heights); chunk.updatePositions(); }
+      if (saved.heights) { chunk.heights.set(saved.heights); chunk.updateIndex(); chunk.updatePositions(); chunk.updateNormals(); }
       chunk.tileDirty = saved.tileDirty;
       if (saved.weights) { chunk.ecos = saved.ecos; chunk.weights = saved.weights; chunk.updateEcoTexture(terrain.selectedEco); }
       if (saved.colour) { chunk.colour.set(saved.colour); chunk.colourTexture.needsUpdate = true; }
@@ -1055,7 +1246,7 @@ async function addChunk(row, col) {
   if (terrain.cells.has(key)) return status(`${key} already has a chunk.`);
   try {
     if (state.newChunk.ecoKey) {
-      const eco = await postJson("/api/zone/eco", { zone: state.zone.name, palette: state.newChunk.ecoKey });
+      const eco = await postJson("/api/zone/eco", { zone: state.zone.id, palette: state.newChunk.ecoKey });
       if (!state.zone.ecos.some((e) => e.index === eco.index)) state.zone.ecos.push(eco);
       state.zoneDirty = true;
       state.newChunk.eco = eco.index;
@@ -1116,7 +1307,7 @@ async function saveAll() {
   try {
     // The zone's eco list as this page knows it, so a restarted server can re-add palette ecos it lost.
     const ecos = state.zone.ecos.map(({ index, name, texture }) => ({ index, name, texture }));
-    const result = await save({ zone: state.zone.name, chunks: entries, settings, ecos }, blobs);
+    const result = await save({ zone: state.zone.id, chunks: entries, settings, ecos }, blobs);
     const files = [...result.chunks.flatMap((c) => c.files), ...result.zone.files];
     const unique = [...new Set(files)];
     const zone = result.zone;
@@ -1129,8 +1320,10 @@ async function saveAll() {
       zone.serverData ? "Zone or house data changed: Test in game with + servers to load it." : "Test in game restarts the client to load it.",
     ].filter(Boolean);
     toast(`Saved ${unique.length} file(s):\n${unique.slice(0, 12).map((f) => f.split(/[\\/]/).slice(-2).join("/")).join("\n")}${unique.length > 12 ? "\n…" : ""}\n${notes.join("\n")}`, "ok");
+    await autosaving;
+    await clearDraft(state.zone.id);
     const position = camera.position.clone(), yaw = look.yaw, pitch = look.pitch;
-    await openZone(state.zone.name, true);
+    await openZone(state.zone.id, true);
     camera.position.copy(position);
     look.yaw = yaw;
     look.pitch = pitch;
@@ -1142,6 +1335,122 @@ async function saveAll() {
     updateDirty();
   }
 }
+
+// --- autosave ------------------------------------------------------------------------------------------
+
+// Chunks edited since the last autosave go to the server's drafts folder (.cache/drafts/<zone>) every
+// AUTOSAVE_SECONDS and when the tab is hidden, so a crash loses at most that much. Saving clears the draft;
+// opening the zone again offers to restore it.
+const AUTOSAVE_SECONDS = 15;
+let autosaving = null;     // the autosave in flight, which saveAll waits for before clearing the draft
+let zoneAutosaved = "";    // the zone settings last autosaved, as JSON
+const drafted = new Set(); // chunk keys in the draft, so one dropped since (an undone new chunk) can be voided
+
+function autosave() {
+  if (!autosaving && state.zone && !$("#save").disabled) autosaving = writeDraft().finally(() => { autosaving = null; });
+  return autosaving;
+}
+
+async function writeDraft() {
+  const zoneId = state.zone.id;
+  const query = `?zone=${encodeURIComponent(zoneId)}`;
+  const chunks = [...terrain.chunks.values()].filter((c) => c.edits !== c.autosaved);
+  const zone = state.zoneDirty ? JSON.stringify({
+    settings: state.settings, sky: state.sky, customSky: state.customSky, houses: state.houses,
+    ecos: state.zone.ecos, zoneDirty: state.zoneDirty,
+  }) : "";
+  const dropped = [...drafted].filter((key) => !terrain.chunks.has(key));
+  if (!chunks.length && !dropped.length && (!zone || zone === zoneAutosaved)) return;
+  // The page's own records carry their scene objects; the draft keeps the data.
+  const plain = ({ object, ...record }) => record;
+  const post = async (body) => {
+    const response = await fetch(`/api/draft/chunk${query}`, { method: "POST", body });
+    if (!response.ok) throw new Error((await response.json()).error);
+  };
+  try {
+    for (const key of dropped) {
+      // A draft chunk with nothing dirty leaves the draft.
+      const [row, col] = key.split("_").map(Number);
+      await post(frameBody({ row, col, dirty: {} }, []));
+      drafted.delete(key);
+    }
+    for (const chunk of chunks) {
+      const edits = chunk.edits;
+      const meta = {
+        row: chunk.row, col: chunk.col, version: chunk.version, isNew: chunk.isNew, editable: chunk.editable,
+        ecos: chunk.ecos, tiles: chunk.tiles, tileDirty: chunk.tileDirty, dirty: { ...chunk.dirty },
+        objects: chunk.objects.map(plain), lights: chunk.lights.map(plain), colourSize: chunk.colourSize,
+      };
+      await post(frameBody(meta, [chunk.heights, chunk.weights, chunk.colour]));
+      chunk.autosaved = edits;
+      drafted.add(chunk.key);
+    }
+    if (zone && zone !== zoneAutosaved) {
+      await postJson(`/api/draft/zone${query}`, JSON.parse(zone));
+      zoneAutosaved = zone;
+    }
+    $("#status-autosave").textContent = `autosaved ${new Date().toLocaleTimeString()}`;
+  } catch (error) {
+    $("#status-autosave").textContent = `autosave failed: ${error.message}`;
+  }
+}
+
+function clearDraft(zone) {
+  zoneAutosaved = "";
+  drafted.clear();
+  $("#status-autosave").textContent = "";
+  return postJson(`/api/draft/clear?zone=${encodeURIComponent(zone)}`, {}).catch(() => {});
+}
+
+// After opening a zone: if an autosave of it outlived the page that wrote it, offer to restore it.
+async function offerDraft() {
+  const zone = state.zone, query = `zone=${encodeURIComponent(zone.id)}`;
+  const draft = await getJson(`/api/draft?${query}`).catch(() => null);
+  if (!draft || state.zone !== zone) return;
+  const what = [draft.chunks.length ? `${draft.chunks.length} chunk(s)` : "", draft.zone ? "zone settings" : ""].filter(Boolean).join(" and ");
+  const when = new Date(draft.time * 1000).toLocaleString();
+  if (!what || !confirm(`${zone.name} has unsaved edits from ${when} (${what}), autosaved before the editor closed.\n\nRestore them? Cancel discards them.`)) {
+    return clearDraft(zone.id);
+  }
+  const settings = draft.zone;
+  if (settings) {
+    state.settings = settings.settings || {};
+    state.sky = settings.sky;
+    state.customSky = settings.customSky || null;
+    if (settings.houses) state.houses = settings.houses;
+    if (settings.ecos) zone.ecos = settings.ecos;
+    state.zoneDirty = true;
+    zoneAutosaved = JSON.stringify(settings);
+    buildMarkers();
+    if (state.customSky) updateLightingFromSky(null, state.customSky.xml);
+    else if (state.sky) updateLightingFromSky(state.sky);
+  }
+  let restored = 0;
+  for (const { row, col } of draft.chunks) {
+    const response = await fetch(`/api/draft/chunk?${query}&row=${row}&col=${col}`);
+    if (!response.ok || state.zone !== zone) continue;
+    const { meta, blobs } = unframe(await response.arrayBuffer());
+    if (!Object.values(meta.dirty || {}).some(Boolean)) continue;
+    const key = `${row}_${col}`;
+    if (!terrain.cells.has(key)) terrain.cells.set(key, { row, col, editable: true, source: "new" });
+    const chunk = new TerrainChunk(terrain, row, col, {
+      editable: meta.editable, isNew: meta.isNew, version: meta.version, heights: new Float32Array(blobs[0]),
+      ecos: meta.ecos, weights: new Uint8Array(blobs[1]), tiles: meta.tiles, objects: meta.objects, lights: meta.lights,
+      colour: new Uint8Array(blobs[2]), colourSize: meta.colourSize, dirty: meta.dirty,
+    });
+    chunk.tileDirty = meta.tileDirty;
+    chunk.autosaved = chunk.edits;
+    terrain.add(chunk);
+    drafted.add(key);
+    restored++;
+  }
+  setTool(state.tool);
+  updateDirty();
+  toast(`Restored ${restored} chunk(s)${settings ? " and the zone settings" : ""} from the autosave. Save to keep them.`, "ok");
+}
+
+setInterval(autosave, AUTOSAVE_SECONDS * 1000);
+document.addEventListener("visibilitychange", () => { if (document.hidden) autosave(); });
 
 // --- minimap -------------------------------------------------------------------------------------------
 
@@ -1275,8 +1584,10 @@ function frame() {
     if (hover) {
       const chunk = hover.chunk;
       const tile = chunk ? Math.floor((hover.z - chunk.z0) / 64) * 4 + Math.floor((hover.x - chunk.x0) / 64) : null;
+      const [eco] = chunk ? terrain.sampleEcos(hover.x, hover.z) : [];
       $("#status-cell").textContent = chunk
-        ? `chunk ${chunk.key}${chunk.isNew ? " (new)" : ""} · tile ${tile} env ${chunk.tiles[tile]?.environment} · ground ${hover.y.toFixed(1)}`
+        ? `chunk ${chunk.key}${chunk.isNew ? " (new)" : ""} · tile ${tile} env ${chunk.tiles[tile]?.environment} · ground ${hover.y.toFixed(1)}` +
+          (eco ? ` · ${ecoName(eco.index)} ${Math.round(eco.weight * 100)}%` : "")
         : "";
     }
     $("#status-pos").textContent = `x ${camera.position.x.toFixed(0)}  y ${camera.position.y.toFixed(0)}  z ${camera.position.z.toFixed(0)}`;
@@ -1298,6 +1609,7 @@ function frame() {
 
 for (const button of document.querySelectorAll("#toolbar button")) button.addEventListener("click", () => setTool(button.dataset.tool));
 $("#open-zone").addEventListener("click", () => openZone($("#zone-search").value.trim()).then(buildWalls));
+$("#open-file").addEventListener("click", openZoneFile);
 $("#zone-search").addEventListener("keydown", (e) => { if (e.key === "Enter") openZone(e.target.value.trim()).then(buildWalls); });
 $("#save").addEventListener("click", saveAll);
 $("#play").addEventListener("click", async () => {

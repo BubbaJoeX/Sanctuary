@@ -151,10 +151,12 @@ def rebuild_tiles(chunk: Chunk, row: int, col: int, heights: np.ndarray, padded:
         if dirty[tile]:
             vertices, indices = tile_mesh(row, col, tile, heights, padded, colors)
             template = chunk.collision[tile] if tile < len(chunk.collision) and chunk.collision[tile] else collision_template
-            if len(indices):
-                record = QuantizedBvh(vertices["position"], indices.astype(np.int64).reshape(-1, 3)).serialize(template)[16:]
-            else:
-                record = chunk.collision[tile] if tile < len(chunk.collision) else template
+            if not len(indices):
+                # Every cell is a hole (cut out for a cave): one degenerate triangle far below keeps the batch and
+                # its collision tree valid with nothing to stand on, where the old tree would leave invisible ground.
+                vertices["position"][0, 1] = -1000
+                indices = np.zeros(3, np.uint16)
+            record = QuantizedBvh(vertices["position"], indices.astype(np.int64).reshape(-1, 3)).serialize(template)[16:]
             meshes.append((vertices, indices, record))
         else:
             meshes.append((chunk.vertices[vertex_offset : vertex_offset + vertex_count],
