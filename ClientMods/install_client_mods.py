@@ -3,7 +3,8 @@
 
 UI movies are loaded synchronously from the local asset packs, and only when their crc
 matches the asset manifest the client downloaded from the asset server. So installing:
-  - writes the built UI mods (the .gfx and .lst files in src/Resources/ClientMods) into a new Assets_NNN.pack, and
+  - writes the built UI mods (the .gfx and .lst files in src/Resources/ClientMods) into a new Assets_NNN.pack,
+    with the stock minigame movies and images in its Minigames folder that the client's packs lack, and
   - switches the UI window definitions (and LoadingScreen.xml) to the renamed mod movies.
 Sanctuary's WebAPI publishes the same files in the manifest it serves, which keeps them "current".
 
@@ -276,24 +277,58 @@ WINDOW_PATCHES = [
 ]
 
 
+def read_asset(path):
+    data = path.read_bytes()
+    name = path.name
+    if name.endswith(".z"):
+        magic, _ = struct.unpack(">II", data[:8])
+        if magic != COMPRESSED_MAGIC:
+            raise ValueError(f"{name} is not a compressed asset")
+        data = zlib.decompress(data[8:])
+        name = name[:-2]
+    return name, data
+
+
 def load_mods():
     # Packs hold assets uncompressed under their plain names. Only UI movies go in: everything else in the
     # folder (published items, zones) streams from the asset server, and a copy in this read-only pack would
     # stop the client from ever taking a newer one (it hangs on "non-writeable pack file").
-    mods = []
-    for path in sorted(mods_dir.iterdir()):
-        if not path.name.endswith((".gfx", ".lst", ".lst.z")):
-            continue
-        data = path.read_bytes()
-        name = path.name
-        if name.endswith(".z"):
-            magic, _ = struct.unpack(">II", data[:8])
-            if magic != COMPRESSED_MAGIC:
-                raise ValueError(f"{name} is not a compressed asset")
-            data = zlib.decompress(data[8:])
-            name = name[:-2]
-        mods.append((name, data))
-    return mods
+    return [read_asset(path) for path in sorted(mods_dir.iterdir())
+            if path.is_file() and path.name.endswith((".gfx", ".lst", ".lst.z"))]
+
+
+def pack_names(pack):
+    names = set()
+    with pack.open("rb") as f:
+        offset = 0
+        while True:
+            f.seek(offset)
+            header = f.read(8)
+            if len(header) < 8:
+                break
+            next_offset, count = struct.unpack(">II", header)
+            for _ in range(count):
+                name_length, = struct.unpack(">I", f.read(4))
+                names.add(f.read(name_length).decode("latin-1"))
+                f.read(12)
+            if next_offset == 0:
+                break
+            offset = next_offset
+    return names
+
+
+def load_minigame_assets(client_dir, own_pack):
+    # The stock minigame movies and their images (build_client_mods.py copies them), which the client loads only
+    # from its local packs: unchanged, so they're always current, and only the ones its own packs lack.
+    folder = mods_dir / "Minigames"
+    if not folder.is_dir():
+        return []
+    stock = set()
+    for pack in sorted(client_dir.glob("Assets*.pack")):
+        if pack != own_pack:
+            stock |= pack_names(pack)
+    assets = [read_asset(path) for path in sorted(folder.iterdir()) if path.is_file()]
+    return [(name, data) for name, data in assets if name not in stock]
 
 
 def pack_chunks(assets):
@@ -347,9 +382,12 @@ def install(client_dir):
     marker = client_dir / MARKER_FILE
     pack_path = client_dir / marker.read_text().strip() if marker.exists() else next_pack_path(client_dir)
 
-    write_pack(pack_path, mods)
+    minigame_assets = load_minigame_assets(client_dir, pack_path)
+
+    write_pack(pack_path, mods + minigame_assets)
     marker.write_text(pack_path.name)
     print(f"{pack_path.name}: {', '.join(name for name, _ in mods)}")
+    print(f"{pack_path.name}: {len(minigame_assets)} stock minigame movies and images the client didn't have")
 
     for relative_path, replacements in WINDOW_PATCHES:
         path = client_dir / relative_path

@@ -34,8 +34,13 @@ Mods:
   sanctuaryStorage.gfx                   - no Station Cash wallets or Add Station Cash buttons
                                            (<movie>/no_station_cash.as).
 
+It also copies the stock movies of the Flash minigames the server runs (src/Resources/Minigames), and their
+images, into the output's Minigames folder unchanged: the client loads a minigame's movie and its images only
+from its local packs, and the launcher's client ships just the daily wheel's.
+
 The stock movies are read from your Free Realms client's local asset packs (--client), or from a
-local copy of the asset server (--assets). Nothing from the game is stored in this repository.
+local copy of the asset server (--assets). Nothing from the game is stored in this repository. The
+minigame movies mostly aren't in the client's packs, so they need --assets (or --minigame-assets).
 
 Requires JPEXS FFDec (ffdec.jar), Java and Pillow. See README.md.
 
@@ -44,6 +49,8 @@ Example:
 """
 
 import io
+import json
+import os
 import re
 import shutil
 import struct
@@ -62,6 +69,7 @@ from notifications import badges
 
 script_dir = Path(__file__).resolve().parent
 output_dir = script_dir.parent / "src" / "Resources" / "ClientMods"
+minigames_dir = script_dir.parent / "src" / "Resources" / "Minigames"
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
 
@@ -678,13 +686,18 @@ class AssetMirror:
 
     def __init__(self, assets_dir):
         self.assets_dir = assets_dir
+        self.paths = None
 
     def read(self, name):
-        # The bucket isn't derivable from the name, so search them all.
-        for candidate in self.assets_dir.glob(f"*/{name}"):
-            return candidate.read_bytes()
-        for candidate in self.assets_dir.glob(f"*/{name}.z"):
-            return decompress(candidate.read_bytes())
+        # The bucket isn't derivable from the name, so index every bucket once.
+        if self.paths is None:
+            self.paths = {entry.name: Path(entry.path)
+                          for bucket in os.scandir(self.assets_dir) if bucket.is_dir()
+                          for entry in os.scandir(bucket.path)}
+        if name in self.paths:
+            return self.paths[name].read_bytes()
+        if f"{name}.z" in self.paths:
+            return decompress(self.paths[f"{name}.z"].read_bytes())
         raise FileNotFoundError(f"{name} not found in {self.assets_dir}")
 
 
@@ -956,6 +969,75 @@ def build_list(stock, stock_name, published_name, output_path):
     output_path.write_bytes(compress(text.encode("latin-1")))
 
 
+def minigame_movies():
+    """The stock movies of every Flash minigame in src/Resources/Minigames, plus the ones they load themselves."""
+    movies = set()
+    for path in minigames_dir.glob("*.json"):
+        # Whole-line // comments are the only kind the catalog uses.
+        text = "\n".join(line for line in path.read_text("utf-8-sig").splitlines() if not line.lstrip().startswith("//"))
+        movies.update(Path(entry["Swf"]).stem for entry in json.loads(text))
+
+    extra = set()
+    for movie in movies:
+        game = movie.removeprefix("game_")
+        # The How to Play pages the client opens from the movie (GameTutorialData.txt).
+        extra.update({f"tutorial_{game}", f"{game}_tutorial"})
+
+    if "towerdefense" in movies:
+        # Its towers (tower<type>u<upgrade>) and maps (BG_/FG_W<world>M<map>), loaded by name as it plays.
+        extra.update(f"tower{tower}u{upgrade}" for tower in range(20) for upgrade in range(5))
+        extra.update(f"{layer}_W{world}M{map}" for layer in ("BG", "FG") for world in range(1, 6) for map in range(1, 4))
+
+    return sorted(movies), sorted(extra - movies)
+
+
+def copy_minigame_movies(stock, output_path):
+    """
+    Copies the minigame movies and the images their .lst names into output_path, unchanged (same bytes, so the
+    manifest's crc still matches). The client loads a movie's images synchronously too, so they have to be local
+    with it; install_client_mods.py packs the ones the client doesn't have already.
+    """
+    output_path.mkdir(parents=True, exist_ok=True)
+    movies, extra = minigame_movies()
+    copied = []
+    missing = []
+    images = set()
+
+    for name in movies + extra:
+        try:
+            data = stock.read(f"{name}.gfx")
+        except FileNotFoundError:
+            # The extras are guesses by pattern; only a game's own movie has to exist.
+            if name in movies:
+                missing.append(f"{name}.gfx")
+            continue
+
+        (output_path / f"{name}.gfx").write_bytes(data)
+        copied.append(name)
+
+        try:
+            listed = stock.read(f"{name}.lst").decode("latin-1").splitlines()
+        except FileNotFoundError:
+            continue
+
+        # The .lst preloads the movie's images and ends with the movie itself.
+        images.update(line.strip() for line in listed
+                      if line.strip() and not line.startswith("#") and not line.strip().endswith((".gfx", ".swf")))
+
+    for image in sorted(images):
+        try:
+            (output_path / image).write_bytes(stock.read(image))
+        except FileNotFoundError:
+            missing.append(image)
+
+    loaded = len([name for name in copied if name not in movies])
+    print(f"Copied {len(copied)} minigame movies ({', '.join(movies)} and {loaded} they load) and their images")
+
+    if missing:
+        print(f"Missing {len(missing)} minigame assets (pass --assets or --minigame-assets): {', '.join(missing[:20])}",
+              file=sys.stderr)
+
+
 def split_tags(xml):
     """Splits ffdec's XML into the part before the first top-level tag, each top-level tag, and the rest."""
     starts = [m.start() for m in re.finditer(re.escape(TAG_PREFIX), xml)]
@@ -1078,11 +1160,16 @@ def main():
     parser.add_argument("--ffdec", type=Path, required=True, help="Path to ffdec.jar")
     parser.add_argument("--java", type=Path, default=Path(shutil.which("java") or "java"), help="Java executable")
     parser.add_argument("--only", nargs="+", metavar="NAME", help="Build only these published mods (e.g. sanctuaryAtlas)")
+    parser.add_argument("--minigame-assets", type=Path,
+                        help="Local copy of the asset server to take the minigame movies from (default: the --assets one)")
     args = parser.parse_args()
 
     stock = ClientPacks(args.client) if args.client else AssetMirror(args.assets)
 
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    if not args.only or "minigames" in args.only:
+        copy_minigame_movies(AssetMirror(args.minigame_assets) if args.minigame_assets else stock, output_dir / "Minigames")
 
     for stock_name, published_name, script_name, patch_paths, symbols in MODS:
         if args.only and published_name not in args.only:

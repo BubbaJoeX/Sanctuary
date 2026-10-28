@@ -1,5 +1,8 @@
 // Spot the Difference (Sanctuary.Game/Minigames/SpotTheDifference). Level picks the difficulty's settings in
 // SpotTheDifference/Puzzles.json.
+// Out of the Games window (Category 0) for now: the client loads game_hidden only from its own packs, and 52 of
+// its 83 images aren't in the asset copy the client mods are built from, so it can't load yet. !minigame still
+// opens it.
 [
   {
     "Id": 1040,
@@ -10,7 +13,7 @@
     "DescriptionId": 436035,
     "IconId": 7533,
     "Difficulty": 1,
-    "Category": 24,
+    "Category": 0,
     "DetailImage": "spot_the_diff_easy_detail.dds",
     "ThumbnailImage": "spot_the_diff_easy_thumb.dds",
     "Level": 1,
@@ -26,7 +29,7 @@
     "DescriptionId": 436035,
     "IconId": 7533,
     "Difficulty": 2,
-    "Category": 24,
+    "Category": 0,
     "DetailImage": "spot_the_diff_medium_detail.dds",
     "ThumbnailImage": "spot_the_diff_medium_thumb.dds",
     "Level": 2,
@@ -42,7 +45,7 @@
     "DescriptionId": 436035,
     "IconId": 7533,
     "Difficulty": 3,
-    "Category": 24,
+    "Category": 0,
     "DetailImage": "spot_the_diff_hard_detail.dds",
     "ThumbnailImage": "spot_the_diff_hard_thumb.dds",
     "Level": 3,

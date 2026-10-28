@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <!-- Modified client assets served by the asset endpoint. -->
-    <Content Include="..\Resources\ClientMods\**\*" LinkBase="ClientMods" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\Resources\ClientMods\**\*" Exclude="..\Resources\ClientMods\Minigames\**" LinkBase="ClientMods" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <!-- Modified client files served to the launcher by the client endpoints. -->
     <Content Include="..\Resources\ClientPatches\**\*" LinkBase="ClientPatches" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <!-- The admin site's page, plus the stock Referee Picks and point of interest names it uses. -->
