@@ -17,6 +17,7 @@ from urllib.parse import parse_qs, urlparse
 
 import numpy as np
 
+from .npcs import NpcDefinitions
 from .workspace import Workspace
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
@@ -45,6 +46,7 @@ def b64(array: np.ndarray) -> str:
 
 class Handler(BaseHTTPRequestHandler):
     workspace: Workspace = None
+    npcs: NpcDefinitions = None
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
@@ -222,6 +224,26 @@ class Handler(BaseHTTPRequestHandler):
         """Shows the desktop's file dialog for a zone file: {"path": ...}, or {"path": null} if cancelled."""
         self.send_json({"path": self.workspace.pick_zone_file(json.loads(body or b"{}").get("start"))})
 
+    # --- NPC definitions (Npcs.json) -----------------------------------------------------------------------
+
+    def get_npcs(self, query, body):
+        """Definitions matching q (id, name or actor), or every one for an actor (model)."""
+        result = self.npcs.search(query.get("q", ""), int(query.get("limit", 200)), query.get("model"))
+        self.send_json(dict(result, scripts=self.npcs.scripts()))
+
+    def get_npcs_entry(self, query, body):
+        self.send_json(self.npcs.get(int(query["id"])))
+
+    def post_npcs_save(self, query, body):
+        self.send_json(self.npcs.save(json.loads(body)))
+
+    def post_npcs_new(self, query, body):
+        data = json.loads(body)
+        self.send_json(self.npcs.create(data["model"], data.get("name"), data.get("copyOf")))
+
+    def post_npcs_delete(self, query, body):
+        self.send_json(self.npcs.delete(int(json.loads(body)["id"])))
+
     def post_live_seed(self, query, body):
         """Live files for a client launch.ps1 is about to start on its own (Workspace.seed_last)."""
         self.send_json(self.workspace.seed_last())
@@ -265,6 +287,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def serve(workspace: Workspace, host: str, port: int) -> ThreadingHTTPServer:
     Handler.workspace = workspace
+    Handler.npcs = NpcDefinitions(workspace)
     server = ThreadingHTTPServer((host, port), Handler)
     server.daemon_threads = True
     return server

@@ -15,7 +15,7 @@ public static class RefereeEditorHelper
     /// <summary>
     /// Animation id (AnimationTypes.xml), label, and whether it loops as the NPC's idle rather than playing once.
     /// </summary>
-    private static readonly (int Id, string Label, bool Loop)[] Animations =
+    public static readonly (int Id, string Label, bool Loop)[] Animations =
     [
         (1, "Idle", true),
         (3333, "Wave", false),

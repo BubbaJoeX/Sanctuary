@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 
+using Sanctuary.Game.Conversations;
+using Sanctuary.Game.Helpers;
+
 namespace Sanctuary.Gateway.Admin;
 
 // Requests and responses of the admin API. Guids travel as strings: they're 64-bit, which JavaScript numbers can't hold.
@@ -148,6 +151,84 @@ public sealed record ObjectPatch(
     int? Tint,
     bool? Collidable,
     string? Name);
+
+/// <summary>
+/// What a placed NPC, model (<see cref="Kind"/> npc) or prop is beyond where it stands, as !npc and !prop set it in
+/// game. Props have no model, disposition, mob, behaviour, speed, event or conversation of their own.
+/// <see cref="Disposition"/> is hostile, neutral or ally; <see cref="Behavior"/> stay, follow or wander.
+/// </summary>
+public sealed record ObjectSettings(
+    string Kind,
+    int Def,
+    string? DefName,
+    string? Name,
+    int NameId,
+    bool Nameplate,
+    int ModelId,
+    int Animation,
+    string Disposition,
+    string? Mob,
+    string Behavior,
+    float WanderRadius,
+    float Speed,
+    bool Collidable,
+    string? Event,
+    string? TextureAlias,
+    string? TintAlias,
+    int TintId,
+    int Effect,
+    int Subtitle,
+    float Offset,
+    IReadOnlyList<NpcProperties.NpcIcon> Icons,
+    NpcConditions? Conditions,
+    bool HasConversation);
+
+/// <summary>
+/// Changes to an object's settings, as one undo step; null leaves a field alone. An empty <see cref="Name"/> goes back
+/// to the definition's name, an empty alias, mob or event clears it, and empty <see cref="Conditions"/> clear them.
+/// Follow follows the referee's character.
+/// </summary>
+public sealed record ObjectSettingsPatch(
+    string? Name,
+    int? NameId,
+    bool? Nameplate,
+    int? ModelId,
+    int? Animation,
+    string? Disposition,
+    string? Mob,
+    string? Behavior,
+    float? WanderRadius,
+    float? Speed,
+    string? Event,
+    string? TextureAlias,
+    string? TintAlias,
+    int? TintId,
+    int? Effect,
+    int? Subtitle,
+    float? Offset,
+    IReadOnlyList<NpcProperties.NpcIcon>? Icons,
+    NpcConditions? Conditions);
+
+/// <summary>
+/// What the settings can be set to: the GM panel's animations, Mobs.json's mobs, the world events, quest states for
+/// conditions, the overhead icons the game's NPCs use, and the game clock's hour now.
+/// </summary>
+public sealed record NpcOptions(
+    IReadOnlyList<AnimationOption> Animations,
+    IReadOnlyList<string> Mobs,
+    IReadOnlyList<EventModel> Events,
+    IReadOnlyList<string> QuestStates,
+    IReadOnlyList<NpcIconCatalog.Entry> Icons,
+    float Hour);
+
+public sealed record AnimationOption(int Id, string Label, bool Loop);
+
+/// <summary>
+/// A world NPC's conversation as saved; null when it has none.
+/// </summary>
+public sealed record ConversationModel(Conversation? Conversation);
+
+public sealed record RespawnResult(int Respawned);
 
 public sealed record CopyRequest(float X, float Z, float? H);
 

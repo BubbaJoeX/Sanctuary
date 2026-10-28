@@ -647,6 +647,61 @@ export class LiveLayer {
     return request(`/scripts/library/${encodeURIComponent(name)}`, "DELETE");
   }
 
+  // --- NPCs: settings, conditions, conversations and definitions ------------------------------------------
+
+  // The referee using the editor ({ id, name, role, character }), fetched once: admins also edit conversations and
+  // NPC definitions.
+  me() {
+    this.referee ??= request("/me").catch((error) => { this.referee = null; throw error; });
+    return this.referee;
+  }
+
+  // What settings can be set to (animations, mobs, events, quest states, icons, the game clock's hour), fetched once.
+  npcOptions() {
+    this.options ??= request("/npc-options").catch((error) => { this.options = null; throw error; });
+    return this.options;
+  }
+
+  objectPath(object) {
+    return `${this.base()}/objects/${object.userData.live.id}`;
+  }
+
+  // A placed NPC's, model's or prop's name, look, behaviour, event and conditions (ObjectSettings on the server).
+  getSettings(object) {
+    return request(`${this.objectPath(object)}/settings`);
+  }
+
+  // Changes some of them, as one undo step: { id (null when its event despawned it), undo }.
+  saveSettings(object, patch) {
+    return request(`${this.objectPath(object)}/settings`, "PUT", patch);
+  }
+
+  // A world NPC's conversation (admins): { conversation: { start, nodes } or null }.
+  getConversation(object) {
+    return request(`${this.objectPath(object)}/conversation`);
+  }
+
+  saveConversation(object, conversation) {
+    return request(`${this.objectPath(object)}/conversation`, "PUT", conversation);
+  }
+
+  clearConversation(object) {
+    return request(`${this.objectPath(object)}/conversation`, "DELETE");
+  }
+
+  // Spawns an NPC from its definition where a prop record says; it shows up through the feed.
+  async spawnNpc(def, label, record) {
+    const [x, y, z] = record.position;
+    return !!(await this.send(`Couldn't spawn ${label}`, `${this.base()}/npcs`, "POST", { def, x, y, z, h: record.rotation[0], scale: record.scale }));
+  }
+
+  // After Npcs.json changed: the Gateway reloads it (admins), then this zone's NPCs built on def respawn with it.
+  async reloadDefinitions(def) {
+    await request("/resources/npcs/reload", "POST", {});
+    if (def === undefined || !this.zone) return 0;
+    return (await request(`${this.base()}/definitions/${def}/respawn`, "POST", {})).respawned;
+  }
+
   // Shows saved chunks in the referee's own client, which reads them from the editor's live files when it loads that
   // ground again: their character steps over to solid ground far from them and back to where it stood. changed are the
   // saved chunks' centres, ground every chunk centre in the zone (somewhere to stand). Says why when it didn't go:

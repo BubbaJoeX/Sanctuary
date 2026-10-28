@@ -98,6 +98,7 @@ public static partial class AdminApiEndpoints
 
         MapZoneEndpoints(referee);
         MapScriptEndpoints(referee);
+        MapNpcEndpoints(referee);
     }
 
     #region Referees

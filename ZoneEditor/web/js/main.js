@@ -9,6 +9,7 @@ import { LiveLayer } from "./live.js";
 import { shaderTime } from "./materials.js";
 import { copyTemplate, updateAnimations } from "./animation.js";
 import { ScriptEditor } from "./script-editor.js";
+import { ConversationEditor, DefinitionEditor, NpcInspector, PLACED_MODEL, definitionFor } from "./npcs.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
 
@@ -85,6 +86,28 @@ const live = new LiveLayer(scene, library, {
 const scriptEditor = new ScriptEditor($("#script-editor"), live, {
   closed: () => { if (selected?.userData.kind === "live") { delete selected.userData.script; renderInspector(); } },
 });
+// A live NPC's, model's or prop's settings and conditions (the inspector), conversation, and the NPC definitions they
+// spawn from (npcs.js).
+const npcInspector = new NpcInspector(live, {
+  step: (pending, done) => liveStep(pending, done),
+  toast,
+  refresh: (object) => { if (selected === object) renderInspector(); },
+  editConversation: (object) => conversationEditor.open(object),
+  editDefinition: (id) => definitionEditor.open(id),
+  makeNpc: (object) => makeNpc(object),
+  aliases: async (file) => {
+    if (!file) return null;
+    const aliases = (await library.model(file)).userData.aliases;
+    return { textures: [...new Set(aliases.textures.map((t) => t.name))], tints: [...new Set(aliases.tints.map((t) => t.name))] };
+  },
+});
+const conversationEditor = new ConversationEditor($("#conversation-editor"), live, {
+  closed: (object) => { if (object) { delete object.userData.settings; if (selected === object) renderInspector(); } },
+});
+const definitionEditor = new DefinitionEditor($("#definition-editor"), live, {
+  pick: () => state.actor,
+  spawn: (summary) => pickNpc(summary),
+});
 
 // The client shows its coordinates as they are (x, y up, z), so the scene uses them directly.
 function updateProjection() {
@@ -118,7 +141,9 @@ const state = {
   place: {
     mode: "single", randomYaw: false, align: false, scaleMin: 1, scaleMax: 1, offset: 0,
     material: "", tintOn: false, tint: "#ffffff", spacing: 6, set: [], live: true,
+    as: "model",    // live: a placed model, or an NPC built on a definition of its own (Npcs.json)
   },
+  npcPick: null,    // an NPC definition picked to spawn ({ id, name, model }), from the content browser's NPCs
   // The gizmo's snapping: metres, degrees and scale steps (0 is off).
   snap: { move: 0, turn: 0, scale: 0 },
   recentTints: [],
@@ -717,8 +742,15 @@ function renderPanel() {
         <div class="chips">${p.set.length ? p.set.map((f, i) => `<span class="chip">${short(f)} <b data-unset="${i}" title="Remove">×</b></span>`).join("") : `<span class="hint">Empty: the content pick is scattered.</span>`}</div>
         <div class="row"><button id="scatter-add" ${state.actor ? "" : "disabled"}>Add ${state.actor ? short(state.actor) : "the content pick"}</button></div>` : ""}
       <h4>New objects</h4>
-      ${live.zone && !scatter ? `<label class="check" title="A placed model in the running game, there for players at once; or untick to put it in the zone's files"><input id="place-live" type="checkbox" ${p.live ? "checked" : ""}> <span class="live-badge">LIVE</span> Place in the running game</label>
-        ${p.live ? `<p class="hint">Only models with a Models.txt row can be spawned (${live.spawnable.size} of them). Select one later and Bake it into the zone to make it part of the zone's files.</p>` : ""}` : ""}
+      ${live.zone && !scatter ? `<label class="check" title="In the running game, there for players at once; or untick to put it in the zone's files"><input id="place-live" type="checkbox" ${p.live ? "checked" : ""}> <span class="live-badge">LIVE</span> Place in the running game</label>
+        ${p.live ? state.npcPick ? `<p class="hint">Spawning NPC <b>#${state.npcPick.id} ${escape(state.npcPick.name ?? state.npcPick.model ?? "")}</b> from Npcs.json.</p>
+          <div class="row"><button id="npc-pick-edit">Edit definition…</button><button id="npc-pick-clear">Place models again</button></div>`
+        : `<div class="seg">${[["model", "As a model"], ["npc", "As an NPC"]].map(([as, label]) => `<button data-place-as="${as}" class="${p.as === as ? "active" : ""}">${label}</button>`).join("")}</div>
+          <p class="hint">${p.as === "npc"
+            ? "An NPC built on a definition of its own in Npcs.json (made for the actor the first time), which you can then name, move about, and give a conversation and a script. The content browser's NPCs spawn the game's own."
+            : "A placed model: still and solid. Select one later and Bake it into the zone to make it part of the zone's files."}</p>`
+        : ""}
+        ${p.live ? `<div class="row"><button id="npc-definitions" title="Npcs.json: what NPCs spawn from">NPC definitions…</button></div>` : ""}` : ""}
       <label class="check"><input id="place-turn" type="checkbox" ${p.randomYaw ? "checked" : ""}> Random turn</label>
       <label class="check"><input id="place-align" type="checkbox" ${p.align ? "checked" : ""}> Stand on the slope</label>
       <div class="row"><label>Scale from <input id="place-scale-min" type="number" min="0.05" step="0.05" value="${p.scaleMin}"></label>
@@ -737,6 +769,10 @@ function renderPanel() {
       for (const remove of panel.querySelectorAll("[data-unset]")) remove.addEventListener("click", () => { p.set.splice(+remove.dataset.unset, 1); renderPanel(); });
     }
     panel.querySelector("#place-live")?.addEventListener("change", (e) => { p.live = e.target.checked; renderPanel(); });
+    for (const button of panel.querySelectorAll("[data-place-as]")) button.addEventListener("click", () => { p.as = button.dataset.placeAs; renderPanel(); });
+    panel.querySelector("#npc-pick-edit")?.addEventListener("click", () => definitionEditor.open(state.npcPick.id));
+    panel.querySelector("#npc-pick-clear")?.addEventListener("click", () => { state.npcPick = null; renderPanel(); });
+    panel.querySelector("#npc-definitions")?.addEventListener("click", () => definitionEditor.open(state.npcPick?.id ?? null));
     panel.querySelector("#place-turn").addEventListener("change", (e) => { p.randomYaw = e.target.checked; });
     panel.querySelector("#place-align").addEventListener("change", (e) => { p.align = e.target.checked; });
     panel.querySelector("#place-scale-min").addEventListener("input", (e) => { p.scaleMin = Math.max(0.05, +e.target.value); });
@@ -939,10 +975,12 @@ function renderLiveInspector(target) {
     <div class="row"><button id="live-ground" title="End">Drop to ground</button><button id="live-focus" title="F">Focus</button></div>
     <div class="row"><button id="duplicate">Duplicate</button><button id="delete" class="danger">Delete</button></div>
     <div class="row"><button id="live-bake" ${data.model ? "" : "disabled"} title="Make it one of the zone's own props, in the chunk under it, and take it out of the game">Bake into the zone</button></div>
+    <div id="live-npc"></div>
     <h4>Script</h4>
     <p class="hint" id="live-script-state">${scriptSummary(object.userData.script)}</p>
     <div class="row"><button id="live-script" title="Lua that makes it talk, move and react to players, as the GM panel's Script tab (admins)">Edit script…</button></div>`;
   target.querySelector("#live-script").addEventListener("click", () => scriptEditor.open(object));
+  npcInspector.render(target.querySelector("#live-npc"), object);
   // What its script is, fetched once per selection (the feed redraws this often).
   if (!object.userData.script) {
     live.getScript(object)
@@ -1183,6 +1221,8 @@ const isLive = (object) => !!object?.userData.kind?.startsWith?.("live");
 // Selects one object, or with add toggles it in the selection (props and lights; a marker selects alone).
 function select(object, add = false) {
   settleNudge();
+  // A live object's settings are fetched again each time it's selected: other referees edit it too.
+  if (object && object !== selected) delete object.userData.settings;
   if (add && object && !alone(object) && !alone(selected)) {
     if (selection.has(object)) {
       selection.delete(object);
@@ -1445,7 +1485,10 @@ function deleteSelected() {
 // A live edit's answer: done, it's one undo step (undone on the game server) and the inspector catches up.
 async function liveStep(pending, done) {
   if (!(await pending)) return;
-  undoStack.push(() => live.undo().then((label) => status(label ? `Undid ${label} in game.` : "Nothing to undo in game.")));
+  undoStack.push(() => live.undo().then((label) => {
+    status(label ? `Undid ${label} in game.` : "Nothing to undo in game.");
+    if (selected?.userData.settings) { delete selected.userData.settings; renderInspector(); }
+  }));
   if (done) status(done);
   renderInspector();
 }
@@ -1839,12 +1882,65 @@ function placeActor(name, hit, yaw = 0) {
 
 // Places the actor in the running game instead (Place live): a placed model, there for players at once.
 async function placeLive(name, hit, yaw = 0) {
+  if (state.npcPick) return spawnNpc(state.npcPick, newRecord(name, hit, yaw));
+  if (state.place.as === "npc") {
+    const found = await npcDefinitionFor(name);
+    if (found) spawnNpc(found, newRecord(name, hit, yaw));
+    return;
+  }
   if (!live.canPlace(name)) await live.refreshModels();
   if (!live.canPlace(name)) {
     return toast(`${name} has no Models.txt row, so the game can't spawn it live (ZoneEditor/add_model_rows.py adds one for every actor the client can draw). Untick Place live to put it in the zone's files instead.`);
   }
   liveStep(live.placeModel(name, newRecord(name, hit, yaw)), `Placed ${name} in game.`);
   content.placed(name);
+}
+
+// Spawns an NPC from its definition in the running game, where a prop record says.
+function spawnNpc(summary, record) {
+  const label = summary.name ?? summary.model ?? `NPC ${summary.id}`;
+  liveStep(live.spawnNpc(summary.id, label, record), `Spawned ${label} in game.`);
+  if (summary.model) content.placed(summary.model);
+}
+
+// The definition an actor placed as an NPC spawns from: the editor's own for it, made the first time (and loaded by the
+// game: the Gateway reloads Npcs.json for admins; for others its file watcher takes up the new entry in a moment).
+async function npcDefinitionFor(model) {
+  try {
+    const found = await definitionFor(model);
+    if (found.created) {
+      await live.reloadDefinitions().catch(() => new Promise((resolve) => setTimeout(resolve, 1500)));
+      toast(`Made NPC #${found.summary.id} for ${model} in Npcs.json; select one to name it and give it a conversation.`, "ok");
+    }
+    return found.summary;
+  } catch (error) {
+    toast(`Couldn't make an NPC of ${model}: ${error.message}`, "error");
+    return null;
+  }
+}
+
+// A definition to spawn with the Props tool (from the content browser's NPCs, or the definition editor).
+function pickNpc(summary) {
+  state.npcPick = summary;
+  if (summary.model) state.actor = summary.model;
+  if (!live.zone) toast("NPCs spawn in the running game: open the editor from the admin panel, with the zone running.");
+  state.place.live = true;
+  if (state.tool !== "props") setTool("props");
+  else { makeGhost(); renderPanel(); }
+  status(`Click the ground to spawn ${summary.name ?? summary.model ?? `NPC ${summary.id}`}.`);
+}
+
+// A placed model as an NPC on a definition of its own, where it stands: the model goes, the NPC comes (two undo steps).
+async function makeNpc(object) {
+  const data = object.userData.live;
+  if (!data.model) return toast("It has no actor to make an NPC of.");
+  const summary = await npcDefinitionFor(data.model);
+  if (!summary) return;
+  const record = { position: [data.x, data.y, data.z], rotation: [data.h, 0, 0], scale: data.scale };
+  if (!(await live.spawnNpc(summary.id, summary.name ?? data.model, record))) return;
+  undoStack.push(() => live.undo());
+  if (await live.remove(object)) undoStack.push(() => live.undo());
+  status(`${data.label} is an NPC now (#${summary.id}); select it to name it, move it about or give it a conversation.`);
 }
 
 // How often each actor is placed in the loaded chunks, for the browser's "Used nearby".
@@ -1859,9 +1955,12 @@ function nearbyActors() {
 const content = new ContentBrowser($("#content-browser"), library, {
   pick: (name) => {
     state.actor = name;
+    state.npcPick = null;
     if (state.tool !== "props") setTool("props");
     else { makeGhost(); renderPanel(); }
   },
+  pickNpc,
+  editNpc: (id) => definitionEditor.open(id),
   nearby: nearbyActors,
 });
 let contentLoaded = false;
@@ -2023,6 +2122,7 @@ canvas.addEventListener("pointerdown", async (event) => {
   if (tool === "props" && state.actor && !event.shiftKey) {
     const hit = terrainHit();
     if (hit && state.place.live && live.zone) placeLive(state.actor, hit, ghost ? ghost.rotation.y : 0);
+    else if (hit && state.npcPick) toast("NPCs spawn in the running game: open the editor from the admin panel, with the zone running.");
     else if (hit) placeActor(state.actor, hit, ghost ? ghost.rotation.y : 0);
     return;
   }

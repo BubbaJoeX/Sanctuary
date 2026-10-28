@@ -387,6 +387,33 @@ public sealed partial class WorldZone
         }
     }
 
+    /// <summary>
+    /// Respawns the world NPCs built on a definition from their rows, so they take up its changes after Npcs.json
+    /// was reloaded (they copy what they use from it when they spawn). Returns how many came back.
+    /// </summary>
+    public int RespawnWorldNpcs(int definitionId)
+    {
+        lock (_worldNpcLock)
+        {
+            var respawned = 0;
+
+            foreach (var (npcGuid, worldNpc) in _worldNpcs.Where(x => x.Value.Definition == definitionId).ToList())
+            {
+                _worldNpcs.Remove(npcGuid);
+
+                if (TryGetNpc(npcGuid, out var npc))
+                    npc.Dispose();
+
+                if (TrySpawnWorldNpc(worldNpc, out _))
+                    respawned++;
+                else
+                    Logger.LogWarning("Failed to respawn world NPC {id} (definition {definition}).", worldNpc.Id, definitionId);
+            }
+
+            return respawned;
+        }
+    }
+
     public override bool IsEventActive(string eventKey) => _worldEventManager.IsActive(eventKey);
 
     public void OnWorldEventChanged(string eventKey, bool active)

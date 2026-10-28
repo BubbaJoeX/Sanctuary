@@ -3,9 +3,12 @@
 // It opens on what zones actually place (counted across every zone's chunks), with what the loaded chunks use,
 // favourites, recently placed and name prefixes (bw_ Briarwood, sh_ Snowhill, hsg_ housing, ...) as groups,
 // and kinds (trees, rocks, buildings, ...) matched from names. Click a tile to place it, or drag it into the view.
+// Its NPCs side lists Sanctuary's NPC definitions (Npcs.json) instead, to spawn in the running game.
 import * as THREE from "three";
 import { copyTemplate } from "./animation.js";
 import { getJson } from "./api.js";
+
+const NPC_GROUPS = [["all", "All NPCs"], ["mine", "Made here"], ["placed", "Placed in the world"], ["scripted", "With scripts"], ["merchants", "Merchants"]];
 
 const REGIONS = {
   bw: "Briarwood", bs: "Blackspore", sh: "Snowhill", ss: "Seaside", mv: "Merry Vale", sg: "Sacred Grove (shared)",
@@ -29,6 +32,10 @@ export const KINDS = [
   ["Water", /water|waterfall|river|pond|fountain|ocean|lake/],
   ["Signs", /sign|banner|flag|poster|board|marker/],
 ];
+
+function escapeText(text) {
+  return String(text ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+}
 
 function storageGet(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
@@ -120,7 +127,7 @@ class Thumbnails {
 }
 
 export class ContentBrowser {
-  // events: { pick(name), nearby() -> Map(name -> count) }
+  // events: { pick(name), pickNpc({ id, name, model }), editNpc(id), nearby() -> Map(name -> count) }
   constructor(element, library, events) {
     this.element = element;
     this.events = events;
@@ -131,6 +138,9 @@ export class ContentBrowser {
     this.kind = null;
     this.query = "";
     this.characters = false;
+    this.mode = storageGet("zone-editor-content-mode", "actors");   // actors, or npcs (definitions)
+    this.npcGroup = "all";
+    this.definitions = [];
     this.favourites = new Set(storageGet("zone-editor-favourites", []));
     this.recent = storageGet("zone-editor-recent", []);
     this.selected = null;
@@ -151,6 +161,7 @@ export class ContentBrowser {
       <div class="cb-groups"></div>
       <div class="cb-main">
         <div class="cb-bar">
+          <div class="seg cb-mode"><button data-mode="actors">Actors</button><button data-mode="npcs" title="NPC definitions (Npcs.json), to spawn in the running game">NPCs</button></div>
           <input class="cb-search" placeholder="Search actors: tree, fence, bw_house, lantern…">
           <div class="cb-kinds">${KINDS.map(([kind]) => `<button data-kind="${kind}">${kind}</button>`).join("")}</div>
           <label class="inline"><input class="cb-characters" type="checkbox"> Characters and gear</label>
@@ -160,8 +171,15 @@ export class ContentBrowser {
       </div>`;
     this.element.querySelector(".cb-search").addEventListener("input", (e) => {
       clearTimeout(this.timer);
-      this.timer = setTimeout(() => { this.query = e.target.value.toLowerCase(); this.render(); }, 150);
+      this.timer = setTimeout(() => { this.query = e.target.value.toLowerCase(); this.mode === "npcs" ? this.loadNpcs() : this.render(); }, 150);
     });
+    for (const button of this.element.querySelectorAll("[data-mode]")) {
+      button.addEventListener("click", () => {
+        this.mode = button.dataset.mode;
+        storageSet("zone-editor-content-mode", this.mode);
+        this.mode === "npcs" ? this.loadNpcs() : this.render();
+      });
+    }
     for (const button of this.element.querySelectorAll("[data-kind]")) {
       button.addEventListener("click", () => { this.kind = this.kind === button.dataset.kind ? null : button.dataset.kind; this.render(); });
     }
@@ -206,7 +224,8 @@ export class ContentBrowser {
     this.names = data.names;
     this.usage = data.usage;              // by lowercase name
     this.byLower = new Map(this.names.map((n) => [n.toLowerCase(), n]));
-    if (changed) this.render();
+    if (changed && this.mode !== "npcs") this.render();
+    if (this.mode === "npcs" && !this.definitions.length) this.loadNpcs();
     // The zones' usage, and the actors with nothing to draw, are worked out in the background the first time; ask
     // again until both are there.
     if (!this.usage || !data.checked) setTimeout(() => this.load(), 8000);
@@ -244,6 +263,7 @@ export class ContentBrowser {
   }
 
   renderGroups() {
+    if (this.mode === "npcs") return;
     const counts = new Map();
     for (const name of this.names) {
       if (!this.characters && this.isCharacter(name)) continue;
@@ -269,6 +289,10 @@ export class ContentBrowser {
   }
 
   render() {
+    this.element.classList.toggle("npcs", this.mode === "npcs");
+    for (const button of this.element.querySelectorAll("[data-mode]")) button.classList.toggle("active", button.dataset.mode === this.mode);
+    this.element.querySelector(".cb-search").placeholder = this.mode === "npcs" ? "Search NPCs: name, actor or id…" : "Search actors: tree, fence, bw_house, lantern…";
+    if (this.mode === "npcs") return this.renderNpcs();
     this.renderGroups();
     for (const button of this.element.querySelectorAll("[data-kind]")) button.classList.toggle("active", button.dataset.kind === this.kind);
     this.list = this.filtered();
@@ -281,6 +305,7 @@ export class ContentBrowser {
   }
 
   renderMore() {
+    if (this.mode === "npcs") return;
     const grid = this.element.querySelector(".cb-grid");
     const next = this.list.slice(this.shown, this.shown + 120);
     this.shown += next.length;
@@ -307,6 +332,64 @@ export class ContentBrowser {
       });
       grid.appendChild(tile);
       this.observer.observe(tile);
+    }
+  }
+
+  // --- NPC definitions ---------------------------------------------------------------------------------------------
+
+  async loadNpcs() {
+    try {
+      const data = await getJson(`api/npcs?q=${encodeURIComponent(this.query)}&limit=600`);
+      this.definitions = data.definitions;
+      this.npcTotal = data.total;
+      this.npcError = null;
+    } catch (error) {
+      this.definitions = [];
+      this.npcError = error.message;
+    }
+    this.render();
+  }
+
+  renderNpcs() {
+    const counts = {
+      all: this.definitions.length,
+      mine: this.definitions.filter((d) => d.editorMade).length,
+      placed: this.definitions.filter((d) => d.placedInWorld > 0).length,
+      scripted: this.definitions.filter((d) => d.scripts.length).length,
+      merchants: this.definitions.filter((d) => d.merchant).length,
+    };
+    this.element.querySelector(".cb-groups").innerHTML = NPC_GROUPS
+      .map(([key, label]) => `<div data-npc-group="${key}" class="${this.npcGroup === key ? "active" : ""}">${label} <span>${counts[key]}</span></div>`).join("") +
+      `<p class="hint">Spawn one in the running game: click it, then the ground. ✎ edits its definition.</p>`;
+    for (const row of this.element.querySelectorAll("[data-npc-group]")) {
+      row.addEventListener("click", () => { this.npcGroup = row.dataset.npcGroup; this.renderNpcs(); });
+    }
+    const show = this.definitions.filter((d) => ({
+      all: true, mine: d.editorMade, placed: d.placedInWorld > 0, scripted: d.scripts.length > 0, merchants: d.merchant,
+    })[this.npcGroup]);
+    this.element.querySelector(".cb-count").textContent = `${show.length} NPC${show.length === 1 ? "" : "s"}${this.npcTotal > this.definitions.length ? ` (first ${this.definitions.length} of ${this.npcTotal})` : ""}`;
+    const grid = this.element.querySelector(".cb-grid");
+    grid.scrollTop = 0;
+    grid.innerHTML = show.length ? "" : `<p class="hint">${this.npcError ? escapeText(this.npcError) : "Nothing here."}</p>`;
+    for (const definition of show) {
+      const tile = document.createElement("div");
+      tile.className = `cb-tile${this.selectedNpc === definition.id ? " active" : ""}`;
+      tile.dataset.actor = definition.model ?? "";
+      tile.title = `#${definition.id}${definition.model ? ` · ${definition.model}` : ""}${definition.scripts.length ? `
+Scripts: ${definition.scripts.join(", ")}` : ""}` +
+        `${definition.placedInWorld ? `
+Placed in the world: ${definition.placedInWorld}` : ""}
+Click to spawn one, then click the ground`;
+      tile.innerHTML = `<img alt=""><span>${escapeText(definition.name ?? definition.model?.replace(/\.a[dg]r$/i, "") ?? `NPC ${definition.id}`)}</span>
+        <small>#${definition.id}</small><b class="edit" title="Edit its definition">✎</b>`;
+      tile.addEventListener("click", (event) => {
+        if (event.target.tagName === "B") return this.events.editNpc(definition.id);
+        this.selectedNpc = definition.id;
+        for (const other of grid.querySelectorAll(".cb-tile")) other.classList.toggle("active", other === tile);
+        this.events.pickNpc({ id: definition.id, name: definition.name, model: definition.model });
+      });
+      grid.appendChild(tile);
+      if (definition.model) this.observer.observe(tile);
     }
   }
 

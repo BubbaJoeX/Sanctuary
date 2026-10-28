@@ -208,6 +208,31 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   scale, slope and height options. The game spawns models by id, so an actor needs a `Models.txt` row, in the
   server's copy and the client's. `add_model_rows.py` gives one to every actor the client can draw (see
   [Models.txt rows](#modelstxt-rows)).
+- **Spawning NPCs.** The content browser's **NPCs** side lists Sanctuary's NPC definitions (`Npcs.json`): click
+  one and then the ground to spawn it in the running game (only there: NPCs are the server's). With *As an NPC*
+  in the Props tool, any actor spawns as an NPC instead of a placed model, on a definition of its own that the
+  editor adds to `Npcs.json` the first time (ids from 50000). *Make it an NPC* in a placed model's inspector does
+  the same for one already placed.
+- **Settings.** A placed NPC's, model's or prop's inspector sets what `!npc` and `!prop` set in game: its name
+  (empty: the definition's) and nameplate, animation, texture variant and tint alias, effect, height offset and
+  overhead icons, and for an NPC its disposition (hostile ones fight as their Mobs.json mob), behaviour (stay,
+  wander within a radius, or follow your character) and speed. Each change shows in game at once and is one
+  undo step.
+- **Who sees it.** An NPC can be flagged for a world event (it's only spawned while `!event on <key>` is), and
+  anything placed can have conditions: only between hours of the game day (the clock the server syncs to clients,
+  a day every three real hours), only for players who have a quest done, active, not done or not started, who
+  carry an item (or don't), or only for referees. Players see it while all of them hold, checked every second, so
+  it appears or goes as they finish the quest or the hour comes; referees in god mode always see it.
+- **Conversations (admins).** *Edit conversation…* opens a world NPC's dialogue over the view, as `!conv` builds
+  it: nodes of what it says, each with up to eight answers that go to another node or end it, give an item or
+  call the NPC script's `onChoice(player, hook)`. Clicking the NPC in game starts it.
+- **NPC definitions (admins).** *Edit definition…* (or *NPC definitions…* in the Props tool) opens `Npcs.json`
+  over the view: search it, change any definition (name, actor, scale, aliases, disposition, animation, named
+  scripts from `src/Scripts/Npc`, and everything else as JSON), make one for the content pick, copy one or delete
+  one made here (while nothing placed is built on it). Saving writes `src/Resources/Npcs.json` in its own layout
+  and the running Gateway's copy, has the Gateway reload it, and respawns this zone's placed NPCs built on it so
+  they take it up (each keeps what was set on it, such as its name and scale). The zone's own NPCs, spawned by its
+  Lua, take it up when the Gateway restarts.
 - **Baking.** *Bake into the zone* turns a placed object into one of the chunk's own props, where it stands,
   and takes it out of the game: build in the live world, then make it part of the zone (Save, Test in game).
 - **Players.** Selecting one shows what they wear, and sends them to the ground in the middle of the view,

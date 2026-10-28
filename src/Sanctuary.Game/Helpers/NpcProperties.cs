@@ -12,7 +12,7 @@ using Sanctuary.Packet.Common;
 namespace Sanctuary.Game.Helpers;
 
 /// <summary>
-/// Appearance a referee can change on a world NPC or prop beyond its saved columns, stored as JSON in
+/// Appearance (and who sees it, <see cref="NpcConditions"/>) a referee can change on a world NPC or prop beyond its saved columns, stored as JSON in
 /// <c>Properties</c> (DbWorldNpc and DbWorldFixture). Props save their name, animation and nameplate here too,
 /// since their own row only has scale, tint and collision.
 /// </summary>
@@ -50,6 +50,11 @@ public sealed class NpcProperties
     /// </summary>
     public List<NpcIcon>? Icons { get; set; }
 
+    /// <summary>
+    /// Who sees it and when (see <see cref="NpcConditions"/>).
+    /// </summary>
+    public NpcConditions? Conditions { get; set; }
+
     public sealed record NpcIcon(int Type, int IconId, int State);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -73,7 +78,8 @@ public sealed class NpcProperties
             Mob = npc.MobKey,
             Pitch = npc.Tilt is { Y: not 0f } tilt ? tilt.Y : null,
             Roll = npc.Tilt is { Z: not 0f } tiltRoll ? tiltRoll.Z : null,
-            Icons = GetIcons(npc)
+            Icons = GetIcons(npc),
+            Conditions = npc.Conditions
         };
 
         if (includeBasics)
@@ -131,6 +137,9 @@ public sealed class NpcProperties
 
         if (properties.Icons is not null)
             SetIcons(npc, properties.Icons);
+
+        if (properties.Conditions is { IsEmpty: false } conditions)
+            npc.Conditions = conditions;
 
         if (properties.Pitch is not null || properties.Roll is not null)
             npc.Tilt = new Vector4(GetHeading(npc.SpawnRotation), properties.Pitch ?? 0f, properties.Roll ?? 0f, 0f);

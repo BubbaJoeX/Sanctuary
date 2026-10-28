@@ -108,6 +108,11 @@ public class Npc : IScriptableNpc, IEntity
     /// </summary>
     public string? MobKey { get; set; }
 
+    /// <summary>
+    /// Who sees this NPC and when (a world NPC or prop's, set from the zone editor); null for everyone.
+    /// </summary>
+    public NpcConditions? Conditions { get; set; }
+
     public Action<Player>? InteractAction { get; set; }
     public Action? UpdateEverySecondAction { get; set; }
     public Action? UpdateEveryTickAction { get; set; }
@@ -231,7 +236,43 @@ public class Npc : IScriptableNpc, IEntity
         InteractAction?.Invoke(player);
     }
 
-    public virtual bool IsVisibleTo(Player player) => true;
+    public virtual bool IsVisibleTo(Player player) => Conditions is null || player.IsInGodMode || Conditions.IsMetBy(player);
+
+    /// <summary>
+    /// Shows or hides the NPC for the players around it as <see cref="IsVisibleTo"/> changes for them (its
+    /// conditions came to hold or stopped holding: a quest done, an item picked up, the hour), as if they had
+    /// just come into view of it or left.
+    /// </summary>
+    public void RefreshViewers()
+    {
+        if (!Visible || Combat?.IsDespawned == true)
+            return;
+
+        foreach (var zoneTile in ZoneTile.VisibleTiles)
+        {
+            foreach (var entity in zoneTile.Entities.Values)
+            {
+                if (entity is not Player { Visible: true } player)
+                    continue;
+
+                var shown = player.VisibleNpcs.ContainsKey(Guid);
+
+                if (IsVisibleTo(player) == shown)
+                    continue;
+
+                if (shown)
+                {
+                    player.OnRemoveVisibleNpcs([this]);
+                    OnRemoveVisiblePlayers([player]);
+                }
+                else
+                {
+                    OnAddVisiblePlayers([player]);
+                    player.OnAddVisibleNpcs([this]);
+                }
+            }
+        }
+    }
 
     public virtual void OnAddVisibleNpcs(params IEnumerable<Npc> npcs)
     {
@@ -307,6 +348,9 @@ public class Npc : IScriptableNpc, IEntity
     public void UpdateEverySecond()
     {
         UpdateEverySecondAction?.Invoke();
+
+        if (Conditions is not null)
+            RefreshViewers();
 
         // A mob that is fighting or walking home moves itself.
         if (Combat is null or { State: MobState.Idle })
