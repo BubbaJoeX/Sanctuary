@@ -212,7 +212,7 @@ The Gateway's admin API is off until it has a key. Give it one (at least 24 char
 
 It listens on loopback by default; the AdminPanel's backend is its only client, signing referees in with their game accounts and passing their requests on. Every request carries the key as a bearer token and, but for sign-in, names the referee acting (`X-Sanctuary-User`), whose admin or mod flag is checked on each request.
 
-`launch.ps1` brings the panel up with the servers: a full launch rebuilds its backend (and its frontend's static export, when its sources changed) and every launch starts it at http://localhost:5057, with the zone editor its Map editor shows on :7050, unless they're running already. It looks for the AdminPanel checkout at `D:\FreeRealms\AdminPanel` (`-AdminPanelDir`); `-NoAdmin` leaves both out, and `-Stop` stops the panel too (the zone editor keeps running). Logs go to `run/adminpanel.log` and `run/zoneeditor.log`.
+`launch.ps1` brings the panel up with the servers: a full launch rebuilds its backend (and its frontend's static export, when its sources changed) and every launch starts it at http://localhost:5057, with the zone editor its Map editor shows on :7050, unless they're running already. It looks for the AdminPanel checkout at `D:\FreeRealms\AdminPanel` (`-AdminPanelDir`); `-NoAdmin` leaves both out, and `-Stop` stops the panel too (the zone editor keeps running). Stopping only touches this checkout's servers (by their path under `src`) and the clients launched against them, so other checkouts' and worktrees' test servers keep running. Logs go to `run/adminpanel.log` and `run/zoneeditor.log`.
 
 | Route | What it does |
 | --- | --- |
