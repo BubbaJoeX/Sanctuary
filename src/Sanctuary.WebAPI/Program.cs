@@ -45,6 +45,9 @@ builder.Services.AddAssetEndpointServices();
 // Launcher client files
 builder.Services.AddClientEndpointServices();
 
+// Admin site
+builder.Services.AddAdminEndpointServices();
+
 // Logging
 builder.Logging.ClearProviders();
 
@@ -75,9 +78,17 @@ app.UseHttpLogging();
 
 // Configure the HTTP request pipeline.
 
+app.UseForwardedHeaders();
+
+app.UseRateLimiter();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapAuthEndpoints();
 app.MapPortraitEndpoints();
 app.MapAssetEndpoints();
 app.MapClientEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();

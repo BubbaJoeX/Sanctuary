@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sanctuary Admin</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --surface: #fffdf8;
+    --surface-2: #f8f4ec;
+    --border: #e2dccf;
+    --text: #2b2a26;
+    --muted: #6f6a5f;
+    --accent: #2f7d4f;
+    --accent-strong: #256840;
+    --accent-soft: #e3f1e7;
+    --gold: #c98a1b;
+    --danger: #b3412e;
+    --danger-soft: #f8e5e0;
+    --card-bg: #24476b;
+    --card-text: #f4f7fb;
+    --card-muted: #c6d4e3;
+    --card-button: #f2b632;
+    --card-button-text: #3a2600;
+    --shadow: 0 1px 2px rgb(40 30 10 / 6%), 0 4px 14px rgb(40 30 10 / 6%);
+    --radius: 12px;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171a17;
+      --surface: #212521;
+      --surface-2: #1b1f1b;
+      --border: #343a34;
+      --text: #ecebe6;
+      --muted: #a3a79f;
+      --accent: #4fb07a;
+      --accent-strong: #63c48d;
+      --accent-soft: #1f3a2a;
+      --gold: #e2a63a;
+      --danger: #e2735f;
+      --danger-soft: #3a2420;
+      --card-bg: #1d3a58;
+      --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 14px rgb(0 0 0 / 25%);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #171a17;
+    --surface: #212521;
+    --surface-2: #1b1f1b;
+    --border: #343a34;
+    --text: #ecebe6;
+    --muted: #a3a79f;
+    --accent: #4fb07a;
+    --accent-strong: #63c48d;
+    --accent-soft: #1f3a2a;
+    --gold: #e2a63a;
+    --danger: #e2735f;
+    --danger-soft: #3a2420;
+    --card-bg: #1d3a58;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 14px rgb(0 0 0 / 25%);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  [hidden] { display: none !important; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand { font-weight: 700; font-size: 17px; letter-spacing: 0.2px; white-space: nowrap; }
+  .brand span { color: var(--accent); }
+  .account { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--muted); font-size: 14px; }
+  .account button { white-space: nowrap; }
+  #who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .role {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  main { max-width: 980px; margin: 0 auto; padding: 28px 24px 120px; }
+
+  h1 { margin: 0 0 4px; font-size: 24px; }
+  .muted { color: var(--muted); margin: 0; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+  }
+
+  .narrow { max-width: 380px; margin: 48px auto; }
+
+  form.stack { display: grid; gap: 14px; margin-top: 18px; }
+
+  label { display: grid; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); }
+
+  input, select, textarea {
+    width: 100%;
+    font: inherit;
+    font-weight: 400;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+
+  textarea { resize: vertical; min-height: 64px; }
+
+  input:focus, select:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  button {
+    font: inherit;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  .primary { background: var(--accent); color: #fff; }
+  .primary:hover:not(:disabled) { background: var(--accent-strong); }
+  .ghost { background: transparent; color: var(--text); border-color: var(--border); }
+  .ghost:hover:not(:disabled) { background: var(--surface-2); }
+  .link { background: none; border: none; padding: 0; color: var(--accent); }
+  .danger { color: var(--danger); }
+
+  .error { color: var(--danger); margin: 0; min-height: 1.2em; font-size: 14px; }
+
+  .section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .pick-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+
+  .pick {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+
+  .pick-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -4px 0 -6px;
+  }
+
+  .pick-number { font-weight: 700; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+  .pick-tools { display: flex; gap: 4px; }
+  .pick-tools button { padding: 4px 10px; font-size: 13px; }
+
+  /* A rough likeness of the card on the in-game welcome screen. */
+  .preview {
+    align-self: start;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--card-text);
+  }
+
+  .preview-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgb(255 255 255 / 14%);
+    font-size: 22px;
+  }
+
+  .preview-title { font-weight: 700; overflow-wrap: anywhere; }
+  .preview-text { font-size: 13px; color: var(--card-muted); margin-top: 2px; overflow-wrap: anywhere; }
+
+  .preview-button {
+    grid-column: 1 / -1;
+    justify-self: end;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: var(--card-button);
+    color: var(--card-button-text);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+  .fields .wide { grid-column: 1 / -1; }
+
+  .label-row { display: flex; justify-content: space-between; gap: 8px; }
+  .counter { font-weight: 400; }
+  .counter.over { color: var(--danger); font-weight: 600; }
+
+  .add {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    background: transparent;
+    color: var(--accent);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  .add:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+
+  .empty {
+    text-align: center;
+    padding: 28px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .savebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 14px rgb(0 0 0 / 6%);
+  }
+
+  .status { margin-right: auto; font-size: 14px; color: var(--muted); }
+  .status.error { color: var(--danger); }
+  .status.ok { color: var(--accent-strong); }
+  .status button { margin-left: 8px; }
+
+  @media (max-width: 720px) {
+    .topbar { padding: 12px 16px; }
+    main { padding: 20px 16px 140px; }
+    .pick { grid-template-columns: 1fr; padding: 14px; }
+    .fields { grid-template-columns: 1fr; }
+    .savebar { padding: 10px 16px; flex-wrap: wrap; }
+    .status { flex-basis: 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Sanctuary <span>Admin</span></div>
+  <div class="account" id="account" hidden>
+    <span id="who"></span>
+    <span class="role" id="role"></span>
+    <button class="link" id="logout" type="button">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel narrow" id="login" hidden>
+    <h1>Sign in</h1>
+    <p class="muted">Use your game account. Only admin and mod accounts can sign in.</p>
+    <form class="stack" id="login-form">
+      <label>Username <input name="username" autocomplete="username" required></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary" type="submit">Sign in</button>
+      <p class="error" id="login-error" role="alert"></p>
+    </form>
+  </section>
+
+  <section id="picks" hidden>
+    <div class="section-head">
+      <div>
+        <h1>Referee Picks</h1>
+        <p class="muted" id="picks-help"></p>
+      </div>
+      <button class="ghost" id="reset" type="button">Restore stock picks</button>
+    </div>
+
+    <ol class="pick-list" id="pick-list"></ol>
+    <p class="empty" id="empty" hidden>No picks. The welcome screen's Referee Picks panel will be empty.</p>
+    <button class="add" id="add" type="button">+ Add a pick</button>
+
+    <footer class="savebar">
+      <span class="status" id="status" role="status"></span>
+      <button class="ghost" id="discard" type="button">Discard changes</button>
+      <button class="primary" id="save" type="button">Save</button>
+    </footer>
+  </section>
+</main>
+
+<template id="pick-template">
+  <li class="pick">
+    <div class="pick-head">
+      <span class="pick-number"></span>
+      <div class="pick-tools">
+        <button class="ghost" type="button" data-move="-1" aria-label="Move up">&uarr;</button>
+        <button class="ghost" type="button" data-move="1" aria-label="Move down">&darr;</button>
+        <button class="ghost danger" type="button" data-remove aria-label="Remove">Remove</button>
+      </div>
+    </div>
+    <div class="preview" aria-hidden="true">
+      <div class="preview-icon"></div>
+      <div>
+        <div class="preview-title"></div>
+        <div class="preview-text"></div>
+      </div>
+      <div class="preview-button"></div>
+    </div>
+    <div class="fields">
+      <label>Button opens <select data-field="action"></select></label>
+      <label data-destination>Teleports to <select data-field="param1"></select></label>
+      <label class="wide"><span class="label-row">Title <span class="counter" data-counter="title"></span></span><input data-field="title"></label>
+      <label class="wide"><span class="label-row">Text <span class="counter" data-counter="text"></span></span><textarea data-field="text" rows="2"></textarea></label>
+      <label>Icon <select data-field="icon"></select></label>
+      <label>Button label <input data-field="button"></label>
+    </div>
+  </li>
+</template>
+
+<script>
+(() => {
+  const api = "/admin/api";
+
+  // Stand-ins for the icons the welcome screen mod draws, for the preview only.
+  const iconGlyphs = {
+    house: "🏠", coin: "🪙", tree: "🌳", journal: "📔", trophy: "🏆", bag: "👜",
+    paw: "🐾", friends: "👥", book: "📖", wheel: "🎡", referee: "🏅"
+  };
+
+  const kindLabels = {
+    teleport: "Teleport", shop: "Coin Shop", houses: "House browser", friends: "Friends list",
+    journal: "Hero's Journal", mystuff: "My Stuff", achievements: "Achievements"
+  };
+
+  const $ = id => document.getElementById(id);
+
+  let data = null;   // the last picks the server sent
+  let picks = [];    // the picks being edited
+  let dirty = false;
+
+  async function call(method, path, body) {
+    const headers = { "X-Sanctuary-Admin": "1" };
+
+    if (body !== undefined)
+      headers["Content-Type"] = "application/json";
+
+    const response = await fetch(api + path, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      credentials: "same-origin"
+    });
+
+    let payload = null;
+    const text = await response.text();
+
+    try { payload = text ? JSON.parse(text) : null; } catch { payload = text; }
+
+    // /me is how the page finds out whether anyone is signed in yet, and /login answers 401 for a wrong password.
+    if (response.status === 401 && path !== "/login" && path !== "/me") {
+      showLogin("Your session ended. Sign in again.");
+      throw new Error("signed out");
+    }
+
+    return { status: response.status, ok: response.ok, payload };
+  }
+
+  function messageOf(payload, fallback) {
+    if (typeof payload === "string" && payload)
+      return payload;
+
+    if (payload && payload.errors)
+      return Object.values(payload.errors).flat().join(" ");
+
+    return fallback;
+  }
+
+  function setStatus(text, kind) {
+    const status = $("status");
+    status.textContent = text;
+    status.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function showLogin(message) {
+    $("account").hidden = true;
+    $("picks").hidden = true;
+    $("login").hidden = false;
+    $("login-error").textContent = message || "";
+    dirty = false;
+    $("login-form").username.focus();
+  }
+
+  function showAccount(user) {
+    $("who").textContent = user.username;
+    $("role").textContent = user.role;
+    $("account").hidden = false;
+    $("login").hidden = true;
+  }
+
+  async function loadPicks() {
+    const result = await call("GET", "/picks");
+
+    if (!result.ok) {
+      setStatus(messageOf(result.payload, "Couldn't load the picks."), "error");
+      return;
+    }
+
+    accept(result.payload);
+    $("picks").hidden = false;
+    setStatus("");
+  }
+
+  function accept(payload) {
+    data = payload;
+    picks = payload.picks.map(pick => ({ ...pick }));
+    dirty = false;
+
+    $("picks-help").textContent =
+      `Up to ${data.maxPicks} cards on the welcome screen. Players online see a save within about ${data.refreshSeconds} seconds.`;
+
+    render();
+  }
+
+  function kindOf(action) {
+    return data.kinds.find(kind => kind.action === action);
+  }
+
+  function render() {
+    const list = $("pick-list");
+    list.replaceChildren(...picks.map((pick, index) => renderPick(pick, index)));
+
+    $("empty").hidden = picks.length > 0;
+    $("add").disabled = picks.length >= data.maxPicks;
+    $("add").textContent = picks.length >= data.maxPicks ? `The welcome screen holds ${data.maxPicks} picks` : "+ Add a pick";
+    updateBar();
+  }
+
+  function option(value, label) {
+    const element = document.createElement("option");
+    element.value = value;
+    element.textContent = label;
+    return element;
+  }
+
+  function renderPick(pick, index) {
+    const item = $("pick-template").content.firstElementChild.cloneNode(true);
+    const field = name => item.querySelector(`[data-field="${name}"]`);
+
+    item.querySelector(".pick-number").textContent = `Pick ${index + 1}`;
+    item.querySelector('[data-move="-1"]').disabled = index === 0;
+    item.querySelector('[data-move="1"]').disabled = index === picks.length - 1;
+
+    const action = field("action");
+    action.append(...data.kinds.map(kind => option(kind.action, kindLabels[kind.name] || kind.action)));
+    action.value = pick.action;
+
+    const destination = field("param1");
+    destination.append(...data.pointsOfInterest
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(poi => option(poi.id, `${poi.name} (${poi.id})`)));
+
+    if (pick.action === "Teleport" && !data.pointsOfInterest.some(poi => poi.id === pick.param1))
+      destination.prepend(option(pick.param1, `Unknown point of interest (${pick.param1})`));
+
+    destination.value = pick.param1;
+
+    const icon = field("icon");
+    icon.append(...data.icons.map(name => option(name, `${iconGlyphs[name] || ""} ${name}`)));
+
+    if (pick.icon && !data.icons.includes(pick.icon))
+      icon.append(option(pick.icon, `Client image ${pick.icon}`));
+
+    icon.value = pick.icon;
+
+    field("title").value = pick.title;
+    field("title").maxLength = data.maxTitleLength;
+    field("text").value = pick.text;
+    field("text").maxLength = data.maxTextLength;
+    field("button").value = pick.button;
+    field("button").maxLength = data.maxButtonLength;
+
+    item.addEventListener("input", event => {
+      const name = event.target.dataset.field;
+
+      if (!name)
+        return;
+
+      if (name === "action") {
+        const previous = kindOf(pick.action);
+        const next = kindOf(event.target.value);
+
+        // Follow the new kind's icon unless the referee picked one of their own.
+        if (next && (!pick.icon || (previous && pick.icon === previous.icon))) {
+          pick.icon = next.icon;
+          icon.value = pick.icon;
+        }
+
+        // Likewise a label that just spelled out the old kind's default goes back to the new kind's.
+        if (previous && pick.button === previous.button) {
+          pick.button = "";
+          field("button").value = "";
+        }
+
+        if (event.target.value === "Teleport" && !data.pointsOfInterest.some(poi => poi.id === pick.param1) && data.pointsOfInterest.length)
+          pick.param1 = Number(destination.value) || data.pointsOfInterest[0].id;
+
+        if (event.target.value !== "Teleport")
+          pick.param1 = 0;
+
+        pick.action = event.target.value;
+      } else if (name === "param1") {
+        pick.param1 = Number(event.target.value);
+      } else {
+        pick[name] = event.target.value;
+      }
+
+      markDirty();
+      refreshPick(item, pick);
+    });
+
+    item.addEventListener("click", event => {
+      const button = event.target.closest("button");
+
+      if (!button)
+        return;
+
+      if (button.dataset.move) {
+        const to = index + Number(button.dataset.move);
+        [picks[index], picks[to]] = [picks[to], picks[index]];
+      } else if ("remove" in button.dataset) {
+        picks.splice(index, 1);
+      } else {
+        return;
+      }
+
+      markDirty();
+      render();
+    });
+
+    refreshPick(item, pick);
+    return item;
+  }
+
+  function refreshPick(item, pick) {
+    const kind = kindOf(pick.action);
+    const isTeleport = pick.action === "Teleport";
+
+    item.querySelector("[data-destination]").hidden = !isTeleport;
+    item.querySelector('[data-field="button"]').placeholder = kind ? kind.button : "";
+
+    item.querySelector(".preview-icon").textContent = iconGlyphs[pick.icon] || "🖼️";
+    item.querySelector(".preview-title").textContent = pick.title || "Title";
+    item.querySelector(".preview-text").textContent = pick.text || "Text";
+    item.querySelector(".preview-button").textContent = pick.button || (kind ? kind.button : "");
+
+    for (const [name, max] of [["title", data.maxTitleLength], ["text", data.maxTextLength]]) {
+      const counter = item.querySelector(`[data-counter="${name}"]`);
+      counter.textContent = `${pick[name].length}/${max}`;
+      counter.classList.toggle("over", pick[name].length > max);
+    }
+  }
+
+  function markDirty() {
+    dirty = true;
+    updateBar();
+  }
+
+  function updateBar() {
+    $("save").disabled = !dirty;
+    $("discard").disabled = !dirty;
+
+    if (dirty)
+      setStatus("Unsaved changes.");
+  }
+
+  $("add").addEventListener("click", () => {
+    const kind = data.kinds.find(k => k.action === "Marketplace") || data.kinds[0];
+    picks.push({ title: "", text: "", action: kind.action, param1: 0, icon: kind.icon, button: "" });
+    markDirty();
+    render();
+    $("pick-list").lastElementChild.querySelector('[data-field="title"]').focus();
+  });
+
+  $("discard").addEventListener("click", () => {
+    accept(data);
+    setStatus("Changes discarded.");
+  });
+
+  $("save").addEventListener("click", async () => {
+    $("save").disabled = true;
+    setStatus("Saving…");
+
+    const result = await call("PUT", "/picks", { version: data.version, picks });
+
+    if (result.ok) {
+      accept(result.payload);
+      setStatus("Saved. Players online will see it shortly.", "ok");
+      return;
+    }
+
+    if (result.status === 409) {
+      setStatus(messageOf(result.payload, "Someone else changed the picks."), "error");
+
+      const reload = document.createElement("button");
+      reload.className = "ghost";
+      reload.type = "button";
+      reload.textContent = "Reload";
+      reload.addEventListener("click", loadPicks);
+      $("status").append(reload);
+    } else {
+      setStatus(messageOf(result.payload, "Couldn't save the picks."), "error");
+    }
+
+    $("save").disabled = false;
+  });
+
+  $("reset").addEventListener("click", async () => {
+    if (!confirm("Replace every pick with the stock picks from RefereePicks.json?"))
+      return;
+
+    const result = await call("POST", "/picks/reset");
+
+    if (result.ok) {
+      accept(result.payload);
+      setStatus("Restored the stock picks.", "ok");
+    } else {
+      setStatus(messageOf(result.payload, "Couldn't restore the stock picks."), "error");
+    }
+  });
+
+  $("login-form").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const form = event.target;
+    const button = form.querySelector("button");
+    button.disabled = true;
+    $("login-error").textContent = "";
+
+    try {
+      const result = await call("POST", "/login", { username: form.username.value, password: form.password.value });
+
+      if (result.ok) {
+        form.reset();
+        showAccount(result.payload);
+        await loadPicks();
+      } else if (result.status === 429) {
+        $("login-error").textContent = "Too many attempts. Wait a minute and try again.";
+      } else if (result.status === 401) {
+        $("login-error").textContent = "Wrong username or password, or the account isn't an admin or mod.";
+      } else {
+        $("login-error").textContent = messageOf(result.payload, "Couldn't sign in.");
+      }
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $("logout").addEventListener("click", async () => {
+    if (dirty && !confirm("Sign out and lose your unsaved changes?"))
+      return;
+
+    await call("POST", "/logout");
+    showLogin();
+  });
+
+  window.addEventListener("beforeunload", event => {
+    if (dirty)
+      event.preventDefault();
+  });
+
+  (async () => {
+    try {
+      const result = await call("GET", "/me");
+
+      if (result.ok) {
+        showAccount(result.payload);
+        await loadPicks();
+      } else {
+        showLogin();
+      }
+    } catch {
+      // call() already showed the sign-in form.
+    }
+  })();
+})();
+</script>
+</body>
+</html>

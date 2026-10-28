@@ -26,6 +26,7 @@ public sealed partial class WorldZone : BaseZone
     private readonly WorldZoneDefinition _zoneDefinition;
     private readonly IQuestManager _questManager;
     private readonly IRewardManager _rewardManager;
+    private readonly IRefereePickManager _refereePickManager;
 
     private readonly object _clientAreasLock = new();
     private readonly HashSet<SeasonalClientAreaDefinition> _activeSeasonalClientAreas = [];
@@ -82,6 +83,7 @@ public sealed partial class WorldZone : BaseZone
         _housingManager = serviceProvider.GetRequiredService<IHousingManager>();
         _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
         _worldEventManager = serviceProvider.GetRequiredService<IWorldEventManager>();
+        _refereePickManager = serviceProvider.GetRequiredService<IRefereePickManager>();
     }
 
     public override void OnStart()
@@ -119,7 +121,7 @@ public sealed partial class WorldZone : BaseZone
         SendAdventurersJournalInfo(player);
 
         SendShopData(player);
-        player.SendTunneled(WelcomeScreenHelper.GetAnnouncementsPacket());
+        player.SendTunneled(WelcomeScreenHelper.GetAnnouncementsPacket(_refereePickManager.Current));
 
         if (player.SeenOneTimeNotifications.TryAdd(OneTimeNotification.WelcomeInfo))
             SendWelcomeInfo(player);

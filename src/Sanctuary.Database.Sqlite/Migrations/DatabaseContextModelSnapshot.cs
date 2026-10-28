@@ -150,7 +150,6 @@ namespace Sanctuary.Database.Sqlite.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("TEXT");
 
-
                     b.PrimitiveCollection<string>("MiniGameTutorials")
                         .HasColumnType("TEXT");
 
@@ -187,7 +186,6 @@ namespace Sanctuary.Database.Sqlite.Migrations
 
                     b.Property<int>("SkinToneId")
                         .HasColumnType("INTEGER");
-
 
                     b.Property<Guid?>("Ticket")
                         .HasColumnType("TEXT");
@@ -804,6 +802,56 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.ToTable("RedeemCodeUses");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbRefereePick", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Button")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Param1")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Updated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("DATE()");
+
+                    b.Property<ulong?>("UpdatedBy")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RefereePicks");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbScriptLibraryEntry", b =>
                 {
                     b.Property<string>("Name")
@@ -861,7 +909,6 @@ namespace Sanctuary.Database.Sqlite.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(false);
-
 
                     b.Property<bool>("IsMod")
                         .ValueGeneratedOnAdd()
