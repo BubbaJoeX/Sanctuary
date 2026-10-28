@@ -37,7 +37,9 @@ CLIENT_EXTENSIONS_LUA = (script_dir / "lua" / "client_extensions.lua", Path("Res
 CLIENT_LUA = [(REFEREE_LUA, "referee client tools"), (CLIENT_EXTENSIONS_LUA, "client extensions")]
 
 COMPRESSED_MAGIC = 0xA1B2C3D4
-PACK_DATA_ALIGNMENT = 8192
+# Each chunk's index sits in one block of this size, with the chunk's data after it: the client reads no more of an
+# index than this, so a longer one loses every entry past it ("swf not found"), and the stock packs never exceed it.
+PACK_INDEX_BLOCK = 8192
 
 # (client file, [(original text, modded text), ...]), applied to the original file.
 WINDOW_PATCHES = [
@@ -294,25 +296,40 @@ def load_mods():
     return mods
 
 
-def write_pack(path, assets):
-    # Single chunk: next chunk offset (0 = last), entry count, then
-    # (name length, name, data offset, data size, crc32) per entry, all big-endian.
-    index = struct.pack(">II", 0, len(assets))
-    index_size = len(index) + sum(4 + len(name.encode()) + 12 for name, _ in assets)
-
-    offset = max(PACK_DATA_ALIGNMENT, index_size)
-    blobs = []
+def pack_chunks(assets):
+    """Splits the assets into chunks whose index fits one PACK_INDEX_BLOCK."""
+    chunks = [[]]
+    size = 8
     for name, data in assets:
-        encoded = name.encode()
-        index += struct.pack(">I", len(encoded)) + encoded + struct.pack(">III", offset, len(data), zlib.crc32(data))
-        blobs.append(data)
-        offset += len(data)
+        entry = 4 + len(name.encode()) + 12
+        if chunks[-1] and size + entry > PACK_INDEX_BLOCK:
+            chunks.append([])
+            size = 8
+        chunks[-1].append((name, data))
+        size += entry
+    return chunks
 
+
+def write_pack(path, assets):
+    # Chunks, like the stock packs: each starts with its index (next chunk offset, 0 = last; entry count; then
+    # name length, name, data offset, data size and crc32 per entry, all big-endian) in a PACK_INDEX_BLOCK, followed
+    # by its entries' data.
+    chunks = pack_chunks(assets)
     with path.open("wb") as f:
-        f.write(index)
-        f.write(b"\0" * (max(PACK_DATA_ALIGNMENT, index_size) - len(index)))
-        for blob in blobs:
-            f.write(blob)
+        start = 0
+        for i, chunk in enumerate(chunks):
+            offset = start + PACK_INDEX_BLOCK
+            end = offset + sum(len(data) for _, data in chunk)
+            index = struct.pack(">II", end if i < len(chunks) - 1 else 0, len(chunk))
+            for name, data in chunk:
+                encoded = name.encode()
+                index += struct.pack(">I", len(encoded)) + encoded + struct.pack(">III", offset, len(data), zlib.crc32(data))
+                offset += len(data)
+            f.write(index)
+            f.write(b"\0" * (PACK_INDEX_BLOCK - len(index)))
+            for _, data in chunk:
+                f.write(data)
+            start = end
 
 
 def next_pack_path(client_dir):
