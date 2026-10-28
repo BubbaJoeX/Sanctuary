@@ -18,8 +18,8 @@ viewport loads three.js from jsDelivr.
 
 ## Editing any zone, stock ones included
 
-Every zone is editable, FabledRealms too. A new zone (New zone…, blank or a copy of one such as a housing
-lot) saves under new names; a Housing zone also gets a Houses.json entry, and a copied lot keeps the
+Every zone is editable, FabledRealms too. A new zone (New…, blank or a copy of one such as a housing lot;
+type its name, which becomes lowercase with `_` for spaces, and press Enter or Create) saves under new names; a Housing zone also gets a Houses.json entry, and a copied lot keeps the
 original's spawn, exit door and build areas. Zones grow when chunks are added outside them: the `.gzne`
 holds each zone's start and size in tiles (z, then x, like chunk names `<zone>_<z>_<x>`), and a size that
 doesn't cover a chunk keeps it from loading. FabledRealms' 480 chunks fill its bounds exactly, so new land
@@ -117,6 +117,10 @@ undoes, Ctrl+S saves. The minimap shows chunks green and unsaved ones gold; clic
 in the top bar holds the view distance, time of day and what's drawn (detail textures, shadows, tile grid,
 point lights); **Keys ?** (or `?`) lists every key.
 
+**Room to work.** ⛶ in the top bar (or F11) puts the editor full screen, in the admin panel too (its Map editor
+header has Full screen as well). Drag the side panel's edge to widen it, or hide it with its arrow or `\`; ▾ hides
+the minimap. The editor remembers these, and in a small view the minimap shrinks and the hint text goes.
+
 Flying goes by the keys' place on the keyboard, so WASD/QE work on any layout. A text box keeps its typing,
 but a ticked checkbox or a slider doesn't swallow the editor's keys. The browser's own shortcuts that clash
 (Ctrl+D bookmark, Ctrl+S save page, F3 find, Alt and F10 menus, ...) are held back while the editor has
@@ -193,6 +197,14 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   and takes it out of the game: build in the live world, then make it part of the zone (Save, Test in game).
 - **Players.** Selecting one shows what they wear, and sends them to the ground in the middle of the view,
   messages or kicks them. The zone's own NPCs are shown as they are; they're edited in their data files.
+- **Scripts (admins).** A placed NPC, model or prop can carry a GM script, Lua with hooks such as
+  `onInteract(player)` and `onProximity(player)` that make it talk, move and react, as the in-game GM panel's
+  Script tab does. *Edit script…* in its inspector opens the editor over the view: Save compiles and runs it on
+  the server first (a broken script never replaces a working one; the message says why), Test runs `onSpawn`
+  and then `onInteract` on your character (it has to be in the zone, and what the hooks do really happens),
+  Insert adds a hook, and API lists everything a script can call. The library beside it has the shipped
+  templates, which *Use on it* puts on the object with the parameters you fill in, and scripts saved there
+  with *Save to library…*. Ctrl+S saves, Tab indents, Esc closes.
 
 Terrain, eco and colour paint, the zone's baked props, lights, sky and spawn are still the zone's files: the
 game has no way to send those to a client that has the zone loaded, so they ship as before.

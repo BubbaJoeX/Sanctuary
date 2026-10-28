@@ -22,11 +22,13 @@ body {
   margin: 0;
   height: 100vh;
   display: grid;
-  grid-template: "top top top" 40px "tools view panel" 1fr "status status status" 26px / 64px 1fr 300px;
+  grid-template: "top top top" 40px "tools view panel" 1fr "status status status" 26px / 64px 1fr var(--panel-width, 320px);
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
 }
+/* The side panel hides (\, or its edge's arrow) to give the view the room; its width is set from main.js. */
+body.panel-hidden #panel { display: none; }
 
 button, input, select, textarea {
   font: inherit;
@@ -118,17 +120,32 @@ label.inline { display: flex; align-items: center; gap: 4px; color: var(--muted)
 #toolbar button.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 kbd { font-size: 9px; opacity: 0.7; }
 
-#viewport { grid-area: view; position: relative; overflow: hidden; }
+#viewport { grid-area: view; position: relative; overflow: hidden; container-type: size; }
 #canvas { width: 100%; height: 100%; display: block; }
+#minimap-box { position: absolute; left: 10px; bottom: 10px; }
 #minimap {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
+  display: block;
+  /* Smaller in a small view; clicks are scaled to its 220 pixels. */
+  width: clamp(120px, 32cqmin, 220px);
+  height: auto;
   background: rgba(10, 12, 16, 0.82);
   border: 1px solid var(--line);
   border-radius: 6px;
   cursor: crosshair;
 }
+#minimap-toggle { position: absolute; top: 4px; right: 4px; padding: 0 6px; font-size: 11px; background: rgba(20, 23, 29, 0.85); }
+#minimap-box.collapsed #minimap { display: none; }
+#minimap-box.collapsed #minimap-toggle { position: static; padding: 2px 8px; }
+
+/* The side panel's edge: drag it to resize the panel; its arrow hides and shows it. */
+#panel-handle { position: absolute; top: 0; right: 0; bottom: 0; width: 6px; z-index: 12; cursor: col-resize; }
+#panel-handle:hover, #panel-handle.dragging { background: linear-gradient(90deg, transparent 2px, var(--accent) 2px, var(--accent) 4px, transparent 4px); }
+#panel-toggle { position: absolute; top: 50%; right: 0; transform: translateY(-50%); padding: 12px 3px; font-size: 11px; line-height: 1; border-radius: 4px 0 0 4px; background: rgba(20, 23, 29, 0.85); }
+button.icon { padding: 3px 9px; font-size: 15px; line-height: 1; }
+#fullscreen.active { border-color: var(--accent); color: var(--accent); }
+
+/* A small view keeps the controls it needs: the hint text and the minimap go first. */
+@container (max-width: 760px) { #help > span { display: none; } }
 #help {
   position: absolute;
   right: 10px;
@@ -189,7 +206,7 @@ kbd { font-size: 9px; opacity: 0.7; }
 #transform-bar.idle .seg button, #transform-bar.idle #gizmo-space { opacity: 0.55; }
 .bar-label { color: var(--muted); font-size: 11px; margin-left: 4px; }
 #viewport { --cb-height: 280px; }
-#viewport.content-open #minimap { bottom: calc(var(--cb-height) + 10px); }
+#viewport.content-open #minimap-box { bottom: calc(var(--cb-height) + 10px); }
 #viewport.content-open #help { display: none; }
 #toggle-content.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 
@@ -329,3 +346,64 @@ dialog .hint { color: var(--muted); font-size: 12px; }
 #live-state.on { background: var(--ok); }
 #live-state.off { background: var(--danger); }
 .live-badge { display: inline-block; padding: 0 4px; border-radius: 3px; background: #0b4a57; color: #3fd0ff; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
+
+/* The GM script editor, over the view: the library on the left, the Lua in the middle, the API on the right. */
+#script-editor {
+  position: absolute;
+  inset: 12px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+#script-editor[hidden] { display: none; }
+.se-head { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.se-title { margin: 0; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.se-state { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.se-state.ok { color: var(--ok); border-color: var(--ok); }
+.se-state.error { color: var(--danger); border-color: var(--danger); }
+.se-spacer { flex: 1; }
+.se-head button.active { border-color: var(--accent); color: var(--accent); }
+.se-body { flex: 1; min-height: 0; display: flex; }
+.se-library { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); }
+.se-search { margin: 8px; width: auto; }
+.se-list { flex: 1; min-height: 80px; overflow-y: auto; font-size: 12px; }
+.se-list h5 { margin: 8px 10px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.se-list div { padding: 3px 10px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.se-list div:hover { background: var(--panel-2); }
+.se-list div.active { background: var(--accent); color: var(--accent-text); }
+.se-entry { max-height: 55%; overflow-y: auto; padding: 0 10px; border-top: 1px solid var(--line); font-size: 12px; }
+.se-entry:empty { display: none; }
+.se-entry h4 { margin: 8px 0 2px; font-size: 13px; }
+.se-entry h4 small, .se-entry label small { color: var(--muted); font-weight: normal; }
+.se-entry label { display: block; margin: 6px 0; color: var(--muted); }
+.se-entry label input { display: block; width: 100%; margin-top: 2px; }
+.se-entry .row { display: flex; gap: 6px; margin: 8px 0 10px; }
+.se-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.se-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.se-tools select { width: auto; }
+.se-length { margin-left: auto; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.se-length.over { color: var(--danger); }
+.se-source {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: #12151a;
+  color: var(--text);
+  font: 13px/1.5 ui-monospace, Consolas, "Cascadia Mono", monospace;
+  tab-size: 4;
+  outline: none;
+}
+.se-message { min-height: 26px; padding: 5px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.se-message.ok { color: var(--ok); }
+.se-message.error { color: var(--danger); }
+.se-help { width: 360px; flex-shrink: 0; overflow: auto; border-left: 1px solid var(--line); }
+.se-help pre { margin: 0; padding: 10px 12px; font: 11.5px/1.45 ui-monospace, Consolas, monospace; color: var(--muted); white-space: pre-wrap; }

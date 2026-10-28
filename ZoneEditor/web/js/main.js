@@ -6,6 +6,7 @@ import { CHUNK, FALLOFFS, STEP, TILE, TerrainChunk, TerrainManager, environmentC
 import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform, variantNames } from "./props.js";
 import { ContentBrowser } from "./content.js";
 import { LiveLayer } from "./live.js";
+import { ScriptEditor } from "./script-editor.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
 
@@ -77,6 +78,10 @@ const live = new LiveLayer(scene, library, {
   status: updateLiveStatus,
   changed: (object) => { if (selected === object) { attachGizmo(); renderInspector(); } },
   removed: (object) => { if (selected === object) select(null); },
+});
+// A live object's GM script: the inspector's Script section opens it.
+const scriptEditor = new ScriptEditor($("#script-editor"), live, {
+  closed: () => { if (selected?.userData.kind === "live") { delete selected.userData.script; renderInspector(); } },
 });
 
 // The client shows its coordinates as they are (x, y up, z), so the scene uses them directly.
@@ -931,7 +936,18 @@ function renderLiveInspector(target) {
     <label>Scale <input id="live-scale" type="number" step="0.05" min="0.05" max="20" value="${data.scale.toFixed(3)}"></label>
     <div class="row"><button id="live-ground" title="End">Drop to ground</button><button id="live-focus" title="F">Focus</button></div>
     <div class="row"><button id="duplicate">Duplicate</button><button id="delete" class="danger">Delete</button></div>
-    <div class="row"><button id="live-bake" ${data.model ? "" : "disabled"} title="Make it one of the zone's own props, in the chunk under it, and take it out of the game">Bake into the zone</button></div>`;
+    <div class="row"><button id="live-bake" ${data.model ? "" : "disabled"} title="Make it one of the zone's own props, in the chunk under it, and take it out of the game">Bake into the zone</button></div>
+    <h4>Script</h4>
+    <p class="hint" id="live-script-state">${scriptSummary(object.userData.script)}</p>
+    <div class="row"><button id="live-script" title="Lua that makes it talk, move and react to players, as the GM panel's Script tab (admins)">Edit script…</button></div>`;
+  target.querySelector("#live-script").addEventListener("click", () => scriptEditor.open(object));
+  // What its script is, fetched once per selection (the feed redraws this often).
+  if (!object.userData.script) {
+    live.getScript(object)
+      .then((script) => { object.userData.script = script; })
+      .catch((error) => { object.userData.script = { error: error.message }; })
+      .finally(() => { if (selected === object) $("#live-script-state").innerHTML = scriptSummary(object.userData.script); });
+  }
   const send = () => liveStep(live.commit(object), "Updated in game.");
   for (const input of target.querySelectorAll("[data-live-pos]")) {
     input.addEventListener("change", () => { object.position.setComponent(+input.dataset.livePos, +input.value); send(); });
@@ -949,6 +965,13 @@ function renderLiveInspector(target) {
   target.querySelector("#duplicate").addEventListener("click", duplicateSelected);
   target.querySelector("#delete").addEventListener("click", deleteSelected);
   target.querySelector("#live-bake").addEventListener("click", () => bakeLive(object));
+}
+
+function scriptSummary(script) {
+  if (!script) return "Checking…";
+  if (script.error) return escape(script.error);
+  if (!script.source) return "None. A script makes it talk, move and react to players.";
+  return script.running ? "A script is running on it." : '<span class="warn">It has a script that isn\'t running: it failed to compile when it spawned.</span>';
 }
 
 // A player in the running game: where they are, and what a referee can do about them from here.
@@ -2092,6 +2115,14 @@ const TOOL_KEYS = { v: "select", b: "sculpt", x: "exclude", m: "eco", c: "colour
 
 window.addEventListener("keydown", (event) => {
   if (BROWSER_KEYS.has(event.code)) event.preventDefault();
+  if (event.code === "F11" && !event.repeat) {
+    // The editor's page full screen rather than the browser's window (which in the panel keeps its frame).
+    event.preventDefault();
+    toggleFullscreen();
+    return;
+  }
+  // A dialog (New zone) has the keyboard to itself.
+  if (document.querySelector("dialog[open]")) return;
   if (isTextEntry(event.target)) {
     if (event.key === "Escape") event.target.blur();
     return;
@@ -2136,6 +2167,7 @@ window.addEventListener("keydown", (event) => {
   else if (key === "i" && state.zone) eyedrop();
   else if (key === "delete" || key === "backspace") deleteSelected();
   else if (key === "o") toggleContent();
+  else if (event.code === "Backslash") togglePanel();
   else if (key === "g") setGizmoMode("translate");
   else if (key === "r") setGizmoMode("rotate");
   else if (key === "t") setGizmoMode("scale");
@@ -2664,8 +2696,10 @@ function drawMinimap() {
 
 $("#minimap").addEventListener("pointerdown", (event) => {
   if (!state.zone) return;
+  // The minimap shrinks in a small view: its drawing stays at the canvas's own size.
   const rect = event.target.getBoundingClientRect();
-  const [x, z] = minimapTransform().toWorld(event.clientX - rect.left, event.clientY - rect.top);
+  const scale = event.target.width / rect.width;
+  const [x, z] = minimapTransform().toWorld((event.clientX - rect.left) * scale, (event.clientY - rect.top) * scale);
   if (state.tool === "chunks" && event.button === 0 && !event.altKey) {
     const cell = terrain.cellAt(x, z);
     if (!terrain.cells.has(cell.key)) { addChunk(cell.row, cell.col); return; }
@@ -2847,6 +2881,15 @@ $("#new-zone").addEventListener("click", async () => {
   form.source.onchange = () => { dialog.querySelector(".blank-only").style.display = form.source.value ? "none" : ""; };
   dialog.showModal();
 });
+$("#new-zone-cancel").addEventListener("click", () => dialog.close("cancel"));
+// Names are file names: lowercase, with _ for spaces and dashes; what's still wrong is said, not just refused.
+dialog.querySelector("input[name=name]").addEventListener("input", (event) => {
+  const input = event.target;
+  const fixed = input.value.toLowerCase().replace(/[\s-]+/g, "_").replace(/[^a-z0-9_]/g, "");
+  if (fixed !== input.value) input.value = fixed;
+  input.setCustomValidity(!fixed || /^[a-z][a-z0-9_]{2,47}$/.test(fixed) ? ""
+    : /^[a-z]/.test(fixed) ? "3 to 48 letters, digits and _." : "Start with a letter.");
+});
 dialog.addEventListener("close", async () => {
   if (dialog.returnValue !== "create") return;
   const form = dialog.querySelector("form");
@@ -2866,9 +2909,86 @@ dialog.addEventListener("close", async () => {
   }
 });
 
+// --- layout: full screen, the side panel and the minimap ----------------------------------------------
+
+const LAYOUT_KEY = "zone-editor-layout";
+const PANEL_MIN = 240, PANEL_MAX = 720;
+const layout = { panelWidth: 320, panelHidden: false, minimapHidden: false };
+try { Object.assign(layout, JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}")); } catch { /* private mode */ }
+
+function saveLayout() {
+  try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout)); } catch { /* private mode */ }
+}
+
+function applyLayout() {
+  document.body.style.setProperty("--panel-width", `${layout.panelHidden ? 0 : layout.panelWidth}px`);
+  document.body.classList.toggle("panel-hidden", layout.panelHidden);
+  $("#panel-toggle").textContent = layout.panelHidden ? "‹" : "›";
+  $("#panel-toggle").title = `${layout.panelHidden ? "Show" : "Hide"} the side panel (\\)`;
+  $("#minimap-box").classList.toggle("collapsed", layout.minimapHidden);
+  $("#minimap-toggle").textContent = layout.minimapHidden ? "Map ▴" : "▾";
+  $("#minimap-toggle").title = layout.minimapHidden ? "Show the minimap" : "Hide the minimap";
+}
+
+function togglePanel() {
+  layout.panelHidden = !layout.panelHidden;
+  applyLayout();
+  saveLayout();
+}
+
+// The editor's own page goes full screen (in the panel's frame too, which allows it).
+function toggleFullscreen() {
+  if (document.fullscreenElement) return void document.exitFullscreen();
+  const refused = () => toast("Full screen didn't start here: open the editor in its own tab, or use the browser's own.", "error");
+  document.documentElement.requestFullscreen().catch(refused);
+  // Some embedded browsers neither grant nor refuse it.
+  setTimeout(() => { if (!document.fullscreenElement) refused(); }, 1500);
+}
+
+function setupLayout() {
+  applyLayout();
+  const button = $("#fullscreen");
+  button.addEventListener("click", () => { toggleFullscreen(); button.blur(); });
+  document.addEventListener("fullscreenchange", () => {
+    const on = !!document.fullscreenElement;
+    button.classList.toggle("active", on);
+    button.title = on ? "Leave full screen (F11 or Esc)" : "Full screen (F11)";
+  });
+  $("#panel-toggle").addEventListener("click", (event) => { event.stopPropagation(); togglePanel(); event.currentTarget.blur(); });
+  $("#minimap-toggle").addEventListener("click", (event) => {
+    layout.minimapHidden = !layout.minimapHidden;
+    applyLayout();
+    saveLayout();
+    event.currentTarget.blur();
+  });
+
+  // Dragging the panel's edge sets its width (and brings a hidden panel back).
+  const handle = $("#panel-handle");
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.target !== handle || event.button !== 0) return;
+    handle.setPointerCapture(event.pointerId);
+    handle.classList.add("dragging");
+    const move = (e) => {
+      const right = document.body.getBoundingClientRect().right;
+      layout.panelWidth = Math.round(Math.max(PANEL_MIN, Math.min(PANEL_MAX, right - e.clientX)));
+      layout.panelHidden = false;
+      applyLayout();
+    };
+    const end = () => {
+      handle.classList.remove("dragging");
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("lostpointercapture", end);
+      saveLayout();
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("lostpointercapture", end);
+  });
+}
+
 // For poking at the editor from the browser console.
 window.zoneEditor = { THREE, scene, camera, look, gizmo, terrain, props, library, live, state, selection, openZone, saveAll, addChunk, setTool, select, selectMany };
 
+setupLayout();
 setupTransformBar();
 noZonePanel();
 updateDirty();

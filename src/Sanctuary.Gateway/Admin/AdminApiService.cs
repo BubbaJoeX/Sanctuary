@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 
 using Sanctuary.Database;
 using Sanctuary.Game;
+using Sanctuary.Game.Authoring;
 
 namespace Sanctuary.Gateway.Admin;
 
@@ -82,6 +83,7 @@ public sealed class AdminApiService : BackgroundService
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IWorldEventManager>());
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IChatCommandManager>());
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IDbContextFactory<DatabaseContext>>());
+        builder.Services.AddSingleton(_gameServices.GetRequiredService<IScriptLibrary>());
 
         builder.Services.AddSingleton(new AdminApiKey(_options.Key));
         builder.Services.AddSingleton<RefereeDirectory>();

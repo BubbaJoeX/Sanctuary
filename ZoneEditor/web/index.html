@@ -48,6 +48,7 @@
       <button id="play" title="Save, then restart the game client so it loads your changes">Test in game</button>
       <label class="addon" title="Also restart the servers (needed for zone, spawn and house changes)"><input id="play-servers" type="checkbox"> + servers</label>
     </div>
+    <button id="fullscreen" class="icon" title="Full screen (F11)" aria-label="Full screen">⛶</button>
   </header>
 
   <nav id="toolbar">
@@ -65,8 +66,13 @@
 
   <main id="viewport">
     <canvas id="canvas"></canvas>
-    <canvas id="minimap" width="220" height="220" title="Click to fly there"></canvas>
+    <div id="minimap-box">
+      <canvas id="minimap" width="220" height="220" title="Click to fly there"></canvas>
+      <button id="minimap-toggle" title="Hide the minimap">▾</button>
+    </div>
+    <div id="panel-handle" title="Drag to resize the side panel"><button id="panel-toggle" title="Hide the side panel (\)">›</button></div>
     <section id="content-browser" hidden></section>
+    <section id="script-editor" hidden></section>
     <div id="select-box"></div>
     <div id="transform-bar" hidden>
       <div class="seg">
@@ -95,6 +101,8 @@
         <dt>W A S D</dt><dd>Fly; Q and E down and up; Shift faster</dd>
         <dt>Wheel</dt><dd>Fly speed (in brush tools: brush size)</dd>
         <dt>F</dt><dd>Focus on the selection</dd>
+        <dt>F11</dt><dd>Full screen</dd>
+        <dt>\</dt><dd>Hide or show the side panel (drag its edge to resize it)</dd>
       </dl>
       <h4>Selection</h4>
       <dl>
@@ -138,7 +146,8 @@
     <form method="dialog">
       <h3>New zone</h3>
       <p class="hint">A new zone saves under new names, so every chunk of it is editable and streams to clients.</p>
-      <label>Name <input name="name" required pattern="[a-z][a-z0-9_]{2,47}" placeholder="my_meadow"></label>
+      <label>Name <input name="name" required pattern="[a-z][a-z0-9_]{2,47}" placeholder="my_meadow" autocomplete="off"
+        title="3 to 48 lowercase letters, digits and _, starting with a letter"></label>
       <label>Type <select name="type"><option>World</option><option>Housing</option></select></label>
       <label>Start from <select name="source"><option value="">Blank terrain</option></select></label>
       <fieldset class="blank-only">
@@ -148,7 +157,8 @@
         <label>Ground eco <select name="eco"></select></label>
       </fieldset>
       <menu>
-        <button value="cancel" formnovalidate>Cancel</button>
+        <!-- Not a submit button, so Enter in the form creates rather than cancels. -->
+        <button type="button" id="new-zone-cancel">Cancel</button>
         <button value="create" class="primary">Create</button>
       </menu>
     </form>

@@ -97,6 +97,7 @@ public static partial class AdminApiEndpoints
         referee.MapPost("/players/{id}/kick", KickHandler);
 
         MapZoneEndpoints(referee);
+        MapScriptEndpoints(referee);
     }
 
     #region Referees

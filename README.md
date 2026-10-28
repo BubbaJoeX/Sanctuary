@@ -224,6 +224,8 @@ It listens on loopback by default; the AdminPanel's backend is its only client, 
 | `POST /api/zones/{key}/props\|npcs\|models` | Places a furniture prop, a world NPC or any model |
 | `PATCH\|DELETE /api/zones/{key}/objects/{id}`, `POST …/copy` | Moves, turns (yaw, pitch, roll), scales, renames, copies or deletes a placed object |
 | `POST /api/zones/{key}/undo` | Undoes the referee's last edit in the zone |
+| `GET\|PUT\|DELETE /api/zones/{key}/objects/{id}/script`, `POST …/script/use\|test` | A placed NPC's or prop's GM script (admins): read, save (it compiles and runs first, so a broken one never replaces a working one), remove, put a library script on it with its parameters, or test it on the referee's character, as the GM panel's Script tab does |
+| `GET /api/scripts/library`, `GET\|PUT\|DELETE /api/scripts/library/{name}` | The script library (admins): the shipped templates and referees' saved scripts |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -82,8 +82,7 @@ public static class ScriptCommandHelper
                 var source = PanelTextHelper.Unescape(invoker.PendingScript.ToString());
                 invoker.PendingScript = null;
 
-                // A library template loaded into the editor still has its {{placeholders}}; fill them with the header defaults.
-                if (!ScriptTemplate.Parse(source, null, null, false).TryRender(new Dictionary<string, string>(), out var filled, out var fillError))
+                if (!TryFillDefaults(source, out var filled, out var fillError))
                 {
                     SendResult(invoker, false, fillError!);
                     return true;
@@ -120,14 +119,10 @@ public static class ScriptCommandHelper
 
     private static async Task CommitAsync(IChatCommand command, IChatCommandManager chatCommandManager, Player invoker, WorldZone worldZone, Npc target, string? source)
     {
-        var error = await target.Zone.NpcContent.SetScriptAsync(target, source);
+        var (saved, error) = await ApplyAsync(worldZone, target, source);
 
-        // A compile error leaves the old script in place; an onSpawn error still saves it.
-        var compiled = source is null ? target.GmScript is null : target.GmScript?.Source == source;
-
-        if (compiled)
+        if (saved)
         {
-            worldZone.TrySaveScript(target, source);
             chatCommandManager.LogAction(command, invoker, source is null ? "ScriptClear" : "ScriptSave", null,
                 $"Guid: {target.Guid}, Length: {source?.Length ?? 0}");
         }
@@ -136,6 +131,43 @@ public static class ScriptCommandHelper
             SendResult(invoker, false, error);
         else
             SendResult(invoker, true, source is null ? "Script removed." : "Script saved and running.");
+    }
+
+    /// <summary>
+    /// Runs a world NPC's or prop's new script (null removes it) and saves it if it compiled: a compile error
+    /// leaves the old script running and saves nothing, while an onSpawn error still saves. Also used by the admin API.
+    /// </summary>
+    public static async Task<(bool Saved, string? Error)> ApplyAsync(WorldZone worldZone, Npc target, string? source)
+    {
+        var error = await target.Zone.NpcContent.SetScriptAsync(target, source);
+        var compiled = source is null ? target.GmScript is null : target.GmScript?.Source == source;
+
+        if (compiled)
+            worldZone.TrySaveScript(target, source);
+
+        return (compiled, error);
+    }
+
+    /// <summary>
+    /// A library template loaded into an editor still has its {{placeholders}}; this fills them with the header defaults.
+    /// </summary>
+    public static bool TryFillDefaults(string source, out string filled, out string? error)
+        => ScriptTemplate.Parse(source, null, null, false).TryRender(new Dictionary<string, string>(), out filled, out error);
+
+    /// <summary>
+    /// Whether a library script compiles with its parameter defaults filled in, checked on an unregistered stand-in
+    /// NPC so nothing in the zone is touched. Null when it does, else why not.
+    /// </summary>
+    public static async Task<string?> CheckLibraryScriptAsync(IZone zone, string name, string source, string? description)
+    {
+        var entry = ScriptTemplate.Parse(source, name, description, false);
+
+        if (!entry.TryRender(new Dictionary<string, string>(), out var rendered, out var renderError))
+            return $"Parameter defaults don't fit their types: {renderError}";
+
+        var (_, compileError) = await ScriptSandbox.CompileAsync(new Npc(zone), rendered, $"lib {name}");
+
+        return compileError;
     }
 
     private static async Task TestAsync(Player invoker, Npc target)
@@ -152,12 +184,6 @@ public static class ScriptCommandHelper
     {
         source = string.Empty;
 
-        if (!scriptLibrary.TryGet(name, out var entry))
-        {
-            error = $"No library script named {name}. Use !scriptlib list.";
-            return false;
-        }
-
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var argument in arguments)
@@ -171,6 +197,22 @@ public static class ScriptCommandHelper
             }
 
             values[argument[..separator]] = PanelTextHelper.Unescape(argument[(separator + 1)..]);
+        }
+
+        return TryRenderLibraryScript(scriptLibrary, name, values, out source, out error);
+    }
+
+    /// <summary>
+    /// A library script with its parameters filled from values (the rest from their defaults).
+    /// </summary>
+    public static bool TryRenderLibraryScript(IScriptLibrary scriptLibrary, string name, IReadOnlyDictionary<string, string> values, out string source, out string? error)
+    {
+        source = string.Empty;
+
+        if (!scriptLibrary.TryGet(name, out var entry))
+        {
+            error = $"No library script named {name}. Use !scriptlib list.";
+            return false;
         }
 
         return entry.TryRender(values, out source, out error);

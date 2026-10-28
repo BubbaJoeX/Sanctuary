@@ -537,6 +537,53 @@ export class LiveLayer {
     return !!(await this.send(`Couldn't kick ${player.userData.label}`, `/players/${player.userData.live.id}/kick`, "POST", {}));
   }
 
+  // --- GM scripts (admins): what the in-game GM panel's Script tab does ------------------------------------
+
+  // A placed object's script as saved ({ kind, source, running }); saving compiles and runs it first, so a broken
+  // one never replaces a working one, and answers { ok, message, running }.
+  scriptPath(object) {
+    return `${this.base()}/objects/${object.userData.live.id}/script`;
+  }
+
+  getScript(object) {
+    return request(this.scriptPath(object));
+  }
+
+  saveScript(object, source) {
+    return request(this.scriptPath(object), "PUT", { source });
+  }
+
+  clearScript(object) {
+    return request(this.scriptPath(object), "DELETE");
+  }
+
+  // A library script on the object, its parameters from values (the rest their defaults).
+  useScript(object, name, values) {
+    return request(`${this.scriptPath(object)}/use`, "POST", { name, values });
+  }
+
+  // Runs onSpawn, then onInteract on the referee's own character, which has to be in the zone.
+  testScript(object) {
+    return request(`${this.scriptPath(object)}/test`, "POST", {});
+  }
+
+  // The script library: shipped templates (read-only) and referees' saved scripts.
+  scriptLibrary() {
+    return request("/scripts/library");
+  }
+
+  scriptLibraryEntry(name) {
+    return request(`/scripts/library/${encodeURIComponent(name)}`);
+  }
+
+  saveScriptLibraryEntry(name, source, description) {
+    return request(`/scripts/library/${encodeURIComponent(name)}`, "PUT", { source, description });
+  }
+
+  deleteScriptLibraryEntry(name) {
+    return request(`/scripts/library/${encodeURIComponent(name)}`, "DELETE");
+  }
+
   // Shows saved chunks in the referee's own client, which reads them from the editor's live files when it loads that
   // ground again: their character steps over to ground far from them and back to where it stood. changed are the
   // saved chunks' centres, ground every chunk centre in the zone (somewhere to stand). Says why when it didn't go:

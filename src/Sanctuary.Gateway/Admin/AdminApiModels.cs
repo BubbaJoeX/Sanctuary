@@ -156,3 +156,30 @@ public sealed record EditResult(string? Id, int Undo);
 public sealed record UndoResult(string? Undid, int Undo);
 
 public sealed record CatalogEntry(int Id, string Name, string? Model);
+
+/// <summary>
+/// A world NPC's or prop's GM script as saved, and whether that's what is running (a saved script that failed to
+/// compile when the NPC spawned isn't).
+/// </summary>
+public sealed record ScriptModel(string Kind, string Source, bool Running);
+
+public sealed record ScriptRequest(string Source);
+
+/// <summary>
+/// What a save, removal, template use or test came to: <see cref="Ok"/> false with the compiler's or hook's message.
+/// </summary>
+public sealed record ScriptResult(bool Ok, string Message, bool Running);
+
+/// <summary>
+/// A library script put on an NPC or prop, its parameters from <see cref="Values"/> (the rest their defaults).
+/// </summary>
+public sealed record UseScriptRequest(string Name, Dictionary<string, string>? Values);
+
+public sealed record ScriptParamModel(string Key, string Type, string Default);
+
+/// <summary>
+/// A script library entry: a shipped template or a referee's saved script. <see cref="Source"/> only when one is asked for.
+/// </summary>
+public sealed record LibraryEntryModel(string Name, string Description, bool IsTemplate, IReadOnlyList<ScriptParamModel> Params, string? Source);
+
+public sealed record LibrarySaveRequest(string Source, string? Description);

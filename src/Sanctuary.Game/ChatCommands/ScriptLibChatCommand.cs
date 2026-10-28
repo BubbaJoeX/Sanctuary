@@ -124,18 +124,9 @@ public class ScriptLibChatCommand : IRawChatCommand
     {
         var entry = ScriptTemplate.Parse(source, name, description, false);
 
-        if (!entry.TryRender(new System.Collections.Generic.Dictionary<string, string>(), out var rendered, out var renderError))
+        if (await ScriptCommandHelper.CheckLibraryScriptAsync(invoker.Zone, name, source, description) is { } checkError)
         {
-            ScriptCommandHelper.SendResult(invoker, false, $"Parameter defaults don't fit their types: {renderError}");
-            return;
-        }
-
-        // Unregistered stand-in, so the check can't affect anything in the zone.
-        var (_, compileError) = await ScriptSandbox.CompileAsync(new Npc(invoker.Zone), rendered, $"lib {name}");
-
-        if (compileError is not null)
-        {
-            ScriptCommandHelper.SendResult(invoker, false, compileError);
+            ScriptCommandHelper.SendResult(invoker, false, checkError);
             return;
         }
 
