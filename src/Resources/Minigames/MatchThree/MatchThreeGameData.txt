@@ -1,0 +1,108 @@
+# The match-three games (game_mining, game_forging, game_mailsorting, game_farming, game_artifact, game_halloween).
+# A game is the GAME column of its levels; Minigames/MatchThree.json points each Games window entry at one by its Level.
+# The movies' server reads the id, the duration and the score target (and plays by its levels).
+#ID^DURATION^NAME^SCORE_TARGET^
+18^75^Mining^0
+91^75^Copper Mining^0
+92^75^Rich Copper Mining^0
+93^70^Tin Mining^0
+94^70^Rich Tin Mining^0
+95^65^Iron Mining^0
+96^65^Rich Iron Mining^0
+97^60^Silver Mining^0
+98^60^Rich Silver Mining^0
+99^60^Gold Mining^0
+100^60^Rich Gold Mining^0
+335^75^Sunstone Copper Vein^0
+336^75^Rare Sunstone Copper Vein^0
+337^70^Sunstone Tin Vein^0
+338^70^Rare Sunstone Tin Vein^0
+339^65^Sunstone Iron Vein^0
+340^65^Rare Sunstone Iron Vein^0
+341^60^Sunstone Silver Vein^0
+342^60^Rare Sunstone Silver Vein^0
+343^60^Sunstone Gold Vein^0
+344^60^Rare Sunstone Gold Vein^0
+375^90^Mining Practice^0
+59^75^Forging^0
+138^75^Forging: Quick Shot Bow^0
+139^75^Forging: Spunky Scrapper Hammer^0
+140^75^Forging: First Aid Hammer^0
+141^75^Forging: Dancing Monkey Bokken^0
+142^75^Forging: Power Charmed Wand^0
+143^75^Forging: Fast Blast Bow^0
+144^75^Forging: Rowdy Rumbler Hammer^0
+145^65^Forging: Field Support Scalpel^0
+146^75^Forging: Biting Mongoose Blade^0
+147^75^Forging: Lunar Enchanted Wand^0
+148^65^Forging: Alley Fighter Hammer^0
+149^65^Forging: Anguish Aid Bonesaw^0
+162^65^Forging: Diving Hawk Scythe^0
+163^65^Forging: Chivalrous Guardian Hammer^0
+164^65^Forging: Strong Scrapper Hammer^0
+165^65^Forging: Pain Relief Bonesaw^0
+166^65^Forging: Stalking Panther Scythe^0
+167^65^Forging: Stalwart Protector Hammer^0
+168^60^Forging: Frenzy Fighter Hammer^0
+169^60^Forging: Trauma Support Shockrod^0
+170^60^Forging: Striking Serpent Sword^0
+171^60^Forging: Intrepid Protector Axe^0
+362^75^Forging: Valiant Guardian Cudgel^0
+363^75^Forging: Spirited Protector Axe^0
+364^65^Forging: Focus Fire Bow^0
+365^65^Forging: Eclipse Infused Wand^0
+366^65^Forging: Savage Sting Bow^0
+367^65^Forging: Tempest Woven Wand^0
+368^60^Forging: Brutal Blast Bow^0
+369^60^Forging: Void Woven Wand^0
+370^60^Forging: Sturdy Summersaber^0
+1047^75^Forging: Metal Cactoid Illusion^0
+1048^75^Forging: Dust Storm Flair Shard^0
+1049^75^Forging: Motorsmith Gloves^0
+1050^70^Forging: Sunny Potion^0
+1051^70^Forging: Motorsmith Boots^0
+1052^70^Forging: Manguana Statue^0
+1053^65^Forging: Metal Rocklar Illusion^0
+1054^65^Forging: Power Crystal Flair Shard^0
+1055^65^Forging: Motorsmith Tank Top^0
+1056^65^Forging: Robgoblin Archway^0
+1057^60^Forging: Metal Drakeling Illusion^0
+1058^60^Forging: Motorsmith Pants^0
+1059^60^Forging: Chrome Drakeling^0
+1060^60^Forging: Drake Statue^0
+1061^60^Forging: Dwarf Biker Firework^0
+1062^60^Forging: Motorsmith Welding Mask^0
+1063^60^Forging: Chrome Mini-Rocklar^0
+1064^60^Forging: Skullz Wall Hanging^0
+1065^60^Forging: Motorsmith Tool Belt^0
+1066^60^Forging: Hammer Fist^0
+1067^60^Forging: Mini-Mech^0
+1068^60^Forging: Archer's Forged Bow of Advantage^0
+1069^60^Forging: Ninja's Forged Sword of Purge^0
+1070^60^Forging: Wizard's Forged Wand of Cunning^0
+1071^60^Forging: Warrior's Forged Axe of Boon^0
+1072^60^Forging: Medic's Forged Saw of Promise^0
+1073^60^Forging: Brawler's Forged Hammer of Challenge^0
+1074^60^Forging: Striped Mini-Mech^0
+1075^65^Chrome Cactoid^0
+1099^75^Scalpel for Mili^0
+1100^75^Forging: Medic's Forged Scalpel of Vitals^0
+60^125^Mail Sorting^0
+376^125^Sanctuary Mail Sorting^0
+377^125^Seaside Mail Sorting^0
+378^195^Wugachug Mail Sorting^0
+379^195^Snowhill Mail Sorting^0
+380^195^Shrouded Glade Mail Sorting^0
+381^125^Merry Vale Mail Sorting^0
+58^60^Harvesting^0
+109^125^Queensfields Harvesting^0
+111^125^Farnum's Farm Harvesting^0
+113^125^Chugaroot Farm Harvesting^0
+115^125^Perry's Pastures Harvesting^0
+117^125^Lakesfield Harvesting^0
+119^125^Thorny Tillage Harvesting^0
+57^125^Artifact Hunt^0
+681^195^Ambrose's Dig^0
+682^195^Tyrone's Dig^0
+683^195^Wellington's Dig^0
+712^75^Goo'd Candy^0
