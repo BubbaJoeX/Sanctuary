@@ -29,6 +29,11 @@ namespace Sanctuary.Game.Minigames;
 public static class MinigameManager
 {
     private static ILogger _logger = null!;
+
+    /// <summary>
+    /// Every message to and from a movie, in Logs/Minigames-&lt;date&gt;.log (NLog's MinigameTrace logger).
+    /// </summary>
+    private static ILogger _traceLogger = null!;
     private static IRewardManager _rewardManager = null!;
     private static IResourceManager _resourceManager = null!;
 
@@ -53,6 +58,7 @@ public static class MinigameManager
 
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         _logger = loggerFactory.CreateLogger(nameof(MinigameManager));
+        _traceLogger = loggerFactory.CreateLogger("MinigameTrace");
 
         _rewardManager = serviceProvider.GetRequiredService<IRewardManager>();
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
@@ -199,6 +205,8 @@ public static class MinigameManager
         }
 
         var (name, args) = ParseMessage(payload);
+
+        Trace(game, ">", string.Join('|', [name, .. args.All]));
 
         if (name.Length == 0)
             return;
@@ -415,6 +423,12 @@ public static class MinigameManager
     {
         if (Sessions.TryGetValue(player.Guid, out var game))
             Run(game, game.Tick);
+    }
+
+    internal static void Trace(FlashMinigame game, string direction, string message)
+    {
+        _traceLogger.LogInformation("{player} {stage} {direction} {message}", game.Player.Name.FullName, game.StageId, direction,
+            message.Replace('	', '|'));
     }
 
     private static void Run(FlashMinigame game, Action action)

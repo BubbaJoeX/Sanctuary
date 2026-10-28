@@ -190,10 +190,15 @@ public sealed class MatchThreeGame : SoeGameServer
     /// Tells the movie whether the level succeeded. A failure is the end: the movie plays its failure and ends the
     /// game itself (it never asks for the next level), so the server records the loss here. It doesn't send the
     /// loss (OnGameLostMsg), which would cut the movie's failure short.
+    /// <para>
+    /// The movie's own server also sent OnActiveMsg false here (its DeactivateEverything), but the movie takes that
+    /// as a pause and stops ticking: it never counts down to asking for the next level, nor to ending a failed game,
+    /// and freezes on the finished board. So only the server stops taking moves.
+    /// </para>
     /// </summary>
     protected override void OnStopLevel()
     {
-        DeactivateEverything();
+        SetActive(false);
 
         var success = PlayingLevel?.CheckSuccess() ?? false;
         Send("OnStopLevel", Level, success);
@@ -228,12 +233,6 @@ public sealed class MatchThreeGame : SoeGameServer
 
     protected override void OnLost()
     {
-    }
-
-    private void DeactivateEverything()
-    {
-        SendActive(false);
-        SetActive(false);
     }
 
     protected override bool OnGameMessage(string name, FlashArgs args)

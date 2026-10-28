@@ -148,6 +148,8 @@ public sealed class MatchThreeMinigameTests
         CollectionAssert.Contains(bot.Sent, "OnQuotaUpdateMsg\t0\t3\t3\t1");
         CollectionAssert.Contains(bot.Sent, "OnQuotaUpdateMsg\t1\t1\t1\t1");
         Assert.AreEqual("OnStopLevel\t1\ttrue", bot.Sent.Last(x => x.StartsWith("OnStopLevel")));
+        Assert.AreEqual("OnActiveMsg\ttrue", bot.Sent.Last(x => x.StartsWith("OnActiveMsg")),
+            "the movie takes OnActiveMsg false as a pause, which would stop it asking for the next level");
         Assert.IsTrue(bot.Fell > 0, "the ore fell into the drop zone");
         Assert.IsNull(bot.Result, "the game waits for the movie to show its success");
 

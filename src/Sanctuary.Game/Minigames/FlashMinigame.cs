@@ -174,6 +174,8 @@ public abstract class FlashMinigame
             return;
         }
 
+        MinigameManager.Trace(this, "<", payload);
+
         Player.SendTunneled(new MiniGamePayloadPacket
         {
             StageId = StageId,
