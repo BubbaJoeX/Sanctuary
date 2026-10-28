@@ -440,3 +440,10 @@ dialog .hint { color: var(--muted); font-size: 12px; }
 #content-browser .cb-groups .hint { margin: 10px; color: var(--muted); font-size: 11px; }
 .cb-tile small { display: block; font-size: 9px; color: var(--muted); }
 .cb-tile b.edit { font-size: 13px; }
+
+/* The page itself never scrolls (a focused field scrolled into view used to nudge it), the side panel only
+   down, and a checkbox row is the box and its words on one line. */
+html, body { overflow: hidden; }
+#panel { overflow-x: hidden; }
+#panel .two > * { min-width: 0; }
+#panel label.check > input { display: inline-block; width: auto; flex: none; margin: 0; }

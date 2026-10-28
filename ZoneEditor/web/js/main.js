@@ -731,7 +731,7 @@ function renderPanel() {
     const scatter = p.mode === "scatter";
     const short = (file) => escape(file.replace(/\.(adr|agr)$/i, ""));
     panel.innerHTML = `<h3>Props</h3>
-      <p class="hint">${state.actor ? `Picked <b>${escape(state.actor)}</b>. ` : "Pick an object in the content browser below, or drag one into the view. "}${scatter
+      <p class="hint">${state.npcPick && p.live ? `Picked NPC <b>${escape(state.npcPick.name ?? state.npcPick.model ?? `#${state.npcPick.id}`)}</b>. ` : state.actor ? `Picked <b>${escape(state.actor)}</b>. ` : "Pick an object in the content browser below, or drag one into the view. "}${scatter
         ? "Hold the left button to scatter under the brush; Shift+drag erases those models there."
         : "Click the ground to place it, Shift+wheel turns it, Esc stops; Shift+click selects instead."}</p>
       <div class="row"><button id="open-content">${contentOpen() ? "Hide" : "Show"} content browser (O)</button></div>
@@ -3102,5 +3102,7 @@ loadZones().then(() => {
   let last = null;
   try { last = localStorage.getItem("zone-editor-zone"); } catch { /* private mode */ }
   $("#zone-search").value = last || "FabledRealms";
+  // Back where it was: the zone last opened here, if it's still there.
+  if (last && state.zones.some((z) => z.name.toLowerCase() === last.toLowerCase())) openZone(last).then(buildWalls);
 }).catch((error) => toast(error.message, "error"));
 requestAnimationFrame(frame);
