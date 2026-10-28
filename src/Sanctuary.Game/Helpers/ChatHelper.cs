@@ -26,6 +26,8 @@ public static class ChatHelper
 
     public static void SendSystemMessage(Player player, string message, bool formatted = false)
     {
+        player.SystemMessageCapture?.Enqueue(message);
+
         player.SendTunneled(new ChatPacketDebugChat
         {
             PrintToChat = true,

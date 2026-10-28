@@ -176,7 +176,12 @@ maximize). The client's Lua bottom-aligns the chat window, and the mod draws the
 anchored bottom-left, so chat itself stays where it always was.
 
 It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` and `lua/client_extensions.lua` to
-`Resources/Scripts/2` (see below).
+`Resources/Scripts/2` (see below), and any custom skies the [zone editor](../ZoneEditor/README.md) saved in
+`sky/` to `Resources/SKY`.
+
+Where a mod replaces a stock asset the client keeps in a read-only pack (a FabledRealms file edited in the
+zone editor), the installer hides that pack entry (its name starts with `~` instead, recorded in
+`sanctuary_stock_overrides.txt`) so the client downloads the mod.
 
 Undo it with `--uninstall`.
 

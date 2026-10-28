@@ -41501,5 +41501,14 @@
     "Name": "Vampire Cake",
     "ModelId": 3324,
     "ModelFileName": "mkt_cakes_vampire_01.adr"
+  },
+  {
+    "Id": 45000,
+    "Name": "Placed model",
+    "ModelId": 0,
+    "ModelFileName": "",
+    "HideNamePlate": true,
+    "IsPlacedObject": true,
+    "IsInteractable": false
   }
 ]

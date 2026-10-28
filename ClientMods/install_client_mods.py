@@ -12,6 +12,12 @@ It also copies the referee client tools (lua/referee_tools.lua) to Resources/Scr
 extensions (lua/client_extensions.lua, e.g. Sanctuary's region badges) to Resources/Scripts/2, which the
 server runs (for referees, and for everyone) through the client's dofileInternalOnlyCommand (see ClientLuaHelper).
 
+Client mods that replace a stock asset (a FabledRealms chunk edited in the zone editor) need one more step.
+The client won't update an asset its read-only Assets_NNN packs hold ("Attempt to update data that already
+exists in a non-writeable pack file"), so the stock entry is hidden: the first letter of its name in the
+pack's index becomes '~', in place, and the original is recorded in sanctuary_stock_overrides.txt. The
+client then downloads the mod into its writable packs like any new asset. Uninstalling puts the names back.
+
 Originals are backed up next to each file as <name>.sanctuary-backup.
 
 Examples:
@@ -30,6 +36,8 @@ mods_dir = script_dir.parent / "src" / "Resources" / "ClientMods"
 
 BACKUP_SUFFIX = ".sanctuary-backup"
 MARKER_FILE = "sanctuary_client_mods.txt"
+OVERRIDES_FILE = "sanctuary_stock_overrides.txt"
+HIDDEN_PREFIX = b"~"
 
 # dofileInternalOnlyCommand(n) runs Client.PathScripts .. n, and the server can only pass it a number,
 # so the files are named after one (ClientLuaHelper.RefereeToolsScript, ClientLuaHelper.ClientExtensionsScript).
@@ -41,6 +49,9 @@ COMPRESSED_MAGIC = 0xA1B2C3D4
 # Each chunk's index sits in one block of this size, with the chunk's data after it: the client reads no more of an
 # index than this, so a longer one loses every entry past it ("swf not found"), and the stock packs never exceed it.
 PACK_INDEX_BLOCK = 8192
+
+# Skies the zone editor wrote (ClientMods/sky). The client reads Resources/SKY from disk; they don't stream.
+SKY_DIR = script_dir / "sky"
 
 # (client file, [(original text, modded text), ...]), applied to the original file.
 WINDOW_PATCHES = [
@@ -374,6 +385,75 @@ def next_pack_path(client_dir):
     return client_dir / f"Assets_{index:03d}.pack"
 
 
+def client_running():
+    import subprocess
+
+    result = subprocess.run(["tasklist", "/FI", "IMAGENAME eq FreeRealms.exe", "/NH"], capture_output=True, text=True)
+    return "FreeRealms.exe" in result.stdout
+
+
+def stock_pack_entries(client_dir):
+    """(pack, offset of the name in the file, name) of every entry in the client's read-only stock packs."""
+    marker = client_dir / MARKER_FILE
+    own = marker.read_text().strip().lower() if marker.exists() else ""
+    entries = []
+    for pack in sorted(client_dir.glob("Assets_*.pack")):
+        if pack.name.lower() == own:
+            continue
+        with pack.open("rb") as f:
+            offset = 0
+            while True:
+                f.seek(offset)
+                next_offset, count = struct.unpack(">II", f.read(8))
+                for _ in range(count):
+                    name_length, = struct.unpack(">I", f.read(4))
+                    entries.append((pack.name, f.tell(), f.read(name_length)))
+                    f.seek(12, 1)
+                if next_offset == 0:
+                    break
+                offset = next_offset
+    return entries
+
+
+def sync_stock_overrides(client_dir, mods=None, restore_all=False):
+    """Hides the stock entries client mods replace and restores those no longer replaced; returns both lists."""
+    mods = mods or mods_dir
+    if client_running():
+        raise RuntimeError("Close the Free Realms client first: it holds its packs open.")
+    replaced = set()
+    if mods.is_dir() and not restore_all:
+        replaced = {path.name.lower().removesuffix(".z").encode("latin-1") for path in mods.iterdir()}
+    record = client_dir / OVERRIDES_FILE
+    hidden = {}
+    if record.exists():
+        for line in record.read_text(encoding="latin-1").splitlines():
+            pack, offset, name = line.split(",", 2)
+            hidden[(pack, int(offset))] = name.encode("latin-1")
+
+    added, restored = [], []
+    for (pack, offset), name in list(hidden.items()):
+        if name.lower() not in replaced:
+            with (client_dir / pack).open("r+b") as f:
+                f.seek(offset)
+                f.write(name[:1])
+            del hidden[(pack, offset)]
+            restored.append(name.decode("latin-1"))
+    for pack, offset, name in stock_pack_entries(client_dir):
+        if name.lower() in replaced and (pack, offset) not in hidden:
+            with (client_dir / pack).open("r+b") as f:
+                f.seek(offset)
+                f.write(HIDDEN_PREFIX)
+            hidden[(pack, offset)] = name
+            added.append(name.decode("latin-1"))
+
+    if hidden:
+        record.write_text("".join(f"{pack},{offset},{name.decode('latin-1')}\n" for (pack, offset), name in sorted(hidden.items())),
+                          encoding="latin-1")
+    elif record.exists():
+        record.unlink()
+    return added, restored
+
+
 def install(client_dir):
     mods = load_mods()
     if not mods:
@@ -414,6 +494,16 @@ def install(client_dir):
         shutil.copyfile(source, target)
         print(f"{relative_path}: {description}")
 
+    for sky in sorted(SKY_DIR.glob("*.xml")):
+        shutil.copyfile(sky, client_dir / "Resources" / "SKY" / sky.name)
+        print(f"Resources/SKY/{sky.name}: sky")
+
+    hidden, restored = sync_stock_overrides(client_dir)
+    for name in hidden:
+        print(f"{name}: stock copy hidden, the client downloads the mod")
+    for name in restored:
+        print(f"{name}: stock copy restored")
+
 
 def uninstall(client_dir):
     for relative_path, _ in WINDOW_PATCHES:
@@ -432,6 +522,14 @@ def uninstall(client_dir):
         if (client_dir / relative_path).exists():
             (client_dir / relative_path).unlink()
             print(f"{relative_path}: removed")
+
+    for sky in sorted(SKY_DIR.glob("*.xml")):
+        if (client_dir / "Resources" / "SKY" / sky.name).exists():
+            (client_dir / "Resources" / "SKY" / sky.name).unlink()
+            print(f"Resources/SKY/{sky.name}: removed")
+
+    for name in sync_stock_overrides(client_dir, restore_all=True)[1]:
+        print(f"{name}: stock copy restored")
 
     marker = client_dir / MARKER_FILE
     if marker.exists():

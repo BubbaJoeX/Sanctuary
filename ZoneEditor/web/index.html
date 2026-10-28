@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sanctuary Zone Editor</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header id="topbar">
+    <span class="brand">Zone Editor</span>
+    <div class="group">
+      <input id="zone-search" list="zone-list" placeholder="Zone: FabledRealms, hsg_…, or a .gzne path" autocomplete="off">
+      <button id="open-zone">Open</button>
+      <button id="open-file" title="Open a .gzne file: the zone's files come only from its folder, not stock">File…</button>
+      <button id="new-zone" title="Make a new zone, blank or a copy of one">New…</button>
+    </div>
+    <datalist id="zone-list"></datalist>
+    <span id="zone-title"></span>
+    <span class="spacer"></span>
+    <label class="pill" id="live-control" hidden><input id="show-live" type="checkbox" checked> <span id="live-state"></span> Live</label>
+    <button id="toggle-content" title="Browse the client's objects to place (O)">Content</button>
+    <div class="menu">
+      <button id="view-button" aria-haspopup="true" aria-expanded="false" title="View distance, time of day and what's drawn">View ▾</button>
+      <div class="menu-panel" id="view-menu" hidden>
+        <label>View distance <input id="view-radius" type="range" min="1" max="5" value="2"></label>
+        <label title="Time of day for the sky's lighting">Time of day <span class="row-inline"><input id="time-of-day" type="range" min="0" max="23.75" step="0.25" value="12"> <span id="time-label">12:00</span></span></label>
+        <div class="checks">
+          <label><input id="show-details" type="checkbox" checked> Detail textures</label>
+          <label><input id="show-shadows" type="checkbox" checked> Shadows</label>
+          <label><input id="show-grid" type="checkbox" checked> Tile grid</label>
+          <label><input id="show-lights" type="checkbox" checked> Point lights</label>
+        </div>
+      </div>
+    </div>
+    <span class="divider"></span>
+    <button id="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button id="save" class="primary" title="Save (Ctrl+S)">Save</button>
+    <div class="group">
+      <button id="play" title="Save, then restart the game client so it loads your changes">Test in game</button>
+      <label class="addon" title="Also restart the servers (needed for zone, spawn and house changes)"><input id="play-servers" type="checkbox"> + servers</label>
+    </div>
+  </header>
+
+  <nav id="toolbar">
+    <button data-tool="select" title="Select and move props, lights and markers (V)">Select<kbd>V</kbd></button>
+    <button data-tool="sculpt" title="Sculpt terrain (B)">Sculpt<kbd>B</kbd></button>
+    <button data-tool="exclude" title="Cut the ground out under cave models, or restore it (X)">Exclude<kbd>X</kbd></button>
+    <button data-tool="eco" title="Paint eco layers: the ground's materials (M)">Eco<kbd>M</kbd></button>
+    <button data-tool="colour" title="Paint the colour map (C)">Colour<kbd>C</kbd></button>
+    <button data-tool="environment" title="Paint tile environments: sky and minimap (N)">Env<kbd>N</kbd></button>
+    <button data-tool="props" title="Place props (P)">Props<kbd>P</kbd></button>
+    <button data-tool="lights" title="Place point lights (L)">Lights<kbd>L</kbd></button>
+    <button data-tool="chunks" title="Add chunks (K)">Chunks<kbd>K</kbd></button>
+    <button data-tool="zone" title="Spawn, sky, houses and ecos (Z)">Zone<kbd>Z</kbd></button>
+  </nav>
+
+  <main id="viewport">
+    <canvas id="canvas"></canvas>
+    <canvas id="minimap" width="220" height="220" title="Click to fly there"></canvas>
+    <section id="content-browser" hidden></section>
+    <div id="select-box"></div>
+    <div id="transform-bar" hidden>
+      <div class="seg">
+        <button data-mode="translate" title="Move (G)">Move <kbd>G</kbd></button>
+        <button data-mode="rotate" title="Rotate (R)">Rotate <kbd>R</kbd></button>
+        <button data-mode="scale" title="Scale (T)">Scale <kbd>T</kbd></button>
+      </div>
+      <button id="gizmo-space" title="Move and rotate along the world's axes or the object's own">World</button>
+      <div class="bar-group">
+        <span class="bar-label">Snap</span>
+        <select id="snap-move" title="Move snap, metres (hold Shift while dragging to switch snapping on or off)"></select>
+        <select id="snap-turn" title="Rotate snap, degrees"></select>
+        <select id="snap-scale" title="Scale snap"></select>
+      </div>
+      <div class="bar-group">
+        <span class="bar-label">Gizmo</span>
+        <button id="gizmo-smaller" title="Smaller gizmo">−</button>
+        <button id="gizmo-larger" title="Larger gizmo">+</button>
+      </div>
+    </div>
+    <div id="help"><span>Right-drag look · WASD fly, Q/E down/up · Shift fast · Wheel speed</span> <button id="keys-button" title="Every key (?)">Keys ?</button></div>
+    <div id="keys-sheet" hidden>
+      <h4>Camera</h4>
+      <dl>
+        <dt>Right-drag</dt><dd>Look</dd>
+        <dt>W A S D</dt><dd>Fly; Q and E down and up; Shift faster</dd>
+        <dt>Wheel</dt><dd>Fly speed (in brush tools: brush size)</dd>
+        <dt>F</dt><dd>Focus on the selection</dd>
+      </dl>
+      <h4>Selection</h4>
+      <dl>
+        <dt>Click, Shift+click</dt><dd>Select, add or remove; drag over the ground to box-select</dd>
+        <dt>G R T</dt><dd>Gizmo: move, rotate, scale (Shift while dragging switches snapping)</dd>
+        <dt>Arrows, PgUp PgDn</dt><dd>Nudge along the ground and up or down (Shift: 4×)</dd>
+        <dt>, .</dt><dd>Turn left or right (Shift: 90°)</dd>
+        <dt>- =</dt><dd>Scale down or up</dd>
+        <dt>End</dt><dd>Drop to the ground</dd>
+        <dt>Ctrl+D</dt><dd>Duplicate</dd>
+        <dt>Ctrl+C, Ctrl+V</dt><dd>Copy, paste at the pointer</dd>
+        <dt>Del</dt><dd>Delete</dd>
+        <dt>H, Shift+H</dt><dd>Hide the model, show all again</dd>
+      </dl>
+      <h4>Tools and brushes</h4>
+      <dl>
+        <dt>V B X M C N P L K Z</dt><dd>Select, Sculpt, Exclude, Eco, Colour, Env, Props, Lights, Chunks, Zone</dd>
+        <dt>[ ]</dt><dd>Brush size (Shift: strength); Ctrl+wheel strength too</dd>
+        <dt>1–0</dt><dd>Sculpt modes</dd>
+        <dt>I, Alt+click</dt><dd>Eyedropper: height, eco, tint</dd>
+        <dt>O</dt><dd>Content browser</dd>
+        <dt>Ctrl+Z, Ctrl+S</dt><dd>Undo, save</dd>
+        <dt>Esc</dt><dd>Deselect, stop placing</dd>
+      </dl>
+    </div>
+    <div id="toast"></div>
+  </main>
+
+  <aside id="panel"></aside>
+
+  <footer id="statusbar">
+    <span id="status-pos"></span>
+    <span id="status-cell"></span>
+    <span id="status-dirty"></span>
+    <span id="status-autosave"></span>
+    <span class="spacer"></span>
+    <span id="status-text">Pick a zone to open.</span>
+  </footer>
+
+  <dialog id="new-zone-dialog">
+    <form method="dialog">
+      <h3>New zone</h3>
+      <p class="hint">A new zone saves under new names, so every chunk of it is editable and streams to clients.</p>
+      <label>Name <input name="name" required pattern="[a-z][a-z0-9_]{2,47}" placeholder="my_meadow"></label>
+      <label>Type <select name="type"><option>World</option><option>Housing</option></select></label>
+      <label>Start from <select name="source"><option value="">Blank terrain</option></select></label>
+      <fieldset class="blank-only">
+        <label>Width (chunks) <input name="width" type="number" min="1" max="16" value="2"></label>
+        <label>Depth (chunks) <input name="depth" type="number" min="1" max="16" value="2"></label>
+        <label>Ground height <input name="height" type="number" value="0" step="1"></label>
+        <label>Ground eco <select name="eco"></select></label>
+      </fieldset>
+      <menu>
+        <button value="cancel" formnovalidate>Cancel</button>
+        <button value="create" class="primary">Create</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
