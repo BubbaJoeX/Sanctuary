@@ -213,6 +213,36 @@ MODS = [
     # The quest-limit Upgrade dialog, now a "journal full" notice.
     ("upgrade_dialog", "sanctuaryUpgradeDialog", "\\frame_1\\DoAction",
      [script_dir / "retired" / "journal_full.as"], []),
+    # The character select panel beside the hero lineup (wndCharacterSelectV2).
+    ("characterSelectV2", "sanctuaryCharacterSelectV2", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_select.as"], []),
+    # Making a character: the type picker, the customizer, the name wheels and the custom name entry.
+    ("characterCreateType", "sanctuaryCharacterCreateType", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_create_type.as"], []),
+    ("charCreate", "sanctuaryCharCreate", "\\frame_1\\DoAction", [script_dir / "login" / "character_create.as"], []),
+    ("characterNameScreen", "sanctuaryCharacterNameScreen", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_name.as"], []),
+    ("characterCustomNameScreen", "sanctuaryCharacterCustomNameScreen", "\\frame_1\\DoAction",
+     [script_dir / "login" / "character_custom_name.as"], []),
+    # The loading widgets, in the loading screen's colours (loading_large has no main timeline script: FRAME_SCRIPTS).
+    ("loading_large", "sanctuaryLoadingLarge", "\\frame_1\\DoAction", [script_dir / "login" / "loading_large.as"], []),
+    ("loading_progress", "sanctuaryLoadingProgress", "\\frame_1\\DoAction",
+     [script_dir / "login" / "loading_progress.as"], []),
+    ("AssetLoadingStatus", "sanctuaryAssetLoadingStatus", "\\frame_1\\DoAction",
+     [script_dir / "login" / "asset_loading_status.as"], []),
+    # Tutorials and first-time windows.
+    ("tutorial_dialog", "sanctuaryTutorialDialog", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "tutorial_dialog.as"], []),
+    ("NewPlayerFTEWindow", "sanctuaryNewPlayerFTEWindow", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "fte_new_player.as"], []),
+    ("CombatFTEWindow", "sanctuaryCombatFTEWindow", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "fte_combat.as"], []),
+    ("FTELogoutReward", "sanctuaryFTELogoutReward", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "fte_logout_reward.as"], []),
+    ("tutorial_arrow", "sanctuaryTutorialArrow", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "tutorial_arrow.as"], []),
+    ("tutorialButton", "sanctuaryTutorialButton", "\\frame_1\\DoAction",
+     [script_dir / "login" / "tutorial" / "tutorial_button.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
     ("starCounter", "sanctuaryStarCounter", None, [], []),
@@ -261,6 +291,10 @@ TEXTURE_SYMBOLS = {
     ],
     # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The loading widgets' spinner centre (login/loading_large.as, asset_loading_status.as): the hub tree in the OSFR
+    # loading screen's blue.
+    "loading_large": [("img7070878317473001703.dds", "sanctuaryLoadingTree", 64, 120)],
+    "AssetLoadingStatus": [("img7070878317473001703.dds", "sanctuaryLoadingTree", 64, 120)],
     # The Hero's Journal (dialogs/quest_journal.as): the Main Menu's journal beside its title.
     "questjournal": [("img1837001925841496856.dds", "sanctuaryJournalBook", 64, 0)],
     # The list browser (browser/list_browser.as): the farming browser's seed bag, the Farmers Market's emblem.
@@ -312,7 +346,7 @@ TEXT_SYMBOLS = {
 }
 
 # Stock movies with no main timeline script, which get an empty one on frame 1 for their patch to be appended to.
-FRAME_SCRIPTS = {"FRUtilNavigation"}
+FRAME_SCRIPTS = {"FRUtilNavigation", "loading_large"}
 
 # Stock movie -> root timeline depths whose placements are dropped: plain shapes, which ActionScript can't hide.
 REMOVED_DEPTHS = {
@@ -336,6 +370,14 @@ REMOVED_DEPTHS = {
     "actionProgress": [1, 4],
     # The knocked-out window's panel (a root shape); hud/revive_window.as draws a navy one.
     "revive_window": [1],
+    # The character select's stock panel (redrawn by login/character_select.as).
+    "characterSelectV2": [1],
+    # The character creator's blue bezel round the 3D view (login/character_create.as draws a navy one).
+    "charCreate": [4],
+    # The type picker's panel and its two unnamed question lines ("What are you?", "What is you favorite race ?").
+    "characterCreateType": [1, 12, 13],
+    # The custom name entry's banner.
+    "characterCustomNameScreen": [1],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],

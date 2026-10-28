@@ -164,6 +164,21 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndNewItemRem.xml"), [("UI\\NewItemRem.swf", "UI\\sanctuaryNewItemRem.swf")]),
     (Path("UI/UiModules/Main/wndNpxPlayMore.xml"), [("UI\\NpxPlayMore.swf", "UI\\sanctuaryNpxPlayMore.swf")]),
     (Path("UI/UiModules/Main/wndUpgradeDialog.xml"), [("UI\\upgrade_dialog.swf", "UI\\sanctuaryUpgradeDialog.swf")]),
+    # Character select and creation, the loading widgets and the tutorials (login/*.as).
+    (Path("UI/UiModules/Main/wndCharacterSelectV2.xml"), [("UI\\CharacterSelectV2.swf", "UI\\sanctuaryCharacterSelectV2.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterCreateType.xml"), [("UI\\characterCreateType.swf", "UI\\sanctuaryCharacterCreateType.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterCreate.xml"), [("UI\\charCreate.swf", "UI\\sanctuaryCharCreate.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterNameScreen.xml"), [("UI\\characterNameScreen.swf", "UI\\sanctuaryCharacterNameScreen.swf")]),
+    (Path("UI/UiModules/Main/wndCharacterCustomNameScreen.xml"), [("UI\\characterCustomNameScreen.swf", "UI\\sanctuaryCharacterCustomNameScreen.swf")]),
+    (Path("UI/UiModules/Main/wndLoadingLarge.xml"), [("UI\\loading_large.swf", "UI\\sanctuaryLoadingLarge.swf")]),
+    (Path("UI/UiModules/Main/wndLoadingProgress.xml"), [("UI\\loading_progress.swf", "UI\\sanctuaryLoadingProgress.swf")]),
+    (Path("UI/UiModules/Main/wndAssetLoadingStatus.xml"), [("UI\\AssetLoadingStatus.swf", "UI\\sanctuaryAssetLoadingStatus.swf")]),
+    (Path("UI/UiModules/Main/wndTutorialDialog.xml"), [("UI\\tutorial_dialog.swf", "UI\\sanctuaryTutorialDialog.swf")]),
+    (Path("UI/UiModules/Main/wndNewPlayerFTEWindow.xml"), [("UI\\NewPlayerFTEWindow.swf", "UI\\sanctuaryNewPlayerFTEWindow.swf")]),
+    (Path("UI/UiModules/Main/wndCombatFTEWindow.xml"), [("UI\\CombatFTEWindow.swf", "UI\\sanctuaryCombatFTEWindow.swf")]),
+    (Path("UI/UiModules/Main/wndFTELogoutReward.xml"), [("UI\\FTELogoutReward.swf", "UI\\sanctuaryFTELogoutReward.swf")]),
+    (Path("UI/UiModules/Main/wndTutorialArrow.xml"), [("UI\\tutorial_arrow.swf", "UI\\sanctuaryTutorialArrow.swf")]),
+    (Path("UI/UiModules/Main/wndTutorialButton.xml"), [("UI\\tutorialButton.swf", "UI\\sanctuaryTutorialButton.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [
