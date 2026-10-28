@@ -32,13 +32,15 @@ import numpy as np
 from . import formats, models, terrain
 from .assets import AssetSource, compress, decompress, jenkins
 from .formats import CHUNK_TILES, ECO_MAP_SIZE, TILE_SIZE, Chunk, ColourMap, Light, Object, Zone
+from .world import World
 
 NAME = re.compile(r"^[a-z][a-z0-9_]{2,47}$")
 # Downloaded assets, the actor usage count and prop thumbnails; beside the editor, not in the checkout it saves to.
 CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache"
 CHUNK_STEP = CHUNK_TILES                       # chunk names step 4 tiles in row and col
 # What the editor changes in a zone definition; the rest of the file is left as it is.
-DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky"]
+DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky",
+                   "AreaDefinitions", "Portals", "SeasonalClientAreas"]
 PAYLOAD_CACHE = 32                             # chunk payloads kept per zone, about 5 MB each
 # Loose files in this folder of the client beat its packs and the manifest it downloaded: it lists their names when
 # it starts and reads a file each time it loads it. A client the editor starts gets the zone's files there.
@@ -78,8 +80,16 @@ def _json_styles(data) -> list:
     return styles
 
 
-def _render(value, multiline: bool, indent: int) -> str:
-    return _json_styles(value)[0 if multiline else 1].replace("\n", "\n" + " " * indent)
+def _render(value, multiline: bool, indent: int, compact: bool = False) -> str:
+    """value as JSON at indent; compact writes number lists as [1,2,3], as some files do."""
+    text = _json_styles(value)[0 if multiline else 1].replace("\n", "\n" + " " * indent)
+    return INLINE_NUMBERS.sub(lambda m: m.group(0).replace(", ", ","), text) if compact else text
+
+
+def _compact(text: str) -> bool:
+    """Whether a file's number lists are written [1,2,3] rather than [1, 2, 3]."""
+    lists = [m.group(0) for m in INLINE_NUMBERS.finditer(text)]
+    return any("," in found for found in lists) and not any(", " in found for found in lists)
 
 
 def _patch_keys(text: str, old: dict, new: dict, keys: list) -> str:
@@ -92,8 +102,12 @@ def _patch_keys(text: str, old: dict, new: dict, keys: list) -> str:
         if match:
             _, end = decoder.raw_decode(text, match.end())
             if key in new:
-                multiline = "\n" in text[match.end() : end]
-                text = text[: match.end()] + _render(new[key], multiline, 2) + text[end:]
+                span = text[match.end() : end]
+                multiline = "\n" in span
+                # A list of objects (a zone's areas and portals) keeps its unchanged entries as they're laid out.
+                lists = isinstance(old.get(key), list) and isinstance(new[key], list)
+                patched = _patch_list(span, old[key], new[key], 4) if lists else None
+                text = text[: match.end()] + (patched if patched is not None else _render(new[key], multiline, 2)) + text[end:]
             else:
                 text = text[: match.start()].rstrip(",") + text[end:]
         elif key in new:
@@ -102,9 +116,10 @@ def _patch_keys(text: str, old: dict, new: dict, keys: list) -> str:
     return text
 
 
-def _patch_items(text: str, old: list, new: list) -> str | None:
-    """A top-level list of objects with ids (Houses.json): unchanged entries keep their text, changed ones
-    are rewritten and new ones appended. None if the list isn't laid out one entry after another."""
+def _patch_list(text: str, old: list, new: list, indent: int) -> str | None:
+    """A list of objects laid out one entry after another at indent (Houses.json, PointOfInterests.json, a zone's
+    areas and portals): unchanged entries keep their text, changed and new ones are written in the file's number
+    style. Entries are matched by Id when all of them have one, else by place. None if it isn't laid out so."""
     decoder = json.JSONDecoder()
     spans = []
     position = text.index("[") + 1
@@ -115,15 +130,30 @@ def _patch_items(text: str, old: list, new: list) -> str | None:
         value, end = decoder.raw_decode(text, position)
         spans.append(text[position:end])
         position = end
-    rebuilt = lambda items: "[\n" + ",\n".join("  " + item for item in items) + "\n]"
-    if rebuilt(spans) != text or any(not isinstance(item, dict) or "Id" not in item for item in old + new):
+    pad, closing = " " * indent, " " * (indent - 2)
+    rebuilt = lambda items: "[\n" + ",\n".join(pad + item for item in items) + "\n" + closing + "]"
+    if not spans or rebuilt(spans) != text or any(not isinstance(item, dict) for item in old + new):
         return None
-    originals = {item["Id"]: (item, span) for item, span in zip(old, spans)}
+    # Each entry written as it was laid out (expanded or with inline number lists), a new one as the first was.
+    styles = [(False, _compact(text)), (True, False), (False, False), (False, True)]
+    style_of = lambda item, span: next((s for s in styles if _render(item, s[0], indent, s[1]) == span), styles[0])
+    default = style_of(old[0], spans[0]) if old else styles[0]
+    by_id = all("Id" in item for item in old + new)
+    originals = {item["Id"]: (item, span) for item, span in zip(old, spans)} if by_id else dict(enumerate(zip(old, spans)))
     items = []
-    for item in new:
-        before = originals.get(item["Id"])
-        items.append(before[1] if before and before[0] == item else _render(item, False, 2))
+    for i, item in enumerate(new):
+        before = originals.get(item["Id"] if by_id else i)
+        if before and before[0] == item:
+            items.append(before[1])
+        else:
+            multiline, compact = style_of(*before) if before else default
+            items.append(_render(item, multiline, indent, compact))
     return rebuilt(items)
+
+
+def _patch_items(text: str, old: list, new: list) -> str | None:
+    """A top-level list of objects (Houses.json): see _patch_list."""
+    return _patch_list(text, old, new, 2)
 
 
 def write_json(path: Path, data, keys: list | None = None) -> bool:
@@ -202,6 +232,7 @@ class Workspace:
         self.cache_dir = CACHE_DIR
         self.assets = AssetSource(client_dir, self.mods_dir, mirror_dir, upstream, self.cache_dir / "assets")
         self.library = models.MaterialLibrary(client_dir)
+        self.world = World(self)
         self.projects = {}
         self.lock = threading.RLock()
         self._model_cache = {}
@@ -450,18 +481,9 @@ class Workspace:
         raise KeyError(name)
 
     def terrain_environments(self) -> list:
-        """ObjectTerrainData.xml rows: a tile's environment id picks its sky, atlas and minimap."""
-        path = self.client_dir / "Resources" / "ObjectTerrainData.xml"
-        if not path.exists():
-            return []
-        text = path.read_text(encoding="utf-8-sig", errors="replace")
-        rows = []
-        for match in re.finditer(r"<ObjectTerrainData\b([^>]*)/?>", text):
-            attributes = dict(re.findall(r'(\w+)="([^"]*)"', match.group(1)))
-            if "Id" in attributes:
-                rows.append({"id": int(attributes["Id"]), "name": attributes.get("DataName", ""),
-                             "sky": attributes.get("SkyFileName", "")})
-        return rows
+        """ObjectTerrainData.xml rows, as players get them (World.environments): a tile's environment id picks its
+        sky, atlas and minimap."""
+        return self.world.environments()
 
     # --- assets for the viewport ---------------------------------------------------------------------
 
@@ -887,8 +909,10 @@ class Workspace:
         copies = []
         src = self.root / "src"
         targets = []
+        patches = self.resources / "ClientPatches"
         for build in src.glob("Sanctuary.WebAPI/bin/*/*"):
             targets.append((self.mods_dir, build / "ClientMods"))
+            targets.append((patches, build / "ClientPatches"))
         for build in src.glob("Sanctuary.Gateway/bin/*/*"):
             targets.append((self.resources, build / "Resources"))
         for path in paths:
@@ -896,6 +920,9 @@ class Workspace:
                 try:
                     relative = path.relative_to(source_root)
                 except ValueError:
+                    continue
+                # Client patches are the WebAPI's to serve, not the Gateway's to read.
+                if source_root == self.resources and patches in path.parents:
                     continue
                 if not target_root.parent.is_dir():
                     continue
@@ -1012,6 +1039,7 @@ class ZoneProject:
         houses = []
         if self.definition:
             houses = [h for h in self.ws._houses() if h.get("ZoneId") == self.definition.get("Id")]
+        pois = self.ws.world.pois(self.definition.get("Id") if self.definition else None)
         return {
             "id": self.id, "name": self.name, "file": str(self.file) if self.file else None,
             "stock": self.stock, "version": z.version,
@@ -1027,6 +1055,10 @@ class ZoneProject:
             "definition": self.definition, "houses": houses,
             "environments": self.ws.terrain_environments(),
             "skies": self.ws.skies(),
+            "pois": pois,
+            # What the NameIds of its points of interest and areas say.
+            "names": self.ws.world.texts({row.get(key) for row in pois for key in ("NameId", "SubNameId") if row.get(key)}
+                                         | {area.get("NameId") for area in (self.definition or {}).get("AreaDefinitions", []) if area.get("NameId")}),
         }
 
     def chunk_payload(self, row: int, col: int):
@@ -1342,6 +1374,10 @@ class ZoneProject:
         """
         written = []
         with self.lock:
+            # Invisible walls are the zone file's: each a list of posts, a bottom and a top point each.
+            if settings.get("walls") is not None:
+                self.zone.walls = [[tuple(float(v) for v in point) for point in wall] for wall in settings["walls"] if len(wall) >= 4]
+                self.zone_dirty = True
             # A zone opened from a file publishes its zone file with its first chunks, or ClientMods' chunks
             # would go out with whatever .gzne the client already has.
             published = self.ws.assets.mod_path(self.name + ".gzne")
@@ -1364,6 +1400,10 @@ class ZoneProject:
                         definition["Sky"] = settings["sky"]
                     else:
                         definition.pop("Sky", None)
+                # Named areas and portals, as the World tool left them.
+                for key, field in (("areas", "AreaDefinitions"), ("portals", "Portals"), ("seasons", "SeasonalClientAreas")):
+                    if settings.get(key) is not None:
+                        definition[field] = settings[key]
                 if self.zone_dirty or not self.stock:
                     z = self.zone
                     # Latitude is x and longitude z; bounds only ever grow (FabledRealms' run past its chunks).
@@ -1378,10 +1418,21 @@ class ZoneProject:
                     written.append(path)
                 self.definition_path = path
 
+            if settings.get("pois") is not None and self.definition is not None:
+                path = self.ws.world.save_pois(self.definition["Id"], settings["pois"], settings.get("poisDeleted") or [])
+                if path:
+                    written.append(path)
+
             path = self.ws.zones_dir / "Environments" / f"{self.name}.json"
             if self.environment_cells and path.exists():
                 environments = json.loads(path.read_text(encoding="utf-8-sig"))
                 _set_environments(environments, self.environment_cells)
+                # The server names the environments it has tiles of (!area here), so new ones aren't "unknown".
+                known = self.ws.world.environment_names()
+                names = environments.setdefault("Environments", {})
+                for env_id in {str(e) for e in self.environment_cells.values()}:
+                    if env_id not in names and env_id in known:
+                        names[env_id] = known[env_id]
                 if write_json(path, environments):
                     written.append(path)
                 self.environments = environments

@@ -695,6 +695,11 @@ export class LiveLayer {
     return !!(await this.send(`Couldn't spawn ${label}`, `${this.base()}/npcs`, "POST", { def, x, y, z, h: record.rotation[0], scale: record.scale }));
   }
 
+  // A resource the Gateway can reload (admins): "pois", "seasons", ...
+  reloadResource(name) {
+    return request(`/resources/${encodeURIComponent(name)}/reload`, "POST", {});
+  }
+
   // After Npcs.json changed: the Gateway reloads it (admins), then this zone's NPCs built on def respawn with it.
   async reloadDefinitions(def) {
     await request("/resources/npcs/reload", "POST", {});

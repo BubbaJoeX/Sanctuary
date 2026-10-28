@@ -179,6 +179,11 @@ It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` and `lua/client_
 `Resources/Scripts/2` (see below), and any custom skies the [zone editor](../ZoneEditor/README.md) saved in
 `sky/` to `Resources/SKY`.
 
+Sanctuary's own locale strings (names the zone editor gives warpstones, places and areas) are in
+`src/Resources/LocaleStrings.json`, ids from 9500000. `locale_strings.py --client <client>` rebuilds the locale
+client patch with them, keeping the strings already there (fr_maya_mcp's) and the stock ones byte for byte; the
+zone editor does it whenever a name is added or changed.
+
 And it puts Sanctuary's client patches (`src/Resources/ClientPatches`) over the client's own files, keeping the
 originals as `*.sanctuary-backup`: `Resources/Models.txt` (with a row for every actor the client can draw, from
 the zone editor's `add_model_rows.py`), the locale and the icon tables. Launchers download these before Play;

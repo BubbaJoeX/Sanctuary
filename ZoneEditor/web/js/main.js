@@ -10,6 +10,7 @@ import { shaderTime } from "./materials.js";
 import { copyTemplate, updateAnimations } from "./animation.js";
 import { ScriptEditor } from "./script-editor.js";
 import { ConversationEditor, DefinitionEditor, NpcInspector, PLACED_MODEL, definitionFor } from "./npcs.js";
+import { WorldTool, renderEnvironmentEditor } from "./world.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
 
@@ -107,6 +108,26 @@ const conversationEditor = new ConversationEditor($("#conversation-editor"), liv
 const definitionEditor = new DefinitionEditor($("#definition-editor"), live, {
   pick: () => state.actor,
   spawn: (summary) => pickNpc(summary),
+});
+// The World tool (J): places and warpstones, areas, portals, barriers and seasons (world.js).
+const world = new WorldTool({
+  get state() { return state; },
+  live, toast, status,
+  changed: () => { state.zoneDirty = true; updateDirty(); },
+  redraw: () => redrawWorld(),
+  markers: () => markers,
+  centre: () => centreHit(),
+  ground: (x, z) => terrain.heightAt(x, z),
+  environmentAt: (x, z) => environmentAt(x, z),
+  select: (object) => select(object),
+  focus: (object) => focusOn(object),
+  inspector: () => panel.querySelector("#inspector"),
+  renderPanel: () => renderPanel(),
+  forward: () => {
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    return Math.atan2(direction.x, direction.z);
+  },
 });
 
 // The client shows its coordinates as they are (x, y up, z), so the scene uses them directly.
@@ -237,6 +258,7 @@ async function openZone(name, keepCamera = false) {
   select(null);
   state.zone = zone;
   state.houses = zone.houses ? structuredClone(zone.houses) : [];
+  world.load(zone);
   state.sky = undefined;
   state.customSky = null;
   state.settings = {};
@@ -359,7 +381,29 @@ function buildMarkers() {
       markers.push(helper);
     }
   }
+  markers.push(...world.markers());
   for (const marker of markers) scene.add(marker);
+}
+
+// The world's markers and walls again (one moved, or a list changed), keeping the selected one selected.
+function redrawWorld() {
+  const was = selected?.userData.world;
+  buildMarkers();
+  buildWalls();
+  if (!was) return;
+  const same = markers.find((m) => {
+    const w = m.userData.world;
+    return w && w.type === was.type && w.index === was.index && w.wall === was.wall && w.post === was.post;
+  });
+  if (same) { selected = same; selection.clear(); selectionChanged(); } else if (selected?.userData.world) select(null);
+}
+
+// A tile's environment id where (x, z) is, from its loaded chunk.
+function environmentAt(x, z) {
+  const chunk = terrain.chunkAt(x, z);
+  if (!chunk) return null;
+  const tile = Math.floor((z - chunk.z0) / 64) * 4 + Math.floor((x - chunk.x0) / 64);
+  return chunk.tiles[tile]?.environment ?? null;
 }
 
 // --- lighting preview ----------------------------------------------------------------------------------
@@ -721,11 +765,20 @@ function renderPanel() {
   } else if (state.tool === "environment") {
     panel.innerHTML = `<h3>Tile environments</h3>${noEditable}${brushControls()}
       <p class="hint">A tile's environment (ObjectTerrainData.xml) picks its sky, minimap and atlas in game. 0 is none: the zone's own sky.</p>
-      <div class="list">${[{ id: 0, name: "None", sky: "zone sky" }, ...zone.environments].map((e) => `<div data-env="${e.id}" class="${e.id === state.environment ? "active" : ""}"><span class="swatch" style="background:rgb(${environmentColour(e.id).join(",")})"></span>${e.id} ${escape(e.name)} <small>${escape(e.sky)}</small></div>`).join("")}</div>`;
+      <div class="list">${[{ id: 0, name: "None", sky: "zone sky" }, ...zone.environments].map((e) => `<div data-env="${e.id}" class="${e.id === state.environment ? "active" : ""}"><span class="swatch" style="background:rgb(${environmentColour(e.id).join(",")})"></span>${e.id} ${escape(e.name)} <small>${escape(e.sky)}${e.stock === false ? " · made here" : ""}</small></div>`).join("")}</div>
+      <div class="row"><button id="env-new" title="An environment of your own: a sky, minimap tiles and atlas page">New environment…</button>
+        <button id="env-edit" ${state.environment ? "" : "disabled"}>Edit ${state.environment || ""}…</button></div>
+      <div id="env-editor"></div>`;
     bindBrush();
     for (const row of panel.querySelectorAll("[data-env]")) {
       row.addEventListener("click", () => { state.environment = +row.dataset.env; renderPanel(); });
     }
+    const editEnvironment = (environment) => renderEnvironmentEditor(panel.querySelector("#env-editor"), environment, {
+      toast,
+      saved: (environments, id) => { state.zone.environments = environments; state.environment = id; renderPanel(); },
+    });
+    panel.querySelector("#env-new").addEventListener("click", () => editEnvironment(null));
+    panel.querySelector("#env-edit").addEventListener("click", () => editEnvironment(zone.environments.find((e) => e.id === state.environment)));
   } else if (state.tool === "props") {
     const p = state.place;
     const scatter = p.mode === "scatter";
@@ -811,6 +864,9 @@ function renderPanel() {
     }).catch(() => {});
   } else if (state.tool === "zone") {
     renderZonePanel();
+  } else if (state.tool === "world") {
+    world.renderPanel(panel);
+    renderInspector();
   }
 }
 
@@ -896,7 +952,10 @@ function renderInspector() {
   if (kind === "live-player") return renderLivePlayerInspector(target);
   if (kind === "live-npc") return renderLiveNpcInspector(target);
   if (kind === "marker") {
-    target.innerHTML = `<h4>${escape(label)}</h4><div class="xyz">${["x", "y", "z"].map((a) => `<input data-pos="${a}" type="number" step="0.5" value="${selected.position[a].toFixed(2)}">`).join("")}</div>`;
+    const position = `<div class="xyz">${["x", "y", "z"].map((a) => `<input data-pos="${a}" type="number" step="0.5" value="${selected.position[a].toFixed(2)}">`).join("")}</div>`;
+    // A World tool marker heads its own section; the spot's numbers follow it.
+    target.innerHTML = selected.userData.world ? `<div id="world-inspector"></div><label>${escape(label)}</label>${position}` : `<h4>${escape(label)}</h4>${position}`;
+    if (selected.userData.world) world.renderInspector(target.querySelector("#world-inspector"), selected);
   } else if (selection.size > 1) {
     return renderGroupInspector(target);
   } else if (kind === "prop") {
@@ -2216,7 +2275,7 @@ const BROWSER_SHORTCUTS = new Set(["KeyA", "KeyC", "KeyD", "KeyE", "KeyF", "KeyG
   "KeyO", "KeyP", "KeyS", "KeyU", "KeyV", "KeyY", "KeyZ"]);
 const BROWSER_KEYS = new Set(["F3", "F6", "F7", "F10", "AltLeft", "AltRight"]);
 const FLY_KEYS = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE"]);
-const TOOL_KEYS = { v: "select", b: "sculpt", x: "exclude", m: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone" };
+const TOOL_KEYS = { v: "select", b: "sculpt", x: "exclude", m: "eco", c: "colour", n: "environment", p: "props", l: "lights", k: "chunks", z: "zone", j: "world" };
 
 window.addEventListener("keydown", (event) => {
   if (BROWSER_KEYS.has(event.code)) event.preventDefault();
@@ -2529,6 +2588,9 @@ async function saveAll({ showLive = true } = {}) {
   if (state.sky !== undefined) settings.sky = state.sky;
   if (state.customSky) { settings.customSky = state.customSky; settings.sky = state.customSky.name; }
   if (state.zoneDirty && state.houses.length) settings.houses = state.houses;
+  // The World tool's places, areas, portals and barriers, as far as they changed.
+  const worldChanges = state.zoneDirty ? world.settings() : {};
+  Object.assign(settings, worldChanges);
   if (!chunks.length && !state.zoneDirty) return toast("Nothing to save.");
   const entries = [], blobs = [];
   for (const chunk of chunks) {
@@ -2560,7 +2622,13 @@ async function saveAll({ showLive = true } = {}) {
     const sent = published?.updated ?? [];
     const sentNames = new Set(sent.map((name) => name.toLowerCase()));
     const overrides = zone.overrides.filter((name) => !sentNames.has(name.toLowerCase()));
+    // Places reload in the running game at once; players get them as they next enter the zone.
+    const placesNote = worldChanges.pois && live.zone
+      ? await live.reloadResource("pois").then(() => "The game reloaded its places: players get them as they next enter the zone.",
+        (error) => `The game didn't reload its places: ${error.message}`)
+      : "";
     const notes = [
+      placesNote,
       zone.mirrored.length ? `Copied ${zone.mirrored.length} into the running servers' folders; the asset server serves them now.` : "",
       overrides.length && unlock?.applied ? `Hid the client's stock copy of ${overrides.length} file(s), so it downloads yours.` : "",
       overrides.length && !unlock?.applied ? "The client is running, so it still reads its stock copies: Test in game closes it and fixes that." : "",
@@ -2819,9 +2887,9 @@ let wallMesh = null;
 function buildWalls() {
   if (wallMesh) scene.remove(wallMesh);
   wallMesh = null;
-  if (!state.zone?.walls.length) return;
+  if (!world.walls.length) return;
   const positions = [];
-  for (const wall of state.zone.walls) {
+  for (const wall of world.walls) {
     for (let i = 0; i + 3 < wall.length; i += 2) {
       const [a, b, c, d] = [wall[i], wall[i + 1], wall[i + 2], wall[i + 3]];
       positions.push(...a, ...b, ...c, ...b, ...d, ...c);

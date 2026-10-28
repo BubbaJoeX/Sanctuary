@@ -97,11 +97,12 @@ shadow later updates.
 | Exclude | X | Cut holes in the ground for cave mouths and interiors, or restore it. Shift+click a cave model to limit the brush to inside its bounds, or cut all the ground inside it at once. Holes leave the ground's mesh and collision; a tile cut out entirely keeps one buried, degenerate triangle so its collision tree stays valid. |
 | Eco | M | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). Alt+click picks the eco under the pointer and its tint from the colour map, which painting then uses instead. A tile holds up to 5 ecos. |
 | Colour | C | Paint the colour map directly; Alt+click picks a colour. |
-| Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. |
+| Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. *New environment…* adds one of your own (a name, sky, minimap tile set and atlas page; ids after the game's last), and *Edit* changes one; they go to clients in the `ClientPatches/Resources/ObjectTerrainData.xml` client patch, which the client reads when it starts. |
 | Props | P | Place objects from the content browser (O): click a tile, then the ground, or drag a tile into the view. Shift+wheel turns the preview. Or scatter them with a brush. See Objects below. |
 | Lights | L | Click the ground to add a point light; edit colour, range and intensity. |
 | Chunks | K | Click an empty cell, in the view or on the minimap, to add a chunk. Its edges join the land around it. |
 | Zone | Z | Spawn point and heading, zone sky or a custom sky XML, adding ecos (from FabledRealms' list or a client `.eco`), house exit door and build areas. |
+| World | J | Places and warpstones, named areas, portals, barriers (invisible walls) and seasons: see [The World tool](#the-world-tool). |
 
 The **content browser** (Content, or O) shows all of the client's 10,000-odd actors and actor sets as rendered
 thumbnails. It opens on what zones place (counted across every zone's chunks the first time, then cached,
@@ -184,6 +185,35 @@ live layer's NPCs and players play their `loc_stand` clip, as they do standing a
 sun colour, brightness and direction, fog, and sky and ground light from its ambient gradient. Without a zone
 sky it follows the environment of the tile under the camera, like the client. The sun casts shadows near the
 camera, and the zone's own point lights nearest the camera light the scene.
+
+## The World tool
+
+What's in the world beside the zone's chunks, edited where it stands: its markers drag (G) and turn (R) like the zone's
+spawn, and all of it but seasons saves with the zone (Save).
+
+- **Places and warpstones.** The map's points of interest (`src/Resources/PointOfInterests.json`; those without a
+  `ZoneId` are FabledRealms'): a gold marker where each is, a blue one where a warp arrives, facing the way players
+  will. A warpstone's atlas offers every warp destination (a hub). *Add a warpstone* adds a destination in the middle
+  of the view with the name you give it, and, opened from the admin panel with the zone running, its stone: an NPC
+  that opens the atlas, a copy of the game's own on a definition of its own in `Npcs.json`. *Add a place* adds an
+  ordinary map place. The inspector renames it, sets its kind and atlas page, and spawns a destination's stone.
+  Saving reloads them in the running game; players get them as they next enter the zone.
+- **Areas.** The zone's named areas (its Sanctuary definition's `AreaDefinitions`): their name shows as players walk
+  in. Round and square ones are drawn green and drag by their markers; areas by tile or environment keep their ground
+  and are renamed here. Each can name its place, for the map.
+- **Portals.** Circles (purple) that send a player on: to the orange marker in this zone, or to a spot in another.
+- **Barriers.** The zone file's invisible walls (drawn red), posts the client won't let players pass between. Pick
+  one to drag its posts, add a post at the view, set its height or delete it; *Add a barrier* puts two posts across
+  the view. They reach the client with the zone file: a running client reads it as it enters the zone again.
+- **Seasons.** Seasonal holidays (`src/Resources/Seasons.json`: Halloween and winter to start with): event keys that
+  are on between two days of the year, every year, as well as whenever `!event` turns them on. An NPC flagged for one
+  (its *Spawned during*) is in the game only then, and anything placed can be *Seen during* one. Saving them has the
+  running game reload them; a season starting or ending spawns or despawns its NPCs within a minute.
+
+Areas and portals are the zone's Sanctuary definition, which the Gateway reads when it starts: Test in game with
+**+ servers**. Names are locale strings, which the client shows by id: a new name (or a renamed game one) is one of
+Sanctuary's own (`src/Resources/LocaleStrings.json`, ids from 9500000), which goes to clients in the locale client
+patch (`ClientMods/locale_strings.py` rebuilds it); the client reads its locale when it starts.
 
 ## Live: the running game, from the admin panel
 

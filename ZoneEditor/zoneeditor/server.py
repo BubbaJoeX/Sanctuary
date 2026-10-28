@@ -244,6 +244,36 @@ class Handler(BaseHTTPRequestHandler):
     def post_npcs_delete(self, query, body):
         self.send_json(self.npcs.delete(int(json.loads(body)["id"])))
 
+    # --- names (locale strings), environments and seasons ---------------------------------------------------
+
+    def get_names(self, query, body):
+        """What string ids say: {id: text or null}."""
+        self.send_json(self.workspace.world.texts(query.get("ids", "").split(",")))
+
+    def post_names_new(self, query, body):
+        """A Sanctuary string for text (ids from 9500000), in the locale client patch."""
+        self.send_json(self.workspace.world.add_name(json.loads(body)["text"]))
+
+    def post_names_set(self, query, body):
+        data = json.loads(body)
+        self.send_json(self.workspace.world.set_name(int(data["id"]), data["text"]))
+
+    def get_environments(self, query, body):
+        """Every tile environment (ObjectTerrainData.xml as players get it), and what a new one can use."""
+        world = self.workspace.world
+        environments = world.environments()
+        self.send_json({"environments": environments, "skies": self.workspace.skies(), "minimaps": world.minimaps(),
+                        "atlases": sorted({e["atlas"] for e in environments if e["atlas"]})})
+
+    def post_environments_save(self, query, body):
+        self.send_json(self.workspace.world.save_environment(json.loads(body)))
+
+    def get_seasons(self, query, body):
+        self.send_json(self.workspace.world.seasons())
+
+    def post_seasons_save(self, query, body):
+        self.send_json(self.workspace.world.save_seasons(json.loads(body)))
+
     def post_live_seed(self, query, body):
         """Live files for a client launch.ps1 is about to start on its own (Workspace.seed_last)."""
         self.send_json(self.workspace.seed_last())

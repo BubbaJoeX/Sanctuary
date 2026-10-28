@@ -447,3 +447,8 @@ html, body { overflow: hidden; }
 #panel { overflow-x: hidden; }
 #panel .two > * { min-width: 0; }
 #panel label.check > input { display: inline-block; width: auto; flex: none; margin: 0; }
+
+/* The World tool's seasons: a box each, with month and day pickers on one line. */
+#panel .season { border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; margin: 8px 0; }
+#panel label.dates > select, #panel label.dates > input { display: inline-block; width: auto; margin-right: 4px; }
+#panel label.dates > input { width: 52px; }

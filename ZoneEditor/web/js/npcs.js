@@ -18,6 +18,9 @@ export function escape(text) {
   return String(text ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const seasonDates = (s) => `${MONTHS[s.startMonth - 1]} ${s.startDay} to ${MONTHS[s.endMonth - 1]} ${s.endDay}`;
+
 const clock = (hour) => `${String(Math.floor(hour)).padStart(2, "0")}:${String(Math.floor(hour % 1 * 60)).padStart(2, "0")}`;
 const iconLabel = (icon) => `${icon.type}/${icon.iconId}/${icon.state}`;
 
@@ -123,9 +126,12 @@ export class NpcInspector {
         ${o.icons.slice(0, ICON_CHOICES).map((icon, i) => `<option value="${i}">${iconLabel(icon)} · ${escape(icon.examples || "unnamed")} (${icon.uses})</option>`).join("")}</select>
 
       <h4>Who sees it</h4>
-      ${npc ? `<label>Event <input data-field="event" list="npc-events" value="${escape(s.event ?? "")}" placeholder="none: always there"
-          title="It's only spawned while this world event is on (the admin panel's Overview turns events on and off)"></label>
-        ${list("npc-events", o.events.map((e) => e.key))}` : ""}
+      <datalist id="npc-events">${o.seasons.map((x) => `<option value="${escape(x.key)}" label="${escape(x.name)}, ${seasonDates(x)}${x.active ? " (on now)" : ""}">`).join("")}
+        ${o.events.filter((e) => !o.seasons.some((x) => x.key === e.key)).map((e) => `<option value="${escape(e.key)}" label="event${e.active ? " (on now)" : ""}">`).join("")}</datalist>
+      ${npc ? `<label>Spawned during <input data-field="event" list="npc-events" value="${escape(s.event ?? "")}" placeholder="any time"
+          title="It's only in the game while this world event (!event) or season is on"></label>` : ""}
+      <label>Seen during <input data-cond="event" list="npc-events" value="${escape(c.event ?? "")}" placeholder="any time"
+          title="Players see it only while this world event or season is on${npc ? "; unlike Spawned during, it stays in the game" : ""}"></label>
       <label class="check"><input type="checkbox" data-cond="hours" ${c.fromHour != null ? "checked" : ""}> Only between these hours of the game day</label>
       <div class="two">
         <input type="number" data-cond="fromHour" min="0" max="23" value="${c.fromHour ?? 20}" ${c.fromHour != null ? "" : "disabled"} title="From (0-23)">
@@ -172,6 +178,7 @@ export class NpcInspector {
         questId, questState: questId ? get("questState").value : null,
         itemId, itemAbsent: !!itemId && get("itemAbsent").value === "1",
         refereesOnly: get("refereesOnly").checked,
+        event: get("event").value.trim().toLowerCase() || null,
       };
     };
     for (const input of container.querySelectorAll("[data-cond]")) {
