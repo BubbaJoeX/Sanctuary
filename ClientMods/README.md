@@ -39,6 +39,15 @@ The output goes to `src/Resources/ClientMods`. The WebAPI project copies that fo
 output, serves the files, and patches them into the asset manifest it hands the client, so
 **rebuild the WebAPI after building the mods**.
 
+The build also copies the stock movies of every minigame in `src/Resources/Minigames` (and the tower
+defense towers and maps and the games' tutorials they load), with the images their `.lst` names, into
+`src/Resources/ClientMods/Minigames`, unchanged. The client loads a minigame's movie and its images only
+from its local packs, never from the asset server, and the launcher's client ships only the daily wheel's,
+so without them a game opens to "swf not found". Most of them aren't in the client's packs, so build with
+`--assets` (or add `--minigame-assets <folder>` to a `--client` build); `--only minigames` copies just
+them. `install_client_mods.py` packs the ones the client lacks into Sanctuary's pack. Spot the Difference
+(`game_hidden`) is missing 52 images from the asset copy, so it stays out of the Games window.
+
 What gets built:
 
 | Published file | Stock movie | Change |

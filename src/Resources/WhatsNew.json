@@ -1,5 +1,10 @@
 [
   {
+    "Title": "Minigames are open!",
+    "Text": "Open the Games window from the Main Menu to mine ore, forge gear, cook, smelt, sort the mail, defend your farm, keep the beat, or play chess and checkers. Win to earn coins, stars for your job and whatever you made.",
+    "Icon": "wheel"
+  },
+  {
     "Title": "The Mysterious Merchant is back",
     "Text": "Cragara turns up in a different town every hour, selling things you won't find in the Shop: a Retro Hover-Car, the OSFR Foam Costume, streetwear, new hairstyles and more. Watch chat to find out where she is, and be quick: she never stays long!",
     "Icon": "bag"
