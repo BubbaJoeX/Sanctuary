@@ -18,6 +18,7 @@ script_dir = Path(__file__).resolve().parent
 # zone_terrain.py (collision trees, DXT1) lives with the other client mod tools.
 sys.path.insert(0, str(script_dir.parent / "ClientMods"))
 
+from zoneeditor import granny  # noqa: E402
 from zoneeditor.server import serve  # noqa: E402
 from zoneeditor.workspace import Workspace  # noqa: E402
 
@@ -47,6 +48,8 @@ def main():
 
     url = f"http://{args.host}:{args.port}/"
     print(f"Zone editor at {url} (saving into {workspace.resources}). Ctrl+C to stop.")
+    if not granny.available():
+        print(f"Animated props and characters stand still: no granny2.dll at {granny.DLL_PATH} (set FR_GRANNY_DLL).")
     if not args.no_browser:
         webbrowser.open(url)
     try:

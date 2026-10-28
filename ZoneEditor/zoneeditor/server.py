@@ -107,14 +107,28 @@ class Handler(BaseHTTPRequestHandler):
 
     def get_model(self, query, body):
         model = self.workspace.model(query["name"])
+        skinned = bool(model["skin_bones"])
         self.send(200, json.dumps({
             "min": model["min"], "max": model["max"], "aliases": model["aliases"],
             "skeleton": model["skeleton"], "attach": model["attach"],
+            "animations": model["animations"], "skinBones": model["skin_bones"],
             "meshes": [{"texture": m["texture"], "overlay": m["overlay"], "mask": m["mask"], "shader": m["shader"],
-                        "alpha": m["alpha"], "positions": b64(m["positions"]), "uvs": b64(m["uvs"]),
+                        "alpha": m["alpha"], "maps": m["maps"], "params": m["params"],
+                        "positions": b64(m["positions"]), "uvs": b64(m["uvs"]),
+                        "uvs2": b64(m["uvs2"]) if m["uvs2"] is not None else None,
                         "normals": b64(m["normals"]) if m["normals"] is not None else None,
+                        "joints": b64(m["joints"]) if skinned and m["joints"] is not None else None,
+                        "weights": b64(m["weights"]) if skinned and m["joints"] is not None else None,
                         "indices": b64(m["indices"])} for m in model["meshes"]],
         }).encode(), "application/json", cache=True)
+
+    def get_animation(self, query, body):
+        """A .gr2 clip sampled for the viewport (granny.bake): each bone's rotation, position and scale."""
+        from . import granny
+
+        if not granny.available():
+            return self.send_json({"error": f"Animations need granny2.dll at {granny.DLL_PATH} (set FR_GRANNY_DLL)."}, 404)
+        self.send(200, self.workspace.animation(query["name"]), "application/json", cache=True)
 
     def get_actor_set(self, query, body):
         """A character's parts (.agr): each part's actor, texture aliases, tint alias and slot, and its tints."""

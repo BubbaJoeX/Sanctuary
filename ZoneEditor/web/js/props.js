@@ -6,7 +6,8 @@
 // texture variant) and tintAlias one of its tint aliases, with tint the object's own [r, g, b, 0] (0..1).
 import * as THREE from "three";
 import { ASSET_VERSION, decodeBase64, getJson } from "./api.js";
-import { loadTexture } from "./textures.js";
+import { copyTemplate, playIdle, skinTemplate } from "./animation.js";
+import { forgelightMaterial } from "./materials.js";
 
 export class PropLibrary {
   constructor() {
@@ -16,25 +17,12 @@ export class PropLibrary {
     this.placeholderMaterial = new THREE.MeshLambertMaterial({ color: 0xff44aa, wireframe: true });
   }
 
-  // alpha is the material's use of its texture's alpha: "test" (cutout), "blend" (glass), "water" (drawn as
-  // tinted water: the client's water shader takes wave normal maps) or null (a mask, ignored).
-  // tint ([r, g, b], 0..1) multiplies the texture, as an object's tint alias does in game.
-  material(texture, alpha, tint = null) {
-    const key = `${texture || ""}|${alpha || ""}|${tint ? tint.slice(0, 3).map((v) => v.toFixed(3)).join(",") : ""}`;
-    if (alpha === "water" && !this.materials.has(key)) {
-      this.materials.set(key, new THREE.MeshPhongMaterial({
-        color: 0x2b7d9c, specular: 0x9fd4ff, shininess: 80, transparent: true, opacity: 0.62, depthWrite: false, side: THREE.DoubleSide,
-      }));
-    }
-    if (!this.materials.has(key)) {
-      const material = new THREE.MeshLambertMaterial({
-        color: texture ? 0xffffff : 0xb0b0b0, side: alpha ? THREE.DoubleSide : THREE.FrontSide,
-        alphaTest: alpha === "test" ? 0.4 : 0, transparent: alpha === "blend", opacity: alpha === "blend" ? 0.75 : 1,
-        depthWrite: alpha !== "blend", map: texture ? loadTexture(texture) : null,
-      });
-      if (tint) material.color.setRGB(tint[0], tint[1], tint[2], THREE.SRGBColorSpace);
-      this.materials.set(key, material);
-    }
+  // A mesh's material as the game draws it (materials.js), shared by every object showing the same mesh with the
+  // same texture variant and tint. texture is the variant's colour texture; tint ([r, g, b], 0..1) an object's tint
+  // alias colour.
+  material(base, texture = base.texture, tint = null) {
+    const key = `${base.key}|${texture || ""}|${tint ? tint.slice(0, 3).map((v) => v.toFixed(3)).join(",") : ""}`;
+    if (!this.materials.has(key)) this.materials.set(key, forgelightMaterial(base, texture, tint));
     return this.materials.get(key);
   }
 
@@ -44,26 +32,36 @@ export class PropLibrary {
     if (!this.models.has(key)) {
       this.models.set(key, getJson(`api/model?name=${encodeURIComponent(file)}&v=${ASSET_VERSION}`).then((data) => {
         const group = new THREE.Group();
-        for (const mesh of data.meshes) {
+        const parts = [];
+        data.meshes.forEach((mesh, index) => {
           const geometry = new THREE.BufferGeometry();
           geometry.setAttribute("position", new THREE.BufferAttribute(decodeBase64(mesh.positions, Float32Array), 3));
           geometry.setAttribute("uv", new THREE.BufferAttribute(decodeBase64(mesh.uvs, Float32Array), 2));
+          // A DualTexture material's second UV set, which its Diffuse2 layer is drawn on.
+          if (mesh.uvs2) geometry.setAttribute("uvOverlay", new THREE.BufferAttribute(decodeBase64(mesh.uvs2, Float32Array), 2));
           geometry.setIndex(new THREE.BufferAttribute(decodeBase64(mesh.indices, Uint32Array), 1));
           if (mesh.normals) geometry.setAttribute("normal", new THREE.BufferAttribute(decodeBase64(mesh.normals, Float32Array), 3));
           else geometry.computeVertexNormals();
           geometry.computeBoundingSphere();
-          const part = new THREE.Mesh(geometry, this.material(mesh.texture, mesh.alpha));
+          // overlay and mask: a DualTexture material's second layer (face paint) and a TintMask material's mask; maps
+          // and params the material's other textures and constants (glow, specular, scrolling, water, waterfalls).
+          const base = {
+            key: `${key}#${index}`, texture: mesh.texture, alpha: mesh.alpha, overlay: mesh.overlay, mask: mesh.mask,
+            shader: mesh.shader, maps: mesh.maps || {}, params: mesh.params || {}, uv2: !!mesh.uvs2,
+          };
+          const part = new THREE.Mesh(geometry, this.material(base));
           part.castShadow = mesh.alpha !== "blend" && mesh.alpha !== "water";
           part.receiveShadow = true;
-          // overlay and mask: a DualTexture material's second layer (face paint) and a TintMask material's mask.
-          part.userData.base = { texture: mesh.texture, alpha: mesh.alpha, overlay: mesh.overlay, mask: mesh.mask, shader: mesh.shader };
+          part.userData.base = base;
           group.add(part);
-        }
+          parts.push(part);
+        });
         group.userData.aliases = data.aliases || NO_ALIASES;
         // A character part's skeleton, and the bones gear (a weapon) fastens to.
         group.userData.skeleton = data.skeleton || null;
         group.userData.attach = data.attach || {};
-        return group;
+        // An animated prop's meshes are skinned to its skeleton, which its idle clip moves.
+        return skinTemplate(group, data, parts);
       }).catch(() => {
         const group = new THREE.Group();
         group.add(new THREE.Mesh(this.placeholder, this.placeholderMaterial));
@@ -177,13 +175,15 @@ export class PropLayer {
     return this.library.model(file).then((template) => {
       if (object.userData.file !== file) return;
       object.userData.aliases = template.userData.aliases;
-      for (const child of template.children) {
-        const mesh = child.clone();
-        mesh.base = child.userData.base;
-        mesh.userData = object.userData;
-        object.add(mesh);
+      for (const node of copyTemplate(template)) {
+        if (node.isMesh) {
+          node.base = node.userData.base;
+          node.userData = object.userData;
+        }
+        object.add(node);
       }
       this.applyAppearance(object);
+      if (template.userData.skinned) playIdle(object, template);
     });
   }
 
@@ -201,7 +201,7 @@ export class PropLayer {
     const tint = record.tintAlias && record.tint ? record.tint : null;
     for (const mesh of object.children) {
       if (!mesh.isMesh || !mesh.base) continue;
-      mesh.material = this.library.material(variantTexture(aliases, record.material, mesh.base.texture), mesh.base.alpha, tint);
+      mesh.material = this.library.material(mesh.base, variantTexture(aliases, record.material, mesh.base.texture), tint);
     }
   }
 

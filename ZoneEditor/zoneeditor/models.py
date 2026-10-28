@@ -145,8 +145,9 @@ def actor_attach_bones(blob: bytes) -> dict:
 
 
 def read_skeleton(blob: bytes) -> dict:
-    """A DSKE skeleton's bones in their bind pose: {NAME: 16 floats}, each the bone's model-space matrix as
-    Direct3D lays it out (row vectors, translation in the last row), which is three.js's column-major order.
+    """A DSKE skeleton's bones in their bind pose: {"bones": {NAME: 16 floats}}, each the bone's model-space matrix
+    as Direct3D lays it out (row vectors, translation in the last row), which is three.js's column-major order; and
+    the hierarchy to animate it with: "names" in order, each one's "parent" index (-1 for a root) and "local" matrix.
 
     "DSKE", u32 version, i32 names length, the NUL-separated names, i32 bone count, per bone (u32 name offset,
     i16 parent, i16 first child), then per bone 12 floats: its rotation rows and translation, relative to its parent.
@@ -172,12 +173,34 @@ def read_skeleton(blob: bytes) -> dict:
             world[i] = local[i] if parent < 0 or parent >= count or parent == i else local[i] @ model_space(parent)
         return world[i]
 
-    bones = {}
-    for i, (name_offset, _, _) in enumerate(links):
+    bones, order, parents, locals_ = {}, [], [], []
+    for i, (name_offset, parent, _) in enumerate(links):
         end = names.find(b"\0", name_offset)
         name = names[name_offset : end if end >= 0 else None].decode("latin-1").upper()
         bones[name] = [round(float(v), 6) for v in model_space(i).ravel()]
-    return {"bones": bones}
+        order.append(name)
+        parents.append(parent if 0 <= parent < count and parent != i else -1)
+        locals_.append([round(float(v), 6) for v in local[i].ravel()])
+    return {"bones": bones, "names": order, "parents": parents, "local": locals_}
+
+
+def actor_animations(blob: bytes) -> dict:
+    """An actor's animations (record 9): {clip name: {"file": its .gr2, "duration": seconds}}. loc_stand is the
+    one it plays standing about: a windmill's sails, a flag in the wind, a bird circling."""
+    clips = {}
+    try:
+        for tag, record in _adr_fields(blob):
+            if tag != 9:
+                continue
+            for _, entry in _adr_fields(record):
+                fields = dict(_adr_fields(entry))
+                name, file = _cstring(fields.get(1, b"\0")), _cstring(fields.get(2, b"\0"))
+                if name and file and name not in clips:
+                    duration = fields.get(4, b"")
+                    clips[name] = {"file": file, "duration": struct.unpack(">f", duration[:4])[0] if len(duration) >= 4 else None}
+    except ValueError:
+        pass
+    return clips
 
 
 def actor_set(blob: bytes) -> dict:
@@ -258,11 +281,30 @@ def actor_group_members(blob: bytes) -> list:
 # texture, the second colour layer of DualTexture materials (a head's face paint, drawn over the skin by its alpha),
 # and the mask of TintMask materials (greyscale: where the dye or tint alias colours the diffuse).
 TEXTURE_ROLES = {jenkins("Diffuse"): "diffuse", jenkins("Diffuse2"): "overlay", jenkins("TintMask"): "mask"}
+# The other maps and the constants the game's shaders draw with (their effects in Client/Shaders): glow and specular
+# masks, water's three wave normal maps and a waterfall's two scrolling layers and masks; the material's own tint
+# (TintSemantic), glow and specular strength, UV scrolling, double-sidedness, and water and waterfall settings.
+MAP_PARAMS = {jenkins(name): name for name in (
+    "GlowMap", "SpecularMap", "BumpMap1", "BumpMap2", "BumpMap3", "Texture1", "Texture2", "Mask1", "Mask2")}
+VALUE_PARAMS = {jenkins(name): name for name in (
+    "TintSemantic", "Glow", "Spec", "ScrollU", "ScrollV", "DoubleSided", "DoubleSidedDefaultFalse",
+    "TexScale1", "TexScale2", "TexScale3", "TexScrollX1", "TexScrollZ1", "TexScrollX2", "TexScrollZ2",
+    "TexScrollX3", "TexScrollZ3", "Bumpiness1", "Bumpiness2", "Bumpiness3", "Fresnel", "Density",
+    "TexScroll1", "TexScroll2", "MaskScale1", "MaskScale2", "MaskScroll1", "MaskScroll2", "Divergence")}
+
+
+def _parameter_value(parameter_class: int, parameter_type: int, payload: bytes):
+    """A scalar (class 0: bool or int, else float) or a four-float vector (class 1); None for anything else."""
+    if parameter_class == 0 and len(payload) == 4:
+        return struct.unpack("<i" if parameter_type in (1, 2) else "<f", payload)[0]
+    if parameter_class == 1 and len(payload) == 16:
+        return [round(v, 6) for v in struct.unpack("<4f", payload)]
+    return None
 
 
 def _dma_materials(blob: bytes):
-    """A DMAT's textures and, per material, its definition hash, the textures its parameters use and which of
-    them is its diffuse, overlay and mask."""
+    """A DMAT's textures and, per material, its definition hash, the textures its parameters use, which of
+    them is its diffuse, overlay and mask, its other maps by parameter name, and its constants by name."""
     r = Reader(blob)
     if r.take(4) != b"DMAT":
         raise ValueError("not a DMAT")
@@ -275,11 +317,11 @@ def _dma_materials(blob: bytes):
         body = Reader(r.take(r.unpack("i")))
         definition = body.unpack("I")
         picked = []
-        roles = {}
+        roles, maps, values = {}, {}, {}
         for _ in range(body.unpack("i")):
             parameter = body.unpack("I")
             parameter_class = body.unpack("I")
-            body.unpack("I")
+            parameter_type = body.unpack("I")
             payload = body.take(body.unpack("i"))
             if parameter_class == 4 and len(payload) >= 4:
                 value = struct.unpack_from("<I", payload)[0]
@@ -287,7 +329,13 @@ def _dma_materials(blob: bytes):
                 picked.append(texture)
                 if texture and parameter in TEXTURE_ROLES:
                     roles[TEXTURE_ROLES[parameter]] = texture
-        materials.append((definition, [t for t in picked if t], roles))
+                elif texture and parameter in MAP_PARAMS:
+                    maps[MAP_PARAMS[parameter]] = texture
+            elif parameter in VALUE_PARAMS:
+                value = _parameter_value(parameter_class, parameter_type, payload)
+                if value is not None:
+                    values[VALUE_PARAMS[parameter]] = value
+        materials.append((definition, [t for t in picked if t], roles, maps, values))
     return textures, materials
 
 
@@ -311,31 +359,35 @@ def parse_dme(blob: bytes, library: MaterialLibrary) -> dict:
     textures, materials = _dma_materials(r.take(r.unpack("i")))
     bounds_min, bounds_max = r.unpack("3f"), r.unpack("3f")
     count = r.unpack("i") if version >= 3 else len(materials)
-    meshes = []
+    meshes, skins = [], []
     for index in range(count):
-        r.take(16)
+        # Its draw calls (after the meshes) say which bones each run of its vertices is skinned to.
+        draw_call_offset, draw_call_count, _, _ = r.unpack("4i")
         stride, vertex_count, index_size, index_count = r.unpack("4i")
         vertex_data = r.take(vertex_count * stride)
         index_data = r.take(index_count * index_size)
-        definition, candidates, roles = materials[index] if index < len(materials) else (0, [], {})
+        definition, candidates, roles, maps, values = materials[index] if index < len(materials) else (0, [], {}, {}, {})
         layout = library.layout(stride, definition)
 
         raw = np.frombuffer(vertex_data, np.uint8).reshape(vertex_count, stride)
         positions = raw[:, :12].copy().view("<f4").reshape(-1, 3)
         normals = None
-        uvs = None
+        uv_sets = {}
         for offset, kind, usage, usage_index in layout:
             if usage == "Position" and kind == "Float3":
                 positions = raw[:, offset : offset + 12].copy().view("<f4").reshape(-1, 3)
             elif usage == "Normal" and kind == "Float3" and normals is None:
                 normals = raw[:, offset : offset + 12].copy().view("<f4").reshape(-1, 3)
-            elif usage == "Texcoord" and usage_index == 0 and uvs is None:
+            elif usage == "Texcoord" and usage_index in (0, 1) and usage_index not in uv_sets:
+                # The second set is a DualTexture material's: its Diffuse2 layer (signs, decals) is drawn on it.
                 if kind == "Float2":
-                    uvs = raw[:, offset : offset + 8].copy().view("<f4").reshape(-1, 2)
+                    uv_sets[usage_index] = raw[:, offset : offset + 8].copy().view("<f4").reshape(-1, 2)
                 elif kind == "Float16_2":
-                    uvs = raw[:, offset : offset + 4].copy().view("<f2").reshape(-1, 2).astype(np.float32)
+                    uv_sets[usage_index] = raw[:, offset : offset + 4].copy().view("<f2").reshape(-1, 2).astype(np.float32)
                 elif kind == "Short2":
-                    uvs = raw[:, offset : offset + 4].copy().view("<i2").reshape(-1, 2).astype(np.float32) / 2048
+                    uv_sets[usage_index] = raw[:, offset : offset + 4].copy().view("<i2").reshape(-1, 2).astype(np.float32) / 2048
+        uvs = uv_sets.get(0)
+        skins.append((raw, layout, draw_call_offset, draw_call_count))
         indices = np.frombuffer(index_data, "<u2" if index_size == 2 else "<u4").astype(np.uint32)
         # Front faces wind clockwise (Direct3D); the viewport's are counter-clockwise.
         indices = indices[: len(indices) // 3 * 3].reshape(-1, 3)[:, [0, 2, 1]].ravel()
@@ -343,6 +395,7 @@ def parse_dme(blob: bytes, library: MaterialLibrary) -> dict:
             "positions": positions.astype(np.float32),
             "normals": normals.astype(np.float32) if normals is not None else None,
             "uvs": uvs if uvs is not None else np.zeros((vertex_count, 2), np.float32),
+            "uvs2": uv_sets.get(1),
             "indices": indices,
             # The material's own Diffuse parameter when it names one; a DualTexture head's first texture is its face paint.
             "texture": roles.get("diffuse") or _diffuse(candidates, textures),
@@ -350,8 +403,54 @@ def parse_dme(blob: bytes, library: MaterialLibrary) -> dict:
             "mask": roles.get("mask"),
             "shader": library.names.get(definition, ""),
             "alpha": library.alpha(definition),
+            "maps": maps,
+            "params": values,
         })
-    return {"meshes": meshes, "min": bounds_min, "max": bounds_max}
+
+    # Skinning: the draw calls, the bone map (which bone each draw call loads into each palette register) and
+    # the mesh's bones, named by the Jenkins hash of their upper-case names (the .dsk's).
+    try:
+        calls = [r.unpack("9i") for _ in range(r.unpack("i"))]
+        bone_map = [r.unpack("2H") for _ in range(r.unpack("i"))]
+        bone_count = r.unpack("i")
+        r.take(72 * bone_count)              # inverse bind matrices and bounds
+        bone_hashes = [r.unpack("I") for _ in range(bone_count)]
+    except (struct.error, ValueError, IndexError):
+        calls, bone_map, bone_hashes = [], [], []
+    for mesh, (raw, layout, first, call_count) in zip(meshes, skins):
+        mesh["joints"], mesh["weights"] = _skin(raw, layout, calls[first : first + call_count], bone_map)
+    return {"meshes": meshes, "min": bounds_min, "max": bounds_max, "bone_hashes": bone_hashes}
+
+
+def _skin(raw: np.ndarray, layout: list, calls: list, bone_map: list):
+    """Per vertex, four indices into the mesh's bones and their weights, or (None, None) for a rigid mesh.
+
+    A vertex names palette registers (BlendIndices: four bytes in order, though the layout calls them a D3DCOLOR)
+    and three weights (the fourth is what's left); each draw call loads bones into the registers for its run of
+    vertices.
+    """
+    entries = {usage: (offset, kind) for offset, kind, usage, _ in layout}
+    if "BlendIndices" not in entries or not calls:
+        return None, None
+    count = len(raw)
+    offset = entries["BlendIndices"][0]
+    registers = raw[:, offset : offset + 4].astype(np.int64)
+    weights = np.zeros((count, 4), np.float32)
+    weights[:, 0] = 1
+    if entries.get("BlendWeight", (0, ""))[1] == "Float3":
+        offset = entries["BlendWeight"][0]
+        weights[:, :3] = raw[:, offset : offset + 12].copy().view("<f4").reshape(-1, 3)
+        weights[:, 3] = np.clip(1 - weights[:, :3].sum(axis=1), 0, 1)
+    joints = np.zeros((count, 4), np.uint16)
+    for _, bone_start, bone_count, _, _, vertex_offset, vertex_count, _, _ in calls:
+        table = np.zeros(256, np.int64)
+        for bone, register in bone_map[bone_start : bone_start + bone_count]:
+            if register < 256:
+                table[register] = bone
+        span = slice(max(0, vertex_offset), min(vertex_offset + vertex_count, count))
+        joints[span] = table[registers[span]]
+    joints[weights <= 0] = 0
+    return joints, weights
 
 
 def open_texture(blob: bytes):

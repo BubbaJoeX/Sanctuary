@@ -30,7 +30,7 @@ from pathlib import Path
 import numpy as np
 
 from . import formats, models, terrain
-from .assets import AssetSource, compress, decompress
+from .assets import AssetSource, compress, decompress, jenkins
 from .formats import CHUNK_TILES, ECO_MAP_SIZE, TILE_SIZE, Chunk, ColourMap, Light, Object, Zone
 
 NAME = re.compile(r"^[a-z][a-z0-9_]{2,47}$")
@@ -435,9 +435,30 @@ class Workspace:
         # A character part's skeleton, and where gear (a weapon) fastens to it.
         model["skeleton"] = models.actor_skeleton(definition) if definition else None
         model["attach"] = models.actor_attach_bones(definition) if definition else {}
+        # What it plays (loc_stand standing about), and the skeleton's names of the bones its meshes are skinned to.
+        model["animations"] = models.actor_animations(definition) if definition else {}
+        model["skin_bones"] = []
+        if model["skeleton"] and any(m["joints"] is not None for m in model["meshes"]):
+            try:
+                names = {jenkins(name): name for name in self.skeleton(model["skeleton"])["names"]}
+                model["skin_bones"] = [names.get(h) for h in model["bone_hashes"]]
+            except (KeyError, ValueError):
+                pass
         with self.lock:
             self._model_cache[actor.lower()] = model
         return model
+
+    def animation(self, file: str) -> bytes:
+        """A .gr2 clip baked for the viewport (granny.bake) as JSON, kept in .cache/anims once baked."""
+        from . import granny
+
+        path = self.cache_dir / "anims" / (file.lower() + ".json")
+        if path.is_file():
+            return path.read_bytes()
+        data = json.dumps(granny.bake(self.assets.read(file))).encode()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        return data
 
     def actor_set(self, name: str) -> dict:
         """An .agr character's parts and customization tints (models.actor_set)."""

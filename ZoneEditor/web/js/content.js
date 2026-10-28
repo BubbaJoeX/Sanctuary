@@ -4,6 +4,7 @@
 // favourites, recently placed and name prefixes (bw_ Briarwood, sh_ Snowhill, hsg_ housing, ...) as groups,
 // and kinds (trees, rocks, buildings, ...) matched from names. Click a tile to place it, or drag it into the view.
 import * as THREE from "three";
+import { copyTemplate } from "./animation.js";
 import { getJson } from "./api.js";
 
 const REGIONS = {
@@ -92,7 +93,7 @@ class Thumbnails {
   async render(name) {
     const template = await this.library.model(name);
     const group = new THREE.Group();
-    for (const child of template.children) group.add(child.clone());
+    for (const node of copyTemplate(template)) group.add(node);
     // Give the textures a moment to arrive.
     const maps = [];
     group.traverse((o) => { if (o.material?.map) maps.push(o.material.map); });

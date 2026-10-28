@@ -6,6 +6,7 @@
 //
 // Server headings, pitch and roll are the editor's yaw, pitch and roll (radians, three's 'YXZ' order).
 import * as THREE from "three";
+import { characterRig, finishRig, playClip, skinOn } from "./animation.js";
 import { getJson } from "./api.js";
 import { applyTransform, variantTexture } from "./props.js";
 import { loadTexture } from "./textures.js";
@@ -96,19 +97,26 @@ class LookBuilder {
   async build(look, { glow = false } = {}) {
     const parts = await this.parts(look);
     const [templates, tints] = await Promise.all([Promise.all(parts.map((p) => this.library.model(p.file))), this.tintColours()]);
-    // The body's skeleton, when some part fastens to one of its bones: rigid gear names its bone (a weapon's
-    // R_weapon, a parachute's backpack). Clothes, and pixie wings, are already where they go in the bind pose.
-    // The body comes first, in a player's look and in an .agr; a lone actor fastens to nothing.
-    const fastened = templates.length > 1 && templates.slice(1).some((t) => Object.keys(t.userData.attach).length);
-    const skeletonName = fastened ? templates[0].userData.skeleton : null;
-    const bones = skeletonName ? (await this.skeleton(skeletonName))?.bones : null;
+    const body = templates[0];
     const group = new THREE.Group();
-    parts.forEach((part, i) => {
+    // A body with a skeleton and an idle clip stands about as in game: every part skinned to the body's skeleton,
+    // rigid gear (a weapon's R_weapon, a parachute's backpack) on its bone, and the body's loc_stand playing.
+    const rig = body && !body.userData.missing && body.userData.skinned && body.userData.idle
+      ? await characterRig(body.userData.skeletonName).catch(() => null) : null;
+    if (rig) finishRig(rig, group);
+    // Otherwise the bind pose, with gear fastened where its bone is in it. Clothes, and pixie wings, are already
+    // where they go in the bind pose. The body comes first, in a player's look and in an .agr; a lone actor fastens
+    // to nothing.
+    const fastened = !rig && templates.length > 1 && templates.slice(1).some((t) => Object.keys(t.userData.attach).length);
+    const skeletonName = fastened ? body.userData.skeleton : null;
+    const bones = skeletonName ? (await this.skeleton(skeletonName))?.bones : null;
+    for (const [i, part] of parts.entries()) {
       const template = templates[i];
-      if (template.userData.missing) { console.warn(`Live: no actor ${part.file}`); return; }
+      if (template.userData.missing) { console.warn(`Live: no actor ${part.file}`); continue; }
       const node = new THREE.Group();
-      const bone = i > 0 ? Object.values(template.userData.attach)[0] : null;
-      const matrix = bone && bones?.[bone.toUpperCase()];
+      const bone = i > 0 ? Object.values(template.userData.attach)[0]?.toUpperCase() : null;
+      const holder = rig && bone && rig.index.has(bone) ? rig.bones[rig.index.get(bone)] : group;
+      const matrix = !rig && bone && bones?.[bone];
       if (matrix) {
         node.matrixAutoUpdate = false;
         node.matrix.fromArray(matrix);
@@ -116,13 +124,22 @@ class LookBuilder {
       const colour = tintColour(part, template.userData.aliases, tints);
       for (const child of template.children) {
         if (!child.isMesh || !child.userData.base) continue;
-        const mesh = new THREE.Mesh(child.geometry, this.material(child.userData.base, template.userData.aliases, part.textures, colour, glow));
+        const material = this.material(child.userData.base, template.userData.aliases, part.textures, colour, glow);
+        let mesh;
+        if (rig && child.isSkinnedMesh && holder === group) {
+          mesh = new THREE.SkinnedMesh(await skinOn(child.geometry, template.userData.skeletonName, rig), material);
+          mesh.frustumCulled = false;
+          mesh.bind(rig.skeleton, new THREE.Matrix4());
+        } else {
+          mesh = new THREE.Mesh(child.geometry, material);
+        }
         mesh.castShadow = child.castShadow;
         mesh.receiveShadow = true;
         node.add(mesh);
       }
-      group.add(node);
-    });
+      holder.add(node);
+    }
+    if (rig) playClip(group, body.userData.idle, body.userData.skeletonName);
     return group;
   }
 

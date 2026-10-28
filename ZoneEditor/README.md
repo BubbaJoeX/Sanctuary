@@ -166,8 +166,20 @@ slope, sit above or sink into the ground, and take a texture variant and tint.
 
 It draws the world as the client does, with its coordinates as they are. The ground is the colour map with
 each eco's detail texture blended in by the eco weights (up to 4 per chunk). Props use their own normals and
-diffuse textures, uploaded as the client's DDS files with their mipmaps; cutout foliage, glass and water
-follow their material definitions. Lighting comes from the sky file in use, by time of day (View → Time of day):
+diffuse textures, uploaded as the client's DDS files with their mipmaps, and their materials are drawn with the
+game's shader math (`web/js/materials.js`, from the client's compiled effects):
+- cutout foliage and fences drop pixels below the game's 0.78 alpha, and are two-sided where the material says;
+- glow lights a surface with its own colour (lamps, lit windows, fairy flora, Blackspore's fly traps), masked by a
+  GlowMap or the texture's alpha;
+- specular highlights are masked the same way;
+- a material's own tint colours it, and TintMask materials (housing walls, balloons) only where their mask says;
+- UVs scroll where the material scrolls them, and a DualTexture sign or decal lays its second layer on its second
+  UV set;
+- water is lit through its three drifting wave maps and gets more opaque at a glancing angle;
+- waterfalls slide two layers of their texture and two masks down at their own speeds.
+
+**Animation.** Animated props (birds circling, flags and banners, windmills, string lights, balloons) and the
+live layer's NPCs and players play their `loc_stand` clip, as they do standing about in game. Lighting comes from the sky file in use, by time of day (View → Time of day):
 sun colour, brightness and direction, fog, and sky and ground light from its ambient gradient. Without a zone
 sky it follows the environment of the tile under the camera, like the client. The sun casts shadows near the
 camera, and the zone's own point lights nearest the camera light the scene.
@@ -223,9 +235,16 @@ Gateway sends each player's and NPC's look as actor parts (`zoneeditor/models.py
 set lists a character's parts: its race's body in a skin tone, a head with face paint, hair and facial hair in
 the set's hair tint, and gear, each with the texture aliases it wears (one per material slot) and its tint alias.
 A player's look is the same from their own data, with item actors' `<race>`, `<gender>` and `<hairtype>`
-(`hat` under headgear) filled in. Every part's meshes share the body's skeleton in its bind pose, so they're drawn
-in place as they are; rigid gear with an attach point in its `.adr` (record 15: a weapon's `R_weapon`) is
-fastened to that bone of the body's `.dsk` skeleton (`DSKE`: bones relative to their parents). Each mesh's
+(`hat` under headgear) filled in. Every part's meshes are skinned to the body's skeleton (`.dsk`, `DSKE`: bones
+relative to their parents; parts made on another skeleton are matched by bone name); rigid gear with an attach
+point in its `.adr` (record 15: a weapon's `R_weapon`) hangs from that bone, so it follows the body as it moves.
+A mesh's skinning is in its `.dme` after the meshes: each vertex names palette registers (BlendIndices, four bytes)
+with three weights, each draw call loads bones into the registers for its run of vertices, and the mesh's bones
+are named by the Jenkins hash of the skeleton's. An actor's clips are its `.adr` record 9 (name, `.gr2` file,
+duration); `loc_stand` is the idle. Clips are Granny files, whose curves are compressed in many encodings and
+whose sections are Oodle-compressed, so the server samples them with RAD's own runtime (`granny2.dll`, x64:
+`FR_GRANNY_DLL`, else `D:\FreeRealms\granny2.dll`; `zoneeditor/granny.py`) 30 times a second into keyframes,
+kept in `.cache/anims`. Without the DLL nothing animates. Each mesh's
 textures are told apart by its material's parameter names (Jenkins hashes): `Diffuse`, `Diffuse2` (a head's face
 paint, laid over the skin by its alpha) and `TintMask` (greyscale: where the tint colours it). A tint is the
 part's tint alias's colour on its actor, else its `Tints.xml` colour (a dye, or the hair colour; `dyetint` says
@@ -233,5 +252,5 @@ the dye decides), applied as the client's shaders do: twice the colour in gamma 
 hair, the whole mesh.
 
 Not covered yet: chunks older than version 5 (a few minigame zones) don't load, flora isn't drawn, and
-invisible walls, client areas and groups are kept as they are but not editable. Live characters stand in their
-bind pose (animations aren't played), and eye colour isn't applied.
+invisible walls, client areas and groups are kept as they are but not editable. Particle effects (fires,
+torches, moths, mist) aren't drawn, characters only play their idle, and eye colour isn't applied.

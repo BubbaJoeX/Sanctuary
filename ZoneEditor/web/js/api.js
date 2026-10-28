@@ -1,7 +1,7 @@
 // The editor server's API (zoneeditor/server.py). Binary bodies are a u32 length, JSON, then the blobs it sizes.
 
 // Models and textures are cached by the browser for a day; bump this when the server's output for them changes.
-export const ASSET_VERSION = 5;
+export const ASSET_VERSION = 7;
 
 export async function getJson(path) {
   const response = await fetch(path);

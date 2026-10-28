@@ -6,6 +6,8 @@ import { CHUNK, FALLOFFS, STEP, TILE, TerrainChunk, TerrainManager, environmentC
 import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform, variantNames } from "./props.js";
 import { ContentBrowser } from "./content.js";
 import { LiveLayer } from "./live.js";
+import { shaderTime } from "./materials.js";
+import { copyTemplate, updateAnimations } from "./animation.js";
 import { ScriptEditor } from "./script-editor.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
@@ -1815,12 +1817,13 @@ function makeGhost() {
   scene.add(holder);
   library.model(state.actor).then((template) => {
     if (ghost !== holder) return;
-    for (const child of template.children) {
-      const mesh = child.clone();
-      mesh.material = mesh.material.clone();
-      mesh.material.transparent = true;
-      mesh.material.opacity = 0.55;
-      holder.add(mesh);
+    for (const node of copyTemplate(template)) {
+      if (node.isMesh) {
+        node.material = node.material.clone();
+        node.material.transparent = true;
+        node.material.opacity = 0.55;
+      }
+      holder.add(node);
     }
   });
 }
@@ -2765,6 +2768,8 @@ function frame() {
       updateDirty();
     }
     if (scatter && pointer.buttons & 1) scatterStep(dt);
+    shaderTime.value += dt;
+    updateAnimations(dt, camera);
     live.update(dt, camera);
     for (const box of selectionBoxes.values()) box.update();
     if (ghost && hover) ghost.position.set(hover.x, hover.y, hover.z);
