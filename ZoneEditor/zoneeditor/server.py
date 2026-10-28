@@ -98,7 +98,9 @@ class Handler(BaseHTTPRequestHandler):
                         "mods": str(ws.mods_dir)})
 
     def get_zone(self, query, body):
-        self.send_json(self.workspace.project(query["name"]).meta())
+        meta = self.workspace.project(query["name"]).meta()
+        self.workspace.remember_zone(query["name"])
+        self.send_json(meta)
 
     def get_chunk(self, query, body):
         project = self.workspace.project(query["zone"])
@@ -226,7 +228,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def post_play(self, query, body):
         data = json.loads(body or b"{}")
-        self.send_json(self.workspace.play(bool(data.get("servers")), data.get("zone"), data.get("cells") or []))
+        self.send_json(self.workspace.play(bool(data.get("servers")), data.get("zone")))
 
     def post_zone_eco(self, query, body):
         data = json.loads(body)

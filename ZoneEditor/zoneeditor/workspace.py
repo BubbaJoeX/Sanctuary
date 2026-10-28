@@ -219,7 +219,7 @@ class Workspace:
         self._launching = False                # a client is being started: its live files stay
         self._grace_until = 0.0
         self._live_record = self.cache_dir / "live.json"
-        self._seed_record = self.cache_dir / "live-seed.json"   # the last Test in game's zone and chunks
+        self._seed_record = self.cache_dir / "live-seed.json"   # the zone last opened or tested, for launch.ps1
         self.live = json.loads(self._live_record.read_text(encoding="utf-8")) if self._live_record.exists() else None
         if self.live_dir.exists():
             # Left by an editor stopped before its client: kept while the client runs, then cleared.
@@ -717,10 +717,10 @@ class Workspace:
         except RuntimeError as error:
             return {"applied": False, "message": str(error)}
 
-    def play(self, servers: bool, zone: str | None = None, cells: list = ()) -> dict:
+    def play(self, servers: bool, zone: str | None = None) -> dict:
         """Closes the client, hides replaced stock assets and starts it again with launch.ps1: the servers
-        too when servers is set, since zone definitions and houses load at startup. The zone's files round cells
-        go to the client as live files (seed_live), so later saves reach it without another restart."""
+        too when servers is set, since zone definitions and houses load at startup. The zone's files go to the
+        client as live files (seed_live), so later saves reach it without another restart."""
         import subprocess
 
         script = self.root / "launch.ps1"
@@ -735,7 +735,7 @@ class Workspace:
                         break
                     time.sleep(0.25)
                 unlock = self.unlock_client()
-                live = self.seed_live(zone, cells)
+                live = self.seed_live(zone)
             # Its output goes to a file, not a pipe: the servers it starts inherit its handles and would hold a pipe
             # open long after it's done, and the editor would wait on it for good.
             log = self.root / "run" / "editor-launch.log"
@@ -770,15 +770,23 @@ class Workspace:
         for pid in self._clients():
             subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True, stdin=subprocess.DEVNULL)
 
+    def remember_zone(self, zone: str):
+        """The zone opened in the editor, which a client launch.ps1 starts on its own gets live files for."""
+        if not self._seed_record.exists() or json.loads(self._seed_record.read_text(encoding="utf-8")).get("zone") != zone:
+            self._seed_record.parent.mkdir(parents=True, exist_ok=True)
+            self._seed_record.write_text(json.dumps({"zone": zone}), encoding="utf-8")
+
     def seed_last(self) -> dict:
-        """Live files for a client launch.ps1 starts on its own: the zone and chunks Test in game last seeded."""
+        """Live files for a client launch.ps1 starts on its own: the zone last opened in the editor or tested."""
         if not self._seed_record.exists():
             return {"zone": None, "files": 0, "chunks": 0}
         last = json.loads(self._seed_record.read_text(encoding="utf-8"))
         with self._live_lock:
             try:
-                live = self.seed_live(last["zone"], last["cells"])
+                live = self.seed_live(last["zone"])
             except (KeyError, ValueError, OSError) as error:
+                # Half a zone would shadow nothing useful and hide the failure; the client starts without it.
+                self._drop_live()
                 return {"zone": None, "files": 0, "chunks": 0, "error": str(error)}
             self._grace_until = time.monotonic() + LIVE_GRACE
         return live
@@ -789,27 +797,31 @@ class Workspace:
     def live_dir(self) -> Path:
         return self.client_dir / LIVE_FOLDER
 
-    def seed_live(self, zone: str | None, cells) -> dict:
-        """Puts a zone's files in the client's live folder before it starts: the zone file, and the chunks and
-        colour maps of cells (the editor's view). The client lists those names once, at startup, so a save that
-        rewrites them (publish_live) shows in game when the ground round them loads again; anything else waits
-        for the next start."""
+    def seed_live(self, zone: str | None) -> dict:
+        """Puts a zone's files in the client's live folder before it starts: the zone file and every chunk and
+        colour map (FabledRealms: about 200 MB, a few seconds). The client lists those names once, at startup,
+        so a save that rewrites them (publish_live) shows in game when the ground round them loads again; a
+        chunk added since, or another zone, waits for the next start."""
         self._drop_live()
         if not zone:
             return {"zone": None, "files": 0, "chunks": 0}
         project = self.project(zone)
-        names = [project.name + ".gzne"]
-        for row, col in sorted({(int(r), int(c)) for r, c in cells} & project.chunk_cells.keys()):
-            for name in (f"{project.name}_{row}_{col}.gcnk", f"{project.name}_{row}_{col}.gck2"):
-                if project._has(name):
-                    names.append(name)
         self.live_dir.mkdir(parents=True, exist_ok=True)
-        for name in names:
-            (self.live_dir / name).write_bytes(project._read(name))
+        names = []
+        cells = sorted(project.chunk_cells)
+        for name in [project.name + ".gzne"] + [f"{project.name}_{row}_{col}.{kind}" for row, col in cells
+                                                for kind in ("gcnk", "gck2")]:
+            try:
+                data = project._read(name)
+            except KeyError:
+                # Listed in the manifest but on no asset server (a few stock chunks): the client has none either.
+                continue
+            (self.live_dir / name).write_bytes(data)
+            names.append(name)
         self.live = {"zone": project.name, "files": names}
         self._live_record.parent.mkdir(parents=True, exist_ok=True)
         self._live_record.write_text(json.dumps(self.live), encoding="utf-8")
-        self._seed_record.write_text(json.dumps({"zone": zone, "cells": [list(c) for c in cells]}), encoding="utf-8")
+        self._seed_record.write_text(json.dumps({"zone": zone}), encoding="utf-8")
         self._watch_live()
         return {"zone": project.name, "files": len(names), "chunks": sum(name.endswith(".gcnk") for name in names)}
 

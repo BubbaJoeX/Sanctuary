@@ -74,15 +74,16 @@ load when the Gateway starts, so a save that changes them ticks **+ servers**, w
 with `launch.ps1 -NoBuild` instead. Getting there: `!moveplayer zone <zone id> <your name>` for a world zone;
 for a housing zone, `!house grant <house id>` and then `!house enter`.
 
-**Saves reach the running client.** Test in game also puts the zone's files, its `.gzne` and the chunks and
-colour maps in view (about 20 chunks, 20 MB), in the client's `zone-editor-live` folder. The client takes loose
+**Saves reach the running client.** Test in game also puts the zone's files, its `.gzne` and every chunk and
+colour map (FabledRealms: 480 chunks, about 200 MB, a few seconds), in the client's `zone-editor-live` folder; a
+client `launch.ps1` starts on its own gets the zone last opened in the editor. The client takes loose
 files there over its packs and the manifest it downloaded: it lists their names when it starts and reads a file
 each time it loads it. So while that client runs, a save copies the chunks it rewrites over those files, and
 from the admin panel your character then steps over to ground at least 2 km away for two seconds and back to
 where it stood, where the client drops the old chunks and reads the new ones: no restart. (Closer than about a
 kilometre, the client keeps the chunk and only re-places its props; with no ground under it, it drops nothing.)
 Opened on its own the editor can't move you, so go a couple of kilometres off and back yourself. What the
-client didn't list when it started (chunks out of view then, new chunks) and zone-wide changes (the `.gzne`:
+client didn't list when it started (new chunks, another zone) and zone-wide changes (the `.gzne`:
 new ecos, the sky) still need Test in game, or re-entering the zone for the `.gzne`. Models the client has
 loaded stay cached until it restarts. The folder goes a few seconds after the client closes, so it can't
 shadow later updates.

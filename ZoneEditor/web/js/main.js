@@ -2836,13 +2836,12 @@ $("#play").addEventListener("click", async () => {
   $("#play").disabled = true;
   toast(servers ? "Restarting the servers and the client…" : "Restarting the client…");
   try {
-    // The chunks in view go to the client as live files, so saving them later shows in game without a restart.
-    const cells = [...terrain.chunks.values()].map((chunk) => [chunk.row, chunk.col]);
-    const result = await postJson("api/play", { servers, zone: state.zone?.id, cells });
+    // The zone's chunks go to the client as live files, so saving them later shows in game without a restart.
+    const result = await postJson("api/play", { servers, zone: state.zone?.id });
     const unlock = result.unlock?.applied
       ? (result.unlock.hidden.length ? `\nHid ${result.unlock.hidden.length} stock file(s) from the client's packs.` : "")
       : `\n${result.unlock?.message || ""}`;
-    const liveNote = result.live?.chunks ? `\nSaves to the ${result.live.chunks} chunks round the view now show in game without a restart.` : "";
+    const liveNote = result.live?.chunks ? `\nSaves to the zone's ${result.live.chunks} chunks now show in game without a restart.` : "";
     toast(`${result.ok ? (servers ? "Servers and client restarted." : "Client restarted.") : "launch.ps1 failed:"}${unlock}${liveNote}\n${result.output.split("\n").slice(-4).join("\n")}`, result.ok ? "ok" : "error");
     if (result.ok && servers) $("#play-servers").checked = false;
   } catch (error) {
