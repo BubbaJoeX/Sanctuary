@@ -88,6 +88,7 @@ WINDOW_PATCHES = [
     # The video recorder/screenshot HUD, hidden (hud/no_video_capture.as).
     (Path("UI/UiModules/Main/wndVideoCaptureHud.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
     (Path("UI/UiModules/Main/wndScreenCapture.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
+    (Path("UI/UiModules/Main/wndOptions.xml"), [("UI\\options.swf", "UI\\sanctuaryOptions.swf")]),
     (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
     (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
     (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),
@@ -100,6 +101,7 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndCollectionsBrowser.xml"),
      [("UI\\CollectionsBrowser.swf", "UI\\sanctuaryCollectionsBrowser.swf")]),
     (Path("UI/UiModules/Main/wndAchievements.xml"), [("UI\\achievements.swf", "UI\\sanctuaryAchievements.swf")]),
+    (Path("UI/UiModules/Main/wndFRJobBrowser.xml"), [("UI\\FRJobBrowser.swf", "UI\\sanctuaryFRJobBrowser.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

@@ -101,6 +101,10 @@ MODS = [
      [script_dir / "collections" / "collections_browser.as"], []),
     ("achievements", "sanctuaryAchievements", "\\frame_1\\DoAction",
      [script_dir / "achievements" / "achievements_page.as"], []),
+    # The Jobs window (the Main Menu's Jobs tile).
+    ("FRJobBrowser", "sanctuaryFRJobBrowser", "\\frame_1\\DoAction", [script_dir / "jobs" / "job_browser.as"], []),
+    # The system menu (wndOptions: the top bar's gear or Esc).
+    ("options", "sanctuaryOptions", "\\frame_1\\DoAction", [script_dir / "system_menu" / "system_menu.as"], []),
     # The top bar without its screenshot and Ask for Help buttons (FRAME_SCRIPTS gives it a script to append to),
     # and the video recorder/screenshot HUD whose record button sat in it, hidden.
     ("FRUtilNavigation", "sanctuaryFRUtilNavigation", "\\frame_1\\DoAction", [script_dir / "hud" / "top_bar.as"], []),
@@ -151,6 +155,16 @@ TEXTURE_SYMBOLS = {
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
     # The Collections window (collections/collections_browser.as): the Main Menu's Collections book by its title.
     "CollectionsBrowser": [("img1469495624995028744.dds", "sanctuaryCollectionsBook", 64, 0)],
+    # The system menu (system_menu/system_menu.as): the squirrel from its stock medallion, peeking over the panel, and
+    # its rows' icons: the top bar's gear (Game Options), an ant (Report a Bug), the Main Menu's house (Teleport to
+    # Safety) and the home screen's scroll (Credits).
+    "options": [
+        ("img2567116644699575565.dds", "sanctuarySystemSquirrel", 128, 0),
+        ("img16931730996583072235.dds", "sanctuarySystemGear", 32, 0),
+        ("icon_item_ant_solid_32.dds", "sanctuarySystemBug", 32, 0),
+        ("img11740438261774166106.dds", "sanctuarySystemHouse", 64, 0),
+        ("img3694898642873637100.dds", "sanctuarySystemScroll", 64, 0),
+    ],
     # The Main Menu (MyStuffBrowser/main_menu.as): its own tile art, with the coin store coin for Shop.
     "MyStuffBrowser": [
         ("img12661814977694140028.dds", "sanctuaryMenuCoin", 96, 0),
@@ -192,6 +206,8 @@ REMOVED_DEPTHS = {
     "aboutme": [5, 82, 86, 88, 90, 92],
     # The top bar's backing, redrawn around the buttons that are left (hud/top_bar.as).
     "FRUtilNavigation": [1],
+    # The system menu's squirrel medallion (one shape with the squirrel; it's redrawn from TEXTURE_SYMBOLS).
+    "options": [8],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
