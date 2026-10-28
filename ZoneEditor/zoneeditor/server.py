@@ -109,10 +109,23 @@ class Handler(BaseHTTPRequestHandler):
         model = self.workspace.model(query["name"])
         self.send(200, json.dumps({
             "min": model["min"], "max": model["max"], "aliases": model["aliases"],
-            "meshes": [{"texture": m["texture"], "alpha": m["alpha"], "positions": b64(m["positions"]), "uvs": b64(m["uvs"]),
+            "skeleton": model["skeleton"], "attach": model["attach"],
+            "meshes": [{"texture": m["texture"], "overlay": m["overlay"], "mask": m["mask"], "shader": m["shader"],
+                        "alpha": m["alpha"], "positions": b64(m["positions"]), "uvs": b64(m["uvs"]),
                         "normals": b64(m["normals"]) if m["normals"] is not None else None,
                         "indices": b64(m["indices"])} for m in model["meshes"]],
         }).encode(), "application/json", cache=True)
+
+    def get_actor_set(self, query, body):
+        """A character's parts (.agr): each part's actor, texture aliases, tint alias and slot, and its tints."""
+        self.send(200, json.dumps(self.workspace.actor_set(query["name"])).encode(), "application/json", cache=True)
+
+    def get_skeleton(self, query, body):
+        """A skeleton's bones in their bind pose, for fastening gear (a weapon) to a character's bones."""
+        self.send(200, json.dumps(self.workspace.skeleton(query["name"])).encode(), "application/json", cache=True)
+
+    def get_tints(self, query, body):
+        self.send_json({str(k): v for k, v in self.workspace.tints().items()})
 
     def get_texture(self, query, body):
         png = self.workspace.texture(query["name"], int(query.get("size", 512)), query.get("opaque") == "1")

@@ -232,3 +232,9 @@ dialog label > input, dialog label > select { display: block; width: 100%; margi
 dialog fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 8px 0; }
 dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; }
 dialog .hint { color: var(--muted); font-size: 12px; }
+
+/* The running game (live.js): the top bar's connection dot, and LIVE on what's in it. */
+#live-state { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); vertical-align: middle; }
+#live-state.on { background: var(--ok); }
+#live-state.off { background: var(--danger); }
+.live-badge { display: inline-block; padding: 0 4px; border-radius: 3px; background: #0b4a57; color: #3fd0ff; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }

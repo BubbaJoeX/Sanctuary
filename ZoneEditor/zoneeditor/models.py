@@ -94,13 +94,16 @@ def adr_mesh_name(blob: bytes) -> str | None:
 
 
 def _adr_fields(blob: bytes) -> list:
-    """An actor definition's tag, length, value fields: [(tag, bytes)]. A length byte with its top bit set is
-    the high byte of a two-byte length."""
+    """An actor definition's tag, length, value fields: [(tag, bytes)]. A length byte below 0x80 is the length;
+    0xFF is followed by a big-endian u32 length; any other with its top bit set is the high byte of a two-byte one."""
     fields, i = [], 0
     while i + 1 < len(blob):
         tag, length = blob[i], blob[i + 1]
         i += 2
-        if length & 0x80:
+        if length == 0xFF:
+            length = struct.unpack_from(">I", blob, i)[0]
+            i += 4
+        elif length & 0x80:
             length = (length & 0x7F) << 8 | blob[i]
             i += 1
         if i + length > len(blob):
@@ -108,6 +111,107 @@ def _adr_fields(blob: bytes) -> list:
         fields.append((tag, blob[i : i + length]))
         i += length
     return fields
+
+
+def _cstring(value: bytes) -> str:
+    return value.split(b"\0", 1)[0].decode("latin-1")
+
+
+def actor_skeleton(blob: bytes) -> str | None:
+    """The .dsk an actor's meshes are skinned to (record 1, its field 1); None for a rigid prop."""
+    try:
+        for tag, record in _adr_fields(blob):
+            if tag == 1:
+                return next((_cstring(v) for t, v in _adr_fields(record) if t == 1), None) or None
+    except ValueError:
+        pass
+    return None
+
+
+def actor_attach_bones(blob: bytes) -> dict:
+    """Where an actor fastens on to a character, by equipment slot (record 15: field 1 the slot, 2 the bone),
+    e.g. a sword's grip on R_WEAPON."""
+    bones = {}
+    try:
+        for tag, record in _adr_fields(blob):
+            if tag != 15:
+                continue
+            fields = dict(_adr_fields(record))
+            if 2 in fields:
+                bones[fields.get(1, b"\0")[0]] = _cstring(fields[2])
+    except ValueError:
+        pass
+    return bones
+
+
+def read_skeleton(blob: bytes) -> dict:
+    """A DSKE skeleton's bones in their bind pose: {NAME: 16 floats}, each the bone's model-space matrix as
+    Direct3D lays it out (row vectors, translation in the last row), which is three.js's column-major order.
+
+    "DSKE", u32 version, i32 names length, the NUL-separated names, i32 bone count, per bone (u32 name offset,
+    i16 parent, i16 first child), then per bone 12 floats: its rotation rows and translation, relative to its parent.
+    """
+    if blob[:4] != b"DSKE":
+        raise ValueError("not a DSKE skeleton")
+    names_length = struct.unpack_from("<i", blob, 8)[0]
+    names = blob[12 : 12 + names_length]
+    offset = 12 + names_length
+    count = struct.unpack_from("<i", blob, offset)[0]
+    offset += 4
+    links = [struct.unpack_from("<Ihh", blob, offset + 8 * i) for i in range(count)]
+    offset += 8 * count
+    local = np.zeros((count, 4, 4), np.float64)
+    for i in range(count):
+        local[i, :, :3] = np.array(struct.unpack_from("<12f", blob, offset + 48 * i)).reshape(4, 3)
+        local[i, 3, 3] = 1.0
+    world = [None] * count
+
+    def model_space(i):
+        if world[i] is None:
+            parent = links[i][1]
+            world[i] = local[i] if parent < 0 or parent >= count or parent == i else local[i] @ model_space(parent)
+        return world[i]
+
+    bones = {}
+    for i, (name_offset, _, _) in enumerate(links):
+        end = names.find(b"\0", name_offset)
+        name = names[name_offset : end if end >= 0 else None].decode("latin-1").upper()
+        bones[name] = [round(float(v), 6) for v in model_space(i).ravel()]
+    return {"bones": bones}
+
+
+def actor_set(blob: bytes) -> dict:
+    """An .agr actor set: a character from parts (body, head, hair, gear), each an actor with the texture aliases
+    it wears, one per material slot, and its tint alias; and its customization tints (HairTint, EyeTint: Tints.xml ids)."""
+    try:
+        root = ET.fromstring(blob.decode("latin-1"))
+    except ET.ParseError:
+        return {"actors": [{"file": name, "textures": [], "tint": None, "slot": None} for name in actor_group_members(blob)], "tints": {}}
+    actors = [{
+        "file": actor.attrib.get("name", ""),
+        "textures": [t.attrib.get("name", "") for t in actor.findall("TextureAlias")],
+        "tint": actor.attrib.get("tintAlias") or None,
+        "slot": actor.attrib.get("EquippedSlotName") or None,
+    } for actor in root.iter("Actor") if actor.attrib.get("name")]
+    tints = {}
+    for tint in root.iter("CustomizationTint"):
+        try:
+            tints[tint.attrib.get("TagName", "")] = int(tint.attrib.get("TintId", ""))
+        except ValueError:
+            continue
+    return {"actors": actors, "tints": tints}
+
+
+def read_tints(blob: bytes) -> dict:
+    """The client's Tints.xml: {tint id: [r, g, b]} (0..1), what an item's dye or a hair colour's id names."""
+    root = ET.fromstring(blob.decode("utf-8-sig", errors="replace"))
+    tints = {}
+    for value in root.iter("TintVal"):
+        try:
+            tints[int(value.attrib["id"])] = [round(float(value.attrib.get(c, 0)), 4) for c in "rgb"]
+        except (KeyError, ValueError):
+            continue
+    return tints
 
 
 def actor_aliases(blob: bytes) -> dict:
@@ -150,28 +254,40 @@ def actor_group_members(blob: bytes) -> list:
     return [name.decode("latin-1") for name in re.findall(rb'<Actor\s+name="([^"]+)"', blob)]
 
 
+# Material parameters name what each of a material's textures is for, by the Jenkins hash of the name: the colour
+# texture, the second colour layer of DualTexture materials (a head's face paint, drawn over the skin by its alpha),
+# and the mask of TintMask materials (greyscale: where the dye or tint alias colours the diffuse).
+TEXTURE_ROLES = {jenkins("Diffuse"): "diffuse", jenkins("Diffuse2"): "overlay", jenkins("TintMask"): "mask"}
+
+
 def _dma_materials(blob: bytes):
+    """A DMAT's textures and, per material, its definition hash, the textures its parameters use and which of
+    them is its diffuse, overlay and mask."""
     r = Reader(blob)
     if r.take(4) != b"DMAT":
         raise ValueError("not a DMAT")
     r.unpack("I")
     textures = [name.decode("latin-1") for name in r.take(r.unpack("i")).split(b"\0") if name]
+    by_hash = {jenkins(t.upper()): t for t in textures} | {jenkins(t): t for t in textures}
     materials = []
     for _ in range(r.unpack("i")):
         r.unpack("I")
         body = Reader(r.take(r.unpack("i")))
         definition = body.unpack("I")
         picked = []
+        roles = {}
         for _ in range(body.unpack("i")):
-            body.unpack("I")
+            parameter = body.unpack("I")
             parameter_class = body.unpack("I")
             body.unpack("I")
             payload = body.take(body.unpack("i"))
             if parameter_class == 4 and len(payload) >= 4:
                 value = struct.unpack_from("<I", payload)[0]
-                by_hash = {jenkins(t.upper()): t for t in textures} | {jenkins(t): t for t in textures}
-                picked.append(textures[value] if value < len(textures) else by_hash.get(value))
-        materials.append((definition, [t for t in picked if t]))
+                texture = textures[value] if value < len(textures) else by_hash.get(value)
+                picked.append(texture)
+                if texture and parameter in TEXTURE_ROLES:
+                    roles[TEXTURE_ROLES[parameter]] = texture
+        materials.append((definition, [t for t in picked if t], roles))
     return textures, materials
 
 
@@ -201,7 +317,7 @@ def parse_dme(blob: bytes, library: MaterialLibrary) -> dict:
         stride, vertex_count, index_size, index_count = r.unpack("4i")
         vertex_data = r.take(vertex_count * stride)
         index_data = r.take(index_count * index_size)
-        definition, candidates = materials[index] if index < len(materials) else (0, [])
+        definition, candidates, roles = materials[index] if index < len(materials) else (0, [], {})
         layout = library.layout(stride, definition)
 
         raw = np.frombuffer(vertex_data, np.uint8).reshape(vertex_count, stride)
@@ -228,7 +344,11 @@ def parse_dme(blob: bytes, library: MaterialLibrary) -> dict:
             "normals": normals.astype(np.float32) if normals is not None else None,
             "uvs": uvs if uvs is not None else np.zeros((vertex_count, 2), np.float32),
             "indices": indices,
-            "texture": _diffuse(candidates, textures),
+            # The material's own Diffuse parameter when it names one; a DualTexture head's first texture is its face paint.
+            "texture": roles.get("diffuse") or _diffuse(candidates, textures),
+            "overlay": roles.get("overlay"),
+            "mask": roles.get("mask"),
+            "shader": library.names.get(definition, ""),
             "alpha": library.alpha(definition),
         })
     return {"meshes": meshes, "min": bounds_min, "max": bounds_max}

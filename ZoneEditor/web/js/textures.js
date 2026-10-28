@@ -26,7 +26,7 @@ export function loadTexture(name, { srgb = true } = {}) {
     if (texture.image) texture.needsUpdate = true;
     return texture;
   };
-  const fallback = () => pngLoader.load(`/api/texture?name=${encodeURIComponent(name)}&size=2048&v=${ASSET_VERSION}`,
+  const fallback = () => pngLoader.load(`api/texture?name=${encodeURIComponent(name)}&size=2048&v=${ASSET_VERSION}`,
     (texture) => { setup(texture, true); swap(texture); }, undefined, () => {});
   const swap = (texture) => {
     // Materials hold the holder; copy the loaded texture into it so they pick it up.
@@ -37,7 +37,7 @@ export function loadTexture(name, { srgb = true } = {}) {
     holder.version++;
     holder.dispatchEvent({ type: "loaded" });
   };
-  const url = `/api/dds?name=${encodeURIComponent(name)}&v=${ASSET_VERSION}`;
+  const url = `api/dds?name=${encodeURIComponent(name)}&v=${ASSET_VERSION}`;
   ddsLoader.load(url, (texture) => {
     if (!texture.mipmaps?.length || texture.format === undefined) return fallback();
     if (texture.mipmaps.length === 1) texture.minFilter = THREE.LinearFilter;
@@ -50,7 +50,7 @@ export function loadTexture(name, { srgb = true } = {}) {
 
 // The average colour of a texture's top and bottom halves (an ambient gradient: sky and ground light).
 export async function gradientColours(name) {
-  const response = await fetch(`/api/texture?name=${encodeURIComponent(name)}&size=64`);
+  const response = await fetch(`api/texture?name=${encodeURIComponent(name)}&size=64`);
   if (!response.ok) throw new Error(name);
   const image = await createImageBitmap(await response.blob());
   const canvas = new OffscreenCanvas(image.width, image.height);

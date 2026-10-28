@@ -1,7 +1,7 @@
 // The editor server's API (zoneeditor/server.py). Binary bodies are a u32 length, JSON, then the blobs it sizes.
 
 // Models and textures are cached by the browser for a day; bump this when the server's output for them changes.
-export const ASSET_VERSION = 4;
+export const ASSET_VERSION = 5;
 
 export async function getJson(path) {
   const response = await fetch(path);
@@ -45,14 +45,14 @@ export function frame(meta, blobs) {
 }
 
 export async function loadChunk(zone, row, col) {
-  const response = await fetch(`/api/chunk?zone=${encodeURIComponent(zone)}&row=${row}&col=${col}`);
+  const response = await fetch(`api/chunk?zone=${encodeURIComponent(zone)}&row=${row}&col=${col}`);
   if (!response.ok) throw new Error((await response.json()).error);
   const { meta, blobs } = unframe(await response.arrayBuffer());
   return { meta, heights: new Float32Array(blobs[0]), weights: new Uint8Array(blobs[1]), colour: new Uint8Array(blobs[2]) };
 }
 
 export async function save(meta, blobs) {
-  const response = await fetch("/api/save", { method: "POST", body: frame(meta, blobs) });
+  const response = await fetch("api/save", { method: "POST", body: frame(meta, blobs) });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || response.statusText);
   return data;

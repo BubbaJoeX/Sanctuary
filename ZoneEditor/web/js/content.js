@@ -62,7 +62,7 @@ class Thumbnails {
     img.style.visibility = "hidden";
     img.onload = () => { img.style.visibility = ""; };
     if (this.done.has(name)) { img.src = this.done.get(name); return; }
-    img.src = `/api/thumb?name=${encodeURIComponent(name)}`;
+    img.src = `api/thumb?name=${encodeURIComponent(name)}`;
     img.onerror = () => {
       img.onerror = null;
       this.queue.push([name, img]);
@@ -113,7 +113,7 @@ class Thumbnails {
     this.renderer.render(this.scene, this.camera);
     this.scene.remove(group);
     const url = this.renderer.domElement.toDataURL("image/png");
-    fetch(`/api/thumb?name=${encodeURIComponent(name)}`, { method: "POST", body: await (await fetch(url)).blob() }).catch(() => {});
+    fetch(`api/thumb?name=${encodeURIComponent(name)}`, { method: "POST", body: await (await fetch(url)).blob() }).catch(() => {});
     return url;
   }
 }
@@ -198,7 +198,7 @@ export class ContentBrowser {
   }
 
   async load() {
-    const data = await getJson("/api/actors");
+    const data = await getJson("api/actors");
     this.names = data.names;
     this.usage = data.usage;              // by lowercase name
     this.byLower = new Map(this.names.map((n) => [n.toLowerCase(), n]));

@@ -386,7 +386,7 @@ export class TerrainManager {
       const eco = this.zone.ecos.find((e) => e.index === ecoIndex);
       if (!eco) return null;
       const entry = { texture: loadTexture(eco.texture), mean: new THREE.Color(0.5, 0.5, 0.5), period: 256 / Math.max(eco.repeat || 8, 1) };
-      fetch(`/api/eco-colour?zone=${encodeURIComponent(this.zone.id)}&index=${ecoIndex}`).then((r) => r.json())
+      fetch(`api/eco-colour?zone=${encodeURIComponent(this.zone.id)}&index=${ecoIndex}`).then((r) => r.json())
         .then(([r, g, b]) => entry.mean.setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace)).catch(() => {});
       this.details.set(ecoIndex, entry);
     }

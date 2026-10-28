@@ -139,6 +139,32 @@ sun colour, brightness and direction, fog, and sky and ground light from its amb
 sky it follows the environment of the tile under the camera, like the client. The sun casts shadows near the
 camera, and the zone's own point lights nearest the camera light the scene.
 
+## Live: the running game, from the admin panel
+
+Opened from the OSFR AdminPanel's Map editor tab (which serves it at `/zone-editor/` and signs referees in),
+the editor is also a window on the running game: the **Live** switch in the top bar shows, and its dot is green
+while the zone being edited is running on the Gateway (a world zone). Opened on its own, there's no game to
+reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi:Key`, see Sanctuary's README).
+
+- **What's there.** The zone's players, its NPCs, mobs and collection nodes within 220 units of the camera, and
+  its placed objects (furniture props, world NPCs and placed models), as the server has them now, drawn from
+  their own actors as the client puts them together (see How it works). Players glide between the server's
+  updates and show on the minimap; names show close up. The Select tool's search finds them by name too.
+- **Placed objects are editable, live.** They glow faintly. Select one and G, R and T move, turn (yaw, pitch
+  and roll) and scale it; the inspector takes exact numbers, drops it to the ground (End), duplicates (Ctrl+D)
+  and deletes it (Del). Each change goes to the server when the gizmo lets go: it's saved, and players in view
+  see it at once. Ctrl+Z undoes it on the server.
+- **Placing live.** In the Props tool, with *Place in the running game* ticked (the default from the panel), a
+  click places the content pick as a placed model, with the tool's turn, scale, slope and height options. Only
+  actors with a `Models.txt` row can be spawned (the game sends models by id); others go in the zone's files.
+- **Baking.** *Bake into the zone* turns a placed object into one of the chunk's own props, where it stands,
+  and takes it out of the game: build in the live world, then make it part of the zone (Save, Test in game).
+- **Players.** Selecting one shows what they wear, and sends them to the ground in the middle of the view,
+  messages or kicks them. The zone's own NPCs are shown as they are; they're edited in their data files.
+
+Terrain, eco and colour paint, the zone's baked props, lights, sky and spawn are still the zone's files: the
+game has no way to send those to a client that has the zone loaded, so they ship as before.
+
 ## How it works
 
 Chunks are read and written with `ClientMods/world_chunks.py` (every stock version 5 and 6 chunk
@@ -148,5 +174,20 @@ stock meshes' own grid; saving rebuilds only the tiles whose heights changed, wi
 trees (`ClientMods/zone_terrain.py`), and keeps the rest as they were. The eco blend map's channel order
 and layering were matched against the stock colour maps.
 
+Characters are put together as the client does from its AddPc and AddNpc packets (`web/js/live.js`): the
+Gateway sends each player's and NPC's look as actor parts (`zoneeditor/models.py` reads the rest). An `.agr` actor
+set lists a character's parts: its race's body in a skin tone, a head with face paint, hair and facial hair in
+the set's hair tint, and gear, each with the texture aliases it wears (one per material slot) and its tint alias.
+A player's look is the same from their own data, with item actors' `<race>`, `<gender>` and `<hairtype>`
+(`hat` under headgear) filled in. Every part's meshes share the body's skeleton in its bind pose, so they're drawn
+in place as they are; rigid gear with an attach point in its `.adr` (record 15: a weapon's `R_weapon`) is
+fastened to that bone of the body's `.dsk` skeleton (`DSKE`: bones relative to their parents). Each mesh's
+textures are told apart by its material's parameter names (Jenkins hashes): `Diffuse`, `Diffuse2` (a head's face
+paint, laid over the skin by its alpha) and `TintMask` (greyscale: where the tint colours it). A tint is the
+part's tint alias's colour on its actor, else its `Tints.xml` colour (a dye, or the hair colour; `dyetint` says
+the dye decides), applied as the client's shaders do: twice the colour in gamma space, over the mask or, for
+hair, the whole mesh.
+
 Not covered yet: chunks older than version 5 (a few minigame zones) don't load, flora isn't drawn, and
-invisible walls, client areas and groups are kept as they are but not editable.
+invisible walls, client areas and groups are kept as they are but not editable. Live characters stand in their
+bind pose (animations aren't played), and eye colour isn't applied.

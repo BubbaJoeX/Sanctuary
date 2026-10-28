@@ -182,6 +182,8 @@ class Workspace:
         self.projects = {}
         self.lock = threading.RLock()
         self._model_cache = {}
+        self._skeletons = {}
+        self._tints = None
         self._actor_names = None
         self._palette = None
         self._colours = {}
@@ -414,9 +416,33 @@ class Workspace:
             raise KeyError(f"{actor} names no mesh")
         model = models.parse_dme(self.assets.read(mesh_name), self.library)
         model["aliases"] = models.actor_aliases(definition) if definition else {"textures": [], "tints": []}
+        # A character part's skeleton, and where gear (a weapon) fastens to it.
+        model["skeleton"] = models.actor_skeleton(definition) if definition else None
+        model["attach"] = models.actor_attach_bones(definition) if definition else {}
         with self.lock:
             self._model_cache[actor.lower()] = model
         return model
+
+    def actor_set(self, name: str) -> dict:
+        """An .agr character's parts and customization tints (models.actor_set)."""
+        return models.actor_set(self.assets.read(name))
+
+    def skeleton(self, name: str) -> dict:
+        with self.lock:
+            if name.lower() in self._skeletons:
+                return self._skeletons[name.lower()]
+        skeleton = models.read_skeleton(self.assets.read(name))
+        with self.lock:
+            self._skeletons[name.lower()] = skeleton
+        return skeleton
+
+    def tints(self) -> dict:
+        """The client's tint colours by id (Resources/Tints.xml), for hair colours and item dyes."""
+        with self.lock:
+            if self._tints is None:
+                path = self.client_dir / "Resources" / "Tints.xml"
+                self._tints = models.read_tints(path.read_bytes()) if path.is_file() else {}
+            return self._tints
 
     def texture(self, name: str, size: int = 512, opaque: bool = False) -> bytes:
         return models.texture_png(self.assets.read(name), size, opaque)

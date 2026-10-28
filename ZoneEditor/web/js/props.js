@@ -42,7 +42,7 @@ export class PropLibrary {
   model(file) {
     const key = file.toLowerCase();
     if (!this.models.has(key)) {
-      this.models.set(key, getJson(`/api/model?name=${encodeURIComponent(file)}&v=${ASSET_VERSION}`).then((data) => {
+      this.models.set(key, getJson(`api/model?name=${encodeURIComponent(file)}&v=${ASSET_VERSION}`).then((data) => {
         const group = new THREE.Group();
         for (const mesh of data.meshes) {
           const geometry = new THREE.BufferGeometry();
@@ -55,15 +55,21 @@ export class PropLibrary {
           const part = new THREE.Mesh(geometry, this.material(mesh.texture, mesh.alpha));
           part.castShadow = mesh.alpha !== "blend" && mesh.alpha !== "water";
           part.receiveShadow = true;
-          part.userData.base = { texture: mesh.texture, alpha: mesh.alpha };
+          // overlay and mask: a DualTexture material's second layer (face paint) and a TintMask material's mask.
+          part.userData.base = { texture: mesh.texture, alpha: mesh.alpha, overlay: mesh.overlay, mask: mesh.mask, shader: mesh.shader };
           group.add(part);
         }
         group.userData.aliases = data.aliases || NO_ALIASES;
+        // A character part's skeleton, and the bones gear (a weapon) fastens to.
+        group.userData.skeleton = data.skeleton || null;
+        group.userData.attach = data.attach || {};
         return group;
       }).catch(() => {
         const group = new THREE.Group();
         group.add(new THREE.Mesh(this.placeholder, this.placeholderMaterial));
         group.userData.aliases = NO_ALIASES;
+        group.userData.attach = {};
+        group.userData.missing = true;
         return group;
       }));
     }
@@ -81,15 +87,19 @@ export function variantNames(aliases) {
 
 // The texture a mesh draws with under texture alias `material` (none: the actor's default alias). The mesh's
 // own texture is whichever of a slot's alias textures the material file lists, so any of them becomes the
-// one the alias names there; one the alias already names stays (a tree's two _Default textures).
+// one the alias names there; one the alias already names stays (a tree's two _Default textures). A character
+// part wears several (an .agr lists one per slot, e.g. skintone3 and a face paint): each slot takes the first
+// of them it has.
 export function variantTexture(aliases, material, texture) {
   if (!texture) return texture;
   const entries = aliases?.textures || [];
   const lower = texture.toLowerCase();
+  const wanted = (Array.isArray(material) ? material : [material]).filter(Boolean).map((m) => m.toLowerCase());
   for (const slot of new Set(entries.map((t) => t.slot))) {
     const inSlot = entries.filter((t) => t.slot === slot);
     if (!inSlot.some((t) => t.texture.toLowerCase() === lower)) continue;
-    const name = inSlot.some((t) => t.name === material) ? material : (inSlot.find((t) => t.default) || inSlot[0]).name;
+    const match = wanted.map((w) => inSlot.find((t) => t.name.toLowerCase() === w)).find(Boolean);
+    const name = match ? match.name : (inSlot.find((t) => t.default) || inSlot[0]).name;
     const named = inSlot.filter((t) => t.name === name);
     return named.some((t) => t.texture.toLowerCase() === lower) ? texture : named[0].texture;
   }

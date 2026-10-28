@@ -5,6 +5,7 @@ import { ASSET_VERSION, frame as frameBody, getJson, postJson, save, unframe } f
 import { CHUNK, FALLOFFS, STEP, TerrainChunk, TerrainManager, environmentColour } from "./terrain.js";
 import { PropLayer, PropLibrary, applyTransform, makeMarker, readTransform, variantNames } from "./props.js";
 import { ContentBrowser } from "./content.js";
+import { LiveLayer } from "./live.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
 
@@ -70,6 +71,14 @@ terrain.anisotropy = renderer.capabilities.getMaxAnisotropy();
 const library = new PropLibrary();
 const props = new PropLayer(scene, library);
 
+// The running game's players and placed objects, when the editor is opened from the admin panel (live.js).
+const live = new LiveLayer(scene, library, {
+  toast,
+  status: updateLiveStatus,
+  changed: (object) => { if (selected === object) { attachGizmo(); renderInspector(); } },
+  removed: (object) => { if (selected === object) select(null); },
+});
+
 // The client shows its coordinates as they are (x, y up, z), so the scene uses them directly.
 function updateProjection() {
   const { clientWidth: w, clientHeight: h } = canvas;
@@ -98,9 +107,10 @@ const state = {
   exclude: { mode: "cut", target: null, onlyInside: true },
   // New objects: one at a time or scattered under a brush, with a random turn and scale, stood on the slope,
   // raised by offset, and given a texture variant and tint where their actor has them.
+  // live places into the running game when the editor is opened from the admin panel (see live.js).
   place: {
     mode: "single", randomYaw: false, align: false, scaleMin: 1, scaleMax: 1, offset: 0,
-    material: "", tintOn: false, tint: "#ffffff", spacing: 6, set: [],
+    material: "", tintOn: false, tint: "#ffffff", spacing: 6, set: [], live: true,
   },
   snap: { move: 0, turn: 0 },
   recentTints: [],
@@ -166,7 +176,7 @@ function toast(text, kind = "") {
 // --- zones ---------------------------------------------------------------------------------------------
 
 async function loadZones() {
-  const data = await getJson("/api/zones");
+  const data = await getJson("api/zones");
   state.zones = data.zones;
   listZones();
   status(`Saving into ${data.mods} · client ${data.client}`);
@@ -182,7 +192,7 @@ async function openZone(name, keepCamera = false) {
   status(`Opening ${name}…`);
   let zone;
   try {
-    zone = await getJson(`/api/zone?name=${encodeURIComponent(name)}`);
+    zone = await getJson(`api/zone?name=${encodeURIComponent(name)}`);
   } catch (error) {
     toast(error.message, "error");
     return;
@@ -218,6 +228,7 @@ async function openZone(name, keepCamera = false) {
     look.pitch = -0.4;
   }
   buildMarkers();
+  if (!keepCamera) live.open(zone.name);
   if (zone.file && !keepCamera) {
     toast(`Opened ${zone.file}: its zone files come only from that folder, nothing from stock.\n` +
       "Saving writes them back there and publishes them to ClientMods for the servers.");
@@ -264,7 +275,7 @@ async function openZoneFile() {
   const start = state.zone?.file || recentFiles()[0] || null;
   status("Pick a zone file in the dialog…");
   try {
-    const { path } = await postJson("/api/pick-zone", { start });
+    const { path } = await postJson("api/pick-zone", { start });
     if (!path) return status("No file picked.");
     await openZone(path);
     buildWalls();
@@ -323,7 +334,7 @@ const ambientGradients = new Map();
 async function updateLightingFromSky(sky, xml) {
   skyName = xml ? null : sky || "sky.xml";
   try {
-    if (!xml) xml = await (await fetch(`/api/sky?name=${encodeURIComponent(skyName)}`)).text();
+    if (!xml) xml = await (await fetch(`api/sky?name=${encodeURIComponent(skyName)}`)).text();
   } catch { xml = null; }
   skyTracks = xml ? parseSky(xml) : null;
   applyTimeOfDay();
@@ -522,7 +533,7 @@ function cutInsideTarget(restore) {
 
 async function ecoColour(index) {
   if (!state.ecoColours.has(index)) {
-    state.ecoColours.set(index, await getJson(`/api/eco-colour?zone=${encodeURIComponent(state.zone.id)}&index=${index}`));
+    state.ecoColours.set(index, await getJson(`api/eco-colour?zone=${encodeURIComponent(state.zone.id)}&index=${index}`));
   }
   return state.ecoColours.get(index);
 }
@@ -532,14 +543,14 @@ function ecoRow(eco, attributes, active, note) {
   const text = note ?? `${eco.texture}${eco.floras.length ? ` · ${eco.floras.length} flora` : ""}`;
   const used = eco.zones?.length ? `\nUsed in ${eco.zones.join(", ")}${eco.zoneCount > eco.zones.length ? ", …" : ""}` : "";
   return `<div ${attributes} class="${active ? "active" : ""}" title="${escape(eco.texture + used)}">` +
-    `<img loading="lazy" alt="" src="/api/texture?name=${encodeURIComponent(eco.texture)}&size=48&opaque=1&v=${ASSET_VERSION}">` +
+    `<img loading="lazy" alt="" src="api/texture?name=${encodeURIComponent(eco.texture)}&size=48&opaque=1&v=${ASSET_VERSION}">` +
     `${escape(eco.name)} <small>${escape(text)}</small></div>`;
 }
 
 // Every eco the client has (zones' lists and .eco definitions), fetched once.
 let palettePromise = null;
 function loadPalette() {
-  palettePromise ??= getJson("/api/ecos").catch((error) => { palettePromise = null; throw error; });
+  palettePromise ??= getJson("api/ecos").catch((error) => { palettePromise = null; throw error; });
   return palettePromise;
 }
 
@@ -553,7 +564,7 @@ function pickEco(index, entry) {
 
 async function ensureEco() {
   if (!state.ecoPick) return state.eco;
-  const eco = await postJson("/api/zone/eco", { zone: state.zone.id, palette: state.ecoPick.key });
+  const eco = await postJson("api/zone/eco", { zone: state.zone.id, palette: state.ecoPick.key });
   if (!state.zone.ecos.some((e) => e.index === eco.index)) state.zone.ecos.push(eco);
   state.zoneDirty = true;
   pickEco(eco.index, null);
@@ -584,7 +595,7 @@ function renderPanel() {
       ${hidden.length ? `<p class="hint">Hidden: ${hidden.map(escape).join(", ")}</p><div class="row"><button id="show-all">Show them again (Shift+H)</button></div>` : ""}
       <div id="inspector"></div>
       <h4>Find objects</h4>
-      <input id="find-objects" placeholder="Name: rock, tree_giant, hsg_block…" value="${escape(state.findQuery)}">
+      <input id="find-objects" placeholder="Name: rock, tree_giant, hsg_block, a player or NPC…" value="${escape(state.findQuery)}">
       <div class="list" id="found-objects"></div>
       <div class="row"><button id="select-found" disabled>Select all found</button></div>`;
     panel.querySelector("#snap-move").addEventListener("change", (e) => { state.snap.move = +e.target.value; applySnap(); });
@@ -696,6 +707,8 @@ function renderPanel() {
         <div class="chips">${p.set.length ? p.set.map((f, i) => `<span class="chip">${short(f)} <b data-unset="${i}" title="Remove">×</b></span>`).join("") : `<span class="hint">Empty: the content pick is scattered.</span>`}</div>
         <div class="row"><button id="scatter-add" ${state.actor ? "" : "disabled"}>Add ${state.actor ? short(state.actor) : "the content pick"}</button></div>` : ""}
       <h4>New objects</h4>
+      ${live.zone && !scatter ? `<label class="check" title="A placed model in the running game, there for players at once; or untick to put it in the zone's files"><input id="place-live" type="checkbox" ${p.live ? "checked" : ""}> <span class="live-badge">LIVE</span> Place in the running game</label>
+        ${p.live ? `<p class="hint">Only models with a Models.txt row can be spawned (${live.spawnable.size} of them). Select one later and Bake it into the zone to make it part of the zone's files.</p>` : ""}` : ""}
       <label class="check"><input id="place-turn" type="checkbox" ${p.randomYaw ? "checked" : ""}> Random turn</label>
       <label class="check"><input id="place-align" type="checkbox" ${p.align ? "checked" : ""}> Stand on the slope</label>
       <div class="row"><label>Scale from <input id="place-scale-min" type="number" min="0.05" step="0.05" value="${p.scaleMin}"></label>
@@ -713,6 +726,7 @@ function renderPanel() {
       panel.querySelector("#scatter-add").addEventListener("click", () => { if (!p.set.includes(state.actor)) p.set.push(state.actor); renderPanel(); });
       for (const remove of panel.querySelectorAll("[data-unset]")) remove.addEventListener("click", () => { p.set.splice(+remove.dataset.unset, 1); renderPanel(); });
     }
+    panel.querySelector("#place-live")?.addEventListener("change", (e) => { p.live = e.target.checked; renderPanel(); });
     panel.querySelector("#place-turn").addEventListener("change", (e) => { p.randomYaw = e.target.checked; });
     panel.querySelector("#place-align").addEventListener("change", (e) => { p.align = e.target.checked; });
     panel.querySelector("#place-scale-min").addEventListener("input", (e) => { p.scaleMin = Math.max(0.05, +e.target.value); });
@@ -796,7 +810,7 @@ function renderZonePanel() {
   });
   panel.querySelector("#custom-sky").addEventListener("click", async () => {
     const base = panel.querySelector("#sky").value || "sky.xml";
-    const xml = await (await fetch(`/api/sky?name=${encodeURIComponent(base)}`)).text();
+    const xml = await (await fetch(`api/sky?name=${encodeURIComponent(base)}`)).text();
     state.customSky = { name: `sky_${zone.name.toLowerCase()}.xml`, xml };
     state.zoneDirty = true;
     renderPanel();
@@ -832,6 +846,9 @@ function renderInspector() {
   if (!selected) { target.innerHTML = ""; return; }
   const { kind, record, chunk, label } = selected.userData;
   const locked = chunk && !chunk.editable;
+  if (kind === "live") return renderLiveInspector(target);
+  if (kind === "live-player") return renderLivePlayerInspector(target);
+  if (kind === "live-npc") return renderLiveNpcInspector(target);
   if (kind === "marker") {
     target.innerHTML = `<h4>${escape(label)}</h4><div class="xyz">${["x", "y", "z"].map((a) => `<input data-pos="${a}" type="number" step="0.5" value="${selected.position[a].toFixed(2)}">`).join("")}</div>`;
   } else if (selection.size > 1) {
@@ -895,6 +912,87 @@ function renderInspector() {
     const copy = { copyOf: record.uid, file: record.file, position: [...record.position], rotation: [...record.rotation], scale: record.scale };
     addRecord(destination, "prop", copy);
   });
+}
+
+// A live object: in the running game, so every change here shows in game at once and is saved on the server.
+function renderLiveInspector(target) {
+  const object = selected;
+  const data = object.userData.live;
+  const kinds = { prop: "furniture prop", npc: "world NPC", model: "placed model" };
+  const deg = [data.h, data.pitch, data.roll].map((r) => THREE.MathUtils.radToDeg(r).toFixed(1));
+  target.innerHTML = html`<h4>${escape(data.label)}</h4>
+    <p class="hint"><span class="live-badge">LIVE</span> ${kinds[data.kind] ?? data.kind}${data.model ? ` · ${escape(data.model)}` : ""} · ${data.id}</p>
+    <p class="hint">In the running game: changes show for players in view at once and are saved on the server. G, R and T move, turn and scale it.</p>
+    <label>Position</label><div class="xyz">${[data.x, data.y, data.z].map((v, k) => `<input data-live-pos="${k}" type="number" step="0.25" value="${v.toFixed(2)}">`).join("")}</div>
+    <label>Yaw / pitch / roll (degrees)</label><div class="xyz">${deg.map((v, k) => `<input data-live-rot="${k}" type="number" step="5" value="${v}">`).join("")}</div>
+    <label>Scale <input id="live-scale" type="number" step="0.05" min="0.05" max="20" value="${data.scale.toFixed(3)}"></label>
+    <div class="row"><button id="live-ground" title="End">Drop to ground</button><button id="live-focus" title="F">Focus</button></div>
+    <div class="row"><button id="duplicate">Duplicate</button><button id="delete" class="danger">Delete</button></div>
+    <div class="row"><button id="live-bake" ${data.model ? "" : "disabled"} title="Make it one of the zone's own props, in the chunk under it, and take it out of the game">Bake into the zone</button></div>`;
+  const send = () => liveStep(live.commit(object), "Updated in game.");
+  for (const input of target.querySelectorAll("[data-live-pos]")) {
+    input.addEventListener("change", () => { object.position.setComponent(+input.dataset.livePos, +input.value); send(); });
+  }
+  for (const input of target.querySelectorAll("[data-live-rot]")) {
+    input.addEventListener("change", () => {
+      object.rotation.reorder("YXZ");
+      object.rotation[["y", "x", "z"][+input.dataset.liveRot]] = THREE.MathUtils.degToRad(+input.value);
+      send();
+    });
+  }
+  target.querySelector("#live-scale").addEventListener("change", (e) => { object.scale.setScalar(Math.min(20, Math.max(0.05, +e.target.value))); send(); });
+  target.querySelector("#live-ground").addEventListener("click", () => dropLiveToGround(object));
+  target.querySelector("#live-focus").addEventListener("click", () => focusOn(object, LIVE_FOCUS));
+  target.querySelector("#duplicate").addEventListener("click", duplicateSelected);
+  target.querySelector("#delete").addEventListener("click", deleteSelected);
+  target.querySelector("#live-bake").addEventListener("click", () => bakeLive(object));
+}
+
+// A player in the running game: where they are, and what a referee can do about them from here.
+function renderLivePlayerInspector(target) {
+  const player = selected;
+  const data = player.userData.live;
+  target.innerHTML = html`<h4>${escape(data.name)}</h4>
+    <p class="hint"><span class="live-badge">LIVE</span> player · ${data.x.toFixed(1)}, ${data.y.toFixed(1)}, ${data.z.toFixed(1)}</p>
+    <p class="hint">${escape(live.lookFiles(player).join(", "))}</p>
+    <div class="row"><button id="live-send" title="To the ground in the middle of the view">Send to the middle of the view</button></div>
+    <label>Message <input id="live-message" maxlength="500" placeholder="Shows in their chat, from you"></label>
+    <div class="row"><button id="live-message-send">Send message</button><button id="live-focus">Focus</button><button id="live-kick" class="danger">Kick</button></div>`;
+  target.querySelector("#live-send").addEventListener("click", async () => {
+    const hit = centreHit();
+    if (!hit) return toast("There's no ground in the middle of the view.");
+    if (await live.teleport(player, hit)) status(`Sent ${data.name} there.`);
+  });
+  target.querySelector("#live-message-send").addEventListener("click", async () => {
+    const input = target.querySelector("#live-message");
+    if (!input.value.trim()) return;
+    if (await live.message(player, input.value.trim())) { status(`Sent to ${data.name}.`); input.value = ""; }
+  });
+  target.querySelector("#live-focus").addEventListener("click", () => focusOn(player, LIVE_FOCUS));
+  target.querySelector("#live-kick").addEventListener("click", async () => {
+    if (confirm(`Kick ${data.name} from the server?`) && await live.kick(player)) status(`Kicked ${data.name}.`);
+  });
+}
+
+// One of the zone's own NPCs, mobs or collection nodes: shown as the game has them, edited in their data files.
+function renderLiveNpcInspector(target) {
+  const npc = selected;
+  const data = npc.userData.live;
+  const kinds = { npc: "NPC", mob: "mob", node: "collection node", coin: "collection coin" };
+  target.innerHTML = html`<h4>${escape(data.label)}</h4>
+    <p class="hint"><span class="live-badge">LIVE</span> zone ${kinds[data.kind] ?? data.kind} · ${data.id}</p>
+    <p class="hint">${escape(live.lookFiles(npc).join(", "))}</p>
+    <p class="hint">The zone's own NPCs come from its data files (Npcs.json, Mobs.json, the collection pools); spawn a copy with
+      Place live to have one to edit here.</p>
+    <div class="row"><button id="live-focus">Focus</button></div>`;
+  target.querySelector("#live-focus").addEventListener("click", () => focusOn(npc, LIVE_FOCUS));
+}
+
+function dropLiveToGround(object) {
+  const ground = terrain.heightAt(object.position.x, object.position.z);
+  if (ground === null || ground === undefined) return toast("There's no loaded ground under it.");
+  object.position.y = ground;
+  liveStep(live.commit(object), "Dropped to the ground in game.");
 }
 
 // Several objects: what they are, their look and draw distance together, and the actions on all of them.
@@ -1046,9 +1144,17 @@ function updateDirty() {
 
 // --- selection and the transform gizmo -----------------------------------------------------------------
 
+// How close Focus brings the camera to a live player, NPC or placed object.
+const LIVE_FOCUS = 5;
+
+// Markers and live objects are selected on their own, never with others.
+// (live, live-player and live-npc: the running game's placed objects, players and NPCs, see live.js.)
+const alone = (object) => object?.userData.kind === "marker" || isLive(object);
+const isLive = (object) => !!object?.userData.kind?.startsWith?.("live");
+
 // Selects one object, or with add toggles it in the selection (props and lights; a marker selects alone).
 function select(object, add = false) {
-  if (add && object && object.userData.kind !== "marker" && selected?.userData.kind !== "marker") {
+  if (add && object && !alone(object) && !alone(selected)) {
     if (selection.has(object)) {
       selection.delete(object);
       if (selected === object) selected = [...selection].at(-1) ?? null;
@@ -1059,13 +1165,13 @@ function select(object, add = false) {
   } else {
     selection.clear();
     selected = object;
-    if (object && object.userData.kind !== "marker") selection.add(object);
+    if (object && !alone(object)) selection.add(object);
   }
   selectionChanged();
 }
 
 function selectMany(objects, add = false) {
-  if (!add || selected?.userData.kind === "marker") selection.clear();
+  if (!add || alone(selected)) selection.clear();
   for (const object of objects) selection.add(object);
   selected = objects.at(-1) ?? [...selection].at(-1) ?? null;
   selectionChanged();
@@ -1076,12 +1182,15 @@ function selectedObjects() {
 }
 
 function selectionChanged() {
+  // A live object isn't in the selection (it has no record), but gets a box all the same.
+  const boxed = new Set(selection);
+  if (isLive(selected)) boxed.add(selected);
   for (const [object, box] of selectionBoxes) {
-    if (!selection.has(object)) { scene.remove(box); box.dispose(); selectionBoxes.delete(object); }
+    if (!boxed.has(object)) { scene.remove(box); box.dispose(); selectionBoxes.delete(object); }
   }
-  for (const object of selection) {
+  for (const object of boxed) {
     if (selectionBoxes.has(object)) continue;
-    const box = new THREE.BoxHelper(object, 0xe8b84a);
+    const box = new THREE.BoxHelper(object, isLive(object) ? 0x3fd0ff : 0xe8b84a);
     box.material.depthTest = false;
     box.renderOrder = 5;
     scene.add(box);
@@ -1096,7 +1205,7 @@ function attachGizmo() {
   gizmo.detach();
   if (!selected) return;
   const { kind, chunk } = selected.userData;
-  if (kind !== "marker" && !(chunk && chunk.editable)) return;
+  if (kind !== "marker" && kind !== "live" && !(chunk && chunk.editable)) return;
   if (selection.size > 1) {
     const centre = new THREE.Vector3();
     for (const object of selection) centre.add(object.position);
@@ -1175,6 +1284,8 @@ gizmo.addEventListener("dragging-changed", (event) => {
   if (!selected) return;
   if (event.value) {
     if (selected.userData.kind === "marker") { dragStart = null; return; }
+    // A live object's server updates wait until the drag ends, then it goes to the game.
+    if (selected.userData.kind === "live") { live.held = selected; dragStart = null; return; }
     pivot.updateMatrixWorld();
     dragStart = {
       pivot: pivot.matrixWorld.clone().invert(),
@@ -1186,6 +1297,7 @@ gizmo.addEventListener("dragging-changed", (event) => {
     return;
   }
   if (selected.userData.kind === "marker") { selected.userData.apply?.(); renderInspector(); updateDirty(); return; }
+  if (selected.userData.kind === "live") { liveStep(live.commit(selected), "Moved in game."); return; }
   const entries = dragStart?.entries || [];
   for (const { object } of entries) {
     // Dragged into another editable chunk: it belongs there now.
@@ -1202,7 +1314,7 @@ gizmo.addEventListener("dragging-changed", (event) => {
   renderInspector();
 });
 gizmo.addEventListener("objectChange", () => {
-  if (!selected || selected.userData.kind === "marker") return;
+  if (!selected || alone(selected)) return;
   if (gizmo.object === pivot && dragStart) {
     // Each object keeps its place relative to the pivot: rotating or scaling the pivot swings them round it.
     pivot.updateMatrixWorld();
@@ -1287,9 +1399,31 @@ function removeObjects(objects) {
 }
 
 function deleteSelected() {
-  if (!selected || selected.userData.kind === "marker") return;
+  if (!selected || selected.userData.kind === "marker" || selected.userData.kind?.startsWith("live-")) return;
+  if (selected.userData.kind === "live") return liveStep(live.remove(selected), `Deleted ${selected.userData.label} in game.`);
   const count = removeObjects(selectedObjects());
   if (count > 1) status(`Deleted ${count} objects.`);
+}
+
+// A live edit's answer: done, it's one undo step (undone on the game server) and the inspector catches up.
+async function liveStep(pending, done) {
+  if (!(await pending)) return;
+  undoStack.push(() => live.undo().then((label) => status(label ? `Undid ${label} in game.` : "Nothing to undo in game.")));
+  if (done) status(done);
+  renderInspector();
+}
+
+// Turns a live object into one of the zone's own props, in the chunk under it, and takes it out of the game: from
+// a test build in the live world to the zone's files (Save and Test in game ship it).
+async function bakeLive(object) {
+  const data = object.userData.live;
+  if (!data.model) return toast("This NPC has no model the zone can hold.");
+  const chunk = editableChunkFor(data.x, data.z);
+  if (!chunk) return toast("No editable chunk is loaded here. Add one with the Chunks tool (K).");
+  if (!(await live.remove(object))) return;
+  undoStack.push(() => live.undo());
+  addRecord(chunk, "prop", { file: data.model, position: [data.x, data.y, data.z], rotation: [data.h, data.pitch, data.roll], scale: data.scale });
+  toast(`Baked ${data.label} into chunk ${chunk.key} and took it out of the game. Save, then Test in game, to ship it.`, "ok");
 }
 
 // A record as a new object: what save copies from (copyOf), without the original's identity.
@@ -1303,7 +1437,8 @@ function copyRecord(record) {
 }
 
 function duplicateSelected() {
-  if (!selected || selected.userData.kind === "marker") return;
+  if (!selected || selected.userData.kind === "marker" || selected.userData.kind?.startsWith("live-")) return;
+  if (selected.userData.kind === "live") return liveStep(live.duplicate(selected), `Copied ${selected.userData.label} in game.`);
   pasteRecords(selectedObjects().map((o) => ({ kind: o.userData.kind, record: copyRecord(o.userData.record) })), [2, 0, 2]);
 }
 
@@ -1411,13 +1546,14 @@ function applySnap() {
   gizmo.setRotationSnap(state.snap.turn ? THREE.MathUtils.degToRad(state.snap.turn) : null);
 }
 
-function focusOn(object) {
+// Puts the camera back from an object along the view; nearest is how close it may come (characters are small).
+function focusOn(object, nearest = 35) {
   const forward = new THREE.Vector3();
   camera.getWorldDirection(forward);
   const p = new THREE.Vector3();
   object.getWorldPosition(p);
   const size = new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3()).length();
-  camera.position.copy(p).addScaledVector(forward, -Math.max(35, size * 1.2)).add(new THREE.Vector3(0, 8, 0));
+  camera.position.copy(p).addScaledVector(forward, -Math.max(nearest, size * 1.2)).add(new THREE.Vector3(0, Math.min(8, nearest / 3), 0));
 }
 
 // Loaded props whose name has every word of the Select tool's search, nearest first.
@@ -1435,9 +1571,17 @@ function listFound() {
   const list = panel.querySelector("#found-objects");
   if (!list) return;
   const found = foundObjects();
-  list.innerHTML = found.slice(0, 150).map((o, i) =>
+  // The running game's players, placed objects and NPCs by that name come first (live.js).
+  const liveFound = live.find(state.findQuery.toLowerCase().split(/\s+/).filter(Boolean)).slice(0, 50);
+  const where = (entry) => entry.node?.position ?? new THREE.Vector3(entry.npc.x, entry.npc.y, entry.npc.z);
+  list.innerHTML = liveFound.map((entry, i) =>
+    `<div data-live-found="${i}"><span class="live-badge">LIVE</span> ${escape(entry.label)} <small>${entry.kind} · ${Math.round(where(entry).distanceTo(camera.position))} away</small></div>`).join("") +
+    found.slice(0, 150).map((o, i) =>
     `<div data-found="${i}">${escape(o.userData.record.file)} <small>${Math.round(o.position.distanceTo(camera.position))} away</small></div>`).join("") ||
-    (state.findQuery ? `<div class="hint">Nothing by that name in the loaded chunks.</div>` : "");
+    (state.findQuery ? `<div class="hint">Nothing by that name in the loaded chunks${live.zone ? " or the game" : ""}.</div>` : "");
+  for (const row of list.querySelectorAll("[data-live-found]")) {
+    row.addEventListener("click", () => { const node = live.reveal(liveFound[+row.dataset.liveFound]); select(node); focusOn(node, LIVE_FOCUS); });
+  }
   for (const row of list.querySelectorAll("[data-found]")) {
     row.addEventListener("click", () => { const object = found[+row.dataset.found]; select(object); focusOn(object); });
   }
@@ -1596,6 +1740,15 @@ function placeActor(name, hit, yaw = 0) {
   content.placed(name);
 }
 
+// Places the actor in the running game instead (Place live): a placed model, there for players at once.
+function placeLive(name, hit, yaw = 0) {
+  if (!live.canPlace(name)) {
+    return toast(`${name} has no Models.txt row, so the game can't spawn it live. Untick Place live to put it in the zone's files instead.`);
+  }
+  liveStep(live.placeModel(name, newRecord(name, hit, yaw)), `Placed ${name} in game.`);
+  content.placed(name);
+}
+
 // How often each actor is placed in the loaded chunks, for the browser's "Used nearby".
 function nearbyActors() {
   const counts = new Map();
@@ -1749,7 +1902,8 @@ canvas.addEventListener("pointerdown", async (event) => {
   }
   if (tool === "props" && state.actor && !event.shiftKey) {
     const hit = terrainHit();
-    if (hit) placeActor(state.actor, hit, ghost ? ghost.rotation.y : 0);
+    if (hit && state.place.live && live.zone) placeLive(state.actor, hit, ghost ? ghost.rotation.y : 0);
+    else if (hit) placeActor(state.actor, hit, ghost ? ghost.rotation.y : 0);
     return;
   }
   if (tool === "lights" && !propHit) {
@@ -1761,10 +1915,14 @@ canvas.addEventListener("pointerdown", async (event) => {
     return;
   }
   let picked = propHit ? propHit.object : null;
-  if (markerHit && (!propHit || markerHit.distance < propHit.distance)) {
+  let pickedDistance = propHit?.distance ?? Infinity;
+  if (markerHit && markerHit.distance < pickedDistance) {
     picked = markerHit.object;
+    pickedDistance = markerHit.distance;
     while (picked.parent && !markers.includes(picked)) picked = picked.parent;
   }
+  const liveHit = live.pick(raycaster);
+  if (liveHit && liveHit.distance < pickedDistance) picked = liveHit.object;
   // The Select tool decides on release: a drag over the view is a box selection, a click picks.
   if (tool === "select") {
     boxSelect = { x: event.clientX, y: event.clientY, add: event.shiftKey, picked, active: false };
@@ -1839,10 +1997,11 @@ window.addEventListener("keydown", (event) => {
   else if (key === "o") toggleContent();
   else if (key === "g") gizmo.setMode("translate");
   else if (key === "r") gizmo.setMode("rotate");
-  else if (key === "t" && selected?.userData.kind === "prop") gizmo.setMode("scale");
-  else if (key === "f" && selected) focusOn(selected);
+  else if (key === "t" && (selected?.userData.kind === "prop" || selected?.userData.kind === "live")) gizmo.setMode("scale");
+  else if (key === "f" && selected) focusOn(selected, isLive(selected) ? LIVE_FOCUS : undefined);
   else if (key === "h" && event.shiftKey) { props.showAll(); renderPanel(); }
   else if (key === "h" && selected) hideSelectedModels();
+  else if (key === "end" && selected?.userData.kind === "live") dropLiveToGround(selected);
   else if (key === "end" && selected) objectAction("ground");
   else if (tools[key] && !"wasdqe".includes(key)) setTool(tools[key]);
 });
@@ -1925,7 +2084,7 @@ async function addChunk(row, col) {
   if (terrain.cells.has(key)) return status(`${key} already has a chunk.`);
   try {
     if (state.newChunk.ecoKey) {
-      const eco = await postJson("/api/zone/eco", { zone: state.zone.id, palette: state.newChunk.ecoKey });
+      const eco = await postJson("api/zone/eco", { zone: state.zone.id, palette: state.newChunk.ecoKey });
       if (!state.zone.ecos.some((e) => e.index === eco.index)) state.zone.ecos.push(eco);
       state.zoneDirty = true;
       state.newChunk.eco = eco.index;
@@ -2043,7 +2202,7 @@ async function writeDraft() {
   // The page's own records carry their scene objects; the draft keeps the data.
   const plain = ({ object, ...record }) => record;
   const post = async (body) => {
-    const response = await fetch(`/api/draft/chunk${query}`, { method: "POST", body });
+    const response = await fetch(`api/draft/chunk${query}`, { method: "POST", body });
     if (!response.ok) throw new Error((await response.json()).error);
   };
   try {
@@ -2065,7 +2224,7 @@ async function writeDraft() {
       drafted.add(chunk.key);
     }
     if (zone && zone !== zoneAutosaved) {
-      await postJson(`/api/draft/zone${query}`, JSON.parse(zone));
+      await postJson(`api/draft/zone${query}`, JSON.parse(zone));
       zoneAutosaved = zone;
     }
     $("#status-autosave").textContent = `autosaved ${new Date().toLocaleTimeString()}`;
@@ -2078,13 +2237,13 @@ function clearDraft(zone) {
   zoneAutosaved = "";
   drafted.clear();
   $("#status-autosave").textContent = "";
-  return postJson(`/api/draft/clear?zone=${encodeURIComponent(zone)}`, {}).catch(() => {});
+  return postJson(`api/draft/clear?zone=${encodeURIComponent(zone)}`, {}).catch(() => {});
 }
 
 // After opening a zone: if an autosave of it outlived the page that wrote it, offer to restore it.
 async function offerDraft() {
   const zone = state.zone, query = `zone=${encodeURIComponent(zone.id)}`;
-  const draft = await getJson(`/api/draft?${query}`).catch(() => null);
+  const draft = await getJson(`api/draft?${query}`).catch(() => null);
   if (!draft || state.zone !== zone) return;
   const what = [draft.chunks.length ? `${draft.chunks.length} chunk(s)` : "", draft.zone ? "zone settings" : ""].filter(Boolean).join(" and ");
   const when = new Date(draft.time * 1000).toLocaleString();
@@ -2106,7 +2265,7 @@ async function offerDraft() {
   }
   let restored = 0;
   for (const { row, col } of draft.chunks) {
-    const response = await fetch(`/api/draft/chunk?${query}&row=${row}&col=${col}`);
+    const response = await fetch(`api/draft/chunk?${query}&row=${row}&col=${col}`);
     if (!response.ok || state.zone !== zone) continue;
     const { meta, blobs } = unframe(await response.arrayBuffer());
     if (!Object.values(meta.dirty || {}).some(Boolean)) continue;
@@ -2180,6 +2339,14 @@ function drawMinimap() {
     context.beginPath();
     wall.forEach((p, i) => { const [u, v] = toMap(p[0], p[2]); i ? context.lineTo(u, v) : context.moveTo(u, v); });
     context.stroke();
+  }
+  // The running game's players (live.js).
+  context.fillStyle = "#7cc4ff";
+  for (const player of live.visible ? live.players.values() : []) {
+    const [u, v] = toMap(player.position.x, player.position.z);
+    context.beginPath();
+    context.arc(u, v, 3, 0, Math.PI * 2);
+    context.fill();
   }
   const [cu, cv] = toMap(camera.position.x, camera.position.z);
   const forward = new THREE.Vector3();
@@ -2261,6 +2428,7 @@ function frame() {
       updateDirty();
     }
     if (scatter && pointer.buttons & 1) scatterStep(dt);
+    live.update(dt, camera);
     for (const box of selectionBoxes.values()) box.update();
     if (ghost && hover) ghost.position.set(hover.x, hover.y, hover.z);
     if (hover) {
@@ -2287,6 +2455,30 @@ function frame() {
   requestAnimationFrame(frame);
 }
 
+// --- the live game -------------------------------------------------------------------------------------
+
+// The Live switch shows when the editor was opened from the admin panel; its dot says whether this zone is live.
+function updateLiveStatus() {
+  const control = $("#live-control");
+  control.hidden = !live.available;
+  $("#live-state").className = live.zone ? (live.connected ? "on" : "off") : "";
+  control.title = !live.zone
+    ? "This zone isn't running on the game server (only world zones are live)."
+    : live.connected
+      ? `${live.zone.name} is live: its players, NPCs and placed objects as the game has them now. Placed objects edited here change in game at once.`
+      : "Reconnecting to the game server…";
+  if (state.tool === "props") renderPanel();
+}
+
+$("#show-live").addEventListener("change", (e) => {
+  live.setVisible(e.target.checked);
+  if (!e.target.checked && isLive(selected)) select(null);
+});
+live.connect().then((available) => {
+  if (available && state.zone) live.open(state.zone.name);
+  updateLiveStatus();
+});
+
 // --- top bar -------------------------------------------------------------------------------------------
 
 for (const button of document.querySelectorAll("#toolbar button")) button.addEventListener("click", () => setTool(button.dataset.tool));
@@ -2300,7 +2492,7 @@ $("#play").addEventListener("click", async () => {
   $("#play").disabled = true;
   toast(servers ? "Restarting the servers and the client…" : "Restarting the client…");
   try {
-    const result = await postJson("/api/play", { servers });
+    const result = await postJson("api/play", { servers });
     const unlock = result.unlock?.applied
       ? (result.unlock.hidden.length ? `\nHid ${result.unlock.hidden.length} stock file(s) from the client's packs.` : "")
       : `\n${result.unlock?.message || ""}`;
@@ -2343,7 +2535,7 @@ dialog.addEventListener("close", async () => {
   const form = dialog.querySelector("form");
   status(`Creating ${form.name.value}…`);
   try {
-    const zone = await postJson("/api/zone/new", {
+    const zone = await postJson("api/zone/new", {
       name: form.name.value, type: form.type.value, source: form.source.value,
       width: +form.width.value, depth: +form.depth.value, height: +form.height.value,
       ecoKey: form.eco.value || null,
