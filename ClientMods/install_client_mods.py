@@ -118,6 +118,7 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndSampleList.xml"), [("UI\\sampleList.swf", "UI\\sanctuarySampleList.swf")]),
     (Path("UI/UiModules/Main/wndFarmingSidePanel.xml"), [("UI\\FarmingSidePanel.swf", "UI\\sanctuaryFarmingSidePanel.swf")]),
     (Path("UI/UiModules/Main/wndActionProgress.xml"), [("UI\\actionProgress.swf", "UI\\sanctuaryActionProgress.swf")]),
+    (Path("UI/UiModules/Main/wndNpcMerchantV2.xml"), [("UI\\NPCMerchantV2.swf", "UI\\sanctuaryNPCMerchantV2.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

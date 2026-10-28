@@ -146,6 +146,8 @@ MODS = [
      [script_dir / "farming" / "farming_side_panel.as"], []),
     ("actionProgress", "sanctuaryActionProgress", "\\frame_1\\DoAction",
      [script_dir / "farming" / "action_progress.as"], []),
+    # The NPC merchant window (wndNpcMerchantV2; the old wndNpcMerchant's Lua opens it too).
+    ("NPCMerchantV2", "sanctuaryNPCMerchantV2", "\\frame_1\\DoAction", [script_dir / "merchant" / "merchant_store.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("mini_map", "sanctuaryMiniMap", None, [], []),
 ]
@@ -191,6 +193,8 @@ TEXTURE_SYMBOLS = {
     ],
     # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The merchant window (merchant/merchant_store.as): the coin store coin, in the crest, the wallet and the empty art socket.
+    "NPCMerchantV2": [("img12661814977694140028.dds", "sanctuaryMerchantCoin", 96, 0)],
     # The farm's side panel (farming/farming_side_panel.as): the item crate from its stock Items row, in a frosted socket.
     "FarmingSidePanel": [("img5256080051719801053.dds", "sanctuaryFarmItems", 32, 0)],
     # The Collections window (collections/collections_browser.as): the Main Menu's Collections book by its title.
