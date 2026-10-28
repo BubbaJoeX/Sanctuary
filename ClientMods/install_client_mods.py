@@ -107,6 +107,17 @@ WINDOW_PATCHES = [
      [("UI\\CollectionsBrowser.swf", "UI\\sanctuaryCollectionsBrowser.swf")]),
     (Path("UI/UiModules/Main/wndAchievements.xml"), [("UI\\achievements.swf", "UI\\sanctuaryAchievements.swf")]),
     (Path("UI/UiModules/Main/wndFRJobBrowser.xml"), [("UI\\FRJobBrowser.swf", "UI\\sanctuaryFRJobBrowser.swf")]),
+    # The rest of the housing UI (housing/*.as).
+    (Path("UI/UiModules/Main/wndHousingSidePanel.xml"), [("UI\\housingSidePanel.swf", "UI\\sanctuaryHousingSidePanel.swf")]),
+    (Path("UI/UiModules/Main/wndHousingOptions.xml"), [("UI\\HousingOptions.swf", "UI\\sanctuaryHousingOptions.swf")]),
+    (Path("UI/UiModules/Main/wndHousingEditButton.xml"), [("UI\\housingEditButton.swf", "UI\\sanctuaryHousingEditButton.swf")]),
+    (Path("UI/UiModules/Main/wndHousingSubMenu.xml"), [("UI\\housingSubMenu.swf", "UI\\sanctuaryHousingSubMenu.swf")]),
+    (Path("UI/UiModules/Main/wndHousingBrowser.xml"), [("UI\\HousingBrowser.swf", "UI\\sanctuaryHousingBrowser.swf")]),
+    # Farming: the Farm-O-Matic, its sample picker, the farm's side panel and the action progress bar.
+    (Path("UI/UiModules/Main/wndFarmOMatic.xml"), [("UI\\farmomatic.swf", "UI\\sanctuaryFarmOMatic.swf")]),
+    (Path("UI/UiModules/Main/wndSampleList.xml"), [("UI\\sampleList.swf", "UI\\sanctuarySampleList.swf")]),
+    (Path("UI/UiModules/Main/wndFarmingSidePanel.xml"), [("UI\\FarmingSidePanel.swf", "UI\\sanctuaryFarmingSidePanel.swf")]),
+    (Path("UI/UiModules/Main/wndActionProgress.xml"), [("UI\\actionProgress.swf", "UI\\sanctuaryActionProgress.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

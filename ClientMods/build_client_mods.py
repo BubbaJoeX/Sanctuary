@@ -74,7 +74,8 @@ MODS = [
     ("gamedock", "sanctuaryGameDock", "\\frame_1\\DoAction",
      [script_dir / "gamedock" / "coin_shop_button.as"], []),
     ("dialog", "sanctuaryDialog", "\\frame_1\\DoAction", [script_dir / "dialog" / "dialog_hide.as"], []),
-    ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction", [script_dir / "housing" / "tray.as"], []),
+    ("housingEditPanel", "sanctuaryHousingEditPanel", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "tray.as", script_dir / "housing" / "tray_style.as"], []),
     ("marketplace", "sanctuaryMarketplace", "\\frame_1\\DoAction", [script_dir / "marketplace" / "coin_store_only.as"], []),
     # The tab bar: the Marketplace's tabs and the pet care bar (pets/pet_action_bar.as restyles it for both).
     ("navigation", "sanctuaryNavigation", "\\frame_1\\DoAction",
@@ -97,7 +98,8 @@ MODS = [
     ("welcome", "sanctuaryWelcome", "\\frame_1\\DoAction",
      [script_dir / "welcome" / NO_STATION_CASH, script_dir / "welcome" / "home.as"], []),
     ("ActivityPortal", "sanctuaryActivityPortal", "\\frame_1\\DoAction", [script_dir / "ActivityPortal" / NO_STATION_CASH], []),
-    ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction", [script_dir / "HousingPreview" / NO_STATION_CASH], []),
+    ("HousingPreview", "sanctuaryHousingPreview", "\\frame_1\\DoAction",
+     [script_dir / "HousingPreview" / NO_STATION_CASH, script_dir / "housing" / "preview_panel.as"], []),
     ("storage", "sanctuaryStorage", "\\frame_1\\DoAction", [script_dir / "storage" / NO_STATION_CASH], []),
     ("MyStuffBrowser", "sanctuaryMyStuffBrowser", "\\frame_1\\DoAction", [script_dir / "MyStuffBrowser" / "main_menu.as"], []),
     ("atlas", "sanctuaryAtlas", "\\frame_1\\DoAction", [script_dir / "atlas" / "lavender_coast.as"], []),
@@ -105,7 +107,8 @@ MODS = [
      [script_dir / "equipment" / "equipment_pane.as"], []),
     ("inventory", "sanctuaryInventory", "\\frame_1\\DoAction", [script_dir / "inventory" / "stuff_browser.as"], []),
     # The tile browser: Games, Pets, Rides and Houses (wndBrowserV2) and the farming browser (wndFarmingBrowser).
-    ("Browser_V2", "sanctuaryBrowserV2", "\\frame_1\\DoAction", [script_dir / "browser" / "tile_browser.as"], []),
+    ("Browser_V2", "sanctuaryBrowserV2", "\\frame_1\\DoAction",
+     [script_dir / "browser" / "tile_browser.as", script_dir / "browser" / "farming_extras.as"], []),
     ("CollectionsBrowser", "sanctuaryCollectionsBrowser", "\\frame_1\\DoAction",
      [script_dir / "collections" / "collections_browser.as"], []),
     ("achievements", "sanctuaryAchievements", "\\frame_1\\DoAction",
@@ -122,6 +125,27 @@ MODS = [
     ("video_new", "sanctuaryVideoNew", "\\frame_1\\DoAction", [script_dir / "hud" / "no_video_capture.as"], []),
     # The friends dock (wndSocial): repainted by RESKINS and redrawn by its script.
     ("social", "sanctuarySocial", "\\frame_2\\DoAction", [script_dir / "social" / "friends_dock.as"], []),
+    # The decorate-mode lot panel (top right: the house's name, owner, rating and Submit or Vote).
+    ("housingSidePanel", "sanctuaryHousingSidePanel", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "lot_panel.as"], []),
+    # The Housing Options window (the tray's Housing Options button).
+    ("HousingOptions", "sanctuaryHousingOptions", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "housing_options.as"], []),
+    # The Decorate / Exit button shown in your house.
+    ("housingEditButton", "sanctuaryHousingEditButton", "\\frame_1\\DoAction",
+     [script_dir / "housing" / "edit_button.as"], []),
+    # The pop-up row of house buttons.
+    ("housingSubMenu", "sanctuaryHousingSubMenu", "\\frame_1\\DoAction", [script_dir / "housing" / "sub_menu.as"], []),
+    # The Housing Directory (published houses to visit and rate).
+    ("HousingBrowser", "sanctuaryHousingBrowser", "\\frame_1\\DoAction", [script_dir / "housing" / "directory.as"], []),
+    # Farming: the Farm-O-Matic (wndFarmOMatic) and its sample picker (wndSampleList), the farm's side panel
+    # (wndFarmingSidePanel) and the timed farming action bar (wndActionProgress).
+    ("farmomatic", "sanctuaryFarmOMatic", "\\frame_1\\DoAction", [script_dir / "farming" / "farm_o_matic.as"], []),
+    ("sampleList", "sanctuarySampleList", "\\frame_1\\DoAction", [script_dir / "farming" / "sample_list.as"], []),
+    ("FarmingSidePanel", "sanctuaryFarmingSidePanel", "\\frame_1\\DoAction",
+     [script_dir / "farming" / "farming_side_panel.as"], []),
+    ("actionProgress", "sanctuaryActionProgress", "\\frame_1\\DoAction",
+     [script_dir / "farming" / "action_progress.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("mini_map", "sanctuaryMiniMap", None, [], []),
 ]
@@ -132,6 +156,8 @@ TEXTURE_SWAPS = {
     "gamedock": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
     # The welcome screen's header wallet, which now shows coins.
     "welcome": [("img9752574847671325523.dds", "img11900526720825140648.dds")],
+    # The house preview's price (housing/preview_panel.as).
+    "HousingPreview": [("img12560206623044729416.dds", "img11900526720825140648.dds")],
 }
 
 # Stock movie -> [(client texture, export name, size, hue shift in degrees)]. Each texture is cropped to
@@ -165,6 +191,8 @@ TEXTURE_SYMBOLS = {
     ],
     # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The farm's side panel (farming/farming_side_panel.as): the item crate from its stock Items row, in a frosted socket.
+    "FarmingSidePanel": [("img5256080051719801053.dds", "sanctuaryFarmItems", 32, 0)],
     # The Collections window (collections/collections_browser.as): the Main Menu's Collections book by its title.
     "CollectionsBrowser": [("img1469495624995028744.dds", "sanctuaryCollectionsBook", 64, 0)],
     # The system menu (system_menu/system_menu.as): the squirrel from its stock medallion, peeking over the panel, and
@@ -224,6 +252,12 @@ REMOVED_DEPTHS = {
     "options": [8],
     # The Game Options window's close button (an unnamed exitButton.swf clip); options/game_options.as draws a gold one.
     "optionsPanel": [246],
+    # The furniture tray's items panel (housing/tray.as covered it; housing/tray_style.as draws a recess in its place).
+    "housingEditPanel": [3],
+    # The Housing Directory's crest glass (housing/directory.as puts the house beside its title).
+    "HousingBrowser": [130],
+    # The action progress bar's track and its gloss (farming/action_progress.as redraws the bar).
+    "actionProgress": [1, 4],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
