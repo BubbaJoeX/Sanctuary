@@ -355,6 +355,8 @@ MODS = [
      [THEME, MG / "pir_player_ship_hold_bbe.as"], []),
     ("pir_instructions_bbe", "sanctuaryPirInstructions", "\\frame_1\\DoAction",
      [THEME, MG / "pir_instructions_bbe.as"], []),
+    # The Adventurer's Journal (wndStoryBook): its cover, corners and lists repainted (RESKINS), the rest drawn.
+    ("StoryBook", "sanctuaryStoryBook", "\\frame_1\\DoAction", [script_dir / "dialogs" / "story_book.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
     ("starCounter", "sanctuaryStarCounter", None, [], []),
@@ -534,6 +536,19 @@ REMOVED_DEPTHS = {
 # it and embedded in its place, so the HUD keeps its layout: purple, brown and beige chrome becomes navy glass,
 # frosted glass and gold, and the minimap gets a new ring.
 RESKINS = {
+    # The Adventurer's Journal (dialogs/story_book.as): the book's brown cover as navy glass with a gold rim, gold
+    # corner guards and ivory page edges round the untouched parchment; the maps' plum photo corners in gold; the
+    # other quests' rows navy and their track radio gold; the scrollbars' tracks navy with gold thumbs and arrows;
+    # and the region tab's ribbon navy under the drawn tab.
+    "StoryBook": {
+        "img10426551855641310554.dds": "book",
+        "img13614505725828598415.dds": "photo_corners", "img12552210125843894562.dds": "photo_corners",
+        "img16586129237713058862.dds": "navy", "img12684507239407976167.dds": "navy",
+        "img16438643002358585739.dds": "gold", "img4389146408587448710.dds": "gold",
+        "img9983271769940045275.dds": "navy", "img17153395553286337060.dds": "navy",
+        "img9033961778514284693.dds": "gold", "img326751631706103848.dds": "gold",
+        "img6048521301218706258.dds": "gold", "img1145991426751665751.dds": "gold",
+    },
     # The racing HUD's purple boost wedge in gold, and the item tray in navy glass.
     "raceBoostBar": {"img114046457190065444.dds": "gold"},
     "itemSlots": {"img114046457190065444.dds": "gold", "img4930726603458950520.dds": "navy"},

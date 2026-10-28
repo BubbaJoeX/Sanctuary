@@ -205,6 +205,7 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndBugSubmission.xml"), [("UI\\bugsubmission.swf", "UI\\sanctuaryBugSubmission.swf")]),
     (Path("UI/UiModules/Main/wndCommunicator.xml"), [("UI\\Communicator.swf", "UI\\sanctuaryCommunicator.swf")]),
     (Path("UI/UiModules/Main/wndFRGateway.xml"), [("UI\\FRGateway.swf", "UI\\sanctuaryFRGateway.swf")]),
+    (Path("UI/UiModules/Main/wndStoryBook.xml"), [("UI\\StoryBook.swf", "UI\\sanctuaryStoryBook.swf")]),
     # Minigames in the Main Menu's style (minigames/*.as).
     (Path("UI/UiModules/Main/wndMinigameStartScreen.xml"), [("UI\\MinigameStartScreen.swf", "UI\\sanctuaryMinigameStartScreen.swf")]),
     (Path("UI/UiModules/Main/wndMinigameTitleBar.xml"), [("UI\\MinigameTitleBar.swf", "UI\\sanctuaryMinigameTitleBar.swf")]),
