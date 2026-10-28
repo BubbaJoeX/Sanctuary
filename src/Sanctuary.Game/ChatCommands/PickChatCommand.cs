@@ -1,53 +1,38 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
+using Sanctuary.Core.Helpers;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 
 namespace Sanctuary.Game.ChatCommands;
 
 /// <summary>
-/// Edits the Referee Picks cards on the welcome screen (see <see cref="RefereePicks"/>).
+/// Edits the Referee Picks cards on the welcome screen (see <see cref="IRefereePickManager"/>).
 /// </summary>
 public class PickChatCommand : IChatCommand
 {
-    private const int MaxTitleLength = 40;
-    private const int MaxTextLength = 120;
-
-    // !pick add <kind>: (welcome screen event, icon).
-    private static readonly Dictionary<string, (string Action, string Icon)> Kinds = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["teleport"] = ("Teleport", "tree"),
-        ["shop"] = ("Marketplace", "coin"),
-        ["houses"] = ("HouseBrowser", "house"),
-        ["friends"] = ("Communicator", "friends"),
-        ["journal"] = ("OpenHerosJournal", "journal"),
-        ["mystuff"] = ("gotoMyStuff", "bag"),
-        ["achievements"] = ("Achievements", "trophy")
-    };
-
-    private readonly IZoneManager _zoneManager;
     private readonly IResourceManager _resourceManager;
     private readonly IChatCommandManager _chatCommandManager;
+    private readonly IRefereePickManager _refereePickManager;
 
     public string KeyWord => "pick";
     public string Usage => "| add <teleport <poi id>|shop|houses|friends|journal|mystuff|achievements> <title> | <text> | remove <n> | clear | reset";
-    public string Description => "Lists or edits the Referee Picks on the welcome screen. Changes reach everyone online the next time they open it, and last until a restart.";
+    public string Description => "Lists or edits the Referee Picks on the welcome screen, which the admin site edits too. Changes reach everyone online the next time they open it.";
     public ChatCommandRole RequiredRole => ChatCommandRole.Mod;
 
-    public PickChatCommand(IZoneManager zoneManager, IResourceManager resourceManager, IChatCommandManager chatCommandManager)
+    public PickChatCommand(IResourceManager resourceManager, IChatCommandManager chatCommandManager, IRefereePickManager refereePickManager)
     {
-        _zoneManager = zoneManager;
         _resourceManager = resourceManager;
         _chatCommandManager = chatCommandManager;
+        _refereePickManager = refereePickManager;
     }
 
     public bool Handle(Player invoker, string[] args)
     {
         if (args.Length == 0)
         {
-            var picks = RefereePicks.Current;
+            var picks = _refereePickManager.Current;
 
             ChatHelper.SendSystemMessage(invoker, picks.Count == 0
                 ? "No Referee Picks are set."
@@ -61,7 +46,7 @@ public class PickChatCommand : IChatCommand
                 return Add(invoker, args[1..]);
 
             case "remove" when args.Length == 2 && int.TryParse(args[1], out var number):
-                if (!RefereePicks.TryRemoveAt(number - 1))
+                if (!_refereePickManager.TryRemoveAt(number - 1))
                 {
                     ChatHelper.SendSystemMessage(invoker, $"There is no pick {number}.");
                     return true;
@@ -71,12 +56,12 @@ public class PickChatCommand : IChatCommand
                 return true;
 
             case "clear":
-                RefereePicks.Clear();
+                _refereePickManager.Clear();
                 Changed(invoker, "Clear", null);
                 return true;
 
             case "reset":
-                RefereePicks.Reset();
+                _refereePickManager.Reset(invoker.CharacterId);
                 Changed(invoker, "Reset", null);
                 return true;
         }
@@ -86,7 +71,7 @@ public class PickChatCommand : IChatCommand
 
     private bool Add(Player invoker, string[] args)
     {
-        if (!Kinds.TryGetValue(args[0], out var kind))
+        if (!RefereePickHelper.Kinds.TryGetValue(args[0], out var kind))
             return false;
 
         var param1 = 0;
@@ -111,15 +96,15 @@ public class PickChatCommand : IChatCommand
         if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0)
             return false;
 
-        if (parts[0].Length > MaxTitleLength || parts[1].Length > MaxTextLength)
+        if (parts[0].Length > RefereePickHelper.MaxTitleLength || parts[1].Length > RefereePickHelper.MaxTextLength)
         {
-            ChatHelper.SendSystemMessage(invoker, $"Keep the title to {MaxTitleLength} characters and the text to {MaxTextLength}.");
+            ChatHelper.SendSystemMessage(invoker, $"Keep the title to {RefereePickHelper.MaxTitleLength} characters and the text to {RefereePickHelper.MaxTextLength}.");
             return true;
         }
 
-        if (!RefereePicks.TryAdd(new WelcomeCard(parts[0], parts[1], kind.Action, param1, kind.Icon)))
+        if (!_refereePickManager.TryAdd(new WelcomeCard(parts[0], parts[1], kind.Action, param1, kind.Icon), invoker.CharacterId))
         {
-            ChatHelper.SendSystemMessage(invoker, $"The welcome screen holds {RefereePicks.MaxPicks} picks; remove one first.");
+            ChatHelper.SendSystemMessage(invoker, $"The welcome screen holds {RefereePickHelper.MaxPicks} picks; remove one first.");
             return true;
         }
 
@@ -129,13 +114,7 @@ public class PickChatCommand : IChatCommand
 
     private void Changed(Player invoker, string action, string? detail)
     {
-        // The client keeps the announcements it was sent and fills the welcome screen from them when it opens.
-        var packet = WelcomeScreenHelper.GetAnnouncementsPacket();
-
-        foreach (var player in _zoneManager.Zones.SelectMany(zone => zone.Players))
-            player.SendTunneled(packet);
-
         _chatCommandManager.LogAction(this, invoker, action, null, detail);
-        ChatHelper.SendSystemMessage(invoker, $"Referee Picks updated ({RefereePicks.Current.Count} of {RefereePicks.MaxPicks}).");
+        ChatHelper.SendSystemMessage(invoker, $"Referee Picks updated ({_refereePickManager.Current.Count} of {RefereePickHelper.MaxPicks}).");
     }
 }

@@ -157,7 +157,6 @@ namespace Sanctuary.Database.MySql.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("varchar(16)");
 
-
                     b.PrimitiveCollection<string>("MiniGameTutorials")
                         .HasColumnType("longtext");
 
@@ -194,7 +193,6 @@ namespace Sanctuary.Database.MySql.Migrations
 
                     b.Property<int>("SkinToneId")
                         .HasColumnType("int");
-
 
                     b.Property<Guid?>("Ticket")
                         .HasColumnType("char(36)");
@@ -821,6 +819,58 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.ToTable("RedeemCodeUses");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbRefereePick", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Button")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("Param1")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<DateTimeOffset>("Updated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<ulong?>("UpdatedBy")
+                        .HasColumnType("bigint unsigned");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RefereePicks");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbScriptLibraryEntry", b =>
                 {
                     b.Property<string>("Name")
@@ -880,7 +930,6 @@ namespace Sanctuary.Database.MySql.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(false);
-
 
                     b.Property<bool>("IsMod")
                         .ValueGeneratedOnAdd()

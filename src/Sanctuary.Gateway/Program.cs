@@ -125,6 +125,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<ICustomItemManager, CustomItemManager>();
     serviceCollection.AddSingleton<IRedeemCodeManager, RedeemCodeManager>();
     serviceCollection.AddSingleton<ITileEditor, TileEditor>();
+    serviceCollection.AddSingleton<IRefereePickManager, RefereePickManager>();
 });
 
 builder.ConfigureLogging((hostBuilderContext, loggingBuilder) =>
