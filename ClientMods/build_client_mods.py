@@ -120,9 +120,10 @@ MODS = [
     # and the video recorder/screenshot HUD whose record button sat in it, hidden.
     ("FRUtilNavigation", "sanctuaryFRUtilNavigation", "\\frame_1\\DoAction", [script_dir / "hud" / "top_bar.as"], []),
     ("video_new", "sanctuaryVideoNew", "\\frame_1\\DoAction", [script_dir / "hud" / "no_video_capture.as"], []),
+    # The friends dock (wndSocial): repainted by RESKINS and redrawn by its script.
+    ("social", "sanctuarySocial", "\\frame_2\\DoAction", [script_dir / "social" / "friends_dock.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("mini_map", "sanctuaryMiniMap", None, [], []),
-    ("social", "sanctuarySocial", None, [], []),
 ]
 
 # Stock movie -> [(external texture, texture to use instead)]. Station Cash no longer exists, so the
