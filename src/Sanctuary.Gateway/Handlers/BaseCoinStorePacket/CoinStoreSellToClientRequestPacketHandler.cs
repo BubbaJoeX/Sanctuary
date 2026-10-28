@@ -69,9 +69,18 @@ public static class CoinStoreSellToClientRequestPacketHandler
             return true;
         }
 
-        if (!_resourceManager.CoinStoreItems.TryGetValue(clientItemDefinition.Id, out var coinStoreItem))
+        // NPC merchants sell what's on their own list; everything else must be in the coin store.
+        int tintGroupId;
+
+        if (MerchantHelper.TryGetEntry(connection.Player, coinStoreSellToClientRequestPacket.MerchantGuid, clientItemDefinition.Id, out var merchantEntry))
+            tintGroupId = merchantEntry.AvailableTintGroupId;
+        else if (_resourceManager.CoinStoreItems.TryGetValue(clientItemDefinition.Id, out var coinStoreItem))
+            tintGroupId = coinStoreItem.TintGroupId;
+        else if (MerchantHelper.TryGetEntryInReach(connection.Player, clientItemDefinition.Id, out merchantEntry))
+            tintGroupId = merchantEntry.AvailableTintGroupId;
+        else
         {
-            _logger.LogWarning("User tried to buy an item the coin store doesn't sell. {guid} {definition}", connection.Player.Guid, clientItemDefinition.Id);
+            _logger.LogWarning("User tried to buy an item that neither the coin store nor a merchant in reach sells. {guid} {definition}", connection.Player.Guid, clientItemDefinition.Id);
 
             coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.InvalidItem;
 
@@ -106,7 +115,7 @@ public static class CoinStoreSellToClientRequestPacketHandler
 
         var tint = coinStoreSellToClientRequestPacket.ItemRecord.Tint;
 
-        var hasTintGroup = coinStoreItem.TintGroupId != NoTintGroupId;
+        var hasTintGroup = tintGroupId != NoTintGroupId;
 
         if (!hasTintGroup)
             tint = clientItemDefinition.Icon.TintId;

@@ -1,5 +1,10 @@
 [
   {
+    "Title": "The Mysterious Merchant is back",
+    "Text": "Cragara turns up in a different town every hour, selling things you won't find in the Shop: a Retro Hover-Car, the OSFR Foam Costume, streetwear, new hairstyles and more. Watch chat to find out where she is, and be quick: she never stays long!",
+    "Icon": "bag"
+  },
+  {
     "Title": "Join live events",
     "Text": "When a Referee hosts an event, everyone online gets the call. Type !join to go straight there from anywhere, and stick around for prizes!",
     "Icon": "referee"
