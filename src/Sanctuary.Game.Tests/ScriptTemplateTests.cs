@@ -93,11 +93,19 @@ public sealed class ScriptTemplateTests
 
     private sealed class StubPlayer : IScriptablePlayer
     {
-        public ulong Guid => 7;
+        public ulong Guid { get; init; } = 7;
         public string Name => "Tester";
         public (float x, float y, float z) Position { get; set; }
 
-        public void Message(string message) { }
+        public List<string> Messages { get; } = [];
+        public List<int> StartedMinigames { get; } = [];
+
+        /// <summary>
+        /// Whether the server runs the minigames the script starts.
+        /// </summary>
+        public bool RunsMinigames { get; init; }
+
+        public void Message(string message) => Messages.Add(message);
         public void GiveItem(int itemDefinitionId, int quantity) { }
         public void AcceptQuest(int questId) { }
         public bool HasCompletedQuest(int questId) => false;
@@ -105,7 +113,7 @@ public sealed class ScriptTemplateTests
         public bool IsMounted => false;
         public void Dismount() { }
         public void Teleport(float x, float y, float z, float? heading) => Position = (x, y, z);
-        public void GiveCoins(int amount) { }
+        public void GiveCoins(int amount) => Coins += amount;
         public void Heal(int amount) { }
         public void PlayEffect(int compositeEffectId) { }
         public void Emote(int animationId) { }
@@ -121,16 +129,29 @@ public sealed class ScriptTemplateTests
         public bool IsInCombat => false;
         public int Job => 1;
         public int JobRank => 1;
-        public int Coins => 0;
+        public int Coins { get; set; }
         public int GroupId => 0;
         public bool IsGroupLeader => false;
         public IReadOnlyList<ulong> GroupMemberGuids => [];
         public int CountItem(int itemDefinitionId) => 0;
         public bool TakeItem(int itemDefinitionId, int quantity) => false;
-        public bool TakeCoins(int amount) => false;
         public bool GiveStars(int amount) => true;
         public bool Warp(int zoneId, (float x, float y, float z)? position, float? heading) => false;
-        public bool StartMinigame(int minigameId) => false;
+
+        public bool TakeCoins(int amount)
+        {
+            if (Coins < amount)
+                return false;
+
+            Coins -= amount;
+            return true;
+        }
+
+        public bool StartMinigame(int minigameId)
+        {
+            StartedMinigames.Add(minigameId);
+            return RunsMinigames;
+        }
     }
 
     private const string Sample = """
@@ -286,6 +307,43 @@ public sealed class ScriptTemplateTests
                 Assert.IsNull(tickError, $"{template.Name} tick {second}: {tickError}");
             }
         }
+    }
+
+    [TestMethod]
+    public async Task MinigameTable_ChargesAndStartsAGame_ThenWaitsOutItsCooldown_AndRefundsAGameThatWontRun()
+    {
+        var template = ScriptTemplate.Parse(File.ReadAllText(Path.Combine(FindTemplatesDirectory(), "minigame-table.lua")), null, null, true);
+
+        Assert.IsTrue(template.TryRender(new Dictionary<string, string> { ["games"] = "91,92", ["coins"] = "25", ["cooldown"] = "60" },
+            out var source, out var renderError), renderError);
+
+        var (sandbox, compileError) = await ScriptSandbox.CompileAsync(new StubNpc(), source, template.Name);
+        Assert.IsNotNull(sandbox, compileError);
+
+        var player = new StubPlayer { Coins = 30, RunsMinigames = true };
+
+        Assert.IsNull(await sandbox.CallAsync("onInteract", player));
+        Assert.AreEqual(5, player.Coins);
+        Assert.AreEqual(1, player.StartedMinigames.Count);
+        CollectionAssert.Contains(new[] { 91, 92 }, player.StartedMinigames[0], "one of the listed games");
+
+        // Again within the cooldown: nothing taken, nothing started.
+        Assert.IsNull(await sandbox.CallAsync("onInteract", player));
+        Assert.AreEqual(5, player.Coins);
+        Assert.AreEqual(1, player.StartedMinigames.Count);
+        StringAssert.StartsWith(player.Messages[^1], "You can play again in");
+
+        // Too few coins: nothing starts.
+        var poor = new StubPlayer { Guid = 8, Coins = 10, RunsMinigames = true };
+        Assert.IsNull(await sandbox.CallAsync("onInteract", poor));
+        Assert.AreEqual(0, poor.StartedMinigames.Count);
+        Assert.AreEqual("It costs 25 coins to play.", poor.Messages[^1]);
+
+        // A game the server doesn't run gives the fee back.
+        var unlucky = new StubPlayer { Guid = 9, Coins = 30, RunsMinigames = false };
+        Assert.IsNull(await sandbox.CallAsync("onInteract", unlucky));
+        Assert.AreEqual(30, unlucky.Coins);
+        Assert.AreEqual("That game isn't available right now.", unlucky.Messages[^1]);
     }
 
     private static string FindTemplatesDirectory()
