@@ -45,7 +45,7 @@ Mobs (hostile NPCs made with `!npc mob`) also get these:
 | `getFlag(name)`, `setFlag(name, value)`, `addFlag(name [, amount])` | Shared state for the zone's scripts. Lost on restart. |
 | `spawnNpc(npcId, x, y, z, heading [, pitch, roll])`, `spawnNpcWithGuid(npcId, guid, ...)` | Returns the npc, or nil. |
 | `setClientAreaEnabled(areaId, on)`, `isSeasonActive(name)` | |
-| `isEventActive(key)` | Whether staff have turned the event on with `!event on <key>`. |
+| `isEventActive(key)` | Whether staff have turned the event on with `!event on <key>`, or (a season in `Resources/Seasons.json`, such as `halloween`) it's between its days of the year. |
 
 ### npc
 

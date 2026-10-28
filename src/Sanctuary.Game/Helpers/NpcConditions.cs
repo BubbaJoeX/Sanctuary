@@ -43,8 +43,14 @@ public sealed class NpcConditions
     /// </summary>
     public bool RefereesOnly { get; set; }
 
+    /// <summary>
+    /// A world event or season (Resources/Seasons.json) it shows during. Unlike an NPC's own event, which spawns
+    /// it, this works for props too.
+    /// </summary>
+    public string? Event { get; set; }
+
     [JsonIgnore]
-    public bool IsEmpty => FromHour is null && QuestId is null && ItemId is null && !RefereesOnly;
+    public bool IsEmpty => FromHour is null && QuestId is null && ItemId is null && !RefereesOnly && string.IsNullOrEmpty(Event);
 
     /// <summary>
     /// Null when the conditions make sense, else what's wrong with them.
@@ -66,6 +72,9 @@ public sealed class NpcConditions
         if (QuestId <= 0 || ItemId <= 0)
             return "Quest and item ids are above 0.";
 
+        if (Event is { Length: > 32 })
+            return "Event keys are at most 32 characters.";
+
         return null;
     }
 
@@ -78,6 +87,9 @@ public sealed class NpcConditions
     public bool IsMetBy(Player player)
     {
         if (RefereesOnly && !player.IsAdmin && !player.IsMod)
+            return false;
+
+        if (!string.IsNullOrEmpty(Event) && !player.Zone.IsEventActive(Event))
             return false;
 
         if (FromHour is { } from && ToHour is { } to && !InHours(GameClock.Hour, from, to))

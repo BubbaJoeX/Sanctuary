@@ -46,6 +46,8 @@ public static partial class AdminApiEndpoints
         [.. RefereeEditorHelper.Animations.Select(x => new AnimationOption(x.Id, x.Label, x.Loop))],
         [MobDefinition.DefaultKey, .. resourceManager.Mobs.Keys.Where(x => x != MobDefinition.DefaultKey).Order()],
         [.. worldEventManager.GetAll().OrderBy(x => x.Key).Select(x => new EventModel(x.Key, x.Value))],
+        [.. resourceManager.Seasons.Values.OrderBy(x => x.StartMonth).ThenBy(x => x.StartDay)
+            .Select(x => new SeasonModel(x.Key, x.Name, x.StartMonth, x.StartDay, x.EndMonth, x.EndDay, worldEventManager.IsActive(x.Key)))],
         NpcConditions.QuestStates,
         NpcIconCatalog.Entries(resourceManager),
         MathF.Round(GameClock.Hour, 2));

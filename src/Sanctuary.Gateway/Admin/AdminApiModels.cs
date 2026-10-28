@@ -210,18 +210,24 @@ public sealed record ObjectSettingsPatch(
     NpcConditions? Conditions);
 
 /// <summary>
-/// What the settings can be set to: the GM panel's animations, Mobs.json's mobs, the world events, quest states for
-/// conditions, the overhead icons the game's NPCs use, and the game clock's hour now.
+/// What the settings can be set to: the GM panel's animations, Mobs.json's mobs, the world events and seasons, quest
+/// states for conditions, the overhead icons the game's NPCs use, and the game clock's hour now.
 /// </summary>
 public sealed record NpcOptions(
     IReadOnlyList<AnimationOption> Animations,
     IReadOnlyList<string> Mobs,
     IReadOnlyList<EventModel> Events,
+    IReadOnlyList<SeasonModel> Seasons,
     IReadOnlyList<string> QuestStates,
     IReadOnlyList<NpcIconCatalog.Entry> Icons,
     float Hour);
 
 public sealed record AnimationOption(int Id, string Label, bool Loop);
+
+/// <summary>
+/// A seasonal holiday (Resources/Seasons.json): on between its days of the year, as an event key.
+/// </summary>
+public sealed record SeasonModel(string Key, string Name, int StartMonth, int StartDay, int EndMonth, int EndDay, bool Active);
 
 /// <summary>
 /// A world NPC's conversation as saved; null when it has none.

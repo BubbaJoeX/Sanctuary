@@ -3,10 +3,14 @@ using System.Collections.Generic;
 namespace Sanctuary.Game;
 
 /// <summary>
-/// GM-defined events (e.g. "halloween"). World NPCs flagged with an event only spawn while it is active.
+/// GM-defined events (e.g. "halloween"), and seasons (Resources/Seasons.json), which are on between their days of the
+/// year as well. World NPCs flagged with an event only spawn while it is active.
 /// </summary>
 public interface IWorldEventManager
 {
+    /// <summary>
+    /// On while !event has it on, or (a season) between its days of the year.
+    /// </summary>
     bool IsActive(string key);
 
     /// <summary>

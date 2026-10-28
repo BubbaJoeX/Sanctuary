@@ -1,7 +1,13 @@
+using System;
+using System.IO;
+
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Sanctuary.Game.Conversations;
 using Sanctuary.Game.Helpers;
+using Sanctuary.Game.Resources;
+using Sanctuary.Game.Resources.Definitions;
 
 namespace Sanctuary.Game.Tests;
 
@@ -43,6 +49,45 @@ public sealed class NpcConditionsTests
         Assert.IsTrue(new NpcConditions().IsEmpty);
         Assert.IsFalse(new NpcConditions { RefereesOnly = true }.IsEmpty);
         Assert.IsFalse(new NpcConditions { ItemId = 12, ItemAbsent = true }.IsEmpty);
+    }
+
+    [TestMethod]
+    public void Event_CountsAsACondition()
+    {
+        Assert.IsFalse(new NpcConditions { Event = "halloween" }.IsEmpty);
+        Assert.IsNull(new NpcConditions { Event = "halloween" }.Validate());
+        Assert.IsNotNull(new NpcConditions { Event = new string('x', 33) }.Validate());
+    }
+
+    [TestMethod]
+    public void Season_WithinTheYear()
+    {
+        var halloween = new SeasonDefinition { Key = "halloween", StartMonth = 9, StartDay = 20, EndMonth = 11, EndDay = 11 };
+
+        Assert.IsTrue(halloween.IsActive(new DateTime(2026, 10, 28)));
+        Assert.IsTrue(halloween.IsActive(new DateTime(2026, 11, 11)));
+        Assert.IsFalse(halloween.IsActive(new DateTime(2026, 11, 12)));
+        Assert.IsFalse(halloween.IsActive(new DateTime(2026, 9, 19)));
+    }
+
+    [TestMethod]
+    public void Season_OverTheNewYear()
+    {
+        var winter = new SeasonDefinition { Key = "winter", StartMonth = 12, StartDay = 1, EndMonth = 1, EndDay = 6 };
+
+        Assert.IsTrue(winter.IsActive(new DateTime(2026, 12, 25)));
+        Assert.IsTrue(winter.IsActive(new DateTime(2027, 1, 6)));
+        Assert.IsFalse(winter.IsActive(new DateTime(2027, 1, 7)));
+        Assert.IsFalse(winter.IsActive(new DateTime(2026, 11, 30)));
+    }
+
+    [TestMethod]
+    public void Seasons_LoadTheShippedFile()
+    {
+        var seasons = new SeasonDefinitionCollection(NullLogger.Instance);
+
+        Assert.IsTrue(seasons.Load(Path.Combine(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../Resources")), "Seasons.json")));
+        Assert.IsTrue(seasons.ContainsKey("halloween"));
     }
 
     [TestMethod]

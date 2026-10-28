@@ -59,6 +59,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string QuickChatsFile = Path.Combine(BaseDirectory, "QuickChats.json");
     public static readonly string PlayerTitlesFile = Path.Combine(BaseDirectory, "PlayerTitles.json");
     public static readonly string PointOfInterestsFile = Path.Combine(BaseDirectory, "PointOfInterests.json");
+    public static readonly string SeasonsFile = Path.Combine(BaseDirectory, "Seasons.json");
     public static readonly string ConsumablesFile = Path.Combine(BaseDirectory, "Consumables.json");
     public static readonly string ItemAbilitiesFile = Path.Combine(BaseDirectory, "ItemAbilities.json");
     public static readonly string NpcsFile = Path.Combine(BaseDirectory, "Npcs.json");
@@ -111,6 +112,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public ProfileDefinitionCollection Profiles { get; }
     public QuickChatDefinitionCollection QuickChats { get; }
     public PointOfInterestDefinitionCollection PointOfInterests { get; }
+    public SeasonDefinitionCollection Seasons { get; }
     public ConsumableCollection Consumables { get; }
     public ItemAbilityDefinitionCollection ItemAbilities { get; }
     public NpcDefinitionCollection Npcs { get; }
@@ -175,6 +177,7 @@ public class ResourceManager : IResourceManager, IDisposable
         QuickChats = new(_logger);
         PlayerTitles = new(_logger);
         PointOfInterests = new(_logger);
+        Seasons = new(_logger);
         Consumables = new(_logger);
         ItemAbilities = new(_logger);
         Npcs = new(_logger);
@@ -209,6 +212,7 @@ public class ResourceManager : IResourceManager, IDisposable
             ["quickchats"] = () => Reload(QuickChats, () => QuickChats.Load(QuickChatsFile)),
             ["titles"] = () => Reload(PlayerTitles, () => PlayerTitles.Load(PlayerTitlesFile)),
             ["pois"] = () => Reload(PointOfInterests, () => PointOfInterests.Load(PointOfInterestsFile)),
+            ["seasons"] = () => Reload(Seasons, () => Seasons.Load(SeasonsFile)),
             ["npcs"] = () => Reload(Npcs, () => Npcs.Load(NpcsFile)),
             ["rewards"] = () => Reload(RewardTables, () => RewardTables.Load(RewardTablesFile)),
             ["abilities"] = () => Reload(CombatAbilities, () => CombatAbilities.Load(CombatAbilitiesFile)),
@@ -445,6 +449,9 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!PointOfInterests.Load(PointOfInterestsFile))
             return false;
 
+        if (!Seasons.Load(SeasonsFile))
+            return false;
+
         if (!Consumables.Load(ConsumablesFile))
             return false;
 
@@ -577,6 +584,8 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = PlayerTitles.Load(PlayerTitlesFile);
             else if (e.FullPath == PointOfInterestsFile)
                 loaded = PointOfInterests.Load(PointOfInterestsFile);
+            else if (e.FullPath == SeasonsFile)
+                loaded = Reload(Seasons, () => Seasons.Load(SeasonsFile));
             else if (e.FullPath == NpcsFile)
                 loaded = Npcs.Load(NpcsFile);
             else if (e.FullPath == NpcMovementsFile)

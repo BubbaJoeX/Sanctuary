@@ -41,6 +41,7 @@ public interface IResourceManager
     ProfileDefinitionCollection Profiles { get; }
     QuickChatDefinitionCollection QuickChats { get; }
     PointOfInterestDefinitionCollection PointOfInterests { get; }
+    SeasonDefinitionCollection Seasons { get; }
     ConsumableCollection Consumables { get; }
     ItemAbilityDefinitionCollection ItemAbilities { get; }
     NpcDefinitionCollection Npcs { get; }

@@ -1,0 +1,18 @@
+[
+  {
+    "Key": "halloween",
+    "Name": "Halloween",
+    "StartMonth": 9,
+    "StartDay": 20,
+    "EndMonth": 11,
+    "EndDay": 11
+  },
+  {
+    "Key": "winter",
+    "Name": "Winter holidays",
+    "StartMonth": 12,
+    "StartDay": 1,
+    "EndMonth": 1,
+    "EndDay": 6
+  }
+]
