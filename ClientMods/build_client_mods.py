@@ -148,6 +148,9 @@ MODS = [
      [script_dir / "farming" / "action_progress.as"], []),
     # The NPC merchant window (wndNpcMerchantV2; the old wndNpcMerchant's Lua opens it too).
     ("NPCMerchantV2", "sanctuaryNPCMerchantV2", "\\frame_1\\DoAction", [script_dir / "merchant" / "merchant_store.as"], []),
+    # The older drop-down browser: crafting and factory recipes, collections, pets, vehicles and classes (wndBrowser)
+    # and the Farmers Market (wndFarmersMarketBrowser).
+    ("Browser", "sanctuaryBrowser", "\\frame_1\\DoAction", [script_dir / "browser" / "list_browser.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
     ("mini_map", "sanctuaryMiniMap", None, [], []),
 ]
@@ -193,6 +196,8 @@ TEXTURE_SYMBOLS = {
     ],
     # The Stuff window (inventory/stuff_browser.as): the Main Menu's bag, beside the title and in the empty art socket.
     "inventory": [("img3353027197221927245.dds", "sanctuaryStuffBag", 96, 0)],
+    # The list browser (browser/list_browser.as): the farming browser's seed bag, the Farmers Market's emblem.
+    "Browser": [("img10017304919226766628.dds", "sanctuaryMarketSeeds", 64, 0)],
     # The merchant window (merchant/merchant_store.as): the coin store coin, in the crest, the wallet and the empty art socket.
     "NPCMerchantV2": [("img12661814977694140028.dds", "sanctuaryMerchantCoin", 96, 0)],
     # The farm's side panel (farming/farming_side_panel.as): the item crate from its stock Items row, in a frosted socket.

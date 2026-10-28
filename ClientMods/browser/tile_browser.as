@@ -366,8 +366,9 @@ function tbBuildPager()
    p._x = -71;
    p._y = TB_PAGER_Y - TB_H / 2;
    p.previous._alpha = p.next._alpha = p.labelBackground._alpha = 0;
-   // Above the stock capsule (a plain shape at depth 1) and the previous button, under the label.
-   p.sanctuaryPager = p.createEmptyMovieClip("sanctuaryPager",3);
+   // Above the stock capsule (a plain shape at depth 1), the arrows and the label's backing, under the label: the
+   // free timeline depth just below it (a positive depth would sit over the label).
+   p.sanctuaryPager = p.createEmptyMovieClip("sanctuaryPager",p.label.getDepth() - 1);
    p.sanctuaryPager.filters = [new flash.filters.DropShadowFilter(3,90,0x050A24,0.5,6,6,1,2)];
 
    p.label._x = 44;
