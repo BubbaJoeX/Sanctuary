@@ -2,7 +2,8 @@
 // Appended to FRUtilNavigation's main timeline (an empty frame script added at build time, FRAME_SCRIPTS) by
 // build_client_mods.py. The top utility bar loses its screenshot and Ask for Help buttons (the video recorder,
 // which sat in the gap after them, is the separate video_new movie, hidden by hud/no_video_capture.as); the
-// buttons after them close up, and the bar's backing (a root shape, dropped at build time with REMOVED_DEPTHS)
+// buttons after them close up and the row is re-centred where the full bar was (its window is laid out for the
+// stock width), and the bar's backing (a root shape, dropped at build time with REMOVED_DEPTHS)
 // is redrawn as a navy glass pill around what's left.
 
 var tbNav = _root.FRUtilNavigation;
@@ -20,8 +21,26 @@ function tbRoundRect(mc, x, y, w, h, r)
    mc.curveTo(x,y,x + r,y);
 }
 
+// The union of the clips' bounds on the stage.
+function tbBounds(clips)
+{
+   var b = clips[0].getBounds(_root);
+   var i;
+   for(i = 1; i < clips.length; i++)
+   {
+      var o = clips[i].getBounds(_root);
+      b.xMin = Math.min(b.xMin,o.xMin);
+      b.yMin = Math.min(b.yMin,o.yMin);
+      b.xMax = Math.max(b.xMax,o.xMax);
+      b.yMax = Math.max(b.yMax,o.yMax);
+   }
+   return b;
+}
+
 function tbLayout()
 {
+   var stock = tbBounds([tbNav.holder,tbNav.cameraButton,tbNav.friendsButton,tbNav.welcomeButton,tbNav.atlasButton,tbNav.minmax,tbNav.settingsButton,tbNav.helpButton,tbNav.exitButton]);
+
    // The buttons right of the screenshot button move into its slot (and over the recorder's), and Exit takes
    // Ask for Help's place.
    var shift = tbNav.friendsButton._x - tbNav.cameraButton._x;
@@ -37,15 +56,11 @@ function tbLayout()
    tbNav.helpButton._visible = false;
 
    var shown = [tbNav.holder,tbNav.friendsButton,tbNav.welcomeButton,tbNav.atlasButton,tbNav.minmax,tbNav.settingsButton,tbNav.exitButton];
-   var b = shown[0].getBounds(_root);
-   for(i = 1; i < shown.length; i++)
-   {
-      var o = shown[i].getBounds(_root);
-      b.xMin = Math.min(b.xMin,o.xMin);
-      b.yMin = Math.min(b.yMin,o.yMin);
-      b.xMax = Math.max(b.xMax,o.xMax);
-      b.yMax = Math.max(b.yMax,o.yMax);
-   }
+   var b = tbBounds(shown);
+   var centre = (stock.xMin + stock.xMax - b.xMin - b.xMax) / 2;
+   tbNav._x += centre;
+   b.xMin += centre;
+   b.xMax += centre;
    var x = b.xMin - 8;
    var y = b.yMin - 4;
    var w = b.xMax - b.xMin + 16;

@@ -333,7 +333,8 @@ function stUpdateFooter()
    stFrame.footer_txt.text = txt;
 }
 
-// The coin wallet: a gold pill with the coin in a navy socket (Station Cash no longer exists).
+// The coin wallet: a navy glass pill rimmed in gold, the coin in a navy socket and the amount in white like the
+// window's other text (Station Cash no longer exists).
 function stDrawWallet()
 {
    var w = stFrame.wallet;
@@ -341,7 +342,10 @@ function stDrawWallet()
    var cx = CoinsAndCash._x + 14;
    var cy = CoinsAndCash._y + 14.6;
    w.clear();
-   stGoldRect(w,cx - 26,cy - 20,196,40,20,false);
+   w.lineStyle(2,ST_GOLD,100);
+   w.beginGradientFill("linear",[0x2B4FA8,0x13215A],[100,100],[0,255],{matrixType:"box",x:cx - 26,y:cy - 20,w:196,h:40,r:Math.PI / 2});
+   stRoundRect(w,cx - 26,cy - 20,196,40,20);
+   w.endFill();
    w.lineStyle(1.5,0xFFF3C4,90);
    w.beginGradientFill("radial",[0x2B4FA8,0x13215A],[100,100],[0,255],{matrixType:"box",x:cx - 16,y:cy - 22,w:32,h:32,r:0});
    stCircle(w,cx,cy,16);
@@ -423,7 +427,8 @@ function stBuildFrame()
    // Coins only: the Station Cash wallet goes.
    CoinsAndCash._x = 44;
    CoinsAndCash.m_SCLabel._visible = CoinsAndCash.m_SCIcon._visible = false;
-   CoinsAndCash.m_CoinsLabel.textColor = ST_INK;
+   CoinsAndCash.m_CoinsLabel.textColor = 0xFFFFFF;
+   CoinsAndCash.m_CoinsLabel.filters = stOutline();
    stDrawWallet();
 
    closeButton._x = 948;
@@ -1281,6 +1286,7 @@ var stSetCoins = inventory.display.CoinAndCashDisplay.prototype.setCoins;
 inventory.display.CoinAndCashDisplay.prototype.setCoins = function(value)
 {
    stSetCoins.call(this,stThousands(value));
+   this.m_CoinsLabel.textColor = 0xFFFFFF;
 };
 
 var stOnMainMenuOver = _onmainMenuButtonOver;

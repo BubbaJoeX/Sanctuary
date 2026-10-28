@@ -498,7 +498,8 @@ function csDrawScrollbar(sb)
 
 // --- channel tabs ------------------------------------------------------------------------
 
-// Navy pill; lighter with a gold rim on hover; gold with dark text when selected. Drawn inside the tab's
+// Navy pill; lighter with a gold rim on hover; gold when selected. The label is white with the dark outline
+// like the rest of chat (soft blue when idle). Drawn inside the tab's
 // stock art (up_mc stays as the invisible hit area), so the tab keeps its width.
 function csSkinTab(btn)
 {
@@ -544,8 +545,8 @@ function csSkinTab(btn)
    skin.endFill();
    skin.filters = state == 2 ? [new flash.filters.GlowFilter(CS_GOLD, 0.45, 8, 8, 1, 2)] : [];
    var t = btn.filterName_txt;
-   t.textColor = state == 2 ? CS_INK : (state == 1 ? 0xFFFFFF : CS_SOFT);
-   t.filters = state == 2 ? [] : [csOutline()];
+   t.textColor = state == 0 ? CS_SOFT : 0xFFFFFF;
+   t.filters = [csOutline()];
 }
 
 function csWrapTab(name, hover)
@@ -766,9 +767,14 @@ onListResize = function(dataObj)
    return result;
 };
 
+// Membership no longer exists, so the Members Only channel gets no tab.
 var csStockAddFilter = addFilter;
 addFilter = function(guid, name, isWhisper, place)
 {
+   if(String(name).indexOf("Members Only") >= 0)
+   {
+      return undefined;
+   }
    var result = csStockAddFilter.apply(_root, arguments);
    csSkinTabs();
    csLayout();
