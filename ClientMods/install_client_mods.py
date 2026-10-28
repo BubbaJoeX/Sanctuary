@@ -122,6 +122,22 @@ WINDOW_PATCHES = [
     # The older drop-down browser (recipes, collections, pets, vehicles, classes) and the Farmers Market share one movie.
     (Path("UI/UiModules/Main/wndBrowser.xml"), [("UI\\Browser.swf", "UI\\sanctuaryBrowser.swf")]),
     (Path("UI/UiModules/Main/wndFarmersMarketBrowser.xml"), [("UI\\Browser.swf", "UI\\sanctuaryBrowser.swf")]),
+    # The in-world HUD (hud/*.as) and its repainted buttons.
+    (Path("UI/UiModules/Main/wndToolTip.xml"), [("UI\\ToolTipSystem.swf", "UI\\sanctuaryToolTipSystem.swf")]),
+    (Path("UI/UiModules/Main/wndTarget.xml"), [("UI\\target.swf", "UI\\sanctuaryTarget.swf")]),
+    (Path("UI/UiModules/Main/wndInteractionPrompt.xml"), [("UI\\interactionPrompt.swf", "UI\\sanctuaryInteractionPrompt.swf")]),
+    (Path("UI/UiModules/Main/wndRespawn.xml"), [("UI\\revive_window.swf", "UI\\sanctuaryReviveWindow.swf")]),
+    (Path("UI/UiModules/Main/wndNotification.xml"), [("UI\\notifications.swf", "UI\\sanctuaryNotifications.swf")]),
+    (Path("UI/UiModules/Main/wndNotificationSm.xml"), [("UI\\notificationSm.swf", "UI\\sanctuaryNotificationSm.swf")]),
+    (Path("UI/UiModules/Main/wndNotificationQuests.xml"), [("UI\\notificationsQuests.swf", "UI\\sanctuaryNotificationsQuests.swf")]),
+    (Path("UI/UiModules/Main/wndAchievementNotification.xml"), [("UI\\achievementNotification.swf", "UI\\sanctuaryAchievementNotification.swf")]),
+    (Path("UI/UiModules/Main/wndXpButton.xml"), [("UI\\XpButton.swf", "UI\\sanctuaryXpButton.swf")]),
+    (Path("UI/UiModules/Main/wndLevelProgressPane.xml"), [("UI\\FRLevelProgressBar.swf", "UI\\sanctuaryFRLevelProgressBar.swf")]),
+    (Path("UI/UiModules/Main/wndFRProgressBar.xml"), [("UI\\FRProgressBar.swf", "UI\\sanctuaryFRProgressBar.swf")]),
+    (Path("UI/UiModules/Main/wndPetProgressBar.xml"), [("UI\\FRProgressBar.swf", "UI\\sanctuaryFRProgressBar.swf")]),
+    (Path("UI/UiModules/Main/wndHerosJournalButton.xml"), [("UI\\HerosJournalButton.swf", "UI\\sanctuaryHerosJournalButton.swf")]),
+    (Path("UI/UiModules/Main/wndStarCounter.xml"), [("UI\\starCounter.swf", "UI\\sanctuaryStarCounter.swf")]),
+    (Path("UI/UiModules/Main/wndQuickItem.xml"), [("UI\\quickitem.swf", "UI\\sanctuaryQuickItem.swf")]),
     # The client picks a loading screen at random from this block, so the OSFR one is the only live entry
     # and the stock ones are commented out.
     (Path("LoadingScreen.xml"), [

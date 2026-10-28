@@ -151,7 +151,29 @@ MODS = [
     # The older drop-down browser: crafting and factory recipes, collections, pets, vehicles and classes (wndBrowser)
     # and the Farmers Market (wndFarmersMarketBrowser).
     ("Browser", "sanctuaryBrowser", "\\frame_1\\DoAction", [script_dir / "browser" / "list_browser.as"], []),
+    # The in-world HUD in the Main Menu's style: tooltips, the target frame, the interaction prompt, the
+    # knocked-out window, notifications, the stars/coins button and the level and progress bars.
+    ("ToolTipSystem", "sanctuaryToolTipSystem", "\\frame_1\\DoAction", [script_dir / "hud" / "tooltips.as"], []),
+    ("target", "sanctuaryTarget", "\\frame_1\\DoAction", [script_dir / "hud" / "target_frame.as"], []),
+    ("interactionPrompt", "sanctuaryInteractionPrompt", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "interaction_prompt.as"], []),
+    ("revive_window", "sanctuaryReviveWindow", "\\frame_1\\DoAction", [script_dir / "hud" / "revive_window.as"], []),
+    ("notifications", "sanctuaryNotifications", "\\frame_1\\DoAction", [script_dir / "hud" / "notifications.as"], []),
+    ("notificationSm", "sanctuaryNotificationSm", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "notification_small.as"], []),
+    ("notificationsQuests", "sanctuaryNotificationsQuests", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "quest_notifications.as"], []),
+    ("achievementNotification", "sanctuaryAchievementNotification", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "achievement_toast.as"], []),
+    ("XpButton", "sanctuaryXpButton", "\\frame_1\\DoAction", [script_dir / "hud" / "xp_button.as"], []),
+    ("FRLevelProgressBar", "sanctuaryFRLevelProgressBar", "\\frame_1\\DoAction",
+     [script_dir / "hud" / "level_progress.as"], []),
+    # The progress bar (wndFRProgressBar and the pet's wndPetProgressBar).
+    ("FRProgressBar", "sanctuaryFRProgressBar", "\\frame_1\\DoAction", [script_dir / "hud" / "progress_bar.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
+    ("HerosJournalButton", "sanctuaryHerosJournalButton", None, [], []),
+    ("starCounter", "sanctuaryStarCounter", None, [], []),
+    ("quickitem", "sanctuaryQuickItem", None, [], []),
     ("mini_map", "sanctuaryMiniMap", None, [], []),
 ]
 
@@ -267,6 +289,8 @@ REMOVED_DEPTHS = {
     "HousingBrowser": [130],
     # The action progress bar's track and its gloss (farming/action_progress.as redraws the bar).
     "actionProgress": [1, 4],
+    # The knocked-out window's panel (a root shape); hud/revive_window.as draws a navy one.
+    "revive_window": [1],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
@@ -276,6 +300,12 @@ REMOVED_DEPTHS = {
 # it and embedded in its place, so the HUD keeps its layout: purple, brown and beige chrome becomes navy glass,
 # frosted glass and gold, and the minimap gets a new ring.
 RESKINS = {
+    # The Hero's Journal button: its round slot, like the dock's.
+    "HerosJournalButton": {"img17894775867228385230.dds": "glass"},
+    # The star counter's purple plate.
+    "starCounter": {"img8526826553413029235.dds": "navy"},
+    # The quick item button: navy, gold on hover.
+    "quickitem": {"img300518202272676291.dds": "navy", "img429499426389397090.dds": "gold"},
     # The dock: title plate, slot frames, action bar base and its round slots (health and mana keep their colors).
     "gamedock": {
         "img7261148070336999820.dds": "navy", "img1059227586001590212.dds": "navy",
