@@ -85,6 +85,9 @@ WINDOW_PATCHES = [
     (Path("UI/UiModules/Main/wndMyStuffBrowser.xml"), [("UI\\MyStuffBrowser.swf", "UI\\sanctuaryMyStuffBrowser.swf")]),
     # The repainted HUD (RESKINS in build_client_mods.py).
     (Path("UI/UiModules/Main/wndFRUtilNavigation.xml"), [("UI\\FRUtilNavigation.swf", "UI\\sanctuaryFRUtilNavigation.swf")]),
+    # The video recorder/screenshot HUD, hidden (hud/no_video_capture.as).
+    (Path("UI/UiModules/Main/wndVideoCaptureHud.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
+    (Path("UI/UiModules/Main/wndScreenCapture.xml"), [("UI\\video_new.swf", "UI\\sanctuaryVideoNew.swf")]),
     (Path("UI/UiModules/Main/wndMiniMap.xml"), [("UI\\mini_map.swf", "UI\\sanctuaryMiniMap.swf")]),
     (Path("UI/UiModules/Main/wndSocial.xml"), [("UI\\social.swf", "UI\\sanctuarySocial.swf")]),
     (Path("UI/UiModules/Main/wndAtlas.xml"), [("UI\\atlas.swf", "UI\\sanctuaryAtlas.swf")]),

@@ -101,8 +101,11 @@ MODS = [
      [script_dir / "collections" / "collections_browser.as"], []),
     ("achievements", "sanctuaryAchievements", "\\frame_1\\DoAction",
      [script_dir / "achievements" / "achievements_page.as"], []),
+    # The top bar without its screenshot and Ask for Help buttons (FRAME_SCRIPTS gives it a script to append to),
+    # and the video recorder/screenshot HUD whose record button sat in it, hidden.
+    ("FRUtilNavigation", "sanctuaryFRUtilNavigation", "\\frame_1\\DoAction", [script_dir / "hud" / "top_bar.as"], []),
+    ("video_new", "sanctuaryVideoNew", "\\frame_1\\DoAction", [script_dir / "hud" / "no_video_capture.as"], []),
     # HUD pieces that are only repainted (RESKINS), with no script changes.
-    ("FRUtilNavigation", "sanctuaryFRUtilNavigation", None, [], []),
     ("mini_map", "sanctuaryMiniMap", None, [], []),
     ("social", "sanctuarySocial", None, [], []),
 ]
@@ -178,12 +181,17 @@ TEXT_SYMBOLS = {
     "MyStuffBrowser": [("sanctuaryMainMenuTitle", "Main Menu", 46, (255, 246, 196), (255, 168, 36))],
 }
 
+# Stock movies with no main timeline script, which get an empty one on frame 1 for their patch to be appended to.
+FRAME_SCRIPTS = {"FRUtilNavigation"}
+
 # Stock movie -> root timeline depths whose placements are dropped: plain shapes, which ActionScript can't hide.
 REMOVED_DEPTHS = {
     # The member badge's orange plate.
     "welcome": [115],
     # The profile card's stock panels and stat icons.
     "aboutme": [5, 82, 86, 88, 90, 92],
+    # The top bar's backing, redrawn around the buttons that are left (hud/top_bar.as).
+    "FRUtilNavigation": [1],
     # The Stuff window's frame art (orange rim and vines; it shares the name background with an empty sprite, so
     # AS can't reach it) and the grid's divider lines.
     "inventory": [1, 39],
@@ -202,8 +210,6 @@ RESKINS = {
         "img17894775867228385230.dds": "glass", "img13179357351024049733.dds": "glass",
         "img3433151271243245196.dds": "glass", "img3660832219945813116.dds": "glass",
     },
-    # The top utility bar.
-    "FRUtilNavigation": {"img3488721174386834823.dds": "navy"},
     # The minimap: its backdrop, ring and zoom buttons.
     "mini_map": {
         "img4695131534032394228.dds": "navy", "img10708622630870636103.dds": "ring",
@@ -459,6 +465,14 @@ def export_font(java, jar, stock, temp):
     return font
 
 
+def add_frame_script(xml):
+    """Adds an empty DoAction to the main timeline's first frame."""
+    head, tags, tail = split_tags(xml)
+    first_frame = next(i for i, tag in enumerate(tags) if tag.startswith(TAG_PREFIX + '"ShowFrameTag"'))
+    tags.insert(first_frame, TAG_PREFIX + '"DoActionTag" actionBytes="00" forceWriteAsLong="false"/>')
+    return head + "".join(tags) + tail
+
+
 def remove_root_depths(xml, depths):
     head, tags, tail = split_tags(xml)
     placement = re.escape(TAG_PREFIX) + r'"(?:PlaceObject|RemoveObject)\d?Tag"[^>]*\bdepth="(\d+)"'
@@ -503,7 +517,9 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
         removed = REMOVED_DEPTHS.get(stock_name, [])
         reskins = RESKINS.get(stock_name, {})
 
-        if symbols or swaps or textures or images or texts or removed or reskins:
+        frame_script = stock_name in FRAME_SCRIPTS
+
+        if symbols or swaps or textures or images or texts or removed or reskins or frame_script:
             ffdec(java, jar, "-swf2xml", stock_path, temp / "stock.xml")
             xml = (temp / "stock.xml").read_text(encoding="utf-8")
             for symbol in symbols:
@@ -524,6 +540,8 @@ def build_movie(java, jar, stock, stock_name, script_name, patch_paths, symbols,
                 xml = remove_root_depths(xml, removed)
             if reskins:
                 xml = apply_reskins(xml, stock, reskins)
+            if frame_script:
+                xml = add_frame_script(xml)
             (temp / "stock.xml").write_text(xml, encoding="utf-8")
             ffdec(java, jar, "-xml2swf", temp / "stock.xml", temp / "stock.gfx")
             stock_path = temp / "stock.gfx"
