@@ -80,6 +80,7 @@ Mobs (hostile NPCs made with `!npc mob`) also get these:
 | `teleport(x, y, z [, heading])` | Moves the player within their zone. |
 | `warp(zoneId [, x, y, z [, heading]])` | Sends the player to a world zone, either at that spot or at its start. Returns false for houses and other zones that need an owner. |
 | `acceptQuest(questId)`, `hasCompletedQuest(questId)` | |
+| `startMinigame(minigameId)` | Opens a minigame's start screen, as picking it in the Games window does. The ids are MiniGameData.txt's, listed with `!minigame list`. Returns false for a game the server doesn't run. |
 
 ## Example
 
