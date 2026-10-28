@@ -157,6 +157,36 @@ function stShadow()
    return [new flash.filters.DropShadowFilter(2,90,0x0A1030,0.9,3,3,1,1)];
 }
 
+// Text colors that would be hard to read on navy (black, dark, or missing: Lua's "Text Color" can be 0 or
+// empty, and stock code applies it with setTextFormat/textColor) are swapped for a light one.
+function stIsDark(color)
+{
+   color = Number(color);
+   if(isNaN(color))
+   {
+      return true;
+   }
+   return (color >> 16 & 0xFF) * 0.299 + (color >> 8 & 0xFF) * 0.587 + (color & 0xFF) * 0.114 < 96;
+}
+
+function stLight(color, fallback)
+{
+   return stIsDark(color) ? fallback : Number(color);
+}
+
+// Sets a text field's color, unless it's already a readable one and keep is true.
+function stLightText(t, fallback, keep)
+{
+   if(t == undefined)
+   {
+      return;
+   }
+   if(!keep || stIsDark(t.textColor))
+   {
+      t.textColor = fallback;
+   }
+}
+
 // A thin gold rule that fades out at both ends.
 function stGoldRule(mc, x, y, w)
 {
@@ -307,9 +337,9 @@ function stUpdateFooter()
 function stDrawWallet()
 {
    var w = stFrame.wallet;
-   var coin = CoinsAndCash.m_CoinsIcon;
-   var cx = CoinsAndCash._x + coin._x + coin._width / 2;
-   var cy = CoinsAndCash._y + coin._y + coin._height / 2;
+   // The coin (a button) is 26px at (1, 1.6) in CoinsAndCash.
+   var cx = CoinsAndCash._x + 14;
+   var cy = CoinsAndCash._y + 14.6;
    w.clear();
    stGoldRect(w,cx - 26,cy - 20,196,40,20,false);
    w.lineStyle(1.5,0xFFF3C4,90);
@@ -411,13 +441,25 @@ function stBuildFrame()
    stText(stFrame.menu,"label_txt","Main Menu",-90,-12,180,26,18,ST_INK);
    stDrawMenuButton(false);
 
+   // The stock frame art (depth 1, dropped at build time) shared its instance name with an empty, window-sized
+   // clip at depth 13 that sits over the category tree. With the frame gone, the stock "background.onRelease = null"
+   // lands on that clip, which then takes the mouse and swallows the tree's clicks (no expanding categories). It
+   // draws nothing, so it goes.
+   var blocker = _root.getInstanceAtDepth(13 - 16384);
+   if(blocker == undefined)
+   {
+      blocker = background;
+   }
+   delete blocker.onRelease;
+   blocker._visible = false;
+
    // The view toggle and its column header.
    buttonsView_btn._alpha = listView_btn._alpha = 0;
    buttonViewTitleBar._alpha = 0;
    stHideUnnamed(ListHeader,[1,5]);
    ListHeader._y = 163;
    ListHeader.NameTitle.filters = ListHeader.QuantityTitle.filters = stOutline();
-   ListHeader.NameTitle.textColor = ListHeader.QuantityTitle.textColor = 0xFFE08A;
+   stColorHeader();
 
    item_display_container._x = 270;
    scrollbar._x = 722;
@@ -425,7 +467,8 @@ function stBuildFrame()
    category._y = 120;
    category.filters = stOutline();
    m_NoItemsText.filters = stOutline();
-   m_NoItemsText.textColor = ST_SOFT;
+   stLightText(m_NoItemsText,ST_SOFT,false);
+   stLightText(category,0xFFFFFF,false);
 
    stDrawFrame();
    stDrawHeader();
@@ -480,6 +523,11 @@ function stBuildSearch()
    var field = mcSearch.createEmptyMovieClip("sanctuaryField",-16384);
    stGradientRect(field,0,1,160,34,17,0x0A1440,0x0A1440,70,ST_RIM,45,1.5);
    field.filters = [new flash.filters.DropShadowFilter(2,90,0x050A24,0.4,4,4,1,2,true)];
+
+   stLightText(mcSearch.txtSearch,0xFFFFFF,false);
+   var typed = mcSearch.txtSearch.getNewTextFormat();
+   typed.color = 0xFFFFFF;
+   mcSearch.txtSearch.setNewTextFormat(typed);
 
    var btn = mcSearch.btnSearch;
    var go = mcSearch.createEmptyMovieClip("sanctuarySearchButton",mcSearch.getNextHighestDepth());
@@ -559,6 +607,7 @@ function stStyleNavRow(item)
       item.sanctuaryLabelX = item.txtLabel._x;
       item.txtLabel.filters = stShadow();
    }
+   stLightText(item.txtLabel,item.boolIsSelected ? 0xFFE08A : 0xFFFFFF,false);
    stDrawNavRow(item);
 }
 
@@ -625,6 +674,7 @@ function stPatchNav()
    proto.unselect = function()
    {
       unselect.call(this);
+      this.txtLabel.textColor = 0xFFFFFF;
       stDrawNavRow(this);
    };
 
@@ -749,12 +799,14 @@ function stDrawQuantity(q)
    if(!q.sanctuaryPill)
    {
       q.background._alpha = 0;
-      q.label.textColor = ST_INK;
+      q.label.filters = stShadow();
       q.sanctuaryPill = q.createEmptyMovieClip("sanctuaryPill",-16384);
    }
+   q.label.textColor = 0xFFFFFF;
    var p = q.sanctuaryPill;
+   var h = q.label._height + 2;
    p.clear();
-   stGoldRect(p,q.label._x - 6,q.label._y - 1,q.label._width + 12,q.label._height + 2,(q.label._height + 2) / 2,false);
+   stGradientRect(p,q.label._x - 6,q.label._y - 1,q.label._width + 12,h,h / 2,0x2B4FA8,0x13215A,100,ST_GOLD,100,1.5);
 }
 
 function stPatchCards()
@@ -797,6 +849,18 @@ function stPatchCards()
       this.icon._y = ST_ICON_Y + down;
       this.label._y = ST_LABEL_Y + down;
       this.properties._y = inventory.item.InventoryItemButton.propOrigY + down;
+   };
+
+   var setName = proto.setName;
+   proto.setName = function(value)
+   {
+      setName.call(this,value);
+      this.label.textColor = stLight(this.getItem()[inventory.item.InventoryItemAttributes.TEXT_COLOR],0xFFFFFF);
+   };
+   var setTextColor = proto.setTextColor;
+   proto.setTextColor = function(value)
+   {
+      setTextColor.call(this,stLight(value,0xFFFFFF));
    };
 
    var quantity = inventory.item.InventoryItemButtonQuantityDisplay.prototype;
@@ -849,6 +913,9 @@ function stStyleRow(row)
    row.shade._alpha = row.highlight._alpha = row.hitArea._alpha = 0;
    row.sanctuaryRow = row.createEmptyMovieClip("sanctuaryRow",-16384);
    row.label.filters = stShadow();
+   stLightText(row.ItemQuantity,0xFFFFFF,false);
+   stLightText(row.coinAmount,0xFFFFFF,false);
+   stLightText(row.powerRatingLabel,0xFFFFFF,false);
 }
 
 function stPatchRows()
@@ -881,6 +948,24 @@ function stPatchRows()
       {
          gs.TweenLite.to(this.icon,0.1,{_xscale:ST_ROW_ICON_SCALE,_yscale:ST_ROW_ICON_SCALE});
       }
+   };
+   // Lua's "Text Color" (parseInt'd by the stock setter) can be dark or missing.
+   var setTextColor = proto.setTextColor;
+   proto.setTextColor = function(value)
+   {
+      setTextColor.call(this,stLight(parseInt(value),0xFFFFFF));
+   };
+   var setName = proto.setName;
+   proto.setName = function(value)
+   {
+      setName.call(this,value);
+      stLightText(this.label,0xFFFFFF,true);
+   };
+   var setQuantity = proto.setQuantity;
+   proto.setQuantity = function(value)
+   {
+      setQuantity.call(this,value);
+      stLightText(this.ItemQuantity,0xFFFFFF,true);
    };
    // No Members Only icon on rows either.
    var setMembersOnly = proto.setMembersOnly;
@@ -976,8 +1061,8 @@ function stStyleInfoItem(item, w)
       item.label._x = 12;
       item.label._y = 6;
       item.label._width = w - 20;
-      // Re-set so the narrower field wraps (and autosizes) again.
-      item.label.htmlText = item.title + item.content;
+      // Re-set so the narrower field wraps (and autosizes) again; anything outside the stock font tags is white.
+      item.label.htmlText = "<font color='#FFFFFF'>" + item.title + item.content + "</font>";
    }
    var c = item.sanctuaryChip;
    var h = Math.round(item.label._height) + 12;
@@ -1019,10 +1104,13 @@ function stPatchPane()
       stPane.placeholder._visible = false;
       // Plain white names are shown in gold; colored ones (rarity) keep their color.
       var color = Number(this.getItem()[inventory.item.InventoryItemAttributes.TEXT_COLOR]);
-      if(isNaN(color) || color == 0xFFFFFF)
-      {
-         this.name.textColor = 0xFFE08A;
-      }
+      this.name.textColor = color == 0xFFFFFF ? 0xFFE08A : stLight(color,0xFFE08A);
+   };
+   var setRentalTimeRemainingString = proto.setRentalTimeRemainingString;
+   proto.setRentalTimeRemainingString = function(message)
+   {
+      setRentalTimeRemainingString.call(this,message);
+      this.m_TimeLeft.textColor = 0xFFFFFF;
    };
    var setEquippable = proto.setEquippable;
    proto.setEquippable = function(value)
@@ -1131,7 +1219,38 @@ function stBuildPane()
    };
 }
 
+// The list view's column titles in gold: the named ones and the Equip column's unnamed one.
+function stColorHeader()
+{
+   var name;
+   for(name in ListHeader)
+   {
+      if(ListHeader[name] instanceof TextField)
+      {
+         ListHeader[name].textColor = 0xFFE08A;
+         ListHeader[name].filters = stOutline();
+      }
+   }
+   var titles = [ListHeader.NameTitle,ListHeader.QuantityTitle,ListHeader.getInstanceAtDepth(4 - 16384)];
+   var i;
+   for(i = 0; i < titles.length; i++)
+   {
+      if(titles[i] != undefined)
+      {
+         titles[i].textColor = 0xFFE08A;
+         titles[i].filters = stOutline();
+      }
+   }
+}
+
 // --- Lua and stock hooks ---------------------------------------------------------------
+
+// The breadcrumb's " > " separators sit outside the stock font tags; wrapped, they're white rather than default.
+var stSetCategory = SetCategory;
+SetCategory = function(value)
+{
+   stSetCategory(value != undefined && String(value).length > 0 ? "<font color='#FFFFFF'>" + value + "</font>" : value);
+};
 
 var stSetWindowTitle = SetWindowTitle;
 SetWindowTitle = function(value)
@@ -1145,6 +1264,7 @@ var stSetMode = setMode;
 setMode = function(mode, resetScrollPosition)
 {
    stSetMode(mode,resetScrollPosition);
+   stColorHeader();
    stDrawHeader();
    stUpdateFooter();
 };
