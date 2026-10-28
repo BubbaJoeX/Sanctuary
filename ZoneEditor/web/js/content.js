@@ -200,12 +200,16 @@ export class ContentBrowser {
 
   async load() {
     const data = await getJson("api/actors");
+    // Asked again while the server works things out; the grid is left alone (and where it's scrolled to) until
+    // there's something new.
+    const changed = data.names.length !== this.names.length || !data.usage !== !this.usage;
     this.names = data.names;
     this.usage = data.usage;              // by lowercase name
     this.byLower = new Map(this.names.map((n) => [n.toLowerCase(), n]));
-    this.render();
-    // The zones' usage is counted in the background the first time; ask again until it's there.
-    if (!this.usage) setTimeout(() => this.load(), 8000);
+    if (changed) this.render();
+    // The zones' usage, and the actors with nothing to draw, are worked out in the background the first time; ask
+    // again until both are there.
+    if (!this.usage || !data.checked) setTimeout(() => this.load(), 8000);
   }
 
   isCharacter(name) {
@@ -222,7 +226,8 @@ export class ContentBrowser {
     const kind = KINDS.find(([k]) => k === this.kind)?.[1];
     let names;
     const nearby = this.events.nearby();
-    if (this.group === "placed") names = this.usage ? Object.keys(this.usage).map((n) => this.byLower.get(n) || n) : this.names;
+    // Zones place some actors the client has nothing to draw with; those aren't listed.
+    if (this.group === "placed") names = this.usage ? Object.keys(this.usage).filter((n) => this.byLower.has(n)).map((n) => this.byLower.get(n)) : this.names;
     else if (this.group === "nearby") names = [...nearby.keys()];
     else if (this.group === "favourites") names = [...this.favourites];
     else if (this.group === "recent") names = [...this.recent];
@@ -248,7 +253,7 @@ export class ContentBrowser {
     const prefixes = [...counts].filter(([, count]) => count >= 8).sort((a, b) => (REGIONS[b[0]] ? 1 : 0) - (REGIONS[a[0]] ? 1 : 0) || b[1] - a[1]);
     const nearby = this.events.nearby();
     const fixed = [
-      ["placed", `Placed in zones${this.usage ? ` (${Object.keys(this.usage).length})` : " (counting…)"}`],
+      ["placed", `Placed in zones${this.usage ? ` (${Object.keys(this.usage).filter((n) => this.byLower.has(n)).length})` : " (counting…)"}`],
       ["nearby", `Used nearby (${nearby.size})`],
       ["favourites", `★ Favourites (${this.favourites.size})`],
       ["recent", `Recent (${this.recent.length})`],

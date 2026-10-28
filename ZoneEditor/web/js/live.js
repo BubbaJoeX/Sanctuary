@@ -322,6 +322,11 @@ export class LiveLayer {
     return this.spawnable.has(file.toLowerCase());
   }
 
+  // What the server can place, again: the Gateway reloads Models.txt when it changes (add_model_rows.py).
+  async refreshModels() {
+    try { this.spawnable = new Set(await request("/models")); } catch { /* keeps the last list */ }
+  }
+
   // The nearest live thing under the ray: a placed object, a player or one of the zone's NPCs.
   pick(raycaster) {
     if (!this.visible) return null;

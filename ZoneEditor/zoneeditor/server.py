@@ -166,11 +166,15 @@ class Handler(BaseHTTPRequestHandler):
         self.send(200, self.workspace.sky(query["name"]).encode("utf-8"), "text/plain; charset=utf-8")
 
     def get_actors(self, query, body):
-        """Every actor and actor set, and (once counted) how often zones place each: {name: [placements, zones]}."""
+        """Every actor and actor set the client can draw, and (once counted) how often zones place each:
+        {name: [placements, zones]}. checked is false until the ones with nothing to draw are known and left out."""
         words = query.get("q", "").lower().split()
-        names = [n for n in self.workspace.actor_names() if all(w in n for w in words)]
+        missing = self.workspace.missing_actors()
+        left_out = set(missing or ())
+        names = [n for n in self.workspace.actor_names() if n not in left_out and all(w in n for w in words)]
         limit = int(query.get("limit", len(names) or 1))
-        self.send_json({"total": len(names), "names": names[:limit], "usage": self.workspace.actor_usage()})
+        self.send_json({"total": len(names), "names": names[:limit], "usage": self.workspace.actor_usage(),
+                        "checked": missing is not None})
 
     def get_thumb(self, query, body):
         self.send(200, self.workspace.thumbnail(query["name"]), "image/png")

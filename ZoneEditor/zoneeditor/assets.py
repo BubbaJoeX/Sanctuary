@@ -130,6 +130,25 @@ class AssetSource:
         return (self.mod_path(name) is not None or lower in self.mirror or lower in self.packs
                 or lower in self.manifest)
 
+    def available(self, name: str) -> bool:
+        """Whether the client can get an asset: a local one, or one the manifest lists that's really on the asset
+        server (fetched, and cached, to find out). Some listed names never were; a server that can't be asked is
+        taken to have them."""
+        lower = name.lower()
+        if self.mod_path(name) or lower in self.mirror or lower in self.packs:
+            return True
+        if lower not in self.manifest:
+            return False
+        if not self.upstream:
+            return True
+        try:
+            self.read(name)
+        except KeyError:
+            return False
+        except (OSError, ValueError):
+            return True
+        return True
+
     def names(self, suffix: str = "") -> set:
         """Lowercase names of every known asset, optionally only those ending with suffix."""
         names = set(self.manifest) | set(self.packs) | set(self.mirror) | set(self._mods())

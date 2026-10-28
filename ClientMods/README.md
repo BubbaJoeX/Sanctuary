@@ -179,6 +179,11 @@ It also copies `lua/referee_tools.lua` to `Resources/Scripts/1` and `lua/client_
 `Resources/Scripts/2` (see below), and any custom skies the [zone editor](../ZoneEditor/README.md) saved in
 `sky/` to `Resources/SKY`.
 
+And it puts Sanctuary's client patches (`src/Resources/ClientPatches`) over the client's own files, keeping the
+originals as `*.sanctuary-backup`: `Resources/Models.txt` (with a row for every actor the client can draw, from
+the zone editor's `add_model_rows.py`), the locale and the icon tables. Launchers download these before Play;
+a client started by `launch.ps1` doesn't, and the client reads them only at start-up.
+
 Where a mod replaces a stock asset the client keeps in a read-only pack (a FabledRealms file edited in the
 zone editor), the installer hides that pack entry (its name starts with `~` instead, recorded in
 `sanctuary_stock_overrides.txt`) so the client downloads the mod.

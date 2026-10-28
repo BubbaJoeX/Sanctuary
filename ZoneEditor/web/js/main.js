@@ -1838,9 +1838,10 @@ function placeActor(name, hit, yaw = 0) {
 }
 
 // Places the actor in the running game instead (Place live): a placed model, there for players at once.
-function placeLive(name, hit, yaw = 0) {
+async function placeLive(name, hit, yaw = 0) {
+  if (!live.canPlace(name)) await live.refreshModels();
   if (!live.canPlace(name)) {
-    return toast(`${name} has no Models.txt row, so the game can't spawn it live. Untick Place live to put it in the zone's files instead.`);
+    return toast(`${name} has no Models.txt row, so the game can't spawn it live (ZoneEditor/add_model_rows.py adds one for every actor the client can draw). Untick Place live to put it in the zone's files instead.`);
   }
   liveStep(live.placeModel(name, newRecord(name, hit, yaw)), `Placed ${name} in game.`);
   content.placed(name);
@@ -1896,7 +1897,8 @@ canvas.addEventListener("drop", (event) => {
   updatePointer(event);
   const hit = terrainHit();
   if (!hit) return toast("Drop it on the ground.");
-  placeActor(name, hit, ghost ? ghost.rotation.y : 0);
+  if (state.place.live && live.zone) placeLive(name, hit, ghost ? ghost.rotation.y : 0);
+  else placeActor(name, hit, ghost ? ghost.rotation.y : 0);
 });
 
 // --- pointer and keyboard ------------------------------------------------------------------------------

@@ -53,6 +53,19 @@ LAUNCH_TIMEOUT = 300                           # seconds launch.ps1 has to start
 INLINE_NUMBERS = re.compile(r"\[\s*(-?[\d.eE+-]+(?:,\s*-?[\d.eE+-]+)*)\s*\]")
 
 
+def actor_drawable(assets: AssetSource, actor: str) -> bool:
+    """Whether the client has a mesh to draw an actor with (an actor set: each of its actors). Some stock actors
+    name a mesh the manifest lists but the asset server never had, and draw as nothing."""
+    try:
+        if actor.lower().endswith(".agr"):
+            members = models.actor_group_members(assets.read(actor))
+            return bool(members) and all(actor_drawable(assets, member) for member in members)
+        mesh = models.adr_mesh_name(assets.read(actor))
+    except (KeyError, ValueError):
+        return False
+    return bool(mesh) and assets.available(mesh)
+
+
 def _json_styles(data) -> list:
     """The ways Sanctuary's resource files lay JSON out: expanded, short number lists inline, and an
     environment grid with one row per line."""
@@ -199,6 +212,8 @@ class Workspace:
         self._colours = {}
         self._usage = None
         self._usage_thread = None
+        self._missing = None
+        self._missing_thread = None
         self._live_lock = threading.Lock()
         self._live_thread = None
         self._launching = False                # a client is being started: its live files stay
@@ -247,6 +262,34 @@ class Workspace:
             names = self.assets.names(".adr") | self.assets.names(".agr")
             self._actor_names = sorted((self.assets.manifest.get(n, (n,))[0].removesuffix(".z") for n in names), key=str.lower)
         return self._actor_names
+
+    def _assets_stamp(self) -> str:
+        """Changes when the actors or where assets come from do (a pack, the asset server's folder, a mod)."""
+        return f"{len(self.actor_names())}:{len(self.assets.packs)}:{len(self.assets.mirror)}:{len(self.assets._mods())}"
+
+    def missing_actors(self) -> list | None:
+        """The actors the client has nothing to draw with (actor_drawable), which can't be placed. Checked once in
+        the background and cached on disk, again when the assets change; None until it's ready."""
+        path = self.cache_dir / "missing_actors.json"
+        with self.lock:
+            if self._missing is None and path.exists():
+                cached = json.loads(path.read_text(encoding="utf-8"))
+                if cached.get("stamp") == self._assets_stamp():
+                    self._missing = cached["missing"]
+            if self._missing is not None:
+                return self._missing
+            if self._missing_thread is None:
+                self._missing_thread = threading.Thread(target=self._find_missing_actors, args=(path,), daemon=True)
+                self._missing_thread.start()
+        return None
+
+    def _find_missing_actors(self, path: Path):
+        stamp = self._assets_stamp()
+        missing = [name for name in self.actor_names() if not actor_drawable(self.assets, name)]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"stamp": stamp, "missing": missing}), encoding="utf-8")
+        with self.lock:
+            self._missing = missing
 
     def actor_usage(self) -> dict | None:
         """How often each actor is placed across every zone's chunks, and in how many zones:

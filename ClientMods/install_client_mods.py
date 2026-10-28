@@ -12,6 +12,9 @@ It also copies the referee client tools (lua/referee_tools.lua) to Resources/Scr
 extensions (lua/client_extensions.lua, e.g. Sanctuary's region badges) to Resources/Scripts/2, which the
 server runs (for referees, and for everyone) through the client's dofileInternalOnlyCommand (see ClientLuaHelper).
 
+And it puts the client patches in (src/Resources/ClientPatches: Models.txt, the locale and the icon tables), which
+the launcher does before Play but a client started without it (launch.ps1) doesn't get.
+
 Client mods that replace a stock asset (a FabledRealms chunk edited in the zone editor) need one more step.
 The client won't update an asset its read-only Assets_NNN packs hold ("Attempt to update data that already
 exists in a non-writeable pack file"), so the stock entry is hidden: the first letter of its name in the
@@ -52,6 +55,10 @@ PACK_INDEX_BLOCK = 8192
 
 # Skies the zone editor wrote (ClientMods/sky). The client reads Resources/SKY from disk; they don't stream.
 SKY_DIR = script_dir / "sky"
+
+# Client files the launcher replaces before Play (Models.txt, the locale, the icon tables): a client started
+# without the launcher (launch.ps1) needs them put in place too.
+PATCHES_DIR = script_dir.parent / "src" / "Resources" / "ClientPatches"
 
 # (client file, [(original text, modded text), ...]), applied to the original file.
 WINDOW_PATCHES = [
@@ -392,6 +399,13 @@ def client_running():
     return "FreeRealms.exe" in result.stdout
 
 
+def client_patches():
+    """(file, path in the client) of each client patch."""
+    if not PATCHES_DIR.is_dir():
+        return []
+    return [(path, path.relative_to(PATCHES_DIR)) for path in sorted(PATCHES_DIR.rglob("*")) if path.is_file()]
+
+
 def stock_pack_entries(client_dir):
     """(pack, offset of the name in the file, name) of every entry in the client's read-only stock packs."""
     marker = client_dir / MARKER_FILE
@@ -498,6 +512,17 @@ def install(client_dir):
         shutil.copyfile(sky, client_dir / "Resources" / "SKY" / sky.name)
         print(f"Resources/SKY/{sky.name}: sky")
 
+    for source, relative_path in client_patches():
+        target = client_dir / relative_path
+        if target.exists() and target.read_bytes() == source.read_bytes():
+            continue
+        backup = target.with_name(target.name + BACKUP_SUFFIX)
+        if target.exists() and not backup.exists():
+            shutil.copy2(target, backup)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        print(f"{relative_path.as_posix()}: client patch")
+
     hidden, restored = sync_stock_overrides(client_dir)
     for name in hidden:
         print(f"{name}: stock copy hidden, the client downloads the mod")
@@ -527,6 +552,14 @@ def uninstall(client_dir):
         if (client_dir / "Resources" / "SKY" / sky.name).exists():
             (client_dir / "Resources" / "SKY" / sky.name).unlink()
             print(f"Resources/SKY/{sky.name}: removed")
+
+    for _, relative_path in client_patches():
+        target = client_dir / relative_path
+        backup = target.with_name(target.name + BACKUP_SUFFIX)
+        if backup.exists():
+            shutil.copy2(backup, target)
+            backup.unlink()
+            print(f"{relative_path.as_posix()}: restored")
 
     for name in sync_stock_overrides(client_dir, restore_all=True)[1]:
         print(f"{name}: stock copy restored")

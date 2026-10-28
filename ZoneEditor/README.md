@@ -203,8 +203,10 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   game above), your character goes to far-off ground and straight back, so the client reloads the saved chunks.
   It only goes when it stands within 1.5 km of them; the status bar says what happened.
 - **Placing live.** In the Props tool, with *Place in the running game* ticked (the default from the panel), a
-  click places the content pick as a placed model, with the tool's turn, scale, slope and height options. Only
-  actors with a `Models.txt` row can be spawned (the game sends models by id); others go in the zone's files.
+  click (or a drop from the content browser) places the content pick as a placed model, with the tool's turn,
+  scale, slope and height options. The game spawns models by id, so an actor needs a `Models.txt` row, in the
+  server's copy and the client's. `add_model_rows.py` gives one to every actor the client can draw (see
+  [Models.txt rows](#modelstxt-rows)).
 - **Baking.** *Bake into the zone* turns a placed object into one of the chunk's own props, where it stands,
   and takes it out of the game: build in the live world, then make it part of the zone (Save, Test in game).
 - **Players.** Selecting one shows what they wear, and sends them to the ground in the middle of the view,
@@ -220,6 +222,27 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
 
 Terrain, eco and colour paint, the zone's baked props, lights, sky and spawn are still the zone's files: the
 game has no way to send those to a client that has the zone loaded, so they ship as before.
+
+### Models.txt rows
+
+A placed model is an NPC whose model is a `Models.txt` row's id, which the server and the client each look up
+in their own copy of the table. The stock rows cover about a third of the client's actors, so
+`add_model_rows.py` appends a row for every other actor and actor set the client can draw, with ids from 10000
+up (stock ids stop below 5000, and `fr_maya_mcp`'s new models start at 20000) and the defaults most stock rows
+have. Rows are only ever appended, so a placed model's id keeps meaning the same actor; run it again after
+publishing new actors, and once in a fresh checkout (the client patches aren't in git).
+
+```
+python ZoneEditor/add_model_rows.py
+```
+
+It writes `src/Resources/Models.txt`, and the running Gateway's and Login's copies (they reload it when it
+changes), and the same file as the client patch `src/Resources/ClientPatches/Resources/Models.txt`, which
+launchers download before Play. The client reads it only at start-up: `launch.ps1` puts the client patches in
+before it starts the client, as does `ClientMods/install_client_mods.py`.
+
+Some stock actors name a mesh that the client's manifest lists but the asset server never had, so the client
+draws them as nothing; they get no row, and the content browser leaves them out.
 
 ## How it works
 
