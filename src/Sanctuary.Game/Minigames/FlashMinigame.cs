@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Resources.Definitions;
@@ -32,6 +33,10 @@ public abstract class FlashMinigame
     internal readonly object SyncRoot = new();
 
     private long _startedAt;
+
+    private Func<long>? _clock;
+    private Action<string>? _outbox;
+    private Action<bool>? _onFinish;
 
     public Player Player { get; private set; } = null!;
     public MinigameDefinition Definition { get; private set; } = null!;
@@ -69,7 +74,12 @@ public abstract class FlashMinigame
     /// <summary>
     /// Milliseconds since the movie was started; the clock everything in a game runs on (the movie's getTimer).
     /// </summary>
-    protected long Now => Environment.TickCount64 - _startedAt;
+    protected long Now => _clock?.Invoke() ?? Environment.TickCount64 - _startedAt;
+
+    /// <summary>
+    /// The game's own data, when its movie's server data never shipped with the client: Resources/Minigames/&lt;Game&gt;.
+    /// </summary>
+    public string DataDirectory { get; private set; } = string.Empty;
 
     internal void Initialize(Player player, MinigameDefinition definition, IRewardManager rewardManager,
         IResourceManager resourceManager, ILogger logger)
@@ -79,8 +89,31 @@ public abstract class FlashMinigame
         RewardManager = rewardManager;
         ResourceManager = resourceManager;
         Logger = logger;
+        DataDirectory = System.IO.Path.Combine(Game.ResourceManager.MinigamesDirectory, definition.Game);
 
         _startedAt = Environment.TickCount64;
+    }
+
+    /// <summary>
+    /// A game outside the server, for tests that play it through its messages: what it sends the movie goes to
+    /// <paramref name="outbox"/>, its result to <paramref name="onFinish"/> (nothing is paid), and its clock is
+    /// <paramref name="clock"/> (milliseconds) when given.
+    /// </summary>
+    public static T CreateDetached<T>(MinigameDefinition definition, string dataDirectory, Action<string> outbox,
+        Action<bool>? onFinish = null, Func<long>? clock = null) where T : FlashMinigame, new()
+    {
+        var game = new T
+        {
+            Definition = definition,
+            DataDirectory = dataDirectory,
+            Logger = NullLogger.Instance,
+            _outbox = outbox,
+            _onFinish = onFinish,
+            _clock = clock,
+            _startedAt = Environment.TickCount64
+        };
+
+        return game;
     }
 
     /// <summary>
@@ -135,6 +168,12 @@ public abstract class FlashMinigame
 
     protected void SendRaw(string payload)
     {
+        if (_outbox is not null)
+        {
+            _outbox(payload);
+            return;
+        }
+
         Player.SendTunneled(new MiniGamePayloadPacket
         {
             StageId = StageId,
@@ -148,6 +187,17 @@ public abstract class FlashMinigame
     /// </summary>
     protected void Finish(bool won)
     {
+        if (_outbox is not null)
+        {
+            if (!Finished)
+            {
+                MarkFinished(won);
+                _onFinish?.Invoke(won);
+            }
+
+            return;
+        }
+
         MinigameManager.Finish(this, won);
     }
 
