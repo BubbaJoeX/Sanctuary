@@ -69,10 +69,12 @@ def actor_drawable(assets: AssetSource, actor: str) -> bool:
 
 
 def _json_styles(data) -> list:
-    """The ways Sanctuary's resource files lay JSON out: expanded, short number lists inline, and an
-    environment grid with one row per line."""
-    expanded = json.dumps(data, indent=2, ensure_ascii=False)
-    styles = [expanded, INLINE_NUMBERS.sub(lambda m: "[" + ", ".join(v.strip() for v in m.group(1).split(",")) + "]", expanded)]
+    """The ways Sanctuary's resource files lay JSON out: expanded (by 2 spaces, or 4 as Rewards.json is), short
+    number lists inline, and an environment grid with one row per line."""
+    styles = []
+    for indent in (2, 4):
+        expanded = json.dumps(data, indent=indent, ensure_ascii=False)
+        styles += [expanded, INLINE_NUMBERS.sub(lambda m: "[" + ", ".join(v.strip() for v in m.group(1).split(",")) + "]", expanded)]
     if isinstance(data, dict) and isinstance(data.get("Rows"), list):
         head = {k: v for k, v in data.items() if k != "Rows"}
         rows = ",\n".join("    [" + ", ".join(map(str, row)) + "]" for row in data["Rows"])
