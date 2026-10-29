@@ -323,9 +323,9 @@ public static partial class AdminApiEndpoints
     #region Conversations
 
     /// <summary>
-    /// The world NPCs in running zones (those with a conversation first), whose name, definition, zone or greeting
-    /// has <paramref name="search"/> in it. Their conversations are read and saved through
-    /// /zones/{key}/objects/{id}/conversation.
+    /// The world NPCs in running zones (those that talk first, with their own conversation or their definition's),
+    /// whose name, definition, zone or greeting has <paramref name="search"/> in it. Their own conversations are read
+    /// and saved through /zones/{key}/objects/{id}/conversation.
     /// </summary>
     private static IResult ConversationsHandler(HttpContext context, string? search, IZoneManager zoneManager, IResourceManager resourceManager)
     {
@@ -337,8 +337,10 @@ public static partial class AdminApiEndpoints
             .SelectMany(zone => zone.GetWorldNpcs().Select(x => (Zone: zone, x.Guid, x.WorldNpc)))
             .Select(x =>
             {
+                var definitionConversation = resourceManager.Npcs.TryGetValue(x.WorldNpc.Definition, out var definition) ? definition.Conversation : null;
                 var conversation = Conversation.FromJson(x.WorldNpc.Conversation);
-                var greeting = conversation?.GetNode(conversation.Start)?.Text;
+                var spoken = conversation ?? definitionConversation;
+                var greeting = spoken?.GetNode(spoken.Start)?.Text;
                 var definitionName = NpcName(resourceManager, x.WorldNpc.Definition);
 
                 return new WorldNpcModel(
@@ -351,11 +353,12 @@ public static partial class AdminApiEndpoints
                     conversation?.Nodes.Count ?? 0,
                     greeting is { Length: > 120 } ? $"{greeting[..120]}…" : greeting,
                     Round(x.WorldNpc.PositionX),
-                    Round(x.WorldNpc.PositionZ));
+                    Round(x.WorldNpc.PositionZ),
+                    definitionConversation?.Nodes.Count ?? 0);
             })
             .Where(npc => string.IsNullOrWhiteSpace(search)
                 || $"{npc.Name} {npc.DefinitionName} {npc.Definition} {npc.ZoneName} {npc.Greeting}".Contains(search.Trim(), StringComparison.OrdinalIgnoreCase))
-            .OrderByDescending(npc => npc.Nodes > 0)
+            .OrderByDescending(npc => npc.Nodes > 0 || npc.DefinitionNodes > 0)
             .ThenBy(npc => npc.Name, StringComparer.OrdinalIgnoreCase)
             .Take(MaxWorldNpcs)
             .ToArray();

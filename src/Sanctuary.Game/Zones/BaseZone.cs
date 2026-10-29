@@ -929,6 +929,10 @@ public abstract class BaseZone : IZone, IDisposable
                 _logger.LogWarning("NPC {NpcName} ({NpcGuid}) already has script {Script}", npc.Name, npc.Guid, script);
         }
 
+        // Its definition's conversation makes it clickable (clicking still offers quests, shops and the atlas first).
+        if (definition.Conversation is not null)
+            NpcContent.RefreshInteraction(npc);
+
         return true;
     }
 

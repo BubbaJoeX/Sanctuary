@@ -268,7 +268,9 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   `POST /api/rewards/save|delete` for `src/Resources/Rewards.json`. Each reward table lists what rolls it (mobs,
   consumables and item abilities by their `RewardTable` fields, minigames, and the server's code and scripts by
   the key as a string), and one in use can't be renamed or deleted. Saves keep the files' layout and go to the
-  running servers' copies; the panel then has the Gateway reload them.
+  running servers' copies; the panel then has the Gateway reload them. A definition can carry a `Conversation`
+  (`Start` and `Nodes`, as the game checks them): every NPC spawned from it says that when clicked, unless it has
+  its own, and a reload changes what they say from their next click.
 - **Baking.** *Bake into the zone* turns a placed object into one of the chunk's own props, where it stands,
   and takes it out of the game: build in the live world, then make it part of the zone (Save, Test in game).
 - **Players.** Selecting one shows what they wear, and sends them to the ground in the middle of the view,

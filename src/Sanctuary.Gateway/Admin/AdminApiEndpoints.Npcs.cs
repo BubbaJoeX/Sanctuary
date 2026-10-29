@@ -276,7 +276,7 @@ public static partial class AdminApiEndpoints
 
     private static IResult ConversationsAdminsOnly() => Results.Problem("Only admins can edit conversations.", statusCode: StatusCodes.Status403Forbidden);
 
-    private static IResult ConversationHandler(HttpContext context, string key, string id, IZoneManager zoneManager)
+    private static IResult ConversationHandler(HttpContext context, string key, string id, IZoneManager zoneManager, IResourceManager resourceManager)
     {
         if (!GetReferee(context).IsAdmin)
             return ConversationsAdminsOnly();
@@ -284,7 +284,8 @@ public static partial class AdminApiEndpoints
         if (!TryGetScriptTarget(zoneManager, key, id, out _, out var npc, out var kind) || kind != "npc")
             return Results.NotFound("Only NPCs and models placed in a world zone have conversations.");
 
-        return Results.Ok(new ConversationModel(npc.Conversation));
+        return Results.Ok(new ConversationModel(npc.Conversation,
+            resourceManager.Npcs.TryGetValue(npc.DefinitionId, out var definition) ? definition.Conversation : null));
     }
 
     private static IResult SaveConversationHandler(HttpContext context, string key, string id, Conversation request, IZoneManager zoneManager,

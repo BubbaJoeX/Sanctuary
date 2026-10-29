@@ -243,6 +243,7 @@ class Workspace:
         self._actor_names = None
         self._palette = None
         self._colours = {}
+        self._item_ids: tuple[float, set] | None = None
         self._usage = None
         self._usage_thread = None
         self._missing = None
@@ -466,6 +467,16 @@ class Workspace:
         return [{"key": key, "name": e["eco"].name, "texture": e["eco"].texture, "repeat": e["eco"].repeat,
                  "floras": [f.name for f in e["eco"].floras], "zones": e["zones"][:6], "zoneCount": len(e["zones"]),
                  "definition": e.get("definition")} for key, e in self.palette().items()]
+
+    def item_ids(self) -> set:
+        """Item definition ids the game has (ClientItemDefinitions.json), read again when the file changes."""
+        path = self.resources / "ClientItemDefinitions.json"
+        stamp = path.stat().st_mtime
+        if self._item_ids is None or self._item_ids[0] != stamp:
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
+            entries = data.values() if isinstance(data, dict) else data
+            self._item_ids = (stamp, {entry["Id"] for entry in entries if isinstance(entry, dict) and "Id" in entry})
+        return self._item_ids[1]
 
     def skies(self) -> list:
         sky_dir = self.client_dir / "Resources" / "SKY"

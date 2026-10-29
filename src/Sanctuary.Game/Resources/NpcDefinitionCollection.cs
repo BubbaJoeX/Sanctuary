@@ -47,6 +47,13 @@ public class NpcDefinitionCollection : ObservableConcurrentDictionary<int, NpcDe
 
             foreach (var entry in entries)
             {
+                // A broken conversation is dropped rather than the whole NPC.
+                if (entry.Conversation?.Validate() is { } conversationError)
+                {
+                    _logger.LogWarning("NPC {id}'s conversation isn't used: {error} \"{file}\"", entry.Id, conversationError, filePath);
+                    entry.Conversation = null;
+                }
+
                 if (!TryAdd(entry.Id, entry))
                 {
                     _logger.LogWarning("Failed to add entry. {id} \"{file}\"", entry.Id, filePath);

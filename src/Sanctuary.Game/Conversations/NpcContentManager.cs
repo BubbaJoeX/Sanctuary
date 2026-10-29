@@ -45,7 +45,7 @@ public class NpcContentManager : INpcContentManager
         if (string.IsNullOrWhiteSpace(source))
         {
             npc.GmScript = null;
-            UpdateInteraction(npc);
+            RefreshInteraction(npc);
             return null;
         }
 
@@ -59,7 +59,7 @@ public class NpcContentManager : INpcContentManager
         lock (npc.NearbyPlayers)
             npc.NearbyPlayers.Clear();
 
-        UpdateInteraction(npc);
+        RefreshInteraction(npc);
 
         var spawnError = await sandbox.CallAsync("onSpawn");
 
@@ -176,16 +176,19 @@ public class NpcContentManager : INpcContentManager
     public void SetConversation(Npc npc, Conversation? conversation)
     {
         npc.Conversation = conversation;
-        UpdateInteraction(npc);
+        RefreshInteraction(npc);
     }
+
+    public Conversation? ConversationOf(Npc npc) =>
+        npc.Conversation ?? (_resourceManager.Npcs.TryGetValue(npc.DefinitionId, out var definition) ? definition.Conversation : null);
 
     /// <summary>
     /// Makes the NPC clickable while it has an onInteract hook or a conversation. Props also get the
     /// cursor they otherwise lack, so players can click them.
     /// </summary>
-    private void UpdateInteraction(Npc npc)
+    public void RefreshInteraction(Npc npc)
     {
-        var interactive = npc.GmScript?.HasHook("onInteract") == true || npc.Conversation is not null;
+        var interactive = npc.GmScript?.HasHook("onInteract") == true || ConversationOf(npc) is not null;
 
         npc.InteractAction = interactive ? player => OnInteract(npc, player) : null;
 
@@ -274,7 +277,8 @@ public class NpcContentManager : INpcContentManager
 
     public bool StartConversation(Player player, Npc npc, int? nodeId = null)
     {
-        var node = npc.Conversation?.GetNode(nodeId ?? npc.Conversation.Start);
+        var conversation = ConversationOf(npc);
+        var node = conversation?.GetNode(nodeId ?? conversation.Start);
 
         if (node is null)
             return false;
@@ -316,7 +320,7 @@ public class NpcContentManager : INpcContentManager
             return;
         }
 
-        var choice = npc.Conversation?.GetNode(nodeId)?.Choices.ElementAtOrDefault(index);
+        var choice = ConversationOf(npc)?.GetNode(nodeId)?.Choices.ElementAtOrDefault(index);
 
         if (choice is null)
             return;

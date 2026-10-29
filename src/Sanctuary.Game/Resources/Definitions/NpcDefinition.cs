@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using Sanctuary.Game.Conversations;
 using Sanctuary.Packet.Common;
 
 namespace Sanctuary.Game.Resources.Definitions;
@@ -44,4 +45,10 @@ public class NpcDefinition
     public List<NotificationInfo> Notifications { get; set; } = [];
     public List<CharacterAttachmentData> Attachments { get; set; } = [];
     public string[]? Scripts { get; set; }
+
+    /// <summary>
+    /// What every NPC spawned from this definition says when clicked, unless it has a conversation of its own (a
+    /// placed NPC's, from the zone editor). Read when a player clicks, so a reload changes what they say at once.
+    /// </summary>
+    public Conversation? Conversation { get; set; }
 }

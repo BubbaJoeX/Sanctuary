@@ -2,7 +2,7 @@
 
 A definition is what an NPC spawned from it starts as: its model (a Models.txt row's id, and the actor file),
 name, scale, texture and tint aliases, named scripts (src/Scripts/Npc), overhead icons, interaction and merchant
-lists. The editor lists them, changes any of them and adds new ones, for example for an actor spawned as an NPC.
+lists, and what it says when clicked (a conversation, which a placed NPC's own replaces). The editor lists them, changes any of them and adds new ones, for example for an actor spawned as an NPC.
 Writes keep the file's layout (write_json) and go to the running Gateway's copy too; the browser then has the
 Gateway reload them (POST /api/resources/npcs/reload: its file watcher only picks up new ids) and respawn the
 zone's NPCs built on a changed one.
@@ -21,6 +21,10 @@ from .workspace import Workspace, write_json
 EDITOR_FLOOR = 50000
 PLACED_MODEL = 45000
 MAX_NAME = 64
+# The game's conversation limits (Sanctuary.Game.Conversations.Conversation).
+MAX_LINES = 64
+MAX_ANSWERS = 8
+MAX_TEXT = 400
 # Fields the browser's form edits; anything else on an entry (interaction and merchant lists, abilities...)
 # is edited as JSON and kept as it is.
 SUMMARY_KEYS = ("Id", "Name", "ModelFileName")
@@ -135,7 +139,55 @@ class NpcDefinitions:
                 entry[key] = entry[key].strip() or None
         if entry.get("Scripts") == []:
             entry["Scripts"] = None
+        if entry.get("Conversation") is not None:
+            entry["Conversation"] = self._check_conversation(entry["Conversation"])
         return {key: value for key, value in entry.items() if value is not None}
+
+    def _check_conversation(self, conversation) -> dict:
+        """A definition's conversation as the game checks it (Conversation.Validate), and the items its answers give,
+        in Npcs.json's shape; or ValueError."""
+        if not isinstance(conversation, dict) or not isinstance(conversation.get("Nodes"), list):
+            raise ValueError("A conversation has a Start and a list of Nodes (lines).")
+        nodes = conversation["Nodes"]
+        if not 1 <= len(nodes) <= MAX_LINES:
+            raise ValueError(f"A conversation has 1 to {MAX_LINES} lines.")
+        ids = [node.get("Id") if isinstance(node, dict) else None for node in nodes]
+        if len(set(ids)) != len(ids) or any(not isinstance(i, int) or isinstance(i, bool) or i <= 0 for i in ids):
+            raise ValueError("Each line of the conversation needs its own id above 0.")
+        start = conversation.get("Start", 1)
+        if start not in ids:
+            raise ValueError(f"The conversation starts at line {start}, which isn't there.")
+        items = self.ws.item_ids()
+        checked = []
+        for node in nodes:
+            line = node["Id"]
+            text = node.get("Text")
+            if not isinstance(text, str) or not text.strip() or len(text) > MAX_TEXT:
+                raise ValueError(f"Line {line} needs text of up to {MAX_TEXT} characters.")
+            choices = node.get("Choices") or []
+            if not isinstance(choices, list) or len(choices) > MAX_ANSWERS:
+                raise ValueError(f"Line {line} has at most {MAX_ANSWERS} answers.")
+            answers = []
+            for choice in choices:
+                answer = choice.get("Text") if isinstance(choice, dict) else None
+                if not isinstance(answer, str) or not answer.strip() or len(answer) > MAX_TEXT:
+                    raise ValueError(f"Each answer to line {line} needs text of up to {MAX_TEXT} characters.")
+                following = choice.get("Next") or 0
+                if following != 0 and following not in ids:
+                    raise ValueError(f"An answer to line {line} leads to line {following}, which isn't there.")
+                checked_choice = {"Text": answer.strip(), "Next": following}
+                if item := choice.get("GiveItemId") or 0:
+                    quantity = choice.get("GiveQuantity") or 1
+                    if item not in items:
+                        raise ValueError(f"An answer to line {line} gives item {item}, which the game doesn't have.")
+                    if not isinstance(quantity, int) or not 1 <= quantity <= 100:
+                        raise ValueError(f"An answer to line {line} gives 1 to 100 of its item.")
+                    checked_choice.update(GiveItemId=item, GiveQuantity=quantity)
+                if isinstance(choice.get("Hook"), str) and choice["Hook"].strip():
+                    checked_choice["Hook"] = choice["Hook"].strip()
+                answers.append(checked_choice)
+            checked.append({"Id": line, "Text": text.strip(), "Choices": answers})
+        return {"Start": start, "Nodes": checked}
 
     def save(self, entry: dict) -> dict:
         """Replaces the definition with entry's Id."""
