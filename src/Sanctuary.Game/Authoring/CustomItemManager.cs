@@ -60,6 +60,9 @@ public class CustomItemManager : ICustomItemManager
 
     private static readonly JsonSerializerOptions JsonOptions = new();
 
+    // The item definitions' name in IResourceManager.TryReload.
+    private const string ItemsResource = "items";
+
     private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IResourceManager _resourceManager;
@@ -73,6 +76,13 @@ public class CustomItemManager : ICustomItemManager
         _serviceProvider = serviceProvider;
         _resourceManager = resourceManager;
         _dbContextFactory = dbContextFactory;
+
+        // Reloading the item definitions clears them, custom items included, so they go back in after.
+        _resourceManager.Reloaded += name =>
+        {
+            if (string.Equals(name, ItemsResource, StringComparison.OrdinalIgnoreCase))
+                Load();
+        };
     }
 
     public static bool IsCustomItemId(int itemDefinitionId) => itemDefinitionId > ItemIdBase;

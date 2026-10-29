@@ -93745,5 +93745,10 @@
   {
     "Id": 950007,
     "CategoryId": 2
+  },
+  {
+    "Id": 9000006,
+    "CategoryId": 2267,
+    "Comment": "FR MCP Hover-Car (custom item 6, built on the Flying Saucer)"
   }
 ]
