@@ -523,6 +523,15 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.Property<float>("RotationZ")
                         .HasColumnType("REAL");
 
+                    b.Property<float?>("RouteEndX")
+                        .HasColumnType("REAL");
+
+                    b.Property<float?>("RouteEndY")
+                        .HasColumnType("REAL");
+
+                    b.Property<float?>("RouteEndZ")
+                        .HasColumnType("REAL");
+
                     b.Property<float>("Scale")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("REAL")

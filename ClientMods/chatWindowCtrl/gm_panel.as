@@ -4481,10 +4481,12 @@ function gmHandleTileData(kind, parts)
 
 // --- decorate bar (every player) -----------------------------------------------
 // While a player decorates their house, the server sends decorate|on and, for the piece last placed,
-// moved or turned with the client's own wheel, decorate|sel|name|yaw|pitch|roll. The client's wheel only
-// turns in fixed yaw steps; these buttons add yaw, pitch and roll in any step.
+// moved or turned with the client's own wheel, decorate|sel|name|yaw|pitch|roll|route. The client's wheel
+// only turns in fixed yaw steps; these buttons add yaw, pitch and roll in any step. For a moving platform,
+// route is "own" (its built-in route) or how many metres it goes to a spot its owner picked, and a Route
+// row sends it to where the player stands or back on its own route.
 
-var gmDecorate = { on: false, name: "", yaw: 0, pitch: 0, roll: 0, x: undefined, y: undefined };
+var gmDecorate = { on: false, name: "", yaw: 0, pitch: 0, roll: 0, route: "", x: undefined, y: undefined };
 var GM_DECORATE_W = 300;
 
 function gmHandleDecorate(parts)
@@ -4499,6 +4501,7 @@ function gmHandleDecorate(parts)
       gmDecorate.yaw = parts[4];
       gmDecorate.pitch = parts[5];
       gmDecorate.roll = parts[6];
+      gmDecorate.route = parts[7] != undefined ? parts[7] : "";
    }
    gmShowDecorate();
 }
@@ -4518,7 +4521,8 @@ function gmShowDecorate()
    }
    var d = _root.createEmptyMovieClip("gmdecorate_mc", 16002);
    var w = GM_DECORATE_W;
-   var h = 176;
+   var platform = gmDecorate.name != "" && gmDecorate.route != "";
+   var h = platform ? 206 : 176;
    var frame = d.createEmptyMovieClip("frame_mc", 1);
    gmPanelShape(frame, w, h, 12, GM_BLUE_TOP, GM_BLUE_BOTTOM, GM_GOLD, 3);
    frame.onPress = function()
@@ -4563,6 +4567,19 @@ function gmShowDecorate()
    {
       gmSend("!house rotate level");
    }, 0x2E7D5B);
+   if(platform)
+   {
+      gmText(d, "route_txt", "Route", 12, 172, 50, 18, 11, GM_TEXT, true);
+      gmText(d, "route_info_txt", gmDecorate.route == "own" ? "Its own" : gmDecorate.route + " m", 62, 172, 80, 18, 11, GM_TEXT_DIM, false);
+      gmButton(d, "route_here_mc", "End here", 142, 168, 80, 24, function()
+      {
+         gmSend("!house route here");
+      });
+      gmButton(d, "route_reset_mc", "Reset", 226, 168, 62, 24, function()
+      {
+         gmSend("!house route reset");
+      });
+   }
 
    d._x = gmDecorate.x != undefined ? gmDecorate.x : Math.max(0, gmScreenRight() - w - 40);
    d._y = gmDecorate.y != undefined ? gmDecorate.y : Math.max(gmTop(), gmBottom() - h - 240);

@@ -14,6 +14,8 @@ public interface IHousingManager
 
     bool TryGetFixtureDefinition(int itemDefinitionId, [MaybeNullWhen(false)] out FixtureDefinition fixtureDefinition);
 
+    string? GetFixtureModelName(ClientItemDefinition itemDefinition);
+
     List<DbHouse> GetHouses(ulong characterId);
 
     void ProvisionHousesFromItems(Player player);

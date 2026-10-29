@@ -97,83 +97,99 @@
         }
     },
     {
-        "Comment": "Piano C1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano C1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38901],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6059
     },
     {
-        "Comment": "Piano D1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano D1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38902],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6060
     },
     {
-        "Comment": "Piano E1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano E1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38903],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6061
     },
     {
-        "Comment": "Piano F1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano F1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38904],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6062
     },
     {
-        "Comment": "Piano G1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano G1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38905],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6063
     },
     {
-        "Comment": "Piano A1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano A1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38906],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6064
     },
     {
-        "Comment": "Piano B1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano B1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38907],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6065
     },
     {
-        "Comment": "Piano C2 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Piano C2 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38908],
+        "ModelName": "hsg_piano_block_01.adr",
         "AreaDefinitionId": 6066
     },
     {
-        "Comment": "Fart C1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart C1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38917],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6075
     },
     {
-        "Comment": "Fart D1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart D1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38918],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6076
     },
     {
-        "Comment": "Fart E1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart E1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38919],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6077
     },
     {
-        "Comment": "Fart F1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart F1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38920],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6078
     },
     {
-        "Comment": "Fart G1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart G1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38921],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6079
     },
     {
-        "Comment": "Fart A1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart A1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38922],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6080
     },
     {
-        "Comment": "Fart B1 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart B1 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38923],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6081
     },
     {
-        "Comment": "Fart C2 C-Scale Music Block: plays its note when stepped on.",
+        "Comment": "Fart C2 C-Scale Music Block: plays its note when stepped on, as the solid housing block (the item names its looping store preview).",
         "ItemDefinitionIds": [38924],
+        "ModelName": "hsg_fart_block_01.adr",
         "AreaDefinitionId": 6082
     }
 ]

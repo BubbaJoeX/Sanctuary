@@ -312,7 +312,7 @@ public sealed partial class HousingZone : BaseZone
         {
             // The client keys its fixture assets by this name and the definition's Category;
             // with either empty, editing (move, turn, ...) silently does nothing.
-            fixtureInstance.Unknown12 = modelItem.ModelName;
+            fixtureInstance.Unknown12 = _housingManager.GetFixtureModelName(modelItem);
 
         }
 
@@ -814,8 +814,8 @@ public sealed partial class HousingZone : BaseZone
     }
 
     /// <summary>
-    /// Tells the decorate bar which piece its buttons turn (the last placed, moved or turned one) and its
-    /// angles in degrees: decorate|sel|name|yaw|pitch|roll.
+    /// Tells the decorate bar which piece its buttons turn (the last placed, moved or turned one), its angles
+    /// in degrees and, for a moving platform, its route (GetRouteLabel): decorate|sel|name|yaw|pitch|roll|route.
     /// </summary>
     private void SendDecorateSelection(Player player)
     {
@@ -826,7 +826,8 @@ public sealed partial class HousingZone : BaseZone
         var (yaw, pitch, roll) = GetFixtureAngles(fixture);
 
         ChatHelper.SendGmPanelData(player, "decorate", "sel", name,
-            MathF.Round(yaw * 180f / MathF.PI), MathF.Round(pitch * 180f / MathF.PI), MathF.Round(roll * 180f / MathF.PI));
+            MathF.Round(yaw * 180f / MathF.PI), MathF.Round(pitch * 180f / MathF.PI), MathF.Round(roll * 180f / MathF.PI),
+            GetRouteLabel(fixtureGuid));
     }
 
     private static float WrapAngle(float radians)

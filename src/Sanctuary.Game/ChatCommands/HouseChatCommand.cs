@@ -14,8 +14,8 @@ public class HouseChatCommand : IChatCommand
     private readonly IResourceManager _resourceManager;
 
     public string KeyWord => "house";
-    public string Usage => "list | enter [index] | leave | visit <player name> | grant <house_id> | unbound | rotate yaw|pitch|roll <degrees> | rotate level";
-    public string Description => "Lists, enters, and leaves your houses. 'grant' and 'unbound' (place anywhere in the current house) require admin.";
+    public string Usage => "list | enter [index] | leave | visit <player name> | grant <house_id> | unbound | rotate yaw|pitch|roll <degrees> | rotate level | route here|reset";
+    public string Description => "Lists, enters, and leaves your houses. 'route here' sends the moving platform you last placed, moved or turned to where you stand and back; 'route reset' puts it back on its own route. 'grant' and 'unbound' (place anywhere in the current house) require admin.";
     public ChatCommandRole RequiredRole => ChatCommandRole.Player;
 
     public HouseChatCommand(IZoneManager zoneManager, IHousingManager housingManager, IResourceManager resourceManager)
@@ -54,6 +54,9 @@ public class HouseChatCommand : IChatCommand
 
             case "rotate":
                 return HandleRotate(invoker, args);
+
+            case "route":
+                return HandleRoute(invoker, args);
 
             default:
                 return false;
@@ -177,6 +180,31 @@ public class HouseChatCommand : IChatCommand
         // Success shows on the decorate bar (see HousingZone.SendDecorateSelection).
         if (!housingZone.RotateLastFixture(invoker, axis, degrees, out var message))
             ChatHelper.SendSystemMessage(invoker, message);
+        return true;
+    }
+
+    private static bool HandleRoute(Player invoker, string[] args)
+    {
+        if (args.Length != 2)
+            return false;
+
+        bool reset;
+
+        if (args[1].Equals("here", System.StringComparison.OrdinalIgnoreCase))
+            reset = false;
+        else if (args[1].Equals("reset", System.StringComparison.OrdinalIgnoreCase))
+            reset = true;
+        else
+            return false;
+
+        if (invoker.Zone is not HousingZone housingZone)
+        {
+            ChatHelper.SendSystemMessage(invoker, "You're not in a house.");
+            return true;
+        }
+
+        housingZone.SetPlatformRoute(invoker, reset, out var message);
+        ChatHelper.SendSystemMessage(invoker, message);
         return true;
     }
 

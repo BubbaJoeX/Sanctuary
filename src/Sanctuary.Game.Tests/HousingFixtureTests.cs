@@ -66,6 +66,9 @@ public sealed class HousingFixtureTests
             Assert.IsTrue(isFurniture, $"Item {itemDefinitionId} isn't furniture.");
             Assert.IsTrue(item.TryGetProperty("ModelName", out var modelName) && models.Contains(modelName.GetString()!),
                 $"Item {itemDefinitionId} has no placeable model.");
+
+            if (fixtures[itemDefinitionId].ModelName is { } housingModel)
+                Assert.IsTrue(models.Contains(housingModel), $"Item {itemDefinitionId}'s housing model {housingModel} isn't in Models.txt.");
         }
     }
 
@@ -82,6 +85,10 @@ public sealed class HousingFixtureTests
         Assert.AreEqual(HousingTeleporterMode.TwoWay, fixtures[10358].Teleporter!.Mode);
         Assert.AreEqual(HousingTeleporterMode.OneWay, fixtures[10362].Teleporter!.Mode);
         Assert.AreEqual(HousingTeleporterMode.MultiWay, fixtures[10363].Teleporter!.Mode);
+
+        // Piano C1 and Fart C1 music blocks are placed as the solid housing blocks, not their store previews.
+        Assert.AreEqual("hsg_piano_block_01.adr", fixtures[38901].ModelName);
+        Assert.AreEqual("hsg_fart_block_01.adr", fixtures[38917].ModelName);
     }
 
     [TestMethod]

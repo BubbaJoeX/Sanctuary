@@ -20,6 +20,14 @@ public class DbHouseFixture
 
     public float Scale { get; set; }
 
+    /// <summary>
+    /// Where a moving platform travels to from where it's placed, when its owner has picked a spot
+    /// instead of its own route.
+    /// </summary>
+    public float? RouteEndX { get; set; }
+    public float? RouteEndY { get; set; }
+    public float? RouteEndZ { get; set; }
+
     public DateTimeOffset Created { get; set; } = DateTimeOffset.UtcNow;
 
     public ulong HouseId { get; set; }

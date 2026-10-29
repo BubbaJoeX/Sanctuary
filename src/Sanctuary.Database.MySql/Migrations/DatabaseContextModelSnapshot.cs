@@ -540,6 +540,15 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Property<float>("RotationZ")
                         .HasColumnType("float");
 
+                    b.Property<float?>("RouteEndX")
+                        .HasColumnType("float");
+
+                    b.Property<float?>("RouteEndY")
+                        .HasColumnType("float");
+
+                    b.Property<float?>("RouteEndZ")
+                        .HasColumnType("float");
+
                     b.Property<float>("Scale")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("float")

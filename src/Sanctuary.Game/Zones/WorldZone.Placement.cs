@@ -513,7 +513,7 @@ public sealed partial class WorldZone
             return housingPacketFixtureUpdate;
 
         // The client ignores Move/Turn/Remove on a fixture whose model name (or definition category) is empty.
-        housingPacketFixtureUpdate.Instance.Unknown12 = itemDefinition.ModelName;
+        housingPacketFixtureUpdate.Instance.Unknown12 = _housingManager.GetFixtureModelName(itemDefinition);
 
         if (!string.IsNullOrEmpty(itemDefinition.TextureAlias))
         {

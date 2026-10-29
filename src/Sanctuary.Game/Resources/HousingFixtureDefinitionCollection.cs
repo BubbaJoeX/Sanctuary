@@ -92,7 +92,7 @@ public class HousingFixtureDefinitionCollection : ObservableConcurrentDictionary
 
         if (definition.ItemDefinitionIds.Count == 0)
             error = "it has no items";
-        else if (definition.AreaDefinitionId == 0 && definition.Platform is null && definition.Teleporter is null)
+        else if (definition.AreaDefinitionId == 0 && definition.Platform is null && definition.Teleporter is null && string.IsNullOrEmpty(definition.ModelName))
             error = "it does nothing";
         else if (definition.Platform is not null && definition.Teleporter is not null)
             error = "a teleporter can't also be a platform";

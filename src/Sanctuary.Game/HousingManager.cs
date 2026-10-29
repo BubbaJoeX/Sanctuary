@@ -93,8 +93,10 @@ public class HousingManager : IHousingManager
             return false;
         }
 
+        var modelName = GetFixtureModelName(itemDefinition);
+
         // Items without a model (roofing, wallpaper, ...) customize the house instead of being placed.
-        if (string.IsNullOrEmpty(itemDefinition.ModelName) || !_modelIds.Value.TryGetValue(itemDefinition.ModelName, out var modelId))
+        if (string.IsNullOrEmpty(modelName) || !_modelIds.Value.TryGetValue(modelName, out var modelId))
         {
             fixtureDefinition = null;
             return false;
@@ -114,6 +116,18 @@ public class HousingManager : IHousingManager
         });
 
         return true;
+    }
+
+    /// <summary>
+    /// The model a fixture is placed as: the item's own, unless its behaviour (HousingFixtures.json) names
+    /// the housing one. Music blocks' items name their store preview, which has no collision and loops its note.
+    /// </summary>
+    public string? GetFixtureModelName(ClientItemDefinition itemDefinition)
+    {
+        if (_resourceManager.HousingFixtures.TryGetValue(itemDefinition.Id, out var behavior) && !string.IsNullOrEmpty(behavior.ModelName))
+            return behavior.ModelName;
+
+        return itemDefinition.ModelName;
     }
 
     public List<DbHouse> GetHouses(ulong characterId)

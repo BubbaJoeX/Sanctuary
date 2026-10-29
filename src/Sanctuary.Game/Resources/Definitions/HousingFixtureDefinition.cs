@@ -11,6 +11,12 @@ public sealed class HousingFixtureDefinition
     public List<int> ItemDefinitionIds { get; set; } = [];
 
     /// <summary>
+    /// The actor placed in the house, when the item's own model is only its store preview: a music block's
+    /// item names one without collision that plays its note over and over.
+    /// </summary>
+    public string? ModelName { get; set; }
+
+    /// <summary>
     /// A global client area (the client's globalclientareas.xml) the fixture's actor carries. Its "floor"
     /// shape applies to whoever stands on the fixture: a trampoline's auto-jump, a bed's bounce, a music
     /// block's note.

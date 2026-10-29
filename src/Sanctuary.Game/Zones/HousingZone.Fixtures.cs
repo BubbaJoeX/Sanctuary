@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 
@@ -41,6 +42,12 @@ public sealed partial class HousingZone
     /// Arrivals are dropped just above the pad and land on it.
     /// </summary>
     private const float TeleporterArrivalHeight = 0.5f;
+
+    /// <summary>
+    /// How short and how long a route its owner picks for a platform can be.
+    /// </summary>
+    private const float MinRouteMeters = 1f;
+    private const float MaxRouteMeters = 60f;
 
     private readonly Dictionary<ulong, HousePlatform> _platforms = [];
     private readonly Dictionary<ulong, HouseTeleporter> _teleporters = [];
@@ -91,10 +98,11 @@ public sealed partial class HousingZone
 
             npc.IsPlatform = true;
             npc.Speed = platformDefinition.Speed;
-            npc.Animation = _showingDecorating ? platformDefinition.PathAnimationId : FixtureRunAnimationId;
             npc.UpdateEveryTickAction = () => UpdatePlatform(fixtureGuid);
 
             ResetPlatformRoute(platform, fixture);
+
+            npc.Animation = GetPlatformAnimationId(platform, fixture);
 
             _platforms[fixtureGuid] = platform;
         }
@@ -132,13 +140,27 @@ public sealed partial class HousingZone
             ResetPlatformRoute(platform, fixture);
     }
 
+    private static bool HasOwnRoute(DbHouseFixture fixture) =>
+        fixture.RouteEndX is not null && fixture.RouteEndY is not null && fixture.RouteEndZ is not null;
+
+    private static Vector3 GetRouteEnd(DbHouseFixture fixture) =>
+        new(fixture.RouteEndX!.Value, fixture.RouteEndY!.Value, fixture.RouteEndZ!.Value);
+
+    /// <summary>
+    /// While decorating, a platform on its own route draws it as dots; one going where its owner picked
+    /// doesn't, since the dots only know the built-in routes.
+    /// </summary>
+    private int GetPlatformAnimationId(HousePlatform platform, DbHouseFixture fixture) =>
+        _showingDecorating && !HasOwnRoute(fixture) ? platform.Definition.PathAnimationId : FixtureRunAnimationId;
+
     private void ResetPlatformRoute(HousePlatform platform, DbHouseFixture fixture)
     {
         var (yaw, _, _) = GetFixtureAngles(fixture);
         var origin = new Vector3(fixture.PositionX, fixture.PositionY, fixture.PositionZ);
 
-        platform.Route = PlatformRoute.FromLocal(platform.Definition.Path, origin, yaw,
-            platform.Definition.Speed, platform.Definition.PauseSeconds);
+        platform.Route = HasOwnRoute(fixture)
+            ? new PlatformRoute([origin, GetRouteEnd(fixture)], platform.Definition.Speed, platform.Definition.PauseSeconds)
+            : PlatformRoute.FromLocal(platform.Definition.Path, origin, yaw, platform.Definition.Speed, platform.Definition.PauseSeconds);
         platform.Rotation = QuaternionExtensions.FromHeading(yaw);
         platform.StartedAt = Environment.TickCount64;
         platform.WasMoving = false;
@@ -165,7 +187,7 @@ public sealed partial class HousingZone
             ResetPlatformRoute(platform, fixture);
 
             platform.Npc.UpdatePosition(new Vector4(platform.Route.Start, 1f), platform.Rotation, false);
-            platform.Npc.PlayAnimation(decorating ? platform.Definition.PathAnimationId : FixtureRunAnimationId, true);
+            platform.Npc.PlayAnimation(GetPlatformAnimationId(platform, fixture), true);
         }
 
         RefreshTeleporterLinks();
@@ -189,6 +211,97 @@ public sealed partial class HousingZone
             platform.WasMoving = moving;
             platform.Npc.UpdatePosition(new Vector4(position, 1f), platform.Rotation, moving);
         }
+    }
+
+    /// <summary>
+    /// Sends the player's selected platform (the piece they last placed, moved or turned) from where it
+    /// was placed to where they're standing and back, or (<paramref name="reset"/>) back on its own route.
+    /// </summary>
+    public bool SetPlatformRoute(Player player, bool reset, out string message)
+    {
+        lock (_houseLock)
+        {
+            if (!IsOwner(player) || !IsEditing(player))
+            {
+                message = "Turn on edit mode in your own house first.";
+                return false;
+            }
+
+            if (!_lastFixtures.TryGetValue(player.Guid, out var fixtureGuid)
+                || !_fixtures.TryGetValue(fixtureGuid, out var fixture)
+                || !_platforms.TryGetValue(fixtureGuid, out var platform))
+            {
+                message = "Place, move or turn a moving platform first.";
+                return false;
+            }
+
+            var end = player.Position.ToVector3();
+            var distance = Vector3.Distance(new Vector3(fixture.PositionX, fixture.PositionY, fixture.PositionZ), end);
+
+            if (!reset)
+            {
+                if (distance < MinRouteMeters)
+                {
+                    message = "Stand where the platform should go, away from where it is now.";
+                    return false;
+                }
+
+                if (distance > MaxRouteMeters)
+                {
+                    message = $"That spot is {distance:0} m away; a platform can travel up to {MaxRouteMeters:0} m.";
+                    return false;
+                }
+
+                if (!IsInBuildArea(player.Position))
+                {
+                    message = "A platform can only travel inside your lot.";
+                    return false;
+                }
+            }
+
+            using var dbContext = _dbContextFactory.CreateDbContext();
+
+            var dbFixture = dbContext.HouseFixtures.SingleOrDefault(x => x.Id == fixture.Id);
+
+            if (dbFixture is null)
+            {
+                message = "That platform is gone.";
+                return false;
+            }
+
+            dbFixture.RouteEndX = fixture.RouteEndX = reset ? null : end.X;
+            dbFixture.RouteEndY = fixture.RouteEndY = reset ? null : end.Y;
+            dbFixture.RouteEndZ = fixture.RouteEndZ = reset ? null : end.Z;
+
+            dbContext.SaveChanges();
+
+            ResetPlatformRoute(platform, fixture);
+
+            platform.Npc.PlayAnimation(GetPlatformAnimationId(platform, fixture), true);
+
+            SendDecorateSelection(player);
+
+            message = reset
+                ? "The platform is back on its own route."
+                : $"The platform now travels {distance:0.#} m to where you're standing and back. Stop decorating to ride it.";
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// What the decorate bar says about the selected piece's route: nothing for anything but a platform,
+    /// "own" for its built-in route, or how far it goes to the spot its owner picked.
+    /// </summary>
+    private string GetRouteLabel(ulong fixtureGuid)
+    {
+        if (!_platforms.ContainsKey(fixtureGuid) || !_fixtures.TryGetValue(fixtureGuid, out var fixture))
+            return string.Empty;
+
+        if (!HasOwnRoute(fixture))
+            return "own";
+
+        var distance = Vector3.Distance(new Vector3(fixture.PositionX, fixture.PositionY, fixture.PositionZ), GetRouteEnd(fixture));
+        return MathF.Round(distance, 1).ToString(CultureInfo.InvariantCulture);
     }
 
     #region Teleporters
