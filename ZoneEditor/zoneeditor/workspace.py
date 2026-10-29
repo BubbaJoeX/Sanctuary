@@ -941,9 +941,23 @@ class Workspace:
                     continue
                 target = target_root / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(path, target)
+                _copy_when_free(path, target)
                 copies.append(str(target))
         return copies
+
+
+def _copy_when_free(source: Path, target: Path, seconds: float = 3.0):
+    """Copies a file over one a server may be reading: the Gateway reloads a resource file as soon as it changes,
+    and while it reads it Windows refuses to overwrite it (WinError 32), so a second save straight after one waits."""
+    deadline = time.monotonic() + seconds
+    while True:
+        try:
+            shutil.copy2(source, target)
+            return
+        except PermissionError:
+            if time.monotonic() > deadline:
+                raise
+            time.sleep(0.05)
 
 
 class ZoneProject:
