@@ -228,7 +228,7 @@ It listens on loopback by default; the AdminPanel's backend is its only client, 
 | `GET /api/characters/{id}`, `POST …/items\|items/take\|coins` | A character's coins, play time, inventory and mounts (the game's copy while they're online), and giving or taking items (online) and coins |
 | `GET /api/items?search=` | The game's items by name or id |
 | `GET /api/quests`, `GET /api/quests/options`, `POST /api/quests/custom`, `GET\|PUT\|DELETE /api/quests/custom/{id}`, `POST …/publish\|unpublish` | GM-authored quests (admins), as `!questedit` makes them: their giver and turn-in NPCs, goals (talk, gather, reach a spot) and rewards, published to make them live; with the game's own quests for reference |
-| `GET /api/conversations?search=` | The NPCs placed in running world zones (admins), those with a conversation first, for editing it through `…/objects/{id}/conversation` |
+| `GET /api/conversations?search=` | The NPCs placed in running world zones (admins), those that talk first (with their own conversation or their definition's), for editing it through `…/objects/{id}/conversation` |
 | `GET /api/logs`, `GET /api/logs/{kind}?date=&search=&level=` | The gateway's own logs, newest first: chat and the audit log, and (admins) its info and error logs |
 | `GET /api/zones`, `GET /api/zones/{key}/heightmap` | The running zones, and a zone's ground as a height grid |
 | `GET /api/zones/{key}/live` | Server-sent events: players, placed objects and (with `?npcs=true`) the zone's other NPCs, with each one's look (its actors, texture and tint aliases and tints) |
@@ -238,7 +238,7 @@ It listens on loopback by default; the AdminPanel's backend is its only client, 
 | `GET\|PUT\|DELETE /api/zones/{key}/objects/{id}/script`, `POST …/script/use\|test` | A placed NPC's or prop's GM script (admins): read, save (it compiles and runs first, so a broken one never replaces a working one), remove, put a library script on it with its parameters, or test it on the referee's character, as the GM panel's Script tab does |
 | `GET /api/scripts/library`, `GET\|PUT\|DELETE /api/scripts/library/{name}` | The script library (admins): the shipped templates and referees' saved scripts |
 | `GET\|PUT /api/zones/{key}/objects/{id}/settings` | A placed NPC's, model's or prop's name, nameplate, animation, aliases, effect, height offset and icons, an NPC's disposition, mob, behaviour, speed and event, and anyone's conditions (hours, quest state, item, referees only, event), as one undo step |
-| `GET\|PUT\|DELETE /api/zones/{key}/objects/{id}/conversation` | A world NPC's conversation (admins), as `!conv` builds it |
+| `GET\|PUT\|DELETE /api/zones/{key}/objects/{id}/conversation` | A world NPC's conversation (admins), as `!conv` builds it, and its definition's, which it says while it has none of its own |
 | `GET /api/npc-options` | What settings can be: the GM panel's animations, mobs, world events, seasons (with their days and whether they're on), quest states, the icons the game's NPCs use, and the game clock's hour |
 | `POST /api/zones/{key}/definitions/{def}/respawn` | Respawns the zone's placed NPCs built on a definition, after `Npcs.json` was reloaded |
 

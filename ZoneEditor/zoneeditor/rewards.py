@@ -36,23 +36,12 @@ class RewardTables:
         self.ws = workspace
         self.path = workspace.resources / "Rewards.json"
         self._lock = threading.Lock()
-        self._items: tuple[float, set] | None = None
         self._code: tuple[float, dict] | None = None
 
     # --- reads -----------------------------------------------------------------------------------------
 
     def _load(self) -> list:
         return json.loads(self.path.read_text(encoding="utf-8-sig")) if self.path.exists() else []
-
-    def _item_ids(self) -> set:
-        """Item definition ids the game has (ClientItemDefinitions.json), read again when the file changes."""
-        path = self.ws.resources / "ClientItemDefinitions.json"
-        stamp = path.stat().st_mtime
-        if self._items is None or self._items[0] != stamp:
-            data = json.loads(path.read_text(encoding="utf-8-sig"))
-            entries = data.values() if isinstance(data, dict) else data
-            self._items = (stamp, {entry["Id"] for entry in entries if isinstance(entry, dict) and "Id" in entry})
-        return self._items[1]
 
     def usage(self) -> dict:
         """key -> what rolls it: "Mobs.json: forest_wolf", "Minigames", "code: PlayerPet.cs"..."""
@@ -114,7 +103,7 @@ class RewardTables:
             raise ValueError(f"{key} needs at least one drop.")
         if len(drops) > MAX_DROPS:
             raise ValueError(f"A table has at most {MAX_DROPS} drops.")
-        items = self._item_ids()
+        items = self.ws.item_ids()
         checked = []
         for number, drop in enumerate(drops, 1):
             if not isinstance(drop, dict):

@@ -208,7 +208,7 @@ public sealed record CustomQuestModel(
 /// its conversation's size (0 for none) and <see cref="Greeting"/> what it says first.
 /// </summary>
 public sealed record WorldNpcModel(string Zone, string ZoneName, string Id, int Definition, string Name, string? DefinitionName, int Nodes,
-    string? Greeting, float X, float Z);
+    string? Greeting, float X, float Z, int DefinitionNodes);
 
 public sealed record ZoneModel(
     string Key,
@@ -383,9 +383,10 @@ public sealed record AnimationOption(int Id, string Label, bool Loop);
 public sealed record SeasonModel(string Key, string Name, int StartMonth, int StartDay, int EndMonth, int EndDay, bool Active);
 
 /// <summary>
-/// A world NPC's conversation as saved; null when it has none.
+/// A world NPC's conversation as saved, null when it has none, and its definition's (which it says when it has
+/// none of its own).
 /// </summary>
-public sealed record ConversationModel(Conversation? Conversation);
+public sealed record ConversationModel(Conversation? Conversation, Conversation? DefinitionConversation = null);
 
 public sealed record RespawnResult(int Respawned);
 

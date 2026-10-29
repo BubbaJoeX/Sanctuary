@@ -28,6 +28,17 @@ public interface INpcContentManager
     void SetConversation(Npc npc, Conversation? conversation);
 
     /// <summary>
+    /// What the NPC says when clicked: its own conversation, else its definition's (Npcs.json); null for neither.
+    /// </summary>
+    Conversation? ConversationOf(Npc npc);
+
+    /// <summary>
+    /// Makes the NPC clickable while it has an onInteract hook or a conversation (its own or its definition's), as
+    /// a newly spawned NPC built on a definition with one.
+    /// </summary>
+    void RefreshInteraction(Npc npc);
+
+    /// <summary>
     /// A player clicked an NPC that has a script or conversation.
     /// </summary>
     void OnInteract(Npc npc, Player player);
