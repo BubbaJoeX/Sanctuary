@@ -227,6 +227,8 @@ It listens on loopback by default; the AdminPanel's backend is its only client, 
 | `PUT\|DELETE /api/accounts/{id}/ban\|mute`, `PUT /api/accounts/{id}/role` | Bans (for a while or for good, signing their characters out) and mutes as `!mod` does, and (admins) makes an account a player, mod or admin; never one's own account or one of as high a role |
 | `GET /api/characters/{id}`, `POST …/items\|items/take\|coins` | A character's coins, play time, inventory and mounts (the game's copy while they're online), and giving or taking items (online) and coins |
 | `GET /api/items?search=` | The game's items by name or id |
+| `GET /api/quests`, `GET /api/quests/options`, `POST /api/quests/custom`, `GET\|PUT\|DELETE /api/quests/custom/{id}`, `POST …/publish\|unpublish` | GM-authored quests (admins), as `!questedit` makes them: their giver and turn-in NPCs, goals (talk, gather, reach a spot) and rewards, published to make them live; with the game's own quests for reference |
+| `GET /api/conversations?search=` | The NPCs placed in running world zones (admins), those with a conversation first, for editing it through `…/objects/{id}/conversation` |
 | `GET /api/logs`, `GET /api/logs/{kind}?date=&search=&level=` | The gateway's own logs, newest first: chat and the audit log, and (admins) its info and error logs |
 | `GET /api/zones`, `GET /api/zones/{key}/heightmap` | The running zones, and a zone's ground as a height grid |
 | `GET /api/zones/{key}/live` | Server-sent events: players, placed objects and (with `?npcs=true`) the zone's other NPCs, with each one's look (its actors, texture and tint aliases and tints) |

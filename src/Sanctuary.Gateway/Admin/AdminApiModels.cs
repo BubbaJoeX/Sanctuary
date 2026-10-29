@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Conversations;
 using Sanctuary.Game.Helpers;
 
@@ -142,6 +143,72 @@ public sealed record LogEntryModel(string Time, string Level, string Logger, str
 /// A day's log entries matching a search, newest first; <see cref="More"/> when older ones matched too.
 /// </summary>
 public sealed record LogPageModel(string Date, IReadOnlyList<LogEntryModel> Entries, bool More);
+
+public sealed record QuestListModel(IReadOnlyList<CustomQuestSummaryModel> Custom, IReadOnlyList<StockQuestModel> Stock);
+
+/// <summary>
+/// A GM-authored quest in a list: <see cref="QuestId"/> is what the game knows it as (900000 + <see cref="Id"/>).
+/// </summary>
+public sealed record CustomQuestSummaryModel(int Id, int QuestId, string Title, bool Published, int GiverNpcId, string? GiverName, int Goals,
+    DateTimeOffset Updated);
+
+/// <summary>
+/// One of the game's own quests (Quests.json), titled from its locale string.
+/// </summary>
+public sealed record StockQuestModel(int QuestId, string Title, int GiverNpcId, string? GiverName, int Goals, int? NextQuestId);
+
+public sealed record QuestOptionsModel(IReadOnlyList<NodeTypeModel> NodeTypes, IReadOnlyList<ZoneOptionModel> Zones, int MaxGoals, int MaxRewards);
+
+public sealed record NodeTypeModel(string Key, string Name);
+
+public sealed record ZoneOptionModel(int Id, string Name);
+
+public sealed record QuestCreateRequest(string Title);
+
+/// <summary>
+/// Every field of a GM-authored quest, as saved. Goals complete in order; 0 for an NPC or locale string id means none
+/// (the giver, or the generic string).
+/// </summary>
+public sealed record CustomQuestRequest(
+    string Title,
+    string? Description,
+    int TitleId,
+    int DescriptionId,
+    int GiverNpcId,
+    int TurnInNpcId,
+    int RewardCoins,
+    int? PrerequisiteQuestId,
+    int? NextQuestId,
+    List<CustomQuestGoal>? Goals,
+    List<CustomQuestReward>? Rewards);
+
+/// <summary>
+/// A GM-authored quest; <see cref="Blocked"/> says what stops it being published, if anything.
+/// </summary>
+public sealed record CustomQuestModel(
+    int Id,
+    int QuestId,
+    string Title,
+    string? Description,
+    int TitleId,
+    int DescriptionId,
+    int GiverNpcId,
+    int TurnInNpcId,
+    int RewardCoins,
+    int? PrerequisiteQuestId,
+    int? NextQuestId,
+    IReadOnlyList<CustomQuestGoal> Goals,
+    IReadOnlyList<CustomQuestReward> Rewards,
+    bool Published,
+    string? Blocked,
+    DateTimeOffset Updated);
+
+/// <summary>
+/// An NPC placed in a running world zone: <see cref="Id"/> is its guid for the object routes, <see cref="Nodes"/>
+/// its conversation's size (0 for none) and <see cref="Greeting"/> what it says first.
+/// </summary>
+public sealed record WorldNpcModel(string Zone, string ZoneName, string Id, int Definition, string Name, string? DefinitionName, int Nodes,
+    string? Greeting, float X, float Z);
 
 public sealed record ZoneModel(
     string Key,

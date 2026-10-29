@@ -83,6 +83,7 @@ public sealed class AdminApiService : BackgroundService
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IWorldEventManager>());
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IChatCommandManager>());
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IRewardManager>());
+        builder.Services.AddSingleton(_gameServices.GetRequiredService<ICustomQuestManager>());
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IDbContextFactory<DatabaseContext>>());
         builder.Services.AddSingleton(_gameServices.GetRequiredService<IScriptLibrary>());
 

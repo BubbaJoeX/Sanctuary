@@ -41,6 +41,11 @@ public interface ICustomQuestManager
     bool Delete(int id);
 
     /// <summary>
+    /// What stops a quest from being published, or null.
+    /// </summary>
+    string? Validate(DbCustomQuest quest);
+
+    /// <summary>
     /// Sends the free text for a custom quest's goal when it starts (goal 0 = also the quest intro).
     /// </summary>
     void AnnounceGoal(Player player, int questId, int goalIndex);
@@ -219,10 +224,7 @@ public class CustomQuestManager : ICustomQuestManager
         }
     }
 
-    /// <summary>
-    /// What stops a quest from being published, or null.
-    /// </summary>
-    private string? Validate(DbCustomQuest quest)
+    public string? Validate(DbCustomQuest quest)
     {
         var goals = CustomQuestJson.ReadList<CustomQuestGoal>(quest.Goals);
 

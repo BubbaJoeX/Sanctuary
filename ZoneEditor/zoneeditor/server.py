@@ -18,6 +18,7 @@ from urllib.parse import parse_qs, urlparse
 import numpy as np
 
 from .npcs import NpcDefinitions
+from .rewards import RewardTables
 from .workspace import Workspace
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
@@ -47,6 +48,7 @@ def b64(array: np.ndarray) -> str:
 class Handler(BaseHTTPRequestHandler):
     workspace: Workspace = None
     npcs: NpcDefinitions = None
+    rewards: RewardTables = None
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
@@ -244,6 +246,20 @@ class Handler(BaseHTTPRequestHandler):
     def post_npcs_delete(self, query, body):
         self.send_json(self.npcs.delete(int(json.loads(body)["id"])))
 
+    # --- reward tables (Rewards.json), for the admin panel's GameData editor ---------------------------------
+
+    def get_rewards(self, query, body):
+        """Every reward table, each with what rolls it (UsedBy)."""
+        self.send_json(self.rewards.overview())
+
+    def post_rewards_save(self, query, body):
+        """{table, originalKey?}: adds a table, or replaces (and may rename) originalKey."""
+        data = json.loads(body)
+        self.send_json(self.rewards.save(data["table"], data.get("originalKey")))
+
+    def post_rewards_delete(self, query, body):
+        self.send_json(self.rewards.delete(json.loads(body)["key"]))
+
     # --- names (locale strings), environments and seasons ---------------------------------------------------
 
     def get_names(self, query, body):
@@ -318,6 +334,7 @@ class Handler(BaseHTTPRequestHandler):
 def serve(workspace: Workspace, host: str, port: int) -> ThreadingHTTPServer:
     Handler.workspace = workspace
     Handler.npcs = NpcDefinitions(workspace)
+    Handler.rewards = RewardTables(workspace)
     server = ThreadingHTTPServer((host, port), Handler)
     server.daemon_threads = True
     return server
