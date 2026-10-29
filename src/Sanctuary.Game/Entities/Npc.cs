@@ -142,8 +142,15 @@ public class Npc : IScriptableNpc, IEntity
 
     private const int DefaultMovementType = 2;
     private const int PlacedObjectMovementType = 0;
+    private const int PlatformMovementType = 1;
 
-    public int MovementType => Tilt.HasValue ? PlacedObjectMovementType : DefaultMovementType;
+    /// <summary>
+    /// A moving object people ride, such as a house elevator. The client carries whoever stands on it
+    /// and reports their position relative to it.
+    /// </summary>
+    public bool IsPlatform { get; set; }
+
+    public int MovementType => IsPlatform ? PlatformMovementType : Tilt.HasValue ? PlacedObjectMovementType : DefaultMovementType;
 
     public int AreaDefinitionId { get; set; }
 
@@ -390,6 +397,13 @@ public class Npc : IScriptableNpc, IEntity
 
     public void UpdatePosition(Vector4 position, Quaternion rotation) =>
         UpdatePosition(position, rotation, StoppedPositionState);
+
+    /// <summary>
+    /// Moves the NPC as a step of continuous movement, which the client blends towards, or (when it
+    /// has stopped) puts it there.
+    /// </summary>
+    public void UpdatePosition(Vector4 position, Quaternion rotation, bool moving) =>
+        UpdatePosition(position, rotation, moving ? MovingPositionState : StoppedPositionState);
 
     private void UpdatePosition(Vector4 position, Quaternion rotation, byte state)
     {
@@ -843,7 +857,12 @@ public class Npc : IScriptableNpc, IEntity
             visiblePlayer.Value.SendTunneled(playerUpdatePacketSetCollidable);
     }
 
-    public int AddEffectTag(int compositeEffectId)
+    public int AddEffectTag(int compositeEffectId) => AddEffectTag(compositeEffectId, Guid);
+
+    /// <summary>
+    /// Adds a lasting effect; a point-to-point one (a beam) is drawn between <paramref name="sourceGuid"/> and this NPC.
+    /// </summary>
+    public int AddEffectTag(int compositeEffectId, ulong sourceGuid)
     {
         var tagId = EffectTagIdGenerator.Next();
 
@@ -852,7 +871,7 @@ public class Npc : IScriptableNpc, IEntity
             Guid = Guid,
             TagId = tagId,
             CompositeEffectId = compositeEffectId,
-            SourceGuid = Guid
+            SourceGuid = sourceGuid
         };
 
         foreach (var visiblePlayer in VisiblePlayers)

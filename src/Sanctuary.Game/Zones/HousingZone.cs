@@ -23,7 +23,7 @@ using Sanctuary.Packet.Common;
 
 namespace Sanctuary.Game.Zones;
 
-public sealed class HousingZone : BaseZone
+public sealed partial class HousingZone : BaseZone
 {
     public const int MaxFixtureCount = 500;
     public const int MaxLandmarkCount = 10;
@@ -372,10 +372,13 @@ public sealed class HousingZone : BaseZone
         npc.SpawnPosition = position;
         npc.SpawnRotation = rotation;
 
+        _fixtureNpcs[fixtureGuid] = npc;
+
+        AttachFixtureBehavior(fixtureGuid, fixture, npc);
 
         npc.UpdatePosition(position, rotation);
 
-        _fixtureNpcs[fixtureGuid] = npc;
+        OnFixtureShown(fixtureGuid);
     }
 
     private void MoveFixtureNpc(ulong fixtureGuid, DbHouseFixture fixture)
@@ -398,6 +401,8 @@ public sealed class HousingZone : BaseZone
             npc.Tilt = tilt;
 
         npc.UpdatePosition(position, rotation);
+
+        OnFixtureMoved(fixtureGuid, fixture);
     }
 
     /// <summary>
@@ -421,6 +426,8 @@ public sealed class HousingZone : BaseZone
 
     private void DespawnFixtureNpc(ulong fixtureGuid)
     {
+        DetachFixtureBehavior(fixtureGuid);
+
         if (_fixtureNpcs.Remove(fixtureGuid, out var npc))
             npc.Dispose();
     }
@@ -462,6 +469,8 @@ public sealed class HousingZone : BaseZone
                 _editors.TryRemove(player.Guid, out _);
 
             player.SendTunneled(GetUpdateHouseInfo(player));
+
+            SyncDecoratingView();
 
             // The chat window's decorate bar (yaw, pitch, roll) shows while decorating.
             ChatHelper.SendGmPanelData(player, "decorate", IsEditing(player) ? "on" : "off");

@@ -1,0 +1,179 @@
+[
+    {
+        "Comment": "Small launch pads and trampolines: auto-jump area hsg_trampoline_small (JumpHeightScalar 10).",
+        "ItemDefinitionIds": [2929, 8851, 18166],
+        "AreaDefinitionId": 4224
+    },
+    {
+        "Comment": "Medium launch pads and trampolines: auto-jump area hsg_trampoline_med (JumpHeightScalar 20).",
+        "ItemDefinitionIds": [2930, 16887, 18164, 18165],
+        "AreaDefinitionId": 4225
+    },
+    {
+        "Comment": "Large launch pads and trampolines: auto-jump area hsg_trampoline_large (JumpHeightScalar 30).",
+        "ItemDefinitionIds": [2931, 16888, 18161, 18162, 18163],
+        "AreaDefinitionId": 4226
+    },
+    {
+        "Comment": "Beds: BedFloorArea4208 (BounceScalar 2), bouncy to jump on.",
+        "ItemDefinitionIds": [2760, 3018, 15590, 15591, 36105, 36106, 36107, 36447, 36448, 36449, 36450, 36451],
+        "AreaDefinitionId": 4208
+    },
+    {
+        "Comment": "Short Range Elevator Platform: 10 m up and back (env_loop_02 draws the 10 m route).",
+        "ItemDefinitionIds": [10341, 10396, 16845],
+        "Platform": {
+            "Path": [[0, 0, 0], [0, 10, 0]],
+            "Speed": 2.0,
+            "PauseSeconds": 2.0,
+            "PathAnimationId": 2902
+        }
+    },
+    {
+        "Comment": "Long Range Elevator Platform: 20 m up and back (env_loop_03 draws the 20 m route).",
+        "ItemDefinitionIds": [10342, 10397],
+        "Platform": {
+            "Path": [[0, 0, 0], [0, 20, 0]],
+            "Speed": 2.0,
+            "PauseSeconds": 2.0,
+            "PathAnimationId": 2903
+        }
+    },
+    {
+        "Comment": "Short Range Sideways Platform: 10 m forward and back.",
+        "ItemDefinitionIds": [10343],
+        "Platform": {
+            "Path": [[0, 0, 0], [0, 0, 10]],
+            "Speed": 2.0,
+            "PauseSeconds": 2.0,
+            "PathAnimationId": 2902
+        }
+    },
+    {
+        "Comment": "Long Range Sideways Platform: 20 m forward and back.",
+        "ItemDefinitionIds": [10344],
+        "Platform": {
+            "Path": [[0, 0, 0], [0, 0, 20]],
+            "Speed": 2.0,
+            "PauseSeconds": 2.0,
+            "PathAnimationId": 2903
+        }
+    },
+    {
+        "Comment": "High-rise Escalator Platform: 20 m forward, 20 m up, then down the slope home (env_loop_04 draws the triangle).",
+        "ItemDefinitionIds": [10345],
+        "Platform": {
+            "Path": [[0, 0, 0], [0, 0, 20], [0, 20, 20]],
+            "Speed": 2.0,
+            "PauseSeconds": 2.0,
+            "PathAnimationId": 2904
+        }
+    },
+    {
+        "Comment": "Two-Way Teleporter: blue, pads pair up and send each other back and forth.",
+        "ItemDefinitionIds": [10358],
+        "Teleporter": {
+            "Mode": "TwoWay",
+            "TeleportEffectId": 16578,
+            "LinkEffectId": 16577
+        }
+    },
+    {
+        "Comment": "One-Way Teleporter: red, the first pad of each pair sends to the second.",
+        "ItemDefinitionIds": [10362],
+        "Teleporter": {
+            "Mode": "OneWay",
+            "TeleportEffectId": 16579,
+            "LinkEffectId": 16581
+        }
+    },
+    {
+        "Comment": "Multi-Way Teleporter: purple, sends to a random other multi-way pad.",
+        "ItemDefinitionIds": [10363],
+        "Teleporter": {
+            "Mode": "MultiWay",
+            "TeleportEffectId": 16580,
+            "LinkEffectId": 16582
+        }
+    },
+    {
+        "Comment": "Piano C1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38901],
+        "AreaDefinitionId": 6059
+    },
+    {
+        "Comment": "Piano D1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38902],
+        "AreaDefinitionId": 6060
+    },
+    {
+        "Comment": "Piano E1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38903],
+        "AreaDefinitionId": 6061
+    },
+    {
+        "Comment": "Piano F1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38904],
+        "AreaDefinitionId": 6062
+    },
+    {
+        "Comment": "Piano G1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38905],
+        "AreaDefinitionId": 6063
+    },
+    {
+        "Comment": "Piano A1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38906],
+        "AreaDefinitionId": 6064
+    },
+    {
+        "Comment": "Piano B1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38907],
+        "AreaDefinitionId": 6065
+    },
+    {
+        "Comment": "Piano C2 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38908],
+        "AreaDefinitionId": 6066
+    },
+    {
+        "Comment": "Fart C1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38917],
+        "AreaDefinitionId": 6075
+    },
+    {
+        "Comment": "Fart D1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38918],
+        "AreaDefinitionId": 6076
+    },
+    {
+        "Comment": "Fart E1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38919],
+        "AreaDefinitionId": 6077
+    },
+    {
+        "Comment": "Fart F1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38920],
+        "AreaDefinitionId": 6078
+    },
+    {
+        "Comment": "Fart G1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38921],
+        "AreaDefinitionId": 6079
+    },
+    {
+        "Comment": "Fart A1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38922],
+        "AreaDefinitionId": 6080
+    },
+    {
+        "Comment": "Fart B1 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38923],
+        "AreaDefinitionId": 6081
+    },
+    {
+        "Comment": "Fart C2 C-Scale Music Block: plays its note when stepped on.",
+        "ItemDefinitionIds": [38924],
+        "AreaDefinitionId": 6082
+    }
+]
