@@ -34,6 +34,11 @@ public class EmoteChatCommand : IChatCommand
         ["runningman"] = (3596, true),  // emo_frmcp_running_man
         ["moonwalk"] = (3597, true),    // emo_frmcp_moonwalk
         ["disco"] = (3598, false),      // emo_frmcp_disco_point
+        ["sprinkler"] = (3599, true),   // emo_frmcp_sprinkler
+        ["carlton"] = (3600, true),     // emo_frmcp_carlton
+        ["macarena"] = (3601, true),    // emo_frmcp_macarena
+        ["shuffle"] = (3602, true),     // emo_frmcp_shuffle
+        ["headbang"] = (3603, true),    // emo_frmcp_headbang
         ["dance"] = (3501, true),       // emo_dance_freestyle_01
         ["wave"] = (3333, false),       // emo_wave
         ["cheer"] = (3306, false),      // emo_cheer
