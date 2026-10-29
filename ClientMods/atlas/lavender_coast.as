@@ -1,20 +1,19 @@
 // ===== Sanctuary: Lavender Coast's atlas page =====
 // Appended to atlas's main timeline by build_client_mods.py.
-// Lavender Coast is its own world zone (lavendercoast) south of Merry Vale, below the bottom edge of the Sacred Grove
-// painting. Its page is a picture of the zone (atlas/lavendercoast.png, embedded as sanctuaryLavenderCoastPage), placed
-// where the stock pages place theirs, and markers use mapOffsets.lavendercoast, so the warpstone, friends and the
-// "You are here" flag land on it.
-//  - The Sacred Grove page's "Lavender Coast" label, hidden in the stock movie, opens the page.
-//  - Opening the atlas anywhere on the coast opens the page straight away.
-//  - On the page, a Sacred Grove button beside the close button goes back without asking Lua (the atlas Lua opened
-//    is still Sacred Grove). It is the stock page's "Sacred Grove" label (its text, lettering and arrow) copied onto a
-//    plate like the close button's, with the arrow pointing north, where Sacred Grove is.
+// Lavender Coast is the south-west end of FabledRealms, below the bottom edge of the Sacred Grove painting, and its
+// tiles' environment names this atlas page (lavendercoast), as Sunstone Valley's name theirs. Its page is a picture of
+// the coast (atlas/lavendercoast.png, embedded as sanctuaryLavenderCoastPage), placed where the stock pages place
+// theirs, and markers use mapOffsets.lavendercoast, so the warpstone, friends and the "You are here" flag land on it.
+//  - The atlas Lua opens a page with setMap_lua(name) and then places the points of interest whose AtlasName is that
+//    page's, so opening the atlas on the coast shows the page and its warpstone.
+//  - The Sacred Grove page's "Lavender Coast" label, hidden in the stock movie, and the page's Sacred Grove button
+//    switch pages the way the stock Sunstone Valley and Sacred Grove buttons do: they ask Lua to open the other page
+//    (resetInternalMap), so each page gets its own points of interest.
+//  - The Sacred Grove button sits beside the close button. It is the stock page's "Sacred Grove" label (its text,
+//    lettering and arrow) copied onto a plate like the close button's, with the arrow pointing north, where Sacred
+//    Grove is.
 
 mapOffsets.lavendercoast = {zoomScaleX:0.413,zoomScaleY:0.413,mapOffsetX:552.4,mapOffsetY:-862};
-
-// Ground south of this (world x) is Lavender Coast: FabledRealms has nothing to walk on past its Pass at -2125.
-var LAVENDER_COAST_SOUTH = -2450;
-var lavenderCoastAuto = false;
 
 // The Sacred Grove button: below the map indicators (200 and up), like the close button, whose box starts at x 927
 // and is centred on y 50.
@@ -24,6 +23,7 @@ var SACRED_GROVE_BUTTON_MIDDLE = 50;
 
 function showLavenderCoast()
 {
+   atlasName = "lavendercoast";
    var page = base.attachMovie("sanctuaryLavenderCoastPage","lavendercoast",1);
    page._x = -144;
    page._y = -36;
@@ -43,17 +43,6 @@ function showLavenderCoast()
    sacredgrove_txt._visible = false;
    showSacredGroveButton();
    controls._visible = true;
-}
-
-function showSacredGrove()
-{
-   lavenderCoastAuto = false;
-   hideSacredGroveButton();
-   base.attachMovie("sacredgrove","sacredgrove",1);
-   base.currentMovieClip = "sacredgrove";
-   areaBeingViewed = "sacredgrove";
-   setControlLocation();
-   updateAllMapIndicators();
 }
 
 function drawSacredGrovePlate(plate, left, top, right, bottom, over)
@@ -118,7 +107,8 @@ function showSacredGroveButton()
       drawSacredGrovePlate(plate,button.plateLeft,button.plateTop,button.plateRight,button.plateBottom,false);
       plate.onRelease = function()
       {
-         _root.showSacredGrove();
+         _root.hideSacredGroveButton();
+         _root.showNextMap("sacredgrove");
       };
       plate.onRollOver = function()
       {
@@ -144,7 +134,7 @@ function hideSacredGroveButton()
 function openLavenderCoast()
 {
    this._xscale = this._yscale = 100;
-   _root.showLavenderCoast();
+   _root.showNextMap("lavendercoast");
 }
 function growLavenderCoastLabel()
 {
@@ -189,33 +179,19 @@ function watchLavenderCoastLabel()
    };
 }
 
-// Opens the page once per atlas opening if the player is on the coast, whichever of the map and the player's
-// position Lua sends first.
-function autoShowLavenderCoast()
-{
-   var player = indicators["URHere"];
-   if(lavenderCoastAuto && areaBeingViewed == "sacredgrove" && player != undefined && player.gameX < LAVENDER_COAST_SOUTH)
-   {
-      lavenderCoastAuto = false;
-      showLavenderCoast();
-   }
-}
-
+// The coast's page has no movie of the stock kind to attach, so it is shown here; any other page is the stock one's.
 var stockSetMap = setMap_lua;
 setMap_lua = function(str)
 {
-   stockSetMap.call(_root,str);
-   lavenderCoastAuto = atlasName == "sacredgrove";
+   if(str == "lavendercoast")
+   {
+      showLavenderCoast();
+   }
+   else
+   {
+      stockSetMap.call(_root,str);
+   }
    watchLavenderCoastLabel();
-   autoShowLavenderCoast();
-};
-
-var stockSetPlayerPosition = SetPlayerPosition;
-SetPlayerPosition = function(gameX, gameZ)
-{
-   stockSetPlayerPosition.call(_root,gameX,gameZ);
-   watchLavenderCoastLabel();
-   autoShowLavenderCoast();
 };
 
 watchLavenderCoastLabel();

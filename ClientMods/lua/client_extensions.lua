@@ -7,7 +7,8 @@
 -- Region badges: walking into a region shows "Now entering" with the region's badge (notifications.swf's
 -- playZoneAnimation). The stock scripts only know the stock regions, area ids 2 to 10
 -- (BaseClient_CurrentPOI_OnDataUpdate and NotificationHandler:LoadingZone); these add Sanctuary's own, with the
--- badges build_client_mods.py makes (REGION_BADGES).
+-- badges build_client_mods.py makes (REGION_BADGES). A region of several areas (Lavender Coast and the places in it)
+-- shows its badge once, when walking in from outside it.
 --
 -- Game Options: tells the window's More Options page (options/game_options.as) the current values of the two
 -- settings it adds.
@@ -19,6 +20,11 @@ SanctuaryClient = SanctuaryClient or {}
 -- Area id (a zone's AreaDefinitions Id, sent in PacketPOIChangeMessage) -> badge movie.
 SanctuaryClient.RegionBadges = {
    [13] = "sanctuaryLavenderCoastNotification", -- Lavender Coast
+   [14] = "sanctuaryLavenderCoastNotification", -- Lavender Landing
+   [15] = "sanctuaryLavenderCoastNotification", -- Lilac Terraces
+   [16] = "sanctuaryLavenderCoastNotification", -- Basalt Shore
+   [17] = "sanctuaryLavenderCoastNotification", -- Emberwood
+   [18] = "sanctuaryLavenderCoastNotification", -- Cinder Crown
 }
 
 -- The stock handlers, kept from the first load so reloading doesn't wrap them twice.
@@ -33,8 +39,13 @@ end
 -- above 10.
 function BaseClient_CurrentPOI_OnDataUpdate(...)
    local areaId = DsTable.Find(DataSources[DS_CURRENT_POI]):GetData(0, 1)
-   if regionBadge(areaId) ~= nil then
-      NotificationHandler:LoadingZone(tonumber(areaId))
+   local badge = regionBadge(areaId)
+   local entered = badge ~= nil and badge ~= SanctuaryClient.CurrentRegionBadge
+   SanctuaryClient.CurrentRegionBadge = badge
+   if badge ~= nil then
+      if entered then
+         NotificationHandler:LoadingZone(tonumber(areaId))
+      end
       return
    end
    return SanctuaryClient.StockCurrentPoiUpdate(...)

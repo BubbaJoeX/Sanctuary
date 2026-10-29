@@ -375,8 +375,8 @@
     "Id": 31,
     "NameId": 18206,
     "LocationId": 2569,
-    "Position": [-2267.635,-16.33359,585.4462],
-    "SpawnPosition": [-2267.635,-16.33359,585.4462],
+    "Position": [-2256.609,-16.334,613.527],
+    "SpawnPosition": [-2260.917,-16.334,614.853],
     "Heading": -1.3558,
     "IconId": 14,
     "NotificationType": 6,
@@ -2054,14 +2054,14 @@
     "NameId": 74161,
     "LocationId": 230200,
     "Position": [
-      -3222.0,
-      15.736,
-      712.0
+      -3033.0,
+      3.4,
+      -180.0
     ],
     "SpawnPosition": [
-      -3210.0,
-      15.536,
-      712.0
+      -3033.0,
+      3.6,
+      -180.0
     ],
     "Heading": -1.5708,
     "IconId": 1345,
@@ -2070,7 +2070,6 @@
     "Unknown": 651,
     "TeleportLocationId": 230200,
     "Unknown2": 30,
-    "AtlasName": "sacredgrove",
-    "ZoneId": 1036
+    "AtlasName": "lavendercoast"
   }
 ]

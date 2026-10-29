@@ -4,7 +4,7 @@
   "Name": "FabledRealms",
   "Type": "World",
   "TileSize": 64,
-  "StartLatitude": -48,
+  "StartLatitude": -64,
   "StartLongitude": -32,
   "EndLatitude": 80,
   "EndLongitude": 96,
@@ -21,7 +21,8 @@
     "FabledRealms",
     "BruceConcert",
     "HalloweenDanceOff",
-    "MysteryMerchant"
+    "MysteryMerchant",
+    "lavendercoast"
   ],
   "EnabledClientAreaIds": [
     4173
@@ -185,36 +186,185 @@
         3
       ],
       "EnvironmentMaxX": -1024
+    },
+    {
+      "Comment": "Lavender Coast",
+      "Id": 13,
+      "NameId": 74161,
+      "AreaId": 0,
+      "ChatAreaNameId": 74161,
+      "PointOfInterestId": 200,
+      "EnvironmentIds": [
+        88
+      ]
+    },
+    {
+      "Comment": "Cinder Crown",
+      "Id": 18,
+      "NameId": 9500000,
+      "AreaId": 0,
+      "ChatAreaNameId": 74161,
+      "PointOfInterestId": 0,
+      "Shape": "Circle",
+      "X1": -2950.0,
+      "Z1": 1250.0,
+      "Radius": 300.0
+    },
+    {
+      "Comment": "Lavender Landing",
+      "Id": 14,
+      "NameId": 9500001,
+      "AreaId": 0,
+      "ChatAreaNameId": 74161,
+      "PointOfInterestId": 200,
+      "Shape": "Circle",
+      "X1": -3060.0,
+      "Z1": -200.0,
+      "Radius": 165.0
+    },
+    {
+      "Comment": "Emberwood",
+      "Id": 17,
+      "NameId": 9500002,
+      "AreaId": 0,
+      "ChatAreaNameId": 74161,
+      "PointOfInterestId": 0,
+      "Shape": "Polygon",
+      "Points": [
+        [
+          -2560,
+          640
+        ],
+        [
+          -2560,
+          1860
+        ],
+        [
+          -3620,
+          1860
+        ],
+        [
+          -3620,
+          1250
+        ],
+        [
+          -3420,
+          880
+        ],
+        [
+          -3320,
+          640
+        ]
+      ]
+    },
+    {
+      "Comment": "Lilac Terraces",
+      "Id": 15,
+      "NameId": 9500003,
+      "AreaId": 0,
+      "ChatAreaNameId": 74161,
+      "PointOfInterestId": 0,
+      "Shape": "Polygon",
+      "Points": [
+        [
+          -2560,
+          -40
+        ],
+        [
+          -2560,
+          640
+        ],
+        [
+          -3320,
+          640
+        ],
+        [
+          -3620,
+          640
+        ],
+        [
+          -3640,
+          250
+        ],
+        [
+          -3570,
+          -90
+        ],
+        [
+          -3260,
+          -130
+        ],
+        [
+          -2900,
+          -60
+        ]
+      ]
+    },
+    {
+      "Comment": "Basalt Shore",
+      "Id": 16,
+      "NameId": 9500004,
+      "AreaId": 0,
+      "ChatAreaNameId": 74161,
+      "PointOfInterestId": 0,
+      "Shape": "Polygon",
+      "Points": [
+        [
+          -2560,
+          -1240
+        ],
+        [
+          -4040,
+          -1240
+        ],
+        [
+          -4040,
+          1860
+        ],
+        [
+          -3620,
+          1860
+        ],
+        [
+          -3620,
+          1250
+        ],
+        [
+          -3420,
+          880
+        ],
+        [
+          -3320,
+          640
+        ],
+        [
+          -3620,
+          640
+        ],
+        [
+          -3640,
+          250
+        ],
+        [
+          -3570,
+          -90
+        ],
+        [
+          -3260,
+          -130
+        ],
+        [
+          -2900,
+          -60
+        ],
+        [
+          -2560,
+          -40
+        ]
+      ]
     }
   ],
   "Portals": [
-    {
-      "Comment": "Lavender Coast Pass: on to Lavender Coast",
-      "Shape": "Circle",
-      "X1": -2165,
-      "Z1": -298,
-      "Radius": 10,
-      "ToZoneId": 1036,
-      "ToPosition": [
-        -2240.0,
-        -15.63,
-        -302.0
-      ],
-      "ToHeading": -1.5708
-    },
-    {
-      "Comment": "Wildwood valley: on to Lavender Coast",
-      "Shape": "Circle",
-      "X1": -2258,
-      "Z1": 590,
-      "Radius": 10,
-      "ToZoneId": 1036,
-      "ToPosition": [
-        -2300.0,
-        -15.23,
-        590.0
-      ],
-      "ToHeading": -1.5708
-    }
+
   ]
 }
