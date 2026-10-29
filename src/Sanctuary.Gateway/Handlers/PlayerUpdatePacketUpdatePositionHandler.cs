@@ -51,8 +51,9 @@ public static class PlayerUpdatePacketUpdatePositionHandler
     }
 
     /// <summary>
-    /// Walking into a zone portal (e.g. through Lavender Coast Pass) moves the player on to its zone. Arrivals
-    /// sit outside the other side's portals, and a short cooldown covers the loading screen.
+    /// Walking into a zone portal (e.g. through Lavender Coast Pass) moves the player on to its zone, or to its
+    /// spot in this one. Arrivals sit outside the other side's portals, and a short cooldown covers the loading
+    /// screen.
     /// </summary>
     private static bool TryUsePortal(Player player)
     {
@@ -66,7 +67,26 @@ public static class PlayerUpdatePacketUpdatePositionHandler
 
         player.PortalReadyAt = Environment.TickCount64 + PortalCooldownMilliseconds;
 
-        if (!player.TeleportToZone(portal.ToZoneId, null, portal.Destination(player.Position.W), portal.DestinationRotation()))
+        var destination = portal.Destination(player.Position.W);
+        var rotation = portal.DestinationRotation();
+
+        // TeleportToZone does nothing for the zone the player is in, so a portal within it moves them as a
+        // referee's teleport does.
+        if (portal.ToZoneId == zone.DefinitionId)
+        {
+            player.UpdatePosition(destination, rotation);
+
+            player.SendTunneled(new ClientUpdatePacketUpdateLocation
+            {
+                Position = destination,
+                Rotation = rotation,
+                Teleport = true
+            });
+
+            return true;
+        }
+
+        if (!player.TeleportToZone(portal.ToZoneId, null, destination, rotation))
         {
             _logger.LogWarning("Portal {portal} in {zone} could not move {player} to zone {to}.", portal.Comment, zone.Name,
                 player.Name.FullName, portal.ToZoneId);
