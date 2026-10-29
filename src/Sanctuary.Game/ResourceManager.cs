@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 using Microsoft.Extensions.Logging;
 
@@ -521,6 +522,29 @@ public class ResourceManager : IResourceManager, IDisposable
         return true;
     }
 
+    /// <summary>
+    /// Waits, up to a second, until a changed file can be read: the watcher hears of a change while it's being written
+    /// (a copy into the bin folder, say), and reading it then fails with "being used by another process".
+    /// </summary>
+    private static bool WaitUntilWritten(string path)
+    {
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            try
+            {
+                // Refused while anyone still has it open for writing.
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                return true;
+            }
+            catch (IOException)
+            {
+                Thread.Sleep(50);
+            }
+        }
+
+        return false;
+    }
+
     private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         if (e.FullPath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase) || !File.Exists(e.FullPath))
@@ -543,6 +567,12 @@ public class ResourceManager : IResourceManager, IDisposable
                 return;
 
             _fileSystemWatcher.EnableRaisingEvents = false;
+
+            if (!WaitUntilWritten(e.FullPath))
+            {
+                _logger.LogWarning("A changed file was still being written a second later, so it wasn't reloaded. File: {filepath}", e.FullPath);
+                return;
+            }
 
             var loaded = false;
 
