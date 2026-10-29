@@ -1,5 +1,12 @@
 [
   {
+    "Title": "The Shop has it all",
+    "Text": "Job gear for every rank, jewelry, tools, food, potions, crafting and farming supplies, pets, karts, houses and more are in the Shop now, and every price is on one list: the higher the rank, the more it costs.",
+    "Action": "Marketplace",
+    "Icon": "coin",
+    "Button": "Shop"
+  },
+  {
     "Title": "Lavender Coast joins the map",
     "Text": "Walk south from Sacred Grove through Lavender Coast Pass, or down the Wildwood valley, to a coast of lava rock round a smoking volcano: Lavender Landing's warpstone, the Lilac Terraces, the black sand of Basalt Shore, the lava rivers of Emberwood and, up in the crater, Cinder Crown.",
     "Icon": "tree"

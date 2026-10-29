@@ -593,12 +593,36 @@
     }
   },
   {
+    "Comment": "Windstorm Surfboard",
+    "Id": 12211,
+    "NameId": 7256,
+    "ImageSetId": 6792,
+    "TintAlias": "dyetint",
+    "TextureAlias": "stormclouddecal",
+    "ModelId": 3033,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
+  },
+  {
     "Comment": "Basalt Surfboard",
     "Id": 12218,
     "NameId": 7257,
     "ImageSetId": 6791,
     "TintAlias": "dyetint",
     "TextureAlias": "lavadecal",
+    "ModelId": 3033,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
+  },
+  {
+    "Comment": "Chilly Surfboard",
+    "Id": 12225,
+    "NameId": 7258,
+    "ImageSetId": 6658,
+    "TintAlias": "dyetint",
+    "TextureAlias": "icedecal",
     "ModelId": 3033,
     "Stats": {
       "MaxMovementSpeed": 12.5
