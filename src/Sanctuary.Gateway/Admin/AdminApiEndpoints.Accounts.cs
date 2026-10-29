@@ -253,7 +253,7 @@ public static partial class AdminApiEndpoints
             return false;
         }
 
-        if (ChatHelper.GetRoleFromFlags(user.IsAdmin, user.IsMod) >= referee.Role)
+        if (AccountRole(user.IsAdmin, user.IsMod) >= referee.Role)
         {
             problem = Results.Problem($"You can't {verb} {user.Username}: their role is as high as yours.", statusCode: StatusCodes.Status403Forbidden);
             return false;
@@ -306,7 +306,7 @@ public static partial class AdminApiEndpoints
             .Select(user => new AccountModel(
                 Id(user.Id),
                 user.Username,
-                ChatHelper.GetRoleFromFlags(user.IsAdmin, user.IsMod).ToString(),
+                AccountRole(user.IsAdmin, user.IsMod).ToString(),
                 user.Created,
                 user.LastLogin,
                 user.LockedUntil > now ? user.LockedUntil : null,
@@ -325,6 +325,13 @@ public static partial class AdminApiEndpoints
                     .ToArray()))
             .ToList();
     }
+
+    /// <summary>
+    /// The role an account has. Not <see cref="ChatHelper.GetRoleFromFlags"/>, which makes everyone an admin in
+    /// debug builds.
+    /// </summary>
+    private static ChatCommandRole AccountRole(bool isAdmin, bool isMod) =>
+        isAdmin ? ChatCommandRole.Admin : isMod ? ChatCommandRole.Mod : ChatCommandRole.Player;
 
     private static Dictionary<ulong, Player> OnlineByCharacter(IZoneManager zoneManager)
     {
@@ -526,7 +533,7 @@ public static partial class AdminApiEndpoints
             new AccountRefModel(
                 Id(character.User.Id),
                 character.User.Username,
-                ChatHelper.GetRoleFromFlags(character.User.IsAdmin, character.User.IsMod).ToString(),
+                AccountRole(character.User.IsAdmin, character.User.IsMod).ToString(),
                 character.User.LockedUntil > now ? character.User.LockedUntil : null,
                 character.User.MutedUntil > now ? character.User.MutedUntil : null),
             player?.Coins ?? character.Coins,
