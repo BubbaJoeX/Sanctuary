@@ -51,11 +51,97 @@ public sealed record PlayerModel(
     string Role,
     bool GodMode,
     bool Frozen,
-    bool Muted);
+    bool Muted,
+    string CharacterId);
 
 public sealed record TeleportRequest(string? Zone, float? X, float? Y, float? Z, string? ToPlayer);
 
 public sealed record MessageRequest(string Message);
+
+/// <summary>
+/// A game account and its characters. Bans and mutes are given only while they last; a ban for good lasts until
+/// <see cref="DateTimeOffset.MaxValue"/>.
+/// </summary>
+public sealed record AccountModel(
+    string Id,
+    string Username,
+    string Role,
+    DateTimeOffset Created,
+    DateTimeOffset? LastLogin,
+    DateTimeOffset? BannedUntil,
+    DateTimeOffset? MutedUntil,
+    int MaxCharacters,
+    IReadOnlyList<CharacterSummaryModel> Characters);
+
+public sealed record CharacterSummaryModel(
+    string Id,
+    string Name,
+    int Coins,
+    int PlayTime,
+    DateTimeOffset Created,
+    DateTimeOffset? LastLogin,
+    OnlineModel? Online);
+
+/// <summary>
+/// Where a character is in the world: <see cref="PlayerId"/> is the guid the player routes take.
+/// </summary>
+public sealed record OnlineModel(string PlayerId, string Zone, string ZoneName, float X, float Y, float Z);
+
+/// <summary>
+/// No <see cref="Minutes"/> bans for good. The reason goes to the audit log.
+/// </summary>
+public sealed record BanRequest(int? Minutes, string? Reason);
+
+public sealed record MuteRequest(int Minutes, string? Reason);
+
+public sealed record RoleRequest(string Role);
+
+public sealed record CharacterModel(
+    string Id,
+    string Name,
+    AccountRefModel Account,
+    int Coins,
+    int PlayTime,
+    DateTimeOffset Created,
+    DateTimeOffset? LastLogin,
+    OnlineModel? Online,
+    IReadOnlyList<InventoryItemModel> Items,
+    IReadOnlyList<OwnedMountModel> Mounts);
+
+public sealed record AccountRefModel(string Id, string Username, string Role, DateTimeOffset? BannedUntil, DateTimeOffset? MutedUntil);
+
+/// <summary>
+/// An item a character holds: <see cref="Id"/> is theirs, <see cref="Definition"/> the kind of item.
+/// </summary>
+public sealed record InventoryItemModel(int Id, int Definition, string Name, int Count, int Tint, bool Equipped);
+
+public sealed record OwnedMountModel(int Id, int Definition, string Name, bool Upgraded);
+
+public sealed record ItemGrantRequest(int Item, int Quantity = 1, int Tint = 0);
+
+public sealed record ItemTakeRequest(int Item, int Quantity = 1);
+
+/// <summary>
+/// Coins to give (positive) or take (negative).
+/// </summary>
+public sealed record CoinsRequest(int Amount);
+
+public sealed record ItemSearchModel(int Id, string Name, int Slot, int Rarity, int MaxStackSize);
+
+/// <summary>
+/// A gateway log there's something to read in: its days, newest first.
+/// </summary>
+public sealed record LogKindModel(string Key, string Name, IReadOnlyList<string> Dates);
+
+/// <summary>
+/// One log entry: its time as written, level, logger and message (an exception's stack trace included).
+/// </summary>
+public sealed record LogEntryModel(string Time, string Level, string Logger, string Message);
+
+/// <summary>
+/// A day's log entries matching a search, newest first; <see cref="More"/> when older ones matched too.
+/// </summary>
+public sealed record LogPageModel(string Date, IReadOnlyList<LogEntryModel> Entries, bool More);
 
 public sealed record ZoneModel(
     string Key,
