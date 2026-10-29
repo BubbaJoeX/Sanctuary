@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Core.Helpers;
 using Sanctuary.Game;
 using Sanctuary.Game.ChatCommands;
 using Sanctuary.Game.Entities;
@@ -99,6 +100,8 @@ public static partial class AdminApiEndpoints
         MapZoneEndpoints(referee);
         MapScriptEndpoints(referee);
         MapNpcEndpoints(referee);
+        MapAccountEndpoints(referee);
+        MapLogEndpoints(referee);
     }
 
     #region Referees
@@ -362,7 +365,8 @@ public static partial class AdminApiEndpoints
             player.ChatCommandRole.ToString(),
             player.GodMode,
             player.FrozenMovementSpeed is not null,
-            player.MutedUntil > DateTimeOffset.UtcNow))
+            player.MutedUntil > DateTimeOffset.UtcNow,
+            Id(GuidHelper.GetPlayerId(player.Guid))))
         .ToArray();
 
     /// <summary>
