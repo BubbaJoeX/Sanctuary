@@ -13,7 +13,9 @@
 //    lettering and arrow) copied onto a plate like the close button's, with the arrow pointing north, where Sacred
 //    Grove is.
 
-mapOffsets.lavendercoast = {zoomScaleX:0.413,zoomScaleY:0.413,mapOffsetX:552.4,mapOffsetY:-862};
+// Markers are placed on _root, and the page sits in base, which the movie puts at (-170, 0.1): these offsets are in
+// _root's space, so they match the picture where it is drawn (the Maya MCP's atlas_map.py PAGE).
+mapOffsets.lavendercoast = {zoomScaleX:0.413,zoomScaleY:0.413,mapOffsetX:382.4,mapOffsetY:-861.9};
 
 // The Sacred Grove button: below the map indicators (200 and up), like the close button, whose box starts at x 927
 // and is centred on y 50.
