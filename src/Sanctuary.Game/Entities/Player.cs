@@ -215,6 +215,11 @@ public sealed class Player : ClientPcData, IEntity
     public bool BoomboxDanceIsStanding { get; set; }
     public int BoomboxDanceTransform { get; set; }
 
+    // A looping !emote (the player's base animation while it lasts) and where it started; walking away ends it.
+    public int LoopingEmoteAnimation { get; set; }
+    public Vector4 LoopingEmoteFrom { get; set; }
+    private const float LoopingEmoteWalkAwaySquared = 0.5f * 0.5f;
+
     public const float DefaultScale = 1f;
 
     public float Scale { get; private set; } = DefaultScale;
@@ -698,8 +703,29 @@ public sealed class Player : ClientPcData, IEntity
 
         Mount?.UpdatePosition(position, rotation);
 
+        if (LoopingEmoteAnimation != 0)
+        {
+            var (dx, dz) = (position.X - LoopingEmoteFrom.X, position.Z - LoopingEmoteFrom.Z);
+            if (dx * dx + dz * dz > LoopingEmoteWalkAwaySquared)
+                StopLoopingEmote();
+        }
+
         if (Visible)
             UpdateZoneTile();
+    }
+
+    public void StopLoopingEmote()
+    {
+        if (LoopingEmoteAnimation == 0)
+            return;
+
+        LoopingEmoteAnimation = 0;
+        SendTunneledToVisible(new PlayerUpdatePacketSetAnimation
+        {
+            Guid = Guid,
+            AnimationId = 1, // the stand
+            Flags = 1
+        }, true);
     }
 
     public bool IsChatChannelOn(ChatChannel chatChannel)
@@ -1029,6 +1055,14 @@ public sealed class Player : ClientPcData, IEntity
                 {
                     Guid = player.Guid,
                     AnimationId = player.BoomboxDanceAnimation,
+                    Flags = 1
+                });
+
+            if (player.Mount is null && player.LoopingEmoteAnimation != 0)
+                SendTunneled(new PlayerUpdatePacketSetAnimation
+                {
+                    Guid = player.Guid,
+                    AnimationId = player.LoopingEmoteAnimation,
                     Flags = 1
                 });
         }

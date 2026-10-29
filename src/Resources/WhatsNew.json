@@ -1,5 +1,10 @@
 [
   {
+    "Title": "Show off your moves",
+    "Text": "Type !emote and a dance to bust a move everyone nearby can see: twerk, griddy, dab, floss, robot, runningman, moonwalk or disco. Looping dances keep going until you walk away or type !emote stop.",
+    "Icon": "friends"
+  },
+  {
     "Title": "The Shop has it all",
     "Text": "Job gear for every rank, jewelry, tools, food, potions, crafting and farming supplies, pets, karts, houses and more are in the Shop now, and every price is on one list: the higher the rank, the more it costs.",
     "Action": "Marketplace",
