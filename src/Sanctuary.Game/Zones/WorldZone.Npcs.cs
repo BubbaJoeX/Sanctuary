@@ -48,6 +48,15 @@ public sealed partial class WorldZone
             return _worldNpcs.TryGetValue(npcGuid, out var worldNpc) ? worldNpc.EventKey : null;
     }
 
+    /// <summary>
+    /// The spawned world NPCs: each one's NPC guid and saved row, for listing them.
+    /// </summary>
+    public IReadOnlyList<(ulong Guid, DbWorldNpc WorldNpc)> GetWorldNpcs()
+    {
+        lock (_worldNpcLock)
+            return [.. _worldNpcs.Select(x => (x.Key, x.Value))];
+    }
+
     private void LoadWorldNpcs()
     {
         using var dbContext = _dbContextFactory.CreateDbContext();

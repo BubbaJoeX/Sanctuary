@@ -263,6 +263,12 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   and the running Gateway's copy, has the Gateway reload it, and respawns this zone's placed NPCs built on it so
   they take it up (each keeps what was set on it, such as its name and scale). The zone's own NPCs, spawned by its
   Lua, take it up when the Gateway restarts.
+- **The admin panel's GameData editor.** The panel's own NPC and reward table editors save through the editor
+  too: `GET /api/npcs`, `/api/npcs/entry`, `POST /api/npcs/save|new|delete` for `Npcs.json`, and `GET /api/rewards`,
+  `POST /api/rewards/save|delete` for `src/Resources/Rewards.json`. Each reward table lists what rolls it (mobs,
+  consumables and item abilities by their `RewardTable` fields, minigames, and the server's code and scripts by
+  the key as a string), and one in use can't be renamed or deleted. Saves keep the files' layout and go to the
+  running servers' copies; the panel then has the Gateway reload them.
 - **Baking.** *Bake into the zone* turns a placed object into one of the chunk's own props, where it stands,
   and takes it out of the game: build in the live world, then make it part of the zone (Save, Test in game).
 - **Players.** Selecting one shows what they wear, and sends them to the ground in the middle of the view,

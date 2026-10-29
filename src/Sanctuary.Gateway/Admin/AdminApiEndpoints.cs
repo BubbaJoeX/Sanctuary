@@ -102,6 +102,7 @@ public static partial class AdminApiEndpoints
         MapNpcEndpoints(referee);
         MapAccountEndpoints(referee);
         MapLogEndpoints(referee);
+        MapGameDataEndpoints(referee);
     }
 
     #region Referees
