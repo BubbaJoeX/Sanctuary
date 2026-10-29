@@ -67,10 +67,10 @@ public static partial class AdminApiEndpoints
                 || user.Characters.Any(character => character.FullName != null && EF.Functions.Like(character.FullName, pattern, "\\")));
         }
 
-        // SQLite can't order by a DateTimeOffset, so the newest accounts are taken by id and sorted here.
+        // SQLite orders by neither a DateTimeOffset nor a ulong, so the matches are sorted here.
         var online = OnlineByCharacter(zoneManager);
 
-        return LoadAccounts(users.OrderByDescending(user => user.Id).Take(MaxAccounts * 5), online)
+        return LoadAccounts(users, online)
             .OrderByDescending(account => account.Characters.Any(character => character.Online is not null))
             .ThenByDescending(account => account.LastLogin ?? account.Created)
             .Take(MaxAccounts)
