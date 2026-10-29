@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
@@ -71,6 +72,31 @@ public sealed class ResourceManagerTests
             watcher.EnableRaisingEvents = false;
             watcher.Dispose();
             Directory.Delete(zoneDirectory, true);
+        }
+    }
+
+    [TestMethod]
+    public void TryReload_RaisesReloadedOnlyForResourcesItReloads()
+    {
+        Directory.CreateDirectory(ResourceManager.BaseDirectory);
+        var createdFile = !File.Exists(ResourceManager.CoinStoreItemsFile);
+        if (createdFile)
+            File.WriteAllText(ResourceManager.CoinStoreItemsFile, "[{\"Id\":1,\"CategoryId\":101}]");
+        var resourceManager = new ResourceManager(NullLogger<ResourceManager>.Instance);
+        var reloaded = new List<string>();
+        resourceManager.Reloaded += reloaded.Add;
+
+        try
+        {
+            Assert.IsTrue(resourceManager.TryReload("coinstore"));
+            Assert.IsFalse(resourceManager.TryReload("not-a-resource"));
+            CollectionAssert.AreEqual(new[] { "coinstore" }, reloaded);
+        }
+        finally
+        {
+            GetWatcher(resourceManager).Dispose();
+            if (createdFile)
+                File.Delete(ResourceManager.CoinStoreItemsFile);
         }
     }
 

@@ -231,6 +231,8 @@ public class ResourceManager : IResourceManager, IDisposable
 
     public IEnumerable<string> ReloadableResources => _reloaders.Keys;
 
+    public event Action<string>? Reloaded;
+
     public bool TryReload(string name)
     {
         if (!_reloaders.TryGetValue(name, out var reload))
@@ -238,9 +240,11 @@ public class ResourceManager : IResourceManager, IDisposable
 
         _fileSystemWatcher.EnableRaisingEvents = false;
 
+        bool reloaded;
+
         try
         {
-            return reload();
+            reloaded = reload();
         }
         catch (Exception ex)
         {
@@ -251,6 +255,11 @@ public class ResourceManager : IResourceManager, IDisposable
         {
             _fileSystemWatcher.EnableRaisingEvents = true;
         }
+
+        if (reloaded)
+            Reloaded?.Invoke(name);
+
+        return reloaded;
     }
 
     private static bool Reload<TKey, TValue>(ObservableConcurrentDictionary<TKey, TValue> collection, Func<bool> load) where TKey : notnull

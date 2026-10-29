@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using Sanctuary.Game.Resources;
@@ -74,4 +75,10 @@ public interface IResourceManager
     /// On failure the previous entries are restored.
     /// </summary>
     bool TryReload(string name);
+
+    /// <summary>
+    /// Raised with a resource's name after <see cref="TryReload"/> reloads it, so what was added to it at runtime
+    /// (custom items, for example) can be put back.
+    /// </summary>
+    event Action<string>? Reloaded;
 }

@@ -267,8 +267,10 @@ Adds every item players can own that the Shop doesn't sell yet to `CoinStoreItem
 colours on the card (the client's tint groups), and prices every store item in `ClientItemDefinitions.json` from
 `CATEGORY_PRICES`: a price per store category, half as much again per rank for gear, no member discount. It only
 adds cards, so the store's own stay as they are. Change prices, categories or what's left out (collection pieces,
-junk, titles, coin bundles, loot bags, developer names) in the script rather than the JSON, then rerun it. A running
-Gateway picks the files up with `!reload items coinstore mounts`.
+junk, titles, coin bundles, loot bags, developer names) in the script rather than the JSON, then rerun it. Custom
+items (9000000 and up) are in the database, so their cards, such as the Retro Hover-Car's (9000006), are added to
+`CoinStoreItems.json` by hand; the script keeps them. A running Gateway picks the files up with
+`!reload items coinstore mounts`, and custom items are registered again after `items` reloads.
 
 ## Server terrain and navmeshes
 

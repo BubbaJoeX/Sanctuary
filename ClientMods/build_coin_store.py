@@ -15,6 +15,10 @@ What goes in:
   - Pets need a model (Models.txt), mounts a mount definition (Mounts.json) and houses a house (Houses.json),
     since the store can't hand them over otherwise.
 
+Custom items (CustomItemManager, 9000000 and up) are kept in the database, not ClientItemDefinitions.json, so their
+cards (the FR MCP Hover-Car's, 9000006) are added to CoinStoreItems.json by hand. The script keeps them, and they
+cost what their base item costs unless they override "cost".
+
 What stays out, because players earn it rather than buy it, or it does nothing here: collection pieces and junk
 (sell-only loot), titles, coin bundles, reward boxes and loot bags (they open into coins), quest packs, the guild
 name change and bank upgrades, and character creation's own hair, skin and outfit choices.
@@ -295,11 +299,15 @@ def main():
         if left_out(item) is None:
             families[family(item)].append(item)
 
+    # Custom items live in the database, not ClientItemDefinitions.json; their cards are left as they are.
+    def defined(entries):
+        return [entry for entry in entries if entry["Id"] in items_by_id]
+
     # Families with a colour already in the store are in it.
-    in_store = {family(items_by_id[entry["Id"]]) for entry in store}
+    in_store = {family(items_by_id[entry["Id"]]) for entry in defined(store)}
     # A new mount takes the category and colours of a mount on the same model.
     store_mounts = {}
-    for entry in store:
+    for entry in defined(store):
         item = items_by_id[entry["Id"]]
         if item.get("Type") == MOUNT_TYPE and entry.get("CategoryId") in CATEGORY_PRICES:
             store_mounts.setdefault((item.get("ModelName") or "").lower(), entry)
@@ -342,7 +350,7 @@ def main():
 
     # Every colour of a store item costs the same, wherever it's sold.
     priced = {}
-    for entry in store:
+    for entry in defined(store):
         item = items_by_id[entry["Id"]]
         cost = price(item, entry.get("CategoryId", 0))
         if cost is None:
