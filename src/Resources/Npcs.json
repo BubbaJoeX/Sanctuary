@@ -41776,6 +41776,408 @@
     "ModelFileName": "mkt_cakes_vampire_01.adr"
   },
   {
+    "Id": 40013,
+    "NameId": 93710,
+    "ModelId": 271,
+    "ModelFileName": "invisible_cube.adr",
+    "Scale": 1,
+    "Name": "Rainbow Lake",
+    "TerrainObjectId": 1254791440,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 17,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 6,
+        "IconId": 151,
+        "IconState": 236,
+        "Unknown": 0,
+        "NameId": 93710,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 40014,
+    "NameId": 408591,
+    "ModelId": 271,
+    "ModelFileName": "invisible_cube.adr",
+    "Scale": 1,
+    "Name": "Sacred Grove Shallows",
+    "TerrainObjectId": 1254775778,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 17,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 6,
+        "IconId": 151,
+        "IconState": 236,
+        "Unknown": 0,
+        "NameId": 408591,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 40015,
+    "NameId": 408604,
+    "ModelId": 271,
+    "ModelFileName": "invisible_cube.adr",
+    "Scale": 1,
+    "Name": "Darklit Lagoon",
+    "TerrainObjectId": 1254797545,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 17,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 6,
+        "IconId": 151,
+        "IconState": 236,
+        "Unknown": 0,
+        "NameId": 408604,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 40016,
+    "NameId": 408599,
+    "ModelId": 271,
+    "ModelFileName": "invisible_cube.adr",
+    "Scale": 1,
+    "Name": "Brambleback's Bayou",
+    "TerrainObjectId": 1254796376,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 17,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 6,
+        "IconId": 151,
+        "IconState": 236,
+        "Unknown": 0,
+        "NameId": 408599,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 40017,
+    "NameId": 408622,
+    "ModelId": 271,
+    "ModelFileName": "invisible_cube.adr",
+    "Scale": 1,
+    "Name": "Wintery Basin",
+    "TerrainObjectId": 1345838233,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 17,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 6,
+        "IconId": 151,
+        "IconState": 236,
+        "Unknown": 0,
+        "NameId": 408622,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 40018,
+    "NameId": 20178,
+    "ModelId": 1590,
+    "ModelFileName": "human_m_fisherman_01.agr",
+    "Name": "Fisherman",
+    "HasCursor": true,
+    "CursorId": 17,
+    "RelevanceUnknown2": false,
+    "InteractionList": {
+      "Unknown": true,
+      "Interactions": [
+        {
+          "Id": 0,
+          "IconId": 22665,
+          "ButtonText": 3227,
+          "Type": 17,
+          "Param1": 0,
+          "Param2": 0,
+          "TooltipId": 0
+        }
+      ],
+      "Name": "",
+      "Unknown2": true
+    },
+    "InteractionUnknown": false,
+    "MerchantList": {
+      "Unknown": 40018,
+      "Unknown4": 20178,
+      "Entries": [
+        {
+          "ItemDefinitionId": 68185,
+          "Unknown8": 250,
+          "IconId": 4362,
+          "TintId": 247,
+          "NameId": 410605,
+          "DescriptionId": 410780,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68220,
+          "Unknown8": 750,
+          "IconId": 4363,
+          "TintId": 255,
+          "NameId": 410640,
+          "DescriptionId": 410780,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68255,
+          "Unknown8": 1400,
+          "IconId": 4366,
+          "TintId": 254,
+          "NameId": 410675,
+          "DescriptionId": 410850,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68290,
+          "Unknown8": 2000,
+          "IconId": 5883,
+          "TintId": 248,
+          "NameId": 410710,
+          "DescriptionId": 410850,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68325,
+          "Unknown8": 2650,
+          "IconId": 4365,
+          "TintId": 253,
+          "NameId": 410745,
+          "DescriptionId": 410920,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68152,
+          "Unknown8": 100,
+          "IconId": 4387,
+          "TintId": 0,
+          "NameId": 4139,
+          "DescriptionId": 4141,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68153,
+          "Unknown8": 100,
+          "IconId": 4388,
+          "TintId": 0,
+          "NameId": 4140,
+          "DescriptionId": 4142,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68154,
+          "Unknown8": 100,
+          "IconId": 4389,
+          "TintId": 0,
+          "NameId": 409542,
+          "DescriptionId": 409555,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68155,
+          "Unknown8": 100,
+          "IconId": 4390,
+          "TintId": 0,
+          "NameId": 409543,
+          "DescriptionId": 409556,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68156,
+          "Unknown8": 100,
+          "IconId": 4391,
+          "TintId": 0,
+          "NameId": 409544,
+          "DescriptionId": 409557,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68157,
+          "Unknown8": 100,
+          "IconId": 4392,
+          "TintId": 0,
+          "NameId": 409545,
+          "DescriptionId": 409558,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68158,
+          "Unknown8": 100,
+          "IconId": 4393,
+          "TintId": 0,
+          "NameId": 409546,
+          "DescriptionId": 409559,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68159,
+          "Unknown8": 100,
+          "IconId": 4394,
+          "TintId": 0,
+          "NameId": 409547,
+          "DescriptionId": 409560,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68160,
+          "Unknown8": 100,
+          "IconId": 4395,
+          "TintId": 0,
+          "NameId": 409548,
+          "DescriptionId": 409561,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68161,
+          "Unknown8": 100,
+          "IconId": 4396,
+          "TintId": 0,
+          "NameId": 409549,
+          "DescriptionId": 409562,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68162,
+          "Unknown8": 100,
+          "IconId": 4397,
+          "TintId": 0,
+          "NameId": 409550,
+          "DescriptionId": 409563,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68163,
+          "Unknown8": 100,
+          "IconId": 4398,
+          "TintId": 0,
+          "NameId": 409551,
+          "DescriptionId": 409564,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        },
+        {
+          "ItemDefinitionId": 68164,
+          "Unknown8": 100,
+          "IconId": 4399,
+          "TintId": 0,
+          "NameId": 409552,
+          "DescriptionId": 409565,
+          "PurchasableQty": -1,
+          "MembersOnly": false,
+          "Unknown9": 0,
+          "AvailableTintGroupId": 0,
+          "CanBuy": true
+        }
+      ]
+    }
+  },
+  {
     "Id": 45000,
     "Name": "Placed model",
     "ModelId": 0,

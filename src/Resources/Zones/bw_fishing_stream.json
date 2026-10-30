@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1043,
+  "Name": "bw_fishing_stream",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -4,
+  "StartLongitude": -4,
+  "EndLatitude": 32,
+  "EndLongitude": 32,
+  "Sky": "sky_briarwood24.xml",
+  "SpawnPosition": [
+    279,
+    0.48,
+    187
+  ],
+  "SpawnRotation": [
+    -0.9702,
+    0,
+    0.2424,
+    0
+  ]
+}

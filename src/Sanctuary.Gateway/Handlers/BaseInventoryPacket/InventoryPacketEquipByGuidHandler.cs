@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Game;
 using Sanctuary.Game.Helpers;
+using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
@@ -77,26 +77,9 @@ public static class InventoryPacketEquipByGuidHandler
             return true;
         }
 
-        int? oldItemId = null;
+        var oldItemId = EquipmentHelper.SetProfileItem(profile, clientItem, clientItemDefinition);
 
-        if (!profile.Items.TryGetValue(clientItemDefinition.Slot, out var profileItem))
-        {
-            profileItem = new ProfileItem();
-
-            profileItem.Id = clientItem.Id;
-            profileItem.Slot = clientItemDefinition.Slot;
-
-            profile.Items.Add(profileItem.Slot, profileItem);
-        }
-        else
-        {
-            oldItemId = profileItem.Id;
-
-            profileItem.Id = clientItem.Id;
-            profileItem.Slot = clientItemDefinition.Slot;
-        }
-
-        var characterId = GuidHelper.GetPlayerId(connection.Player.Guid);
+        var playerGuid = connection.Player.Guid;
         var profileId = inventoryPacketEquipByGuid.ProfileId;
         var itemId = clientItem.Id;
 
@@ -104,78 +87,14 @@ public static class InventoryPacketEquipByGuidHandler
         {
             using var dbContext = _dbContextFactory.CreateDbContext();
 
-            var dbProfile = dbContext.Profiles
-                .Include(x => x.Items)
-                .SingleOrDefault(x => x.CharacterId == characterId && x.Id == profileId);
-
-            if (dbProfile is null)
-            {
-                _logger.LogWarning("Invalid database profile.");
-                return;
-            }
-
-            var dbItem = dbContext.Items
-                .SingleOrDefault(x => x.CharacterId == characterId && x.Id == itemId);
-
-            if (dbItem is null)
-            {
-                _logger.LogWarning("Invalid database item.");
-                return;
-            }
-
-            if (oldItemId is not null)
-            {
-                var dbItemOld = dbProfile.Items.SingleOrDefault(x => x.Id == oldItemId);
-
-                if (dbItemOld is not null)
-                    dbProfile.Items.Remove(dbItemOld);
-            }
-
-            dbProfile.Items.Add(dbItem);
-
-            if (dbContext.SaveChanges() <= 0)
-            {
-                _logger.LogWarning("Failed to save to database.");
-                return;
-            }
+            if (!EquipmentHelper.SaveProfileItem(dbContext, playerGuid, profileId, oldItemId, itemId))
+                _logger.LogWarning("Failed to save the equipped item to the database.");
         });
 
-        var clientUpdatePacketEquipItem = new ClientUpdatePacketEquipItem();
+        EquipmentHelper.SendEquipped(connection.Player, profileId, inventoryPacketEquipByGuid.Slot, clientItem, clientItemDefinition);
 
-        clientUpdatePacketEquipItem.Guid = inventoryPacketEquipByGuid.Guid;
-
-        clientUpdatePacketEquipItem.Attachment.ModelName = clientItemDefinition.ModelName;
-        clientUpdatePacketEquipItem.Attachment.TextureAlias = ItemDefinitionHelper.GetAttachmentTextureAlias(clientItemDefinition.TextureAlias, connection.Player.SkinTone);
-        clientUpdatePacketEquipItem.Attachment.TintAlias = clientItemDefinition.TintAlias;
-        clientUpdatePacketEquipItem.Attachment.TintId = clientItem.Tint == 0 ? clientItemDefinition.Icon.TintId : clientItem.Tint;
-        clientUpdatePacketEquipItem.Attachment.CompositeEffectId = clientItemDefinition.CompositeEffectId;
-        clientUpdatePacketEquipItem.Attachment.Slot = inventoryPacketEquipByGuid.Slot;
-
-        clientUpdatePacketEquipItem.ProfileId = inventoryPacketEquipByGuid.ProfileId;
-
-        clientUpdatePacketEquipItem.Equip = true;
-
-        connection.SendTunneled(clientUpdatePacketEquipItem);
-
-        var playerUpdatePacketEquipItemChange = new PlayerUpdatePacketEquipItemChange();
-
-        playerUpdatePacketEquipItemChange.Guid = connection.Player.Guid;
-
-        playerUpdatePacketEquipItemChange.Id = clientItem.Id;
-
-        playerUpdatePacketEquipItemChange.Attachment = clientUpdatePacketEquipItem.Attachment;
-
-        playerUpdatePacketEquipItemChange.ProfileId = connection.Player.ActiveProfileId;
-
-        playerUpdatePacketEquipItemChange.ItemClassId = clientItemDefinition.Class;
-        playerUpdatePacketEquipItemChange.WieldType = connection.Player.GetWieldType();
-
-        if (inventoryPacketEquipByGuid.ProfileId == connection.Player.ActiveProfileId)
-            connection.Player.SendTunneledToVisible(playerUpdatePacketEquipItemChange);
-
-        connection.Player.SendToolbar();
-
-        connection.Player.RefreshWeaponFlair(inventoryPacketEquipByGuid.ProfileId, inventoryPacketEquipByGuid.Slot);
+        // A new rod casts further or less far.
+        (connection.Player.Zone as WorldZone)?.Fishing?.OnGearChanged(connection.Player);
 
         return true;
     }

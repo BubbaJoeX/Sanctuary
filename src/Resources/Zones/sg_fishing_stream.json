@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1041,
+  "Name": "sg_fishing_stream",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -4,
+  "StartLongitude": -4,
+  "EndLatitude": 32,
+  "EndLongitude": 32,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    447,
+    -64.68,
+    325
+  ],
+  "SpawnRotation": [
+    0.1648,
+    0,
+    -0.9863,
+    0
+  ]
+}

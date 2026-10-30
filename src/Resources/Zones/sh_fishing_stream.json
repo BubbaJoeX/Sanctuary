@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1045,
+  "Name": "sh_fishing_stream",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -4,
+  "StartLongitude": -4,
+  "EndLatitude": 32,
+  "EndLongitude": 32,
+  "Sky": "sky_snowhill24.xml",
+  "SpawnPosition": [
+    507,
+    25.36,
+    465
+  ],
+  "SpawnRotation": [
+    0.6401,
+    0,
+    -0.7683,
+    0
+  ]
+}

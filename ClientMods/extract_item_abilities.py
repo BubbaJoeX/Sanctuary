@@ -40,6 +40,7 @@ BUFF_COOLDOWN_MS = 5 * SECOND
 FIREWORK_COOLDOWN_MS = 10 * SECOND
 FOOD_DURATION_MS = 30 * MINUTE
 LOOP_CAST_DURATION_MS = 10 * SECOND
+LURE_DURATION_MS = 10 * MINUTE
 
 HEAL_EFFECT = 16324        # PFX_heal_health_red_sm_short_head
 ENERGY_EFFECT = 16325      # PFX_heal_mana_blue_sm_short_head
@@ -430,6 +431,10 @@ DESCRIPTION_RULES = [
     (re.compile(r"increases your attack", re.I), lambda: stats("Attack", FOOD_DURATION_MS, POWERUP_EFFECT, EquippedMeleeWeaponDamage=20)),
     (re.compile(r"temporarily increases your health", re.I), lambda: stats("MaxHealth", FOOD_DURATION_MS, POWERUP_EFFECT, MaxHealth=250)),
     (re.compile(r"temporarily increases your energy", re.I), lambda: stats("MaxEnergy", FOOD_DURATION_MS, POWERUP_EFFECT, MaxMana=25)),
+    # Fishing lures ("This lure gives a 10% better chance of catching ...") and the Treasure Magnet. The fishing pond
+    # tells which lure is in use by the buff's name; the luck stat is what the buff shows.
+    (re.compile(r"(lure|magnet) gives a 10% better chance of catching", re.I),
+     lambda: stats("FishingLure", LURE_DURATION_MS, POWERUP_EFFECT, FishingLuck=10)),
 ]
 
 # The (deprecated) combat scrolls name each stat they buff.

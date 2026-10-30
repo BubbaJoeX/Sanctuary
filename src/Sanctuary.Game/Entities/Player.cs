@@ -16,6 +16,7 @@ using Sanctuary.Core.IO;
 using Sanctuary.Core.Helpers;
 using Sanctuary.Game;
 using Sanctuary.Game.ChatCommands;
+using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
@@ -41,7 +42,7 @@ public sealed class Player : ClientPcData, IEntity
         SelfOnly
     }
 
-    private const int WeaponSlot = 7;
+    public const int WeaponSlot = 7;
     private const int FlairShardSlot = 13;
     private const int IdleCharacterState = 1;
     private const int KnockedOutCharacterState = 0x80;
@@ -1881,7 +1882,7 @@ public sealed class Player : ClientPcData, IEntity
 
         _knockOut.KnockOut(Environment.TickCount64);
 
-        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = KnockedOutCharacterState }, true);
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(KnockedOutCharacterState) }, true);
 
         var killerName = string.IsNullOrEmpty(killer.Name) ? "an enemy" : killer.Name;
 
@@ -1909,7 +1910,7 @@ public sealed class Player : ClientPcData, IEntity
         Hitpoints = MaxHitpoints;
         Energy = EffectiveMaxEnergy;
 
-        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = IdleCharacterState }, true);
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(IdleCharacterState) }, true);
 
         _lastCombatAt = long.MinValue;
     }
@@ -1926,7 +1927,7 @@ public sealed class Player : ClientPcData, IEntity
 
         Hitpoints = Math.Max(1, hitpoints);
 
-        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = IdleCharacterState }, true);
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(IdleCharacterState) }, true);
 
         // Own floating number, and the bar others see over this player.
         SendTunneledToVisible(new PlayerUpdatePacketHitPointModification
@@ -1984,8 +1985,37 @@ public sealed class Player : ClientPcData, IEntity
         SendFriendStatus();
         ApplyRankHealth();
 
+        // A pond starts or stops fishing as the Fisherman job comes and goes.
+        (Zone as WorldZone)?.Fishing?.OnProfileChanged(this);
+
         return true;
     }
+
+    /// <summary>
+    /// The client is fishing (see <see cref="FishingRules.FishingCharacterState"/>): set by a fishing pond while a
+    /// Fisherman is in it.
+    /// </summary>
+    public bool IsFishing { get; private set; }
+
+    /// <summary>
+    /// Turns the client's fishing on or off. Without <paramref name="notify"/> only the server forgets it, for a
+    /// player leaving the zone, whose client stops fishing as the zone unloads.
+    /// </summary>
+    public void SetFishing(bool fishing, bool notify = true)
+    {
+        if (IsFishing == fishing)
+            return;
+
+        IsFishing = fishing;
+
+        if (notify)
+            SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(IsDead ? KnockedOutCharacterState : IdleCharacterState) });
+    }
+
+    /// <summary>
+    /// The character state sends the client's flags whole, so each one keeps the fishing bit while it's set.
+    /// </summary>
+    private int WithFishing(int state) => IsFishing ? state | FishingRules.FishingCharacterState : state;
 
     /// <summary>
     /// Shows friends and the group the active job and its rank.

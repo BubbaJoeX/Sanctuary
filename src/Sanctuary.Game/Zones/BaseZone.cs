@@ -937,7 +937,16 @@ public abstract class BaseZone : IZone, IDisposable
         if (definition.Conversation is not null)
             NpcContent.RefreshInteraction(npc);
 
+        OnNpcCreated(npc, definition);
+
         return true;
+    }
+
+    /// <summary>
+    /// An NPC was made from its definition, for the zone to give it any behaviour of its own.
+    /// </summary>
+    protected virtual void OnNpcCreated(Npc npc, NpcDefinition definition)
+    {
     }
 
     public IReadOnlyList<CollectionNodePoolStatus> GetCollectionNodePoolStatuses()
@@ -1332,7 +1341,16 @@ public abstract class BaseZone : IZone, IDisposable
 
         MinigameManager.Abandon(player);
 
+        OnPlayerRemoved(player);
+
         return _entities.TryRemove(guid, out _);
+    }
+
+    /// <summary>
+    /// A player left the zone (zoning out or logging out).
+    /// </summary>
+    protected virtual void OnPlayerRemoved(Player player)
+    {
     }
 
     #endregion
@@ -1577,6 +1595,8 @@ public abstract class BaseZone : IZone, IDisposable
                 {
                     entity.Value.UpdateEveryTick();
                 }
+
+                UpdateEveryTick();
             }
             catch (Exception ex)
             {
@@ -1603,6 +1623,13 @@ public abstract class BaseZone : IZone, IDisposable
                 _logger.LogCritical(ex, $"{Name} ({Id}) - Zone Exception");
             }
         }
+    }
+
+    /// <summary>
+    /// The zone's own work every tick, after its entities'.
+    /// </summary>
+    protected virtual void UpdateEveryTick()
+    {
     }
 
     protected virtual void UpdateEverySecond()

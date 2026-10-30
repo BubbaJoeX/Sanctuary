@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1044,
+  "Name": "sh_fishing_medpond",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -4,
+  "StartLongitude": -4,
+  "EndLatitude": 32,
+  "EndLongitude": 32,
+  "Sky": "sky_snowhill24.xml",
+  "SpawnPosition": [
+    345,
+    0.48,
+    259
+  ],
+  "SpawnRotation": [
+    -0.7068,
+    0,
+    0.7074,
+    0
+  ]
+}

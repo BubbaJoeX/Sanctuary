@@ -3445,6 +3445,188 @@
     "AuraEffectId": 15710
   },
   {
+    "AbilityId": 4287,
+    "Comment": "16oz Steak",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4288,
+    "Comment": "Flyfisher 3000",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4289,
+    "Comment": "French Fry",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4290,
+    "Comment": "Frostflies",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4291,
+    "Comment": "Mega Slider",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4292,
+    "Comment": "Nightcrawlers",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4293,
+    "Comment": "Perch Pinpointer",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4294,
+    "Comment": "Shiny Crankbait",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4295,
+    "Comment": "Skipper Seeker",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4296,
+    "Comment": "Sleek Clicker",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4297,
+    "Comment": "Thorn Jig",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4298,
+    "Comment": "Tiny Rib",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
+    "AbilityId": 4299,
+    "Comment": "Treasure Magnet",
+    "Group": "FishingLure",
+    "CooldownMs": 5000,
+    "DurationMs": 600000,
+    "CastEffectId": 40,
+    "Stats": [
+      {
+        "Stat": "FishingLuck",
+        "Value": 10
+      }
+    ]
+  },
+  {
     "AbilityId": 4340,
     "Comment": "Health Potion",
     "Group": "Health",

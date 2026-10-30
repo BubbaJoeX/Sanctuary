@@ -11,6 +11,7 @@ using Sanctuary.Core.Extensions;
 using Sanctuary.Core.IO;
 using Sanctuary.Database;
 using Sanctuary.Game.Entities;
+using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
 using Sanctuary.Game.Quests;
@@ -84,6 +85,8 @@ public sealed partial class WorldZone : BaseZone
         _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
         _worldEventManager = serviceProvider.GetRequiredService<IWorldEventManager>();
         _refereePickManager = serviceProvider.GetRequiredService<IRefereePickManager>();
+
+        Fishing = _resourceManager.Fishing.TryGetPond(Name, out _) ? new FishingPond(this, serviceProvider) : null;
     }
 
     public override void OnStart()
@@ -109,6 +112,8 @@ public sealed partial class WorldZone : BaseZone
         }
 
         base.OnStart();
+
+        Fishing?.OnStart();
     }
 
     public override void OnClientIsReady(Player player)
@@ -151,7 +156,8 @@ public sealed partial class WorldZone : BaseZone
     }
 
     public override IReadOnlyList<NpcInteractionOption> GetInteractionOptions(Player player, Npc npc)
-        => _questManager.IsQuestNpc(npc.DefinitionId) ? _questManager.GetInteractionOptions(player, npc) : [];
+        => _questManager.IsQuestNpc(npc.DefinitionId) ? _questManager.GetInteractionOptions(player, npc)
+            : Fishing?.GetInteractionOptions(player, npc) ?? [];
 
     public override NotificationInfo? GetQuestBadge(Player player, Npc npc)
         => _questManager.IsQuestNpc(npc.DefinitionId) ? _questManager.GetQuestBadge(player, npc) : null;
@@ -163,6 +169,8 @@ public sealed partial class WorldZone : BaseZone
         SendEnabledClientAreas(player);
 
         player.UpdatePointOfInterest(GetNearestZoneArea(player.Position));
+
+        Fishing?.OnPlayerArrived(player);
     }
 
     protected override void UpdateEverySecond()
