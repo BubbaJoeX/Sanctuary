@@ -816,7 +816,19 @@
         ],
         "Heading": 0.777
       },
-      "ReturnZoneId": 1
+      "ReturnZoneId": 1,
+      "Activities": [
+        {
+          "Id": 598,
+          "NameId": 93710,
+          "DescriptionId": 5235
+        },
+        {
+          "Id": 595,
+          "NameId": 417055,
+          "DescriptionId": 417056
+        }
+      ]
     },
     {
       "Comment": "Sacred Grove Shallows",
@@ -925,7 +937,14 @@
         ],
         "Heading": 0.082
       },
-      "ReturnZoneId": 1
+      "ReturnZoneId": 1,
+      "Activities": [
+        {
+          "Id": 599,
+          "NameId": 408591,
+          "DescriptionId": 5235
+        }
+      ]
     },
     {
       "Comment": "Darklit Lagoon",
@@ -1034,7 +1053,14 @@
         ],
         "Heading": -0.543
       },
-      "ReturnZoneId": 1
+      "ReturnZoneId": 1,
+      "Activities": [
+        {
+          "Id": 596,
+          "NameId": 408604,
+          "DescriptionId": 5235
+        }
+      ]
     },
     {
       "Comment": "Brambleback's Bayou",
@@ -1143,7 +1169,14 @@
         ],
         "Heading": 2.652
       },
-      "ReturnZoneId": 1
+      "ReturnZoneId": 1,
+      "Activities": [
+        {
+          "Id": 597,
+          "NameId": 408599,
+          "DescriptionId": 5235
+        }
+      ]
     },
     {
       "Comment": "Wintery Basin",
@@ -1252,7 +1285,14 @@
         ],
         "Heading": 0.055
       },
-      "ReturnZoneId": 1
+      "ReturnZoneId": 1,
+      "Activities": [
+        {
+          "Id": 600,
+          "NameId": 408622,
+          "DescriptionId": 5235
+        }
+      ]
     },
     {
       "Comment": "Frostbitten Banks",
@@ -1361,7 +1401,14 @@
         ],
         "Heading": 1.503
       },
-      "ReturnZoneId": 1
+      "ReturnZoneId": 1,
+      "Activities": [
+        {
+          "Id": 601,
+          "NameId": 408640,
+          "DescriptionId": 5235
+        }
+      ]
     }
   ]
 }

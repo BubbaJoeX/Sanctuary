@@ -65,6 +65,11 @@ public static class FishingRules
     public const int FishermanProfileId = 137;
 
     /// <summary>
+    /// The Games window's Fishing tile (ActivityCategories.txt).
+    /// </summary>
+    public const int ActivityCategory = 13;
+
+    /// <summary>
     /// The client's fishing state, a bit of the character state (0x00400000): set, the client turns on its
     /// fishing camera and casting; cleared, it stops.
     /// </summary>

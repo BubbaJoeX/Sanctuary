@@ -180,6 +180,20 @@ public sealed class FishingPondDefinition
     public List<int> Fish { get; set; } = [];
 
     public List<FishingSchoolDefinition> Schools { get; set; } = [];
+
+    /// <summary>
+    /// The client's Games window entries (MiniGameData.txt, type 21) that bring players here.
+    /// </summary>
+    public List<FishingActivityDefinition> Activities { get; set; } = [];
+}
+
+public sealed class FishingActivityDefinition
+{
+    public int Id { get; set; }
+
+    public int NameId { get; set; }
+
+    public int DescriptionId { get; set; }
 }
 
 public sealed class FishingSpotDefinition
