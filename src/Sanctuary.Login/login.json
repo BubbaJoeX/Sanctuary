@@ -10,10 +10,10 @@
     "DefaultTitleId": 0,
     "DefaultProfileId": 1,
 
-    "StartingCoins": 999999999,
+    "StartingCoins": 500,
 
-    "UnlockAllTitles": true,
+    "UnlockAllTitles": false,
     "UnlockAllProfiles": true,
-    "StartingProfileRank": 20
+    "StartingProfileRank": 1
   }
 }
