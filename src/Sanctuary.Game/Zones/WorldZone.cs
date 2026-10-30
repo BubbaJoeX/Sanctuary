@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.Extensions;
 using Sanctuary.Core.IO;
 using Sanctuary.Database;
+using Sanctuary.Game.Challenges;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Helpers;
@@ -28,6 +29,7 @@ public sealed partial class WorldZone : BaseZone
     private readonly IQuestManager _questManager;
     private readonly IRewardManager _rewardManager;
     private readonly IRefereePickManager _refereePickManager;
+    private readonly IChallengeManager _challengeManager;
 
     private readonly object _clientAreasLock = new();
     private readonly HashSet<SeasonalClientAreaDefinition> _activeSeasonalClientAreas = [];
@@ -85,6 +87,7 @@ public sealed partial class WorldZone : BaseZone
         _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
         _worldEventManager = serviceProvider.GetRequiredService<IWorldEventManager>();
         _refereePickManager = serviceProvider.GetRequiredService<IRefereePickManager>();
+        _challengeManager = serviceProvider.GetRequiredService<IChallengeManager>();
 
         Fishing = _resourceManager.Fishing.TryGetPond(Name, out _) ? new FishingPond(this, serviceProvider) : null;
     }
@@ -156,8 +159,13 @@ public sealed partial class WorldZone : BaseZone
     }
 
     public override IReadOnlyList<NpcInteractionOption> GetInteractionOptions(Player player, Npc npc)
-        => _questManager.IsQuestNpc(npc.DefinitionId) ? _questManager.GetInteractionOptions(player, npc)
-            : Fishing?.GetInteractionOptions(player, npc) ?? [];
+    {
+        IReadOnlyList<NpcInteractionOption> quests = _questManager.IsQuestNpc(npc.DefinitionId) ? _questManager.GetInteractionOptions(player, npc) : [];
+        var challenges = _challengeManager.GetInteractionOptions(player, npc);
+        var fishing = Fishing?.GetInteractionOptions(player, npc) ?? [];
+
+        return challenges.Count == 0 && fishing.Count == 0 ? quests : [.. quests, .. challenges, .. fishing];
+    }
 
     public override NotificationInfo? GetQuestBadge(Player player, Npc npc)
         => _questManager.IsQuestNpc(npc.DefinitionId) ? _questManager.GetQuestBadge(player, npc) : null;

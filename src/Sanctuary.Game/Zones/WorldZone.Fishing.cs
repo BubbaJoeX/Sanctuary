@@ -28,11 +28,18 @@ public sealed partial class WorldZone
         base.OnPlayerRemoved(player);
 
         Fishing?.OnPlayerLeft(player);
+
+        _challengeManager.OnPlayerLeft(player);
     }
 
     protected override void OnNpcCreated(Npc npc, NpcDefinition definition)
     {
         base.OnNpcCreated(npc, definition);
+
+        // An NPC offering challenges opens its menu when clicked (unless it already does something when clicked,
+        // which its menu comes before anyway).
+        if (_challengeManager.IsGiver(definition.Id) && npc.InteractAction is null)
+            npc.InteractAction = player => InteractionMenuHelper.TryOpenMenu(player, npc, GetInteractionOptions(player, npc));
 
         if (!_resourceManager.Fishing.TryGetPondByHole(definition.Id, out _))
             return;

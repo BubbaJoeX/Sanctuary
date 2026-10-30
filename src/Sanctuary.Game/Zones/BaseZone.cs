@@ -203,6 +203,16 @@ public abstract class BaseZone : IZone, IDisposable
     public bool TryFindClientNavMeshPath(Vector3 start, Vector3 goal, Queue<Vector3> waypoints) =>
         _clientNavMeshPathfinder is not null && _clientNavMeshPathfinder.TryFindPath(start, goal, waypoints);
 
+    /// <summary>
+    /// A walkable point within <paramref name="radius"/> of <paramref name="center"/>, for things placed at runtime.
+    /// False in a zone without a navmesh.
+    /// </summary>
+    public bool TryFindRandomNavMeshPoint(Vector3 center, float radius, Random random, out Vector3 point)
+    {
+        point = center;
+        return _navMeshPathfinder is not null && _navMeshPathfinder.TryFindRandomPointAround(center, radius, random, out point);
+    }
+
     public virtual IReadOnlyList<NpcInteractionOption> GetInteractionOptions(Player player, Npc npc) => [];
 
     public virtual NotificationInfo? GetQuestBadge(Player player, Npc npc) => null;

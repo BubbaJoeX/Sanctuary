@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
+using DotRecast.Core;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 
@@ -64,6 +65,41 @@ public sealed class NavMeshPathfinder
             end = new Vector3(hit.X, hit.Y, hit.Z);
             return false;
         }
+    }
+
+    /// <summary>
+    /// A walkable point reachable from <paramref name="center"/>, at most <paramref name="radius"/> away.
+    /// </summary>
+    public bool TryFindRandomPointAround(Vector3 center, float radius, System.Random random, out Vector3 point)
+    {
+        point = center;
+
+        var centerPosition = new RcVec3f(center.X, center.Y, center.Z);
+
+        lock (_lock)
+        {
+            _query.FindNearestPoly(centerPosition, NearestPolyExtents, _filter, out var startRef, out var startOnMesh, out _);
+
+            if (startRef == 0)
+                return false;
+
+            var status = _query.FindRandomPointAroundCircle(startRef, startOnMesh, radius, _filter, new Rand(random), out _, out var randomPoint);
+
+            if (status.Failed())
+                return false;
+
+            point = new Vector3(randomPoint.X, randomPoint.Y, randomPoint.Z);
+            return true;
+        }
+    }
+
+    private sealed class Rand(System.Random random) : IRcRand
+    {
+        public float Next() => random.NextSingle();
+
+        public double NextDouble() => random.NextDouble();
+
+        public int NextInt32() => random.Next();
     }
 
     public bool TryFindPath(Vector3 start, Vector3 goal, Queue<Vector3> waypoints)
