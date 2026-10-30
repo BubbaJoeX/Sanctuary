@@ -5345,7 +5345,12 @@
   {
     "Id": 2179,
     "ModelId": 495,
-    "ModelFileName": "fairy_f_jock.agr"
+    "ModelFileName": "fairy_f_jock.agr",
+    "Name": "Swaggesa",
+    "Scale": 1,
+    "Animation": 1,
+    "Disposition": 2,
+    "IsInteractable": true
   },
   {
     "Id": 2180,
@@ -13399,7 +13404,8 @@
     "NameId": 201,
     "Name": "Bruce",
     "ModelId": 20,
-    "ModelFileName": "human_rockstar_m.adr"
+    "ModelFileName": "human_rockstar_m.adr",
+    "InteractRange": 5
   },
   {
     "Id": 3562,
