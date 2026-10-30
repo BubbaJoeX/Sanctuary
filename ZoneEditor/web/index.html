@@ -101,6 +101,7 @@
       <h4>Camera</h4>
       <dl>
         <dt>Right-drag</dt><dd>Look</dd>
+        <dt>Right-click</dt><dd>What can be done to the object (or the spot) under the pointer</dd>
         <dt>W A S D</dt><dd>Fly; Q and E down and up; Shift faster</dd>
         <dt>Wheel</dt><dd>Fly speed (in brush tools: brush size)</dd>
         <dt>F</dt><dd>Focus on the selection</dd>
@@ -110,11 +111,12 @@
       <h4>Selection</h4>
       <dl>
         <dt>Click, Shift+click</dt><dd>Select, add or remove; drag over the ground to box-select</dd>
+        <dt>Drag the selection</dt><dd>Slide it over the ground and props (Select tool)</dd>
         <dt>G R T</dt><dd>Gizmo: move, rotate, scale (Shift while dragging switches snapping)</dd>
         <dt>Arrows, PgUp PgDn</dt><dd>Nudge along the ground and up or down (Shift: 4×)</dd>
         <dt>, .</dt><dd>Turn left or right (Shift: 90°)</dd>
         <dt>- =</dt><dd>Scale down or up</dd>
-        <dt>End</dt><dd>Drop to the ground</dd>
+        <dt>End</dt><dd>Drop down onto what's below: the ground or a prop's top</dd>
         <dt>Ctrl+D</dt><dd>Duplicate</dd>
         <dt>Ctrl+C, Ctrl+V</dt><dd>Copy, paste at the pointer</dd>
         <dt>Del</dt><dd>Delete</dd>
@@ -131,7 +133,8 @@
         <dt>Esc</dt><dd>Deselect, stop placing</dd>
       </dl>
     </div>
-    <div id="toast"></div>
+    <div id="toast" role="status"><span class="toast-text"></span>
+      <button class="toast-copy" title="Copy the message">Copy</button><button class="toast-close" title="Close">&times;</button></div>
   </main>
 
   <aside id="panel"></aside>

@@ -167,12 +167,12 @@ export class PropLayer {
     return object;
   }
 
-  // The actor's meshes into the object (again, after its record's file changed).
+  // The actor's meshes into the object (again, after its record's file changed). userData.loaded settles when they're in.
   loadMeshes(object) {
     const file = object.userData.record.file;
     object.userData.file = file;
     for (const child of [...object.children]) object.remove(child);
-    return this.library.model(file).then((template) => {
+    return object.userData.loaded = this.library.model(file).then((template) => {
       if (object.userData.file !== file) return;
       object.userData.aliases = template.userData.aliases;
       for (const node of copyTemplate(template)) {

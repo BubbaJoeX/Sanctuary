@@ -3,7 +3,7 @@
 // It opens on what zones actually place (counted across every zone's chunks), with what the loaded chunks use,
 // favourites, recently placed and name prefixes (bw_ Briarwood, sh_ Snowhill, hsg_ housing, ...) as groups,
 // and kinds (trees, rocks, buildings, ...) matched from names. Click a tile to place it, or drag it into the view.
-// Its NPCs side lists Sanctuary's NPC definitions (Npcs.json) instead, to spawn in the running game.
+// Its NPCs side lists Sanctuary's NPC definitions (Npcs.json) instead, to spawn in the running game (click or drag).
 import * as THREE from "three";
 import { copyTemplate } from "./animation.js";
 import { getJson } from "./api.js";
@@ -379,7 +379,7 @@ export class ContentBrowser {
 Scripts: ${definition.scripts.join(", ")}` : ""}` +
         `${definition.placedInWorld ? `
 Placed in the world: ${definition.placedInWorld}` : ""}
-Click to spawn one, then click the ground`;
+Click to spawn one, then click the ground, or drag it into the view`;
       tile.innerHTML = `<img alt=""><span>${escapeText(definition.name ?? definition.model?.replace(/\.a[dg]r$/i, "") ?? `NPC ${definition.id}`)}</span>
         <small>#${definition.id}</small><b class="edit" title="Edit its definition">✎</b>`;
       tile.addEventListener("click", (event) => {
@@ -387,6 +387,11 @@ Click to spawn one, then click the ground`;
         this.selectedNpc = definition.id;
         for (const other of grid.querySelectorAll(".cb-tile")) other.classList.toggle("active", other === tile);
         this.events.pickNpc({ id: definition.id, name: definition.name, model: definition.model });
+      });
+      tile.draggable = true;
+      tile.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("text/x-zone-npc", JSON.stringify({ id: definition.id, name: definition.name, model: definition.model }));
+        event.dataTransfer.effectAllowed = "copy";
       });
       grid.appendChild(tile);
       if (definition.model) this.observer.observe(tile);

@@ -12,22 +12,24 @@ export function initTextures(renderer) {
   anisotropy = renderer.capabilities.getMaxAnisotropy();
 }
 
-// srgb: colour data (diffuse, colour maps) rather than masks. Mesh UVs are Direct3D's with v negated, which a
-// flipped PNG reads as is; a DDS can't be flipped on upload, so its v is negated back.
+// srgb: colour data (diffuse, colour maps) rather than masks. Mesh UVs are Direct3D's with v negated. A DDS can't be
+// flipped on upload, so every texture (the PNG fallback too) is uploaded as it's stored and its v negated back: then a
+// mask, glow map or second layer sampled at the colour texture's UVs lines up with it whichever way each loaded.
 export function loadTexture(name, { srgb = true } = {}) {
   const key = `${name.toLowerCase()}|${srgb}`;
   if (cache.has(key)) return cache.get(key);
   const holder = new THREE.Texture();
-  const setup = (texture, flipped) => {
+  const setup = (texture) => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     texture.anisotropy = anisotropy;
-    if (!flipped) texture.repeat.set(1, -1);
+    texture.flipY = false;
+    texture.repeat.set(1, -1);
     if (texture.image) texture.needsUpdate = true;
     return texture;
   };
   const fallback = () => pngLoader.load(`api/texture?name=${encodeURIComponent(name)}&size=2048&v=${ASSET_VERSION}`,
-    (texture) => { setup(texture, true); swap(texture); }, undefined, () => {});
+    (texture) => swap(setup(texture)), undefined, () => {});
   const swap = (texture) => {
     // Materials hold the holder; copy the loaded texture into it so they pick it up.
     holder.copy(texture);
@@ -41,9 +43,9 @@ export function loadTexture(name, { srgb = true } = {}) {
   ddsLoader.load(url, (texture) => {
     if (!texture.mipmaps?.length || texture.format === undefined) return fallback();
     if (texture.mipmaps.length === 1) texture.minFilter = THREE.LinearFilter;
-    swap(setup(texture, false));
+    swap(setup(texture));
   }, undefined, fallback);
-  setup(holder, false);
+  setup(holder);
   cache.set(key, holder);
   return holder;
 }

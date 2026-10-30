@@ -252,9 +252,20 @@ public sealed record LiveObject(
     string? Look);
 
 /// <summary>
-/// One of a zone's other NPCs. <see cref="Kind"/> is npc, mob, node (a collection node) or coin.
+/// One of a zone's other NPCs. <see cref="Kind"/> is npc, mob, node (a collection node) or coin; pitch and roll are
+/// radians (the zone's tilted props).
 /// </summary>
-public sealed record LiveNpc(string Id, string Label, string Kind, float X, float Y, float Z, float H, float Scale, string? Look);
+public sealed record LiveNpc(string Id, string Label, string Kind, int Def, float X, float Y, float Z, float H, float Pitch, float Roll, float Scale,
+    string? Look);
+
+/// <summary>
+/// One of the zone's own NPCs as its script spawned it: where it starts when the zone does (its home, which a move
+/// changes), and whether it walks a path (NpcMovements.json) from there.
+/// </summary>
+public sealed record ZoneNpcModel(string Id, string Label, string Kind, int Def, string? DefName, float X, float Y, float Z, float H, float Pitch,
+    float Roll, bool Walks);
+
+public sealed record ZoneNpcMove(float X, float Y, float Z, float H, float Pitch, float Roll);
 
 /// <summary>
 /// What changed among a zone's other NPCs since the last update; <see cref="Reset"/> on the first, which has them all.

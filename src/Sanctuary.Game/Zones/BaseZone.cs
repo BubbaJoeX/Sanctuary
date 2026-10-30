@@ -773,6 +773,10 @@ public abstract class BaseZone : IZone, IDisposable
         if (definition.IsPlacedObject || pitch != 0f || roll != 0f)
             spawnedNpc.Tilt = new Vector4(heading, pitch, roll, 0f);
 
+        // Home, where a mob goes back to and respawns, and where the zone editor finds its spawn line.
+        spawnedNpc.SpawnPosition = position;
+        spawnedNpc.SpawnRotation = rotation;
+
         spawnedNpc.UpdatePosition(position, rotation);
 
         if (_resourceManager.NpcMovements.TryGetForNpc(spawnedNpc.Guid, definition.ModelFileName, out var npcMovementDefinition))

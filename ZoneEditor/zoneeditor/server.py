@@ -20,6 +20,7 @@ import numpy as np
 from .npcs import NpcDefinitions
 from .rewards import RewardTables
 from .workspace import Workspace
+from .zone_scripts import ZoneScripts
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
@@ -49,6 +50,7 @@ class Handler(BaseHTTPRequestHandler):
     workspace: Workspace = None
     npcs: NpcDefinitions = None
     rewards: RewardTables = None
+    zone_scripts: ZoneScripts = None
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
@@ -260,6 +262,30 @@ class Handler(BaseHTTPRequestHandler):
     def post_rewards_delete(self, query, body):
         self.send_json(self.rewards.delete(json.loads(body)["key"]))
 
+    # --- the zone's own NPCs (its Lua scripts' spawn lines) ------------------------------------------------------
+
+    def post_zone_npcs_find(self, query, body):
+        """{zone, guid, def, spawn: {x, y, z, h}}: the line that spawns that NPC, if it can be edited here."""
+        data = json.loads(body)
+        self.send_json(self.zone_scripts.locate(data["zone"], data["guid"], int(data["def"]), data["spawn"]))
+
+    def post_zone_npcs_edit(self, query, body):
+        """{zone, op, ...}: move (guid, def, spawn, to: {x, y, z, h, pitch, roll}), delete (guid, def, spawn) or
+        restore (file, line, text: what delete answered) or revert (file, line, now, was: what move answered)."""
+        data = json.loads(body)
+        scripts, zone, op = self.zone_scripts, data["zone"], data["op"]
+        if op == "move":
+            result = scripts.move(zone, data["guid"], int(data["def"]), data["spawn"], data["to"])
+        elif op == "delete":
+            result = scripts.delete(zone, data["guid"], int(data["def"]), data["spawn"])
+        elif op == "restore":
+            result = scripts.restore(zone, data["file"], int(data["line"]), data["text"])
+        elif op == "revert":
+            result = scripts.revert(zone, data["file"], int(data["line"]), data["now"], data["was"])
+        else:
+            raise ValueError(f"Unknown edit {op}.")
+        self.send_json(result)
+
     # --- names (locale strings), environments and seasons ---------------------------------------------------
 
     def get_names(self, query, body):
@@ -335,6 +361,7 @@ def serve(workspace: Workspace, host: str, port: int) -> ThreadingHTTPServer:
     Handler.workspace = workspace
     Handler.npcs = NpcDefinitions(workspace)
     Handler.rewards = RewardTables(workspace)
+    Handler.zone_scripts = ZoneScripts(workspace)
     server = ThreadingHTTPServer((host, port), Handler)
     server.daemon_threads = True
     return server
