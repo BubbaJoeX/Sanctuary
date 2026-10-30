@@ -93750,5 +93750,95 @@
     "Id": 9000006,
     "CategoryId": 2267,
     "Comment": "FR MCP Hover-Car (custom item 6, built on the Flying Saucer)"
+  },
+  {
+    "Id": 9000107,
+    "CategoryId": 2206,
+    "Comment": "FR MCP Skyhaven Isle Deed (custom item, the hsg_lot_skyhaven_01 lot)"
+  },
+  {
+    "Id": 9000108,
+    "CategoryId": 2206,
+    "Comment": "FR MCP Pearlshade Reef Deed (custom item, the hsg_lot_pearlreef_01 lot)"
+  },
+  {
+    "Id": 9000109,
+    "CategoryId": 2206,
+    "Comment": "FR MCP Blossomfall Terrace Deed (custom item, the hsg_lot_blossom_01 lot)"
+  },
+  {
+    "Id": 9000092,
+    "CategoryId": 53,
+    "Comment": "FR MCP Cloudpuff Sofa (custom item, Skyhaven Isle furniture)"
+  },
+  {
+    "Id": 9000093,
+    "CategoryId": 54,
+    "Comment": "FR MCP Weathervane Lamp (custom item, Skyhaven Isle furniture)"
+  },
+  {
+    "Id": 9000094,
+    "CategoryId": 53,
+    "Comment": "FR MCP Windrose Table (custom item, Skyhaven Isle furniture)"
+  },
+  {
+    "Id": 9000095,
+    "CategoryId": 53,
+    "Comment": "FR MCP Cloudrest Bed (custom item, Skyhaven Isle furniture)"
+  },
+  {
+    "Id": 9000096,
+    "CategoryId": 54,
+    "Comment": "FR MCP Balloon Lamp (custom item, Skyhaven Isle furniture)"
+  },
+  {
+    "Id": 9000097,
+    "CategoryId": 53,
+    "Comment": "FR MCP Clamshell Bed (custom item, Pearlshade Reef furniture)"
+  },
+  {
+    "Id": 9000098,
+    "CategoryId": 54,
+    "Comment": "FR MCP Coral Glow Lamp (custom item, Pearlshade Reef furniture)"
+  },
+  {
+    "Id": 9000099,
+    "CategoryId": 53,
+    "Comment": "FR MCP Scallop Chair (custom item, Pearlshade Reef furniture)"
+  },
+  {
+    "Id": 9000100,
+    "CategoryId": 53,
+    "Comment": "FR MCP Pearl Mosaic Table (custom item, Pearlshade Reef furniture)"
+  },
+  {
+    "Id": 9000101,
+    "CategoryId": 53,
+    "Comment": "FR MCP Oyster Treasure Chest (custom item, Pearlshade Reef furniture)"
+  },
+  {
+    "Id": 9000102,
+    "CategoryId": 54,
+    "Comment": "FR MCP Andon Paper Lantern (custom item, Blossomfall Terrace furniture)"
+  },
+  {
+    "Id": 9000103,
+    "CategoryId": 53,
+    "Comment": "FR MCP Chabudai Tea Table (custom item, Blossomfall Terrace furniture)"
+  },
+  {
+    "Id": 9000104,
+    "CategoryId": 53,
+    "Comment": "FR MCP Sakura Folding Screen (custom item, Blossomfall Terrace furniture)"
+  },
+  {
+    "Id": 9000105,
+    "CategoryId": 54,
+    "Comment": "FR MCP Bonsai Cherry Tree (custom item, Blossomfall Terrace furniture)"
+  },
+  {
+    "Id": 9000106,
+    "CategoryId": 53,
+    "Comment": "FR MCP Zabuton Garden Bench (custom item, Blossomfall Terrace furniture)"
   }
 ]

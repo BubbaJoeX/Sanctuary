@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Blossomfall Terrace (Sanctuary housing lot): golden hour over a cherry-blossom garden. -->
+
+<Dome>
+    <Texture File="dome_frmcp_blossom.tga" />
+</Dome>
+
+<Horizon>
+    <Texture R="255" G="196" B="200" Opacity="0.85" File="Ring-CloudHoriz.dds" Bottom="-12" Top="34" />
+</Horizon>
+
+<SunLight>
+    <Direction Heading="235" Pitch="17" />
+    <Color R="255" G="176" B="132" Brightness="1.05" />
+    <Shadows Enabled="true" />
+    <Flare>
+        <Color R="255" G="150" B="90" Brightness="0.5"/>
+        <Shape Size="0.8" Focus="0.6" Zoom="0" />
+    </Flare>
+    <Aura>
+        <Color R="255" G="190" B="150" Brightness="0.5" />
+        <Shape Size="0.6" Focus="0.5" />
+        <Fringe Brightness="0.5" Width="1" />
+    </Aura>
+</SunLight>
+
+<Ambient>
+    <Texture File="ambient_frmcp_blossom.tga" Brightness="1.15" />
+</Ambient>
+
+<Reflection>
+    <CubeMap File="reflection_outdoordefault.dds" Brightness="1" />
+</Reflection>
+
+<Fog>
+    <Color R="246" G="196" B="196" />
+    <Range Near="60" Far="560" />
+    <FadeRange Near="520" Far="600" />
+</Fog>
+
+<Post>
+    <Bloom Strength="0.6" />
+    <Haze Strength="0.45" Distance="260" />
+</Post>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skyhaven Isle (Sanctuary housing lot): high noon above a sea of clouds. -->
+
+<Dome>
+    <Texture File="dome_frmcp_skyhaven_02.tga" />
+</Dome>
+
+<Horizon>
+    <Texture R="255" G="252" B="246" Opacity="0.6" File="Ring-CloudHoriz.dds" Bottom="-18" Top="12" />
+</Horizon>
+
+<SunLight>
+    <Direction Heading="140" Pitch="52" />
+    <Color R="255" G="246" B="222" Brightness="1.25" />
+    <Shadows Enabled="true" />
+    <Flare>
+        <Color R="255" G="250" B="210" Brightness="0.35"/>
+        <Shape Size="0.6" Focus="0.4" Zoom="0" />
+    </Flare>
+    <Aura>
+        <Color R="255" G="255" B="235" Brightness="0.45" />
+        <Shape Size="0.4" Focus="0.5" />
+        <Fringe Brightness="0.5" Width="1" />
+    </Aura>
+</SunLight>
+
+<Ambient>
+    <Texture File="ambient_frmcp_skyhaven_02.tga" Brightness="1.2" />
+</Ambient>
+
+<Reflection>
+    <CubeMap File="reflection_sky.dds" Brightness="1" />
+</Reflection>
+
+<Fog>
+    <Color R="196" G="218" B="248" />
+    <Range Near="220" Far="1000" />
+    <FadeRange Near="940" Far="1020" />
+</Fog>
+
+<Post>
+    <Bloom Strength="0.35" />
+    <Haze Strength="0.2" Distance="520" />
+</Post>
