@@ -92,9 +92,9 @@ shadow later updates.
 
 | Tool | Key | |
 | --- | --- | --- |
-| Select | V | Click a prop, light or marker; Shift+click or drag a box to select several. G move, R rotate, T scale (or the transform bar over the view), arrows and PgUp/PgDn nudge, `,` `.` turn, `-` `=` scale, Del delete, Ctrl+D duplicate, Ctrl+C/V copy and paste, End drop to ground, H hide, F focus. A prop dragged into another chunk moves into it. |
+| Select | V | Click a prop, light or marker; Shift+click or drag a box to select several, and drag what's selected to slide it over the ground and props. G move, R rotate, T scale (or the transform bar over the view), arrows and PgUp/PgDn nudge, `,` `.` turn, `-` `=` scale, Del delete, Ctrl+D duplicate, Ctrl+C/V copy and paste, End drop down, H hide, F focus. A right-click opens what can be done to the object or spot under the pointer. A prop dragged into another chunk moves into it. |
 | Sculpt | B | Raise and lower (Shift swaps them), smooth, flatten (to where the stroke started), slope (onto the plane under the brush where the stroke started, for lumpy hillsides), level (to a set height; Alt+click picks it), ramp (drag from one point to another), terrace (steps of a set height), erode (cliffs slide to a 35° slope), sharpen and noise. Keys 1 to 0 pick them. |
-| Exclude | X | Cut holes in the ground for cave mouths and interiors, or restore it. Shift+click a cave model to limit the brush to inside its bounds, or cut all the ground inside it at once. Holes leave the ground's mesh and collision; a tile cut out entirely keeps one buried, degenerate triangle so its collision tree stays valid. |
+| Exclude | X | Cut holes in the ground for cave mouths and interiors, or restore it. Shift+click (or right-click) a cave, tunnel or any model, placed or live, to limit the brush to it or cut all the ground in it at once, by its shape: ground with the model above and below it (a cave's inside, a tunnel's bore; a hill over a tunnel stays), all ground under it, or its box. Its Caves and tunnels list places one that cuts its way in as it lands. Holes leave the ground's mesh and collision; a tile cut out entirely keeps one buried, degenerate triangle so its collision tree stays valid. |
 | Eco | M | Paint any eco: the zone's own, or any of the client's (every zone's eco lists and its `.eco` definitions, 107 in all), searchable with texture swatches. One the zone doesn't have joins its eco list on the first stroke. The highlight shows where the selected eco is, and painting also tints the colour map toward the eco's colour, which is how the stock colour maps look (a flat tint per eco). Alt+click picks the eco under the pointer and its tint from the colour map, which painting then uses instead. A tile holds up to 5 ecos. |
 | Colour | C | Paint the colour map directly; Alt+click picks a colour. |
 | Env | N | Paint tile environments, the `ObjectTerrainData.xml` row that picks a tile's sky, minimap and atlas. 0 uses the zone's sky. *New environment…* adds one of your own (a name, sky, minimap tile set and atlas page; ids after the game's last), and *Edit* changes one; they go to clients in the `ClientPatches/Resources/ObjectTerrainData.xml` client patch, which the client reads when it starts. |
@@ -153,7 +153,8 @@ axis nearest to where the camera looks), PgUp and PgDn up and down, by the move 
 turn by the turn snap or 15°; `-` and `=` scale. Shift makes a nudge 4× (90° for turns). A run of nudges is
 one undo step.
 
-**Actions** (on everything selected): drop to the ground (End), align to the slope, stand upright, random
+**Actions** (on everything selected, from the inspector or a right-click): drop down (End: onto what's below
+its base, the ground or a prop's top, so a crate dropped onto a table sits on the table), align to the slope, stand upright, random
 turn, random scale (in the Props tool's range), reset; select all like this; hide the model (H, Shift+H
 shows everything again), e.g. trees in the way of terrain work; replace the model with the content
 browser's pick, keeping place, turn and scale; duplicate (Ctrl+D), copy and paste at the pointer (Ctrl+C,
@@ -162,12 +163,24 @@ Ctrl+V) and delete. Each is one undo step.
 **Placing.** The Props tool places one object at a time or scatters them under a brush: a set of models (or
 the content pick) dropped at random, no closer than a spacing, with Shift+drag erasing them again; one
 undo step per stroke. Either way new objects can get a random turn, a random scale in a range, stand on the
-slope, sit above or sink into the ground, and take a texture variant and tint.
+slope, sit above or sink into the ground, and take a texture variant and tint. With *Land on props* a new
+object lands on top of the prop under the pointer (untick it to place through props onto the ground), and with
+*Cut the ground inside it* a cave or tunnel opens its mouth and bore as it lands.
+
+**Sliding and the right-click menu.** In the Select tool, press on what's selected and drag: it slides over the
+ground and props under the pointer, as one undo step (live objects and the zone's own NPCs go to the game when
+let go). A right-click (without dragging, which turns the view) opens what can be done to what's under the
+pointer: focus, drop down, align, duplicate, copy, use as the content pick, select all like it, hide, cut the
+ground inside it, delete; for live objects, make an NPC, bake, script; on the ground, place the content pick or
+paste there, add a light, move the selection there, or send a selected player there.
 
 ## The viewport
 
-It draws the world as the client does, with its coordinates as they are. The ground is the colour map with
-each eco's detail texture blended in by the eco weights (up to 4 per chunk). Props use their own normals and
+It draws the world as the client does, with its coordinates as they are. The ground is each eco's detail
+texture, blended by the eco weights (up to 4 per chunk), times the colour map doubled, in gamma space, as the
+client's terrain shaders (`runtimeterrain_*_def.fxo`) do. Every texture is uploaded as it's stored (the PNG
+fallback for formats the DDS loader can't read too) with its v negated back, so a mask, glow or specular map or
+second layer lines up with its colour texture whichever way each loaded. Props use their own normals and
 diffuse textures, uploaded as the client's DDS files with their mipmaps, and their materials are drawn with the
 game's shader math (`web/js/materials.js`, from the client's compiled effects):
 - cutout foliage and fences drop pixels below the game's 0.78 alpha, and are two-sided where the material says;
@@ -226,6 +239,14 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   its placed objects (furniture props, world NPCs and placed models), as the server has them now, drawn from
   their own actors as the client puts them together (see How it works). Players glide between the server's
   updates and show on the minimap; names show close up. The Select tool's search finds them by name too.
+- **The zone's own NPCs (admins).** An NPC or mob the zone's Lua scripts spawn (`src/Scripts/Zone/<script>.lua`,
+  the zone definition's `Scripts`) can be moved, turned, dropped and deleted like a placed object, or made a
+  placed NPC (*Make it a placed NPC*: a world NPC in the database where it stands, edited like any other). The
+  inspector says which line spawns it (found by its guid, else by its definition and spot); each change shows in
+  game at once and rewrites that line (numbers it didn't change stay as the script wrote them), or takes it out,
+  so the zone starts that way. Ctrl+Z puts both back. One the script spawns from code (a variable spot), or that
+  keeps it in a variable for more code, isn't rewritten, and the inspector says so; collection nodes come from
+  their pools.
 - **Placed objects are editable, live.** They glow faintly. Select one and G, R and T move, turn (yaw, pitch
   and roll) and scale it, as do the nudge keys; the inspector takes exact numbers, drops it to the ground
   (End), duplicates (Ctrl+D) and deletes it (Del). Each change goes to the server when the gizmo lets go (or
@@ -271,6 +292,14 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   running servers' copies; the panel then has the Gateway reload them. A definition can carry a `Conversation`
   (`Start` and `Nodes`, as the game checks them): every NPC spawned from it says that when clicked, unless it has
   its own, and a reload changes what they say from their next click.
+- **The admin panel's Coin Store and icons.** The panel's Store page changes the coin store's files through the
+  editor too: `GET /api/store/categories` (what the client calls each category), `POST /api/store/save|remove`
+  for `src/Resources/CoinStoreItems.json` and prices (`Cost`, `MemberDiscount`, `ResellValue`) in
+  `ClientItemDefinitions.json`, and `POST /api/store/bundle/save|delete` for `src/Resources/CoinStoreBundles.json`.
+  Only the entries an edit changes are rewritten, so the 28 MB item file stays as it was otherwise. `GET
+  /api/icon?set=|image=|notification=&size=&tint=` draws a game icon as PNG from the client's image tables (an
+  item's or mount's image set, a title's or house's image, an NPC's overhead icon), tinted where its mask says;
+  the panel shows them wherever it lists items, mounts and houses.
 - **Baking.** *Bake into the zone* turns a placed object into one of the chunk's own props, where it stands,
   and takes it out of the game: build in the live world, then make it part of the zone (Save, Test in game).
 - **Players.** Selecting one shows what they wear, and sends them to the ground in the middle of the view,

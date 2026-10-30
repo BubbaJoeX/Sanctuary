@@ -221,12 +221,19 @@ It listens on loopback by default; the AdminPanel's backend is its only client, 
 | `POST /api/login` | Checks a referee's game username and password |
 | `GET /api/status`, `PUT /api/settings` | Players online, world lock, message of the day, clock speed |
 | `POST /api/broadcast`, `PUT /api/events/{key}` | Broadcasts (optionally as a banner, or to one zone); turns events on and off |
-| `GET /api/players`, `POST /api/players/{id}/teleport\|message\|kick` | Players online and what a referee can do about them |
+| `GET /api/players`, `POST /api/players/{id}/teleport\|message\|kick` | Players online (frozen, muted, out of bounds) and what a referee can do about them |
+| `POST /api/players/{id}/command` | Runs the GM panel's player-card commands on an online player as if they typed them, with the referee's role (`!quest`, `!pet`, `!title`, `!profile`, `!collection status\|grant\|reset`, `!tutorial`, `!fte`, `!kill`, `!fly`, `!stat`, `!packetlog`, `!minigame`, `!coins`, `!give`, `!reward`); what they answer comes back instead of going to the player, and the audit log names the referee |
+| `PUT /api/players/{id}/frozen`, `POST /api/players/{id}/houses` | Freezes a player or lets them go, as `!freeze` does; gives them a house (admins) |
+| `POST /api/zones/{key}/command`, `POST /api/zones/{key}/gather` | A zone's tools: `!countdown`, `!freeze zone`, `!area list\|client` and `!host` run there with someone in it standing in; gather sends everyone (referees aside) to a spot |
+| `GET /api/houses` | The houses players can own |
+| `GET\|POST /api/codes`, `PUT\|DELETE /api/codes/{code}` | Redeem codes (admins), as `!code` makes them: coins, up to eight items, limits in all and per character, and when |
+| `GET /api/store/categories\|items\|bundles` | The coin store as the game has it: its categories with their item counts, what it sells (or, with `all`, any item) with prices and flags, and its bundles |
+| `GET\|POST /api/custom-items`, `GET\|PUT\|DELETE /api/custom-items/{id}` | Item Gen's custom items (admins), as `!itemgen` makes them: copies of an item with fields (name, icon, price, discount, model, ...) overridden |
 | `GET /api/commands`, `POST /api/command` | Chat commands, run as the referee's character in the world, with what they answered |
 | `GET /api/accounts?search=`, `GET /api/accounts/{id}` | Accounts (online or not) whose username or a character's name matches, with their characters, role, ban and mute |
 | `PUT\|DELETE /api/accounts/{id}/ban\|mute`, `PUT /api/accounts/{id}/role` | Bans (for a while or for good, signing their characters out) and mutes as `!mod` does, and (admins) makes an account a player, mod or admin; never one's own account or one of as high a role |
 | `GET /api/characters/{id}`, `POST …/items\|items/take\|coins` | A character's coins, play time, inventory and mounts (the game's copy while they're online), and giving or taking items (online) and coins |
-| `GET /api/items?search=` | The game's items by name or id |
+| `GET /api/items?search=` | The game's items by name or id, with their icons |
 | `GET /api/quests`, `GET /api/quests/options`, `POST /api/quests/custom`, `GET\|PUT\|DELETE /api/quests/custom/{id}`, `POST …/publish\|unpublish` | GM-authored quests (admins), as `!questedit` makes them: their giver and turn-in NPCs, goals (talk, gather, reach a spot) and rewards, published to make them live; with the game's own quests for reference |
 | `GET /api/conversations?search=` | The NPCs placed in running world zones (admins), those that talk first (with their own conversation or their definition's), for editing it through `…/objects/{id}/conversation` |
 | `GET /api/logs`, `GET /api/logs/{kind}?date=&search=&level=` | The gateway's own logs, newest first: chat and the audit log, and (admins) its info and error logs |
@@ -239,6 +246,7 @@ It listens on loopback by default; the AdminPanel's backend is its only client, 
 | `GET /api/scripts/library`, `GET\|PUT\|DELETE /api/scripts/library/{name}` | The script library (admins): the shipped templates and referees' saved scripts |
 | `GET\|PUT /api/zones/{key}/objects/{id}/settings` | A placed NPC's, model's or prop's name, nameplate, animation, aliases, effect, height offset and icons, an NPC's disposition, mob, behaviour, speed and event, and anyone's conditions (hours, quest state, item, referees only, event), as one undo step |
 | `GET\|PUT\|DELETE /api/zones/{key}/objects/{id}/conversation` | A world NPC's conversation (admins), as `!conv` builds it, and its definition's, which it says while it has none of its own |
+| `GET\|PATCH\|DELETE /api/zones/{key}/zone-npcs/{id}`, `POST …/adopt` | One of the zone's own NPCs, the ones its Lua scripts spawn (admins): where it starts, moving, turning and tilting it, taking it out, or making it a world NPC where it stands; each one undo step. The zone editor rewrites or removes its spawn line to match |
 | `GET /api/npc-options` | What settings can be: the GM panel's animations, mobs, world events, seasons (with their days and whether they're on), quest states, the icons the game's NPCs use, and the game clock's hour |
 | `POST /api/zones/{key}/definitions/{def}/respawn` | Respawns the zone's placed NPCs built on a definition, after `Npcs.json` was reloaded |
 
