@@ -1,0 +1,23 @@
+{
+  "$type": "Housing",
+  "Id": 1103,
+  "Name": "hsg_lot_blossom_02",
+  "Type": "Housing",
+  "TileSize": 64,
+  "StartLatitude": 0,
+  "StartLongitude": 0,
+  "EndLatitude": 12,
+  "EndLongitude": 12,
+  "SpawnPosition": [
+    318.0,
+    25.243,
+    494.0
+  ],
+  "SpawnRotation": [
+    0.0,
+    0,
+    -1.0,
+    0
+  ],
+  "Sky": "sky_frmcp_blossom.xml"
+}

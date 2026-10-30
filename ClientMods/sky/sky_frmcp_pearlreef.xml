@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pearlshade Reef (Sanctuary housing lot): sunlit shallows on the sea floor. -->
+
+<Dome>
+    <Texture File="dome_frmcp_pearlreef_02.tga" />
+</Dome>
+
+<Horizon>
+    <Texture R="120" G="230" B="230" Opacity="0.35" File="ring_blank.tga" Bottom="-10" Top="40" />
+</Horizon>
+
+<SunLight>
+    <Direction Heading="200" Pitch="72" />
+    <Color R="196" G="240" B="255" Brightness="0.9" />
+    <Shadows Enabled="true" />
+    <Flare>
+    </Flare>
+    <Aura>
+        <Color R="160" G="255" B="255" Brightness="0.4" />
+        <Shape Size="0.5" Focus="0.5" />
+        <Fringe Brightness="0.5" Width="1" />
+    </Aura>
+</SunLight>
+
+<Ambient>
+    <Texture File="ambient_frmcp_pearlreef_02.tga" Brightness="1.2" />
+</Ambient>
+
+<Reflection>
+    <CubeMap File="reflection_yeticave.dds" Brightness="1" />
+</Reflection>
+
+<Fog>
+    <Color R="30" G="112" B="136" />
+    <Range Near="24" Far="260" />
+    <FadeRange Near="250" Far="420" />
+</Fog>
+
+<Post>
+    <Bloom Strength="0.4" />
+    <Haze Strength="0.35" Distance="180" />
+</Post>

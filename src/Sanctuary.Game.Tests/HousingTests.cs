@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Sanctuary.Core.IO;
+using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Resources;
 using Sanctuary.Game.Resources.Definitions.Zones;
 using Sanctuary.Packet;
@@ -71,7 +72,8 @@ public sealed class HousingTests
         Assert.IsTrue(itemIds.Count > 0);
         CollectionAssert.AllItemsAreUnique(itemIds);
 
-        foreach (var itemId in itemIds)
+        // A new lot's deed is a custom item (a copy of a stock deed), kept in the database, not ClientItemDefinitions.json.
+        foreach (var itemId in itemIds.Where(x => !CustomItemManager.IsCustomItemId(x)))
             Assert.IsTrue(houseItemIds.Contains(itemId), $"Item {itemId} is not a house item.");
     }
 
