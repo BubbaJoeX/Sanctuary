@@ -113,6 +113,12 @@ public sealed class Player : ClientPcData, IEntity
     public ConcurrentQueue<string>? SystemMessageCapture { get; set; }
 
     /// <summary>
+    /// While set with <see cref="SystemMessageCapture"/>, collected system messages aren't sent to the player: a
+    /// command the admin panel runs on them answers the referee, not them.
+    /// </summary>
+    public bool SystemMessageCaptureOnly { get; set; }
+
+    /// <summary>
     /// Where a referee stood before their last !gm goto/go/gather jump; !gm back returns there.
     /// </summary>
     public (int ZoneDefinitionId, ulong? OwnerId, Vector4 Position, Quaternion Rotation)? ReturnPoint { get; set; }

@@ -511,7 +511,7 @@ public static partial class AdminApiEndpoints
                 character.LastLogin,
                 User = new { character.User.Id, character.User.Username, character.User.IsAdmin, character.User.IsMod, character.User.LockedUntil, character.User.MutedUntil },
                 Items = character.Items.Select(item => new { item.Id, item.Definition, item.Count, item.Tint, Equipped = item.Profiles.Any() }).ToList(),
-                Mounts = character.Mounts.Select(mount => new { mount.Id, mount.Definition, mount.IsUpgraded }).ToList()
+                Mounts = character.Mounts.Select(mount => new { mount.Id, mount.Definition, mount.IsUpgraded, mount.Tint }).ToList()
             })
             .SingleOrDefault();
 
@@ -542,23 +542,35 @@ public static partial class AdminApiEndpoints
             character.LastLogin,
             player is null ? null : ToOnlineModel(player),
             items
-                .Select(item => new InventoryItemModel(
-                    item.Id,
-                    item.Definition,
-                    resourceManager.ClientItemDefinitions.TryGetValue(item.Definition, out var definition) ? ItemName(definition) : $"item {item.Definition}",
-                    item.Count,
-                    item.Tint,
-                    item.Equipped))
+                .Select(item =>
+                {
+                    resourceManager.ClientItemDefinitions.TryGetValue(item.Definition, out var definition);
+
+                    return new InventoryItemModel(
+                        item.Id,
+                        item.Definition,
+                        definition is null ? $"item {item.Definition}" : ItemName(definition),
+                        item.Count,
+                        item.Tint,
+                        item.Equipped,
+                        definition?.Icon.Id ?? 0,
+                        item.Tint != 0 ? item.Tint : definition?.Icon.TintId ?? 0);
+                })
                 .OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray(),
             character.Mounts
-                .Select(mount => new OwnedMountModel(
-                    mount.Id,
-                    mount.Definition,
-                    resourceManager.Mounts.TryGetValue(mount.Definition, out var definition)
-                        ? GameNameHelper.Get(definition.NameId, $"mount {mount.Definition}")
-                        : $"mount {mount.Definition}",
-                    mount.IsUpgraded))
+                .Select(mount =>
+                {
+                    resourceManager.Mounts.TryGetValue(mount.Definition, out var definition);
+
+                    return new OwnedMountModel(
+                        mount.Id,
+                        mount.Definition,
+                        definition is null ? $"mount {mount.Definition}" : GameNameHelper.Get(definition.NameId, $"mount {mount.Definition}"),
+                        mount.IsUpgraded,
+                        definition?.ImageSetId ?? 0,
+                        mount.Tint != 0 ? mount.Tint : definition?.TintId ?? 0);
+                })
                 .OrderBy(mount => mount.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray());
     }
@@ -596,7 +608,7 @@ public static partial class AdminApiEndpoints
     }
 
     private static ItemSearchModel ToItemSearchModel(ClientItemDefinition definition) =>
-        new(definition.Id, ItemName(definition), definition.Slot, definition.Rarity, definition.MaxStackSize);
+        new(definition.Id, ItemName(definition), definition.Slot, definition.Rarity, definition.MaxStackSize, definition.Icon.Id, definition.Icon.TintId);
 
     private static string ItemName(ClientItemDefinition definition) =>
         GameNameHelper.Get(definition.NameId) ?? definition.Comment ?? $"item {definition.Id}";

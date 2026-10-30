@@ -53,7 +53,46 @@ public sealed record PlayerModel(
     bool GodMode,
     bool Frozen,
     bool Muted,
-    string CharacterId);
+    string CharacterId,
+    bool OutOfBounds = false);
+
+public sealed record FrozenRequest(bool Frozen);
+
+public sealed record HouseGrantRequest(int House);
+
+/// <summary>
+/// A house players can own: <see cref="Icon"/> is an image id (Images.txt), <see cref="Zone"/> its zone definition.
+/// </summary>
+public sealed record HouseModel(int Id, string Name, int Icon, int Zone);
+
+/// <summary>
+/// Where to gather a zone's players: everyone, or those within <see cref="Radius"/> of the spot.
+/// </summary>
+public sealed record GatherRequest(float X, float Z, float? Radius);
+
+public sealed record GatherResult(int Players);
+
+public sealed record CodeCreateRequest(string? Code);
+
+/// <summary>
+/// A redeem code, as !code shows it: what it gives (coins and up to eight items), how often it may be redeemed in all
+/// (<see cref="MaxUses"/>, 0 unlimited) and by each character, and when.
+/// </summary>
+public sealed record CodeModel(
+    string Code,
+    int Coins,
+    CodeItemModel[] Items,
+    int MaxUses,
+    int Uses,
+    int PerCharacter,
+    DateTimeOffset? Starts,
+    DateTimeOffset? Expires,
+    bool Enabled,
+    bool MembersOnly,
+    string? Note,
+    DateTimeOffset Created);
+
+public sealed record CodeItemModel(int Id, int Quantity);
 
 public sealed record TeleportRequest(string? Zone, float? X, float? Y, float? Z, string? ToPlayer);
 
@@ -114,9 +153,12 @@ public sealed record AccountRefModel(string Id, string Username, string Role, Da
 /// <summary>
 /// An item a character holds: <see cref="Id"/> is theirs, <see cref="Definition"/> the kind of item.
 /// </summary>
-public sealed record InventoryItemModel(int Id, int Definition, string Name, int Count, int Tint, bool Equipped);
+/// <summary>
+/// An item a character holds; <see cref="IconId"/> is its icon's image set, drawn in <see cref="Tint"/> when it has one.
+/// </summary>
+public sealed record InventoryItemModel(int Id, int Definition, string Name, int Count, int Tint, bool Equipped, int IconId = 0, int IconTint = 0);
 
-public sealed record OwnedMountModel(int Id, int Definition, string Name, bool Upgraded);
+public sealed record OwnedMountModel(int Id, int Definition, string Name, bool Upgraded, int IconId = 0, int Tint = 0);
 
 public sealed record ItemGrantRequest(int Item, int Quantity = 1, int Tint = 0);
 
@@ -127,7 +169,62 @@ public sealed record ItemTakeRequest(int Item, int Quantity = 1);
 /// </summary>
 public sealed record CoinsRequest(int Amount);
 
-public sealed record ItemSearchModel(int Id, string Name, int Slot, int Rarity, int MaxStackSize);
+/// <summary>
+/// An item found by name or id. <see cref="IconId"/> is an image set id (ImageSets.txt), <see cref="IconTint"/> a
+/// Tints.xml id.
+/// </summary>
+public sealed record ItemSearchModel(int Id, string Name, int Slot, int Rarity, int MaxStackSize, int IconId = 0, int IconTint = 0);
+
+/// <summary>
+/// The store's categories (names are client string ids) and the groups the client shows them in.
+/// </summary>
+public sealed record StoreCategoriesModel(StoreCategoryModel[] Categories, StoreCategoryGroupModel[] Groups, int Items, int Bundles);
+
+public sealed record StoreCategoryModel(int Id, int NameId, int IconId, bool Shown, int Items);
+
+public sealed record StoreCategoryGroupModel(int Id, int[] Categories);
+
+public sealed record StoreItemsModel(int Total, StoreItemModel[] Items);
+
+/// <summary>
+/// An item and how the store sells it: <see cref="Price"/> is what players pay (<see cref="Cost"/> less the
+/// <see cref="MemberDiscount"/> percent), <see cref="ResellValue"/> what they get selling one back.
+/// </summary>
+public sealed record StoreItemModel(
+    int Id,
+    string Name,
+    bool InStore,
+    int CategoryId,
+    int TintGroupId,
+    bool BuyDisabled,
+    bool CoinStoreOnly,
+    bool Hidden,
+    int Cost,
+    int MemberDiscount,
+    int Price,
+    int ResellValue,
+    int IconId,
+    int IconTint,
+    int Type,
+    int MaxStackSize,
+    bool Custom,
+    bool Bundle);
+
+public sealed record StoreBundleModel(int Id, string Name, string? Comment, int Price, int IconId, int IconTint, int? CategoryId,
+    StoreBundleItemModel[] Items, int Coins);
+
+public sealed record StoreBundleItemModel(int Id, string Name, int Quantity, int Tint, int IconId, int IconTint);
+
+/// <summary>
+/// An Item Gen item: <see cref="Id"/> is its item id (9000000 + its row), <see cref="Fields"/> each overridable field's
+/// value as the game has it and whether this item overrides it.
+/// </summary>
+public sealed record CustomItemModel(int Id, string Label, int Base, string BaseName, string Name, int IconId, int IconTint, int Price,
+    CustomItemFieldModel[] Fields, DateTimeOffset Updated);
+
+public sealed record CustomItemFieldModel(string Field, string Value, bool Overridden);
+
+public sealed record CustomItemCreateRequest(int Base, string? Label, Dictionary<string, string>? Fields);
 
 /// <summary>
 /// A gateway log there's something to read in: its days, newest first.
@@ -407,7 +504,7 @@ public sealed record EditResult(string? Id, int Undo);
 
 public sealed record UndoResult(string? Undid, int Undo);
 
-public sealed record CatalogEntry(int Id, string Name, string? Model);
+public sealed record CatalogEntry(int Id, string Name, string? Model, int IconId = 0, int IconTint = 0);
 
 /// <summary>
 /// A world NPC's or prop's GM script as saved, and whether that's what is running (a saved script that failed to
