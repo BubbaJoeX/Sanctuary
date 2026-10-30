@@ -34,4 +34,15 @@ public class BaseEncounterPacket
         writer.Write(EncounterId);
         writer.Write(ReplyId);
     }
+
+    public bool TryRead(ref PacketReader reader)
+    {
+        if (!reader.TryRead(out short opCode) || opCode != OpCode)
+            return false;
+
+        if (!reader.TryRead(out short subOpCode) || subOpCode != SubOpCode)
+            return false;
+
+        return reader.TryRead(out EncounterId) && reader.TryRead(out ReplyId);
+    }
 }
