@@ -2,14 +2,25 @@
 
 namespace Sanctuary.Packet;
 
+/// <summary>
+/// Encounters (battles, and the minigames run as encounters). Every one, either way, starts with the sub-op and two
+/// ints; the client drops a packet without them.
+/// </summary>
 public class BaseEncounterPacket
 {
     public const short OpCode = 41;
 
     private short SubOpCode;
 
-    public int Unknown;
-    public int Unknown2;
+    /// <summary>
+    /// The encounter instance (live: the instance number in the high 16 bits over the definition id).
+    /// </summary>
+    public int EncounterId;
+
+    /// <summary>
+    /// Echoed back in most of the client's replies (live: always 1008).
+    /// </summary>
+    public int ReplyId;
 
     public BaseEncounterPacket(short subOpCode)
     {
@@ -20,5 +31,7 @@ public class BaseEncounterPacket
     {
         writer.Write(OpCode);
         writer.Write(SubOpCode);
+        writer.Write(EncounterId);
+        writer.Write(ReplyId);
     }
 }
