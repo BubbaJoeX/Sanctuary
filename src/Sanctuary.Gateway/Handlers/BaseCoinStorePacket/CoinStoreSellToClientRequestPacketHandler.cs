@@ -13,6 +13,7 @@ using Sanctuary.Database.Entities;
 using Sanctuary.Game;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions;
+using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
@@ -24,10 +25,12 @@ public static class CoinStoreSellToClientRequestPacketHandler
 {
     private const int NoTintGroupId = 0;
     private const int HouseItemType = 16;
+    private const int MaxBundleQuantity = 99;
 
     private static ILogger _logger = null!;
     private static IResourceManager _resourceManager = null!;
     private static IHousingManager _housingManager = null!;
+    private static IRewardManager _rewardManager = null!;
     private static IDbContextFactory<DatabaseContext> _dbContextFactory = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
@@ -37,6 +40,7 @@ public static class CoinStoreSellToClientRequestPacketHandler
 
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
         _housingManager = serviceProvider.GetRequiredService<IHousingManager>();
+        _rewardManager = serviceProvider.GetRequiredService<IRewardManager>();
         _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
     }
 
@@ -58,6 +62,18 @@ public static class CoinStoreSellToClientRequestPacketHandler
             }
         };
 
+        // A quantity under one would pay the player and take items away.
+        if (coinStoreSellToClientRequestPacket.Quantity < 1)
+        {
+            _logger.LogWarning("User tried to buy {quantity} of an item. {guid}", coinStoreSellToClientRequestPacket.Quantity, connection.Player.Guid);
+
+            coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.InvalidQuantity;
+
+            connection.SendTunneled(coinStoreTransactionCompletePacket);
+
+            return true;
+        }
+
         if (!_resourceManager.ClientItemDefinitions.TryGetValue(coinStoreSellToClientRequestPacket.ItemRecord.Definition, out var clientItemDefinition))
         {
             _logger.LogWarning("User tried to buy unknown item definition. {guid} {definition}", connection.Player.Guid, coinStoreSellToClientRequestPacket.ItemRecord.Definition);
@@ -71,11 +87,15 @@ public static class CoinStoreSellToClientRequestPacketHandler
 
         // NPC merchants sell what's on their own list; everything else must be in the coin store.
         int tintGroupId;
+        var fromCoinStore = false;
 
         if (MerchantHelper.TryGetEntry(connection.Player, coinStoreSellToClientRequestPacket.MerchantGuid, clientItemDefinition.Id, out var merchantEntry))
             tintGroupId = merchantEntry.AvailableTintGroupId;
-        else if (_resourceManager.CoinStoreItems.TryGetValue(clientItemDefinition.Id, out var coinStoreItem))
+        else if (_resourceManager.CoinStoreItems.TryGetValue(clientItemDefinition.Id, out var coinStoreItem) && !coinStoreItem.BuyDisabled)
+        {
             tintGroupId = coinStoreItem.TintGroupId;
+            fromCoinStore = true;
+        }
         else if (MerchantHelper.TryGetEntryInReach(connection.Player, clientItemDefinition.Id, out merchantEntry))
             tintGroupId = merchantEntry.AvailableTintGroupId;
         else
@@ -102,7 +122,18 @@ public static class CoinStoreSellToClientRequestPacketHandler
         }
 
         // Everyone is a member now that membership no longer exists, and that's the price the client shows.
-        var totalCost = clientItemDefinition.GetMemberPurchasePrice() * coinStoreSellToClientRequestPacket.Quantity;
+        var longCost = (long)clientItemDefinition.GetMemberPurchasePrice() * coinStoreSellToClientRequestPacket.Quantity;
+
+        if (longCost > int.MaxValue)
+        {
+            coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.InvalidQuantity;
+
+            connection.SendTunneled(coinStoreTransactionCompletePacket);
+
+            return true;
+        }
+
+        var totalCost = (int)longCost;
 
         if (connection.Player.Coins < totalCost)
         {
@@ -119,6 +150,9 @@ public static class CoinStoreSellToClientRequestPacketHandler
 
         if (!hasTintGroup)
             tint = clientItemDefinition.Icon.TintId;
+
+        if (fromCoinStore && _resourceManager.CoinStoreBundles.TryGetValue(clientItemDefinition.Id, out var bundle))
+            return BuyBundle(connection, coinStoreSellToClientRequestPacket, coinStoreTransactionCompletePacket, clientItemDefinition, bundle, totalCost);
 
         if (clientItemDefinition.Type == ItemDefinitionHelper.PetItemType)
             return BuyPet(connection, coinStoreSellToClientRequestPacket, coinStoreTransactionCompletePacket, clientItemDefinition, tint, hasTintGroup, totalCost);
@@ -290,6 +324,57 @@ public static class CoinStoreSellToClientRequestPacketHandler
 
         connection.SendTunneled(coinStoreTransactionCompletePacket);
 
+        connection.Player.CoinStoreTransactions.Add(coinStoreTransactionCompletePacket.TransactionRecord);
+
+        return true;
+    }
+
+    /// <summary>
+    /// A bundle: its price buys what it holds, each item and its coins as many times as bought, rather than the store
+    /// item it's sold as.
+    /// </summary>
+    private static bool BuyBundle(GatewayConnection connection, CoinStoreSellToClientRequestPacket coinStoreSellToClientRequestPacket,
+        CoinStoreTransactionCompletePacket coinStoreTransactionCompletePacket, ClientItemDefinition clientItemDefinition,
+        CoinStoreBundleDefinition bundle, int totalCost)
+    {
+        var quantity = coinStoreSellToClientRequestPacket.Quantity;
+
+        if (quantity > MaxBundleQuantity || (long)bundle.Coins * quantity > int.MaxValue)
+        {
+            coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.InvalidQuantity;
+            connection.SendTunneled(coinStoreTransactionCompletePacket);
+            return true;
+        }
+
+        if (totalCost > 0 && !_rewardManager.TryTakeCoins(connection.Player, totalCost))
+        {
+            coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.NotEnoughCoins;
+            connection.SendTunneled(coinStoreTransactionCompletePacket);
+            return true;
+        }
+
+        foreach (var item in bundle.Items)
+        {
+            // Untinted, an item comes in its icon's tint, as the store sells it.
+            var tint = item.Tint != 0 || !_resourceManager.ClientItemDefinitions.TryGetValue(item.Id, out var itemDefinition)
+                ? item.Tint
+                : itemDefinition.Icon.TintId;
+
+            if (!_rewardManager.TryGrantItem(connection.Player, item.Id, tint, item.Quantity * quantity))
+                _logger.LogError("Failed to give {player} bundle {bundle}'s item {item}.", connection.Player.Guid, bundle.Id, item.Id);
+        }
+
+        if (bundle.Coins > 0 && !_rewardManager.TryGrantCurrency(connection.Player, CurrencyType.Coins, bundle.Coins * quantity))
+            _logger.LogError("Failed to give {player} bundle {bundle}'s coins.", connection.Player.Guid, bundle.Id);
+
+        coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.Success;
+        coinStoreTransactionCompletePacket.TransactionRecord.Id = connection.Player.CoinStoreTransactions.Count + 1;
+        coinStoreTransactionCompletePacket.TransactionRecord.Timestamp = DateTimeOffset.UtcNow;
+        coinStoreTransactionCompletePacket.TransactionRecord.ItemRecord.Definition = clientItemDefinition.Id;
+        coinStoreTransactionCompletePacket.TransactionRecord.ItemRecord.Tint = clientItemDefinition.Icon.TintId;
+        coinStoreTransactionCompletePacket.TransactionRecord.Quantity = quantity;
+        coinStoreTransactionCompletePacket.TransactionRecord.Price = totalCost;
+        connection.SendTunneled(coinStoreTransactionCompletePacket);
         connection.Player.CoinStoreTransactions.Add(coinStoreTransactionCompletePacket.TransactionRecord);
 
         return true;

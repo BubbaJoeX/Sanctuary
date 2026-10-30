@@ -17,6 +17,7 @@ using Sanctuary.Database.Entities;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Resources.Definitions.Zones;
 using Sanctuary.Game.Zones;
+using Sanctuary.Packet;
 
 namespace Sanctuary.Game;
 
@@ -48,6 +49,21 @@ public class ZoneManager : IZoneManager
 
         _resourceManager = resourceManager;
         _serviceProvider = serviceProvider;
+
+        // Players get the coin store's list once as they enter the world; a reload sends it again to everyone in it.
+        _resourceManager.Reloaded += name =>
+        {
+            if (string.Equals(name, "coinstore", StringComparison.OrdinalIgnoreCase))
+                SendCoinStoreItemList();
+        };
+    }
+
+    private void SendCoinStoreItemList()
+    {
+        var items = _resourceManager.CoinStoreItems.ToDictionary();
+
+        foreach (var player in _zones.Values.SelectMany(zone => zone.Players).Where(player => player.ShopDataSent))
+            player.SendTunneled(new CoinStoreItemListPacket { StaticItems = items });
     }
 
     public bool Load()

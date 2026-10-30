@@ -26,6 +26,7 @@ public interface IResourceManager
     CollectionNodeSpawnDefinitionCollection CollectionNodeSpawns { get; }
 
     CoinStoreItemCollection CoinStoreItems { get; }
+    CoinStoreBundleCollection CoinStoreBundles { get; }
 
     ItemClassDefinitionCollection ItemClasses { get; }
     EquipmentSlotDefinitionCollection EquipmentSlots { get; }

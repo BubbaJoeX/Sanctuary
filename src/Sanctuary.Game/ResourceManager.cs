@@ -40,6 +40,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string CollectionNodeSpawnsDirectory = Path.Combine(BaseDirectory, "CollectionNodeSpawns");
 
     public static readonly string CoinStoreItemsFile = Path.Combine(BaseDirectory, "CoinStoreItems.json");
+    public static readonly string CoinStoreBundlesFile = Path.Combine(BaseDirectory, "CoinStoreBundles.json");
 
     public static readonly string ItemClassesFile = Path.Combine(BaseDirectory, "ItemClasses.txt");
     public static readonly string EquipmentSlotDefinitionsFile = Path.Combine(BaseDirectory, "EquipmentSlotDefinitions.txt");
@@ -97,6 +98,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public CollectionNodeSpawnDefinitionCollection CollectionNodeSpawns { get; }
 
     public CoinStoreItemCollection CoinStoreItems { get; }
+    public CoinStoreBundleCollection CoinStoreBundles { get; }
 
     public ItemClassDefinitionCollection ItemClasses { get; }
     public EquipmentSlotDefinitionCollection EquipmentSlots { get; }
@@ -163,6 +165,7 @@ public class ResourceManager : IResourceManager, IDisposable
         CollectionNodeSpawns = new(_logger);
 
         CoinStoreItems = new(_logger);
+        CoinStoreBundles = new(_logger);
 
         ItemClasses = new(_logger);
         EquipmentSlots = new(_logger);
@@ -205,7 +208,8 @@ public class ResourceManager : IResourceManager, IDisposable
             ["nodepools"] = () => Reload(CollectionNodePools, () => CollectionNodePools.Load(CollectionNodePoolsFile)),
             ["nodetypes"] = () => Reload(CollectionNodeTypes, () => CollectionNodeTypes.Load(CollectionNodeTypesFile)),
             ["nodespawns"] = () => Reload(CollectionNodeSpawns, () => CollectionNodeSpawns.Load(CollectionNodeSpawnsDirectory)),
-            ["coinstore"] = () => Reload(CoinStoreItems, () => CoinStoreItems.Load(CoinStoreItemsFile)),
+            ["coinstore"] = () => Reload(CoinStoreItems, () => CoinStoreItems.Load(CoinStoreItemsFile))
+                && Reload(CoinStoreBundles, () => CoinStoreBundles.Load(CoinStoreBundlesFile)),
             ["itemclasses"] = () => Reload(ItemClasses, () => ItemClasses.Load(ItemClassesFile)),
             ["itemcategories"] = () => Reload(ItemCategories, () => ItemCategories.Load(ItemCategoriesFile)),
             ["itemcategorygroups"] = () => Reload(ItemCategoryGroups, () => ItemCategoryGroups.Load(ItemCategoryGroupsFile)),
@@ -409,6 +413,9 @@ public class ResourceManager : IResourceManager, IDisposable
         }
 
         if (!CoinStoreItems.Load(CoinStoreItemsFile))
+            return false;
+
+        if (!CoinStoreBundles.Load(CoinStoreBundlesFile))
             return false;
 
         if (!ItemClasses.Load(ItemClassesFile))
