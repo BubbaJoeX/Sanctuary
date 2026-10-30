@@ -4,8 +4,8 @@
 // is 256 x 256 units: heights every 2 units (129 x 129, [i along x][j along z]), eco weights 512 x 512 and its
 // colour map 1024 x 1024, both [x][z].
 //
-// The ground is drawn like the client's: the colour map tints it, and each eco's detail texture (tiled every
-// 256 / repeat units) adds its texture, blended by the eco weights. Up to 4 ecos per chunk are drawn.
+// The ground is drawn like the client's (runtimeterrain's shaders): each eco's detail texture (tiled every 256 / repeat
+// units), blended by the eco weights, times the colour map doubled, in gamma space. Up to 4 ecos per chunk are drawn.
 import * as THREE from "three";
 import { loadChunk } from "./api.js";
 import { loadTexture } from "./textures.js";
@@ -28,7 +28,6 @@ const fragmentPrelude = /* glsl */ `
   varying vec2 vWorldXZ;
   uniform sampler2D detailWeights;
   uniform sampler2D detail0, detail1, detail2, detail3;
-  uniform vec3 detailMean0, detailMean1, detailMean2, detailMean3;
   uniform vec4 detailPeriod;
   uniform float detailStrength;
   uniform sampler2D ecoMap;
@@ -40,8 +39,12 @@ const fragmentPrelude = /* glsl */ `
   uniform vec3 brush;          // x, z, radius; radius 0 hides it
   uniform vec3 brushColor;
 
-  vec3 detailSample(sampler2D tex, vec3 mean, float period) {
-    return texture2D(tex, vWorldXZ / period).rgb / max(mean, vec3(0.02));
+  // The client blends and multiplies colours as they're stored (gamma), not as light (linear).
+  vec3 toGamma(vec3 c) { return pow(max(c, vec3(0.0)), vec3(1.0 / 2.2)); }
+  vec3 toLinear(vec3 c) { return pow(max(c, vec3(0.0)), vec3(2.2)); }
+
+  vec3 detailSample(sampler2D tex, float period) {
+    return toGamma(texture2D(tex, vWorldXZ / period).rgb);
   }
 
   float gridLine(vec2 p, float spacing, float width) {
@@ -51,16 +54,17 @@ const fragmentPrelude = /* glsl */ `
     return max(l.x, l.y);
   }`;
 
-// After the colour map: the eco detail textures, each divided by its mean so the colour map keeps the tint.
+// After the colour map: the eco detail textures times the colour map, doubled (so mid grey leaves them as they are).
 const detailBlend = /* glsl */ `
   vec4 dw = texture2D(detailWeights, vMapUv);
   float dsum = dw.r + dw.g + dw.b + dw.a;
   if (dsum > 0.001 && detailStrength > 0.0) {
-    vec3 detail = dw.r * detailSample(detail0, detailMean0, detailPeriod.x)
-                + dw.g * detailSample(detail1, detailMean1, detailPeriod.y)
-                + dw.b * detailSample(detail2, detailMean2, detailPeriod.z)
-                + dw.a * detailSample(detail3, detailMean3, detailPeriod.w);
-    diffuseColor.rgb *= mix(vec3(1.0), clamp(detail / dsum, 0.0, 3.0), detailStrength);
+    vec3 detail = (dw.r * detailSample(detail0, detailPeriod.x)
+                + dw.g * detailSample(detail1, detailPeriod.y)
+                + dw.b * detailSample(detail2, detailPeriod.z)
+                + dw.a * detailSample(detail3, detailPeriod.w)) / dsum;
+    vec3 ground = toLinear(toGamma(diffuseColor.rgb) * detail * 2.0);
+    diffuseColor.rgb = mix(diffuseColor.rgb, ground, detailStrength);
   }`;
 
 // After lighting, before fog: what the editor draws over the ground.
@@ -178,7 +182,6 @@ export class TerrainChunk {
     };
     for (let k = 0; k < DETAILS; k++) {
       this.uniforms[`detail${k}`] = { value: blankTexture };
-      this.uniforms[`detailMean${k}`] = { value: new THREE.Color(1, 1, 1) };
     }
     this.updateDetailWeights();
 
@@ -221,7 +224,6 @@ export class TerrainChunk {
     for (let slot = 0; slot < DETAILS; slot++) {
       const detail = chosen[slot] === undefined ? null : this.manager.detail(this.ecos[chosen[slot]]);
       this.uniforms[`detail${slot}`].value = detail?.texture ?? blankTexture;
-      this.uniforms[`detailMean${slot}`].value = detail?.mean ?? new THREE.Color(1, 1, 1);
       this.uniforms.detailPeriod.value.setComponent(slot, detail?.period ?? 32);
     }
     this.detailTexture.needsUpdate = true;
@@ -359,7 +361,7 @@ export class TerrainManager {
     this.selectedEco = null;
     this.anisotropy = 1;
     this.falloff = "smooth";       // FALLOFFS: the brushes' shape
-    this.details = new Map();      // eco index -> { texture, mean, period }
+    this.details = new Map();      // eco index -> { texture, period }
     this.uniforms = {
       ecoOverlay: { value: 0 },
       envOverlay: { value: 0 },
@@ -380,15 +382,12 @@ export class TerrainManager {
     for (const cell of zone.chunks) this.cells.set(`${cell.row}_${cell.col}`, cell);
   }
 
-  // An eco's detail texture, its mean colour (linear, filled in when known) and how many units one repeat covers.
+  // An eco's detail texture and how many units one repeat covers.
   detail(ecoIndex) {
     if (!this.details.has(ecoIndex)) {
       const eco = this.zone.ecos.find((e) => e.index === ecoIndex);
       if (!eco) return null;
-      const entry = { texture: loadTexture(eco.texture), mean: new THREE.Color(0.5, 0.5, 0.5), period: 256 / Math.max(eco.repeat || 8, 1) };
-      fetch(`api/eco-colour?zone=${encodeURIComponent(this.zone.id)}&index=${ecoIndex}`).then((r) => r.json())
-        .then(([r, g, b]) => entry.mean.setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace)).catch(() => {});
-      this.details.set(ecoIndex, entry);
+      this.details.set(ecoIndex, { texture: loadTexture(eco.texture), period: 256 / Math.max(eco.repeat || 8, 1) });
     }
     return this.details.get(ecoIndex);
   }
