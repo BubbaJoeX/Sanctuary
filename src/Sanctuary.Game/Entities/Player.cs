@@ -826,7 +826,7 @@ public sealed class Player : ClientPcData, IEntity
         var previousRotation = Rotation;
         var wasInWorldZone = Zone is WorldZone;
 
-        if (!_zoneManager.TryMovePlayerToZone(zoneDefinitionId, ownerId, this, position, rotation, out var zone))
+        if (!_zoneManager.TryMovePlayerToZone(zoneDefinitionId, ownerId, this, position, rotation, out _))
             return false;
 
         if (wasInWorldZone)
@@ -834,13 +834,35 @@ public sealed class Player : ClientPcData, IEntity
             StartingZonePosition = previousPosition;
             StartingZoneRotation = previousRotation;
         }
-        PointOfInterestId = 0;
-        ChatAreaNameId = 0;
 
         if (_appearanceEffectId != 0 && _effects.TryGetValue(_appearanceEffectId, out var appearanceEffect) && appearanceEffect.ExpiresAt is null)
             RemoveTemporaryAppearance();
 
-        if (Mount is not null && !Mount.TeleportToZone(zone, position, rotation))
+        BeginZoning(position, rotation);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Loads the zone the player is in again where they stand, as entering it does: the client reads the zone's
+    /// files again (so a zone editor's saves show), and everything in it comes back once it has loaded.
+    /// </summary>
+    public void ReloadZone()
+    {
+        var position = Position;
+        var rotation = Rotation;
+
+        OnZoneChanged(Zone, position, rotation);
+
+        BeginZoning(position, rotation);
+    }
+
+    private void BeginZoning(Vector4 position, Quaternion rotation)
+    {
+        PointOfInterestId = 0;
+        ChatAreaNameId = 0;
+
+        if (Mount is not null && !Mount.TeleportToZone(Zone, position, rotation))
             Dismount();
 
         var packetClientBeginZoning = new PacketClientBeginZoning
@@ -857,8 +879,6 @@ public sealed class Player : ClientPcData, IEntity
         SendTunneled(packetClientBeginZoning);
 
         ClearObjectives();
-
-        return true;
     }
 
     private void QueuePointOfInterest()

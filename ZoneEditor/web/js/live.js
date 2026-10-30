@@ -24,7 +24,8 @@ const LIVE_GLOW = 0x0b4a57;
 // After a save reaches the client's live files, the referee's own character goes to ground at least this far from the
 // saved chunks for a moment and straight back, so the client drops them and reads them again. It keeps a chunk it
 // has within about a kilometre (only re-placing its props), and with no ground to stand on it drops nothing. Only
-// when the character stands this close to one; farther off, the client reads the new files when it gets there.
+// when the character stands this close to one; farther off, the client reads the new files when it gets there. A zone
+// with no ground that far off (a house, most small zones) loads again round the character instead.
 const REFRESH_AWAY = 2048;
 const REFRESH_PAUSE = 2000;
 const REFRESH_NEAR = 1500;
@@ -801,32 +802,37 @@ export class LiveLayer {
     return (await request(`${this.base()}/definitions/${def}/respawn`, "POST", {})).respawned;
   }
 
-  // Shows saved chunks in the referee's own client, which reads them from the editor's live files when it loads that
-  // ground again: their character steps over to solid ground far from them and back to where it stood. changed are the
-  // saved chunks' centres, ground every chunk centre in the zone (somewhere to stand). Says why when it didn't go:
-  // "offline" (no game here), "no-character", "elsewhere" (in another zone), "far" (nowhere near them) or "small"
-  // (no ground far enough away).
-  async refreshView(changed, ground) {
-    if (!this.zone) return { refreshed: false, reason: "offline" };
+  // Shows a save in the referee's own client, which reads it from the editor's live files when it loads that ground or
+  // the zone again. In a running world zone with ground far enough from the saved chunks, their character steps over to
+  // it and back to where it stood (no loading screen); anywhere else (a house, a zone too small for that, or the zone
+  // file changed) the zone loads again round them where they stand. zone is the zone's name, changed the saved chunks'
+  // centres, ground every chunk centre in the zone (somewhere to stand), zoneFile whether the zone file changed. Says
+  // how (reloaded: the zone loaded again), or why it didn't go: "offline" (no game here), "no-character", "elsewhere"
+  // (in another zone) or "far" (nowhere near them).
+  async refreshView(zone, changed, ground, zoneFile = false) {
+    if (!this.available) return { refreshed: false, reason: "offline" };
     const me = await request("/me");
     const player = me?.character ? (await request("/players")).find((p) => p.name === me.character) : null;
     if (!player) return { refreshed: false, reason: "no-character" };
     const name = player.name;
-    if (player.zone !== this.zone.key) return { refreshed: false, reason: "elsewhere", name };
+    if (player.zoneName.toLowerCase() !== zone.toLowerCase()) return { refreshed: false, reason: "elsewhere", name };
     const from = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
-    if (!changed.some((c) => from(c, player) < REFRESH_NEAR)) return { refreshed: false, reason: "far", name };
+    if (!zoneFile && !changed.some((c) => from(c, player) < REFRESH_NEAR)) return { refreshed: false, reason: "far", name };
     // Of the ground far enough off, the spot nearest the middle of the zone: its edges can have chunks the client
     // can't load (out of bounds, missing on the asset server), and with nothing loaded under it, it drops nothing.
     const middle = { x: ground.reduce((sum, g) => sum + g.x, 0) / ground.length, z: ground.reduce((sum, g) => sum + g.z, 0) / ground.length };
-    const spot = ground
+    const spot = zoneFile || player.zone !== this.zone?.key ? null : ground
       .filter((g) => from(g, player) >= REFRESH_AWAY && changed.every((c) => from(g, c) >= REFRESH_AWAY))
       .sort((a, b) => from(a, middle) - from(b, middle))[0];
-    if (!spot) return { refreshed: false, reason: "small", name };
+    if (!spot) {
+      await request(`/players/${player.id}/reload-zone`, "POST", {});
+      return { refreshed: true, reloaded: true, name };
+    }
 
     const path = `/players/${player.id}/teleport`;
-    await request(path, "POST", { zone: this.zone.key, x: spot.x, z: spot.z });
+    await request(path, "POST", { zone: player.zone, x: spot.x, z: spot.z });
     await new Promise((resolve) => setTimeout(resolve, REFRESH_PAUSE));
-    await request(path, "POST", { zone: this.zone.key, x: player.x, y: player.y, z: player.z });
+    await request(path, "POST", { zone: player.zone, x: player.x, y: player.y, z: player.z });
     return { refreshed: true, name };
   }
 }

@@ -222,6 +222,7 @@ It listens on loopback by default; the AdminPanel's backend is its only client, 
 | `GET /api/status`, `PUT /api/settings` | Players online, world lock, message of the day, clock speed |
 | `POST /api/broadcast`, `PUT /api/events/{key}` | Broadcasts (optionally as a banner, or to one zone); turns events on and off |
 | `GET /api/players`, `POST /api/players/{id}/teleport\|message\|kick` | Players online (frozen, muted, out of bounds) and what a referee can do about them |
+| `POST /api/players/{id}/reload-zone` | Loads a player's zone again round them where they stand (a loading screen), so their client reads its files again; the zone editor uses it to show a save in a house or a small zone |
 | `POST /api/players/{id}/command` | Runs the GM panel's player-card commands on an online player as if they typed them, with the referee's role (`!quest`, `!pet`, `!title`, `!profile`, `!collection status\|grant\|reset`, `!tutorial`, `!fte`, `!kill`, `!fly`, `!stat`, `!packetlog`, `!minigame`, `!coins`, `!give`, `!reward`); what they answer comes back instead of going to the player, and the audit log names the referee |
 | `PUT /api/players/{id}/frozen`, `POST /api/players/{id}/houses` | Freezes a player or lets them go, as `!freeze` does; gives them a house (admins) |
 | `POST /api/zones/{key}/command`, `POST /api/zones/{key}/gather` | A zone's tools: `!countdown`, `!freeze zone`, `!area list\|client` and `!host` run there with someone in it standing in; gather sends everyone (referees aside) to a spot |
