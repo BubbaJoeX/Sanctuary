@@ -49,6 +49,18 @@ public static class CoinStoreBuyFromClientRequestPacketHandler
             }
         };
 
+        // A quantity under one would add items and take coins away.
+        if (coinStoreBuyFromClientRequestPacket.Quantity < 1)
+        {
+            _logger.LogWarning("User tried to sell {quantity} of an item. {guid}", coinStoreBuyFromClientRequestPacket.Quantity, connection.Player.Guid);
+
+            coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.InvalidQuantity;
+
+            connection.SendTunneled(coinStoreTransactionCompletePacket);
+
+            return true;
+        }
+
         var clientItem = connection.Player.Items.SingleOrDefault(x => x.Id == coinStoreBuyFromClientRequestPacket.ItemGuid);
 
         if (clientItem is null)
@@ -117,7 +129,18 @@ public static class CoinStoreBuyFromClientRequestPacketHandler
         else
             dbItem.Count -= coinStoreBuyFromClientRequestPacket.Quantity;
 
-        dbQuery.Character.Coins += clientItemDefinition.ResellValue * coinStoreBuyFromClientRequestPacket.Quantity;
+        var earned = (long)clientItemDefinition.ResellValue * coinStoreBuyFromClientRequestPacket.Quantity;
+
+        if (earned < 0 || dbQuery.Character.Coins + earned > int.MaxValue)
+        {
+            coinStoreTransactionCompletePacket.Result = CoinStoreTransactionResult.InvalidQuantity;
+
+            connection.SendTunneled(coinStoreTransactionCompletePacket);
+
+            return true;
+        }
+
+        dbQuery.Character.Coins += (int)earned;
 
         if (dbContext.SaveChanges() <= 0)
         {

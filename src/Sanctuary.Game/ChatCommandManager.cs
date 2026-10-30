@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,9 @@ public class ChatCommandManager : IChatCommandManager
     private readonly ILogger _auditLogger;
     private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<string, IChatCommand> _commands = [];
+
+    // The admin panel referee a command runs for (TryHandleFor), for the audit log.
+    private readonly AsyncLocal<string?> _panelReferee = new();
 
     public ChatCommandManager(IServiceProvider serviceProvider)
     {
@@ -91,8 +95,61 @@ public class ChatCommandManager : IChatCommandManager
         return true;
     }
 
+    public bool TryHandleFor(Player subject, ChatCommandRole role, string referee, string command, ConcurrentQueue<string> replies)
+    {
+        var tokens = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (tokens.Length == 0 || !_commands.TryGetValue(tokens[0].TrimStart(Prefix[0]).ToLowerInvariant(), out var cmd))
+            return false;
+
+        if (role < cmd.RequiredRole)
+        {
+            replies.Enqueue($"Your account can't use {Prefix}{cmd.KeyWord}.");
+            return true;
+        }
+
+        var text = Prefix + command.TrimStart(Prefix[0]);
+        var args = tokens[1..];
+
+        // The admin API runs these one at a time, so the capture is this command's alone.
+        subject.SystemMessageCapture = replies;
+        subject.SystemMessageCaptureOnly = true;
+        _panelReferee.Value = referee;
+
+        try
+        {
+            var handled = cmd is IRawChatCommand rawCommand
+                ? rawCommand.Handle(subject, args, ChatCommandText.Remainder(text, 1))
+                : cmd.Handle(subject, args);
+
+            if (!handled)
+                replies.Enqueue($"Usage: {Prefix}{cmd.KeyWord} {cmd.Usage}");
+        }
+        finally
+        {
+            _panelReferee.Value = null;
+            subject.SystemMessageCaptureOnly = false;
+            subject.SystemMessageCapture = null;
+        }
+
+        return true;
+    }
+
     public void LogAction(IChatCommand command, Player invoker, string action, string? targetName, string? detail)
     {
+        if (_panelReferee.Value is { } referee)
+        {
+            _auditLogger.LogInformation("{Command}|{Action}|Actor: \"{Referee}\" (admin panel), For: \"{ForName}\" ({ForGuid}){Target}{Detail}",
+                command.KeyWord,
+                action,
+                referee,
+                invoker.Name,
+                invoker.Guid,
+                targetName is null ? string.Empty : $", Target: \"{targetName}\"",
+                detail is null ? string.Empty : $", {detail}");
+            return;
+        }
+
         _auditLogger.LogInformation("{Command}|{Action}|Actor: \"{ActorName}\" ({ActorGuid}){Target}{Detail}",
             command.KeyWord,
             action,

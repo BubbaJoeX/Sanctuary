@@ -282,6 +282,9 @@ button.icon { padding: 3px 9px; font-size: 15px; line-height: 1; }
 #toast.error { border-color: var(--danger); }
 #toast.ok { border-color: var(--ok); }
 
+/* An NPC's overhead icon on its chip (api/icon?notification=). */
+.chip-icon { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; }
+
 /* The view's right-click menu (menu.js). */
 .context-menu {
   position: fixed;

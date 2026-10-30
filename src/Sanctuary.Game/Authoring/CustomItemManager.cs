@@ -56,7 +56,7 @@ public class CustomItemManager : ICustomItemManager
     /// param1/param2 are the type-specific ids (a mount item's Mounts.json id, for example).
     /// </summary>
     public static readonly string[] Fields =
-        ["name", "desc", "model", "texture", "tint", "icon", "icontint", "rarity", "cost", "stack", "effect", "param1", "param2", "members", "notrade", "nosale"];
+        ["name", "desc", "model", "texture", "tint", "icon", "icontint", "rarity", "cost", "discount", "stack", "effect", "param1", "param2", "members", "notrade", "nosale"];
 
     private static readonly JsonSerializerOptions JsonOptions = new();
 
@@ -309,6 +309,7 @@ public class CustomItemManager : ICustomItemManager
         "model" or "texture" or "tint" => value.Length is 0 or > 128 ? $"{field} must be 1-128 characters." : null,
         "members" or "notrade" or "nosale" => value is "on" or "off" ? null : $"{field} is on or off.",
         "stack" => int.TryParse(value, out var stack) && stack >= 1 ? null : "stack must be at least 1.",
+        "discount" => int.TryParse(value, out var discount) && discount is >= 0 and <= 100 ? null : "discount is a percent, 0 to 100.",
         _ => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) && number >= 0 ? null : $"{field} must be a whole number of 0 or more."
     };
 
@@ -327,6 +328,7 @@ public class CustomItemManager : ICustomItemManager
             case "icontint": definition.Icon.TintId = Number(); break;
             case "rarity": definition.Rarity = Number(); break;
             case "cost": definition.Cost = Number(); break;
+            case "discount": definition.MemberDiscount = Number(); break;
             case "stack": definition.MaxStackSize = Number(); break;
             case "effect": definition.CompositeEffectId = Number(); break;
             case "param1": definition.Param1 = Number(); break;
@@ -348,6 +350,7 @@ public class CustomItemManager : ICustomItemManager
         "icontint" => definition.Icon.TintId.ToString(CultureInfo.InvariantCulture),
         "rarity" => definition.Rarity.ToString(CultureInfo.InvariantCulture),
         "cost" => definition.Cost.ToString(CultureInfo.InvariantCulture),
+        "discount" => definition.MemberDiscount.ToString(CultureInfo.InvariantCulture),
         "stack" => definition.MaxStackSize.ToString(CultureInfo.InvariantCulture),
         "effect" => definition.CompositeEffectId.ToString(CultureInfo.InvariantCulture),
         "param1" => definition.Param1.ToString(CultureInfo.InvariantCulture),

@@ -104,6 +104,8 @@ public static partial class AdminApiEndpoints
         MapAccountEndpoints(referee);
         MapLogEndpoints(referee);
         MapGameDataEndpoints(referee);
+        MapStoreEndpoints(referee);
+        MapRefereeEndpoints(referee);
     }
 
     #region Referees
@@ -368,7 +370,8 @@ public static partial class AdminApiEndpoints
             player.GodMode,
             player.FrozenMovementSpeed is not null,
             player.MutedUntil > DateTimeOffset.UtcNow,
-            Id(GuidHelper.GetPlayerId(player.Guid))))
+            Id(GuidHelper.GetPlayerId(player.Guid)),
+            player.Zone.IsOutOfBounds(player.ZoneTile)))
         .ToArray();
 
     /// <summary>

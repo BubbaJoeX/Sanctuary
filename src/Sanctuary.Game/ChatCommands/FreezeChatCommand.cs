@@ -89,7 +89,7 @@ public class FreezeChatCommand : IChatCommand
         return true;
     }
 
-    private static void Freeze(Player target)
+    public static void Freeze(Player target)
     {
         target.FrozenMovementSpeed = target.Stats.TryGetValue(CharacterStatId.MaxMovementSpeed, out var speed) ? speed.Float : 8f;
         target.UpdateCharacterStats(new CharacterStat(CharacterStatId.MaxMovementSpeed, 0f));
@@ -97,7 +97,7 @@ public class FreezeChatCommand : IChatCommand
         ChatHelper.SendSystemMessage(target, "You have been frozen by a referee.");
     }
 
-    private static void Unfreeze(Player target)
+    public static void Unfreeze(Player target)
     {
         if (target.FrozenMovementSpeed is not { } previousSpeed)
             return;

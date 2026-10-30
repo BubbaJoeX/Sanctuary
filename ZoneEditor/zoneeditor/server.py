@@ -18,7 +18,9 @@ from urllib.parse import parse_qs, urlparse
 import numpy as np
 
 from .npcs import NpcDefinitions
+from .icons import Icons
 from .rewards import RewardTables
+from .store import Store
 from .workspace import Workspace
 from .zone_scripts import ZoneScripts
 
@@ -51,6 +53,8 @@ class Handler(BaseHTTPRequestHandler):
     npcs: NpcDefinitions = None
     rewards: RewardTables = None
     zone_scripts: ZoneScripts = None
+    icons: Icons = None
+    store: Store = None
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
@@ -262,6 +266,41 @@ class Handler(BaseHTTPRequestHandler):
     def post_rewards_delete(self, query, body):
         self.send_json(self.rewards.delete(json.loads(body)["key"]))
 
+    # --- the coin store (CoinStoreItems.json, prices, CoinStoreBundles.json), for the admin panel ---------------
+
+    def get_store_categories(self, query, body):
+        """What the client calls each store category: {id: name or null}."""
+        self.send_json({str(k): v for k, v in self.store.category_names().items()})
+
+    def post_store_save(self, query, body):
+        """{entries: [{id, categoryId, tintGroupId, buyDisabled, coinStoreOnly, hidden, cost, memberDiscount,
+        resellValue}]}: puts items in the store or changes how it sells them."""
+        self.send_json(self.store.save(json.loads(body)["entries"]))
+
+    def post_store_remove(self, query, body):
+        self.send_json(self.store.remove(json.loads(body)["ids"]))
+
+    def post_store_bundle_save(self, query, body):
+        """{bundle: {id, comment, items: [{id, quantity, tint}], coins}, categoryId}"""
+        data = json.loads(body)
+        self.send_json(self.store.save_bundle(data["bundle"], data.get("categoryId")))
+
+    def post_store_bundle_delete(self, query, body):
+        data = json.loads(body)
+        self.send_json(self.store.delete_bundle(int(data["id"]), bool(data.get("keepCard"))))
+
+    # --- game icons ------------------------------------------------------------------------------------------
+
+    def get_icon(self, query, body):
+        """An icon as PNG: set (an image set id: items, mounts, collections) or image (an image id: titles, pets,
+        abilities, houses) or notification (an NPC's overhead icon), at most size pixels, tinted by tint (a Tints.xml id)
+        where the icon's mask says."""
+        if query.get("notification"):
+            png = self.icons.notification_png(query["notification"], min(128, int(query.get("size", 64))))
+        else:
+            png = self.icons.png(query.get("set"), query.get("image"), int(query.get("size", 64)), int(query.get("tint", 0) or 0))
+        self.send(200, png, "image/png", cache=True)
+
     # --- the zone's own NPCs (its Lua scripts' spawn lines) ------------------------------------------------------
 
     def post_zone_npcs_find(self, query, body):
@@ -362,6 +401,8 @@ def serve(workspace: Workspace, host: str, port: int) -> ThreadingHTTPServer:
     Handler.npcs = NpcDefinitions(workspace)
     Handler.rewards = RewardTables(workspace)
     Handler.zone_scripts = ZoneScripts(workspace)
+    Handler.icons = Icons(workspace)
+    Handler.store = Store(workspace)
     server = ThreadingHTTPServer((host, port), Handler)
     server.daemon_threads = True
     return server

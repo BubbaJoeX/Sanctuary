@@ -711,7 +711,8 @@ public static partial class AdminApiEndpoints
     private static CatalogEntry[] PropCatalogHandler(string? q, int? limit, IResourceManager resourceManager, IHousingManager housingManager) =>
         Search(resourceManager.ClientItemDefinitions.Values
                 .Where(item => housingManager.TryGetFixtureDefinition(item.Id, out _))
-                .Select(item => new CatalogEntry(item.Id, string.IsNullOrWhiteSpace(item.Comment) ? $"Item {item.Id}" : item.Comment, item.ModelName)),
+                .Select(item => new CatalogEntry(item.Id, string.IsNullOrWhiteSpace(item.Comment) ? $"Item {item.Id}" : item.Comment, item.ModelName,
+                    item.Icon.Id, item.Icon.TintId)),
             q, limit);
 
     private static CatalogEntry[] NpcCatalogHandler(string? q, int? limit, IResourceManager resourceManager) =>
