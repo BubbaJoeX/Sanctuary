@@ -172,6 +172,9 @@ public sealed class RefereePickTests
         public bool TryMovePlayerToZone(int zoneDefinitionId, ulong? ownerId, Player player, Vector4 position, Quaternion rotation, out IZone zone) =>
             throw new NotSupportedException();
 
+        public bool TryGetOrCreateZoneInstance(int zoneDefinitionId, ulong? ownerId, [MaybeNullWhen(false)] out IZone zone) =>
+            throw new NotSupportedException();
+
         public bool TryRemoveZoneInstance(IZone zone) => throw new NotSupportedException();
         public void EvictIfEmpty(IZone zone) => throw new NotSupportedException();
     }

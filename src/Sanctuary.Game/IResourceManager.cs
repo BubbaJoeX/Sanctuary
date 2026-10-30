@@ -38,6 +38,7 @@ public interface IResourceManager
     HousingFixtureDefinitionCollection HousingFixtures { get; }
     FishingCollection Fishing { get; }
     ChallengeDefinitionCollection Challenges { get; }
+    BattleDefinitionCollection Battles { get; }
     ZoneEnvironmentCollection ZoneEnvironments { get; }
     MountDefinitionCollection Mounts { get; }
     PetDefinitionCollection Pets { get; }

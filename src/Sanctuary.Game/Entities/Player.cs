@@ -825,12 +825,13 @@ public sealed class Player : ClientPcData, IEntity
 
         var previousPosition = Position;
         var previousRotation = Rotation;
-        var wasInWorldZone = Zone is WorldZone;
+        // The starting zone is the one the saved position is for; other world zones (a fishing pond, a battle) go back there.
+        var wasInStartingZone = Zone == _zoneManager.StartingZone;
 
         if (!_zoneManager.TryMovePlayerToZone(zoneDefinitionId, ownerId, this, position, rotation, out _))
             return false;
 
-        if (wasInWorldZone)
+        if (wasInStartingZone)
         {
             StartingZonePosition = previousPosition;
             StartingZoneRotation = previousRotation;
@@ -1829,12 +1830,27 @@ public sealed class Player : ClientPcData, IEntity
     public void OnAttackedBy(Npc mob) => EnterCombat();
 
     /// <summary>
+    /// Puts a player in a non-combat job in their combat job, as entering a battle does. False if they're in one
+    /// already or have none.
+    /// </summary>
+    public bool TrySwitchToCombatJob()
+    {
+        if (IsInCombatJob)
+            return false;
+
+        var profileId = GetCombatProfileId();
+
+        return profileId != 0 && ActivateProfile(profileId);
+    }
+
+    /// <summary>
     /// The client only treats hostile NPCs as enemies (enemy nameplate, targetable) in its overworld combat
     /// mode, which needs both packets. A combat job turns it on and any other job turns it off.
     /// </summary>
     public void SendCombatMode()
     {
-        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = true });
+        // A battle's own zone isn't the overworld: its rules come with EncounterDataCommon instead.
+        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = Zone is not WorldZone { Battle: not null } });
         SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
     }
 
@@ -1887,6 +1903,9 @@ public sealed class Player : ClientPcData, IEntity
         var killerName = string.IsNullOrEmpty(killer.Name) ? "an enemy" : killer.Name;
 
         ChatHelper.SendSystemMessage(this, $"You were defeated by {killerName}! You'll recover at the zone's start in {CombatRules.PlayerRespawnSeconds} seconds.");
+
+        // The knocked out window, and a battle's count of knock outs.
+        (Zone as WorldZone)?.OnPlayerKnockedOut(this);
     }
 
     private void UpdateRespawn()
@@ -1894,8 +1913,31 @@ public sealed class Player : ClientPcData, IEntity
         if (!_knockOut.TryRecover(Environment.TickCount64) || !IsDead)
             return;
 
-        var position = Zone.SpawnPosition;
-        var rotation = Zone.SpawnRotation;
+        Recover();
+    }
+
+    /// <summary>
+    /// A knocked out player respawns now, rather than when the countdown runs out (the knocked out window's
+    /// Respawn). False if they aren't knocked out.
+    /// </summary>
+    public bool RecoverNow()
+    {
+        if (!IsDead || !_knockOut.TryRecoverNow())
+            return false;
+
+        Recover();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Back on their feet at the zone's start (a battle's entry), on full health.
+    /// </summary>
+    private void Recover()
+    {
+        var battle = (Zone as WorldZone)?.Battle;
+        var position = battle?.EntryPosition ?? Zone.SpawnPosition;
+        var rotation = battle is not null ? QuaternionExtensions.FromHeading(battle.Definition.EntryHeading) : Zone.SpawnRotation;
 
         UpdatePosition(position, rotation);
         UpdatePointOfInterest();

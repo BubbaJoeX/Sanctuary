@@ -161,7 +161,7 @@ public class ZoneManager : IZoneManager
     }
 
 
-    private bool TryGetOrCreateZoneInstance(int zoneDefinitionId, ulong? ownerId, [MaybeNullWhen(false)] out IZone zone)
+    public bool TryGetOrCreateZoneInstance(int zoneDefinitionId, ulong? ownerId, [MaybeNullWhen(false)] out IZone zone)
     {
         if (!_resourceManager.Zones.TryGetValue(zoneDefinitionId, out var zoneDefinition))
         {
@@ -202,7 +202,7 @@ public class ZoneManager : IZoneManager
         WorldZoneDefinition worldZoneDefinition => new WorldZone(worldZoneDefinition, _serviceProvider)
         {
             Id = NextID(),
-            OwnerId = ownerId // Note: should always be 'null'.
+            OwnerId = ownerId // Null for the zones everyone shares; a battle's own copy has its encounter id.
         },
         HousingZoneDefinition housingZoneDefinition => new HousingZone(housingZoneDefinition, _serviceProvider)
         {

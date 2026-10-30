@@ -22,6 +22,11 @@ public interface IZoneManager
 
     bool TryMovePlayerToZone(int zoneDefinitionId, ulong? ownerId, Player player, Vector4 position, Quaternion rotation, out IZone zone);
 
+    /// <summary>
+    /// The zone's instance for <paramref name="ownerId"/>, started if it isn't running yet.
+    /// </summary>
+    bool TryGetOrCreateZoneInstance(int zoneDefinitionId, ulong? ownerId, [MaybeNullWhen(false)] out IZone zone);
+
     bool TryRemoveZoneInstance(IZone zone);
     void EvictIfEmpty(IZone zone);
 }

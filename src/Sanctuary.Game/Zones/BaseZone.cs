@@ -84,7 +84,7 @@ public abstract class BaseZone : IZone, IDisposable
     public IEnumerable<Npc> Npcs => _npcs.Values;
     public IEnumerable<Player> Players => _players.Values;
 
-    public bool IsEmpty => _players.IsEmpty;
+    public virtual bool IsEmpty => _players.IsEmpty;
 
     public IScriptManager ScriptManager => _scriptManager;
     public ScriptRuntime ScriptRuntime => _scriptRuntime;
