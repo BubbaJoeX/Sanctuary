@@ -121,7 +121,7 @@ export class NpcInspector {
         <label>Height offset <input type="number" data-field="offset" min="-50" max="50" step="0.1" value="${s.offset}"></label>
       </div>
       <label>Icons over it</label>
-      <div class="chips">${s.icons.length ? s.icons.map((icon, i) => `<span class="chip">${iconLabel(icon)} <b data-icon-remove="${i}" title="Remove">×</b></span>`).join("") : '<span class="hint">None</span>'}</div>
+      <div class="chips">${s.icons.length ? s.icons.map((icon, i) => `<span class="chip"><img class="chip-icon" alt="" src="api/icon?notification=${icon.iconId}&size=32" onerror="this.remove()">${iconLabel(icon)} <b data-icon-remove="${i}" title="Remove">×</b></span>`).join("") : '<span class="hint">None</span>'}</div>
       <select data-icon-add ${s.icons.length >= 4 ? "disabled" : ""}><option value="">Add an icon…</option>
         ${o.icons.slice(0, ICON_CHOICES).map((icon, i) => `<option value="${i}">${iconLabel(icon)} · ${escape(icon.examples || "unnamed")} (${icon.uses})</option>`).join("")}</select>
 
