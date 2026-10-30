@@ -54,6 +54,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string HousingFixturesFile = Path.Combine(BaseDirectory, "HousingFixtures.json");
     public static readonly string FishingFile = Path.Combine(BaseDirectory, "Fishing.json");
     public static readonly string ChallengesFile = Path.Combine(BaseDirectory, "Challenges.json");
+    public static readonly string BattlesFile = Path.Combine(BaseDirectory, "Battles.json");
     public static readonly string PetsFile = Path.Combine(BaseDirectory, "Pets.json");
     /// <summary>
     /// The minigames (one .json per game family), with each game's own data in a folder of its name.
@@ -114,6 +115,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public HousingFixtureDefinitionCollection HousingFixtures { get; }
     public FishingCollection Fishing { get; }
     public ChallengeDefinitionCollection Challenges { get; }
+    public BattleDefinitionCollection Battles { get; }
     public MountDefinitionCollection Mounts { get; }
     public PetDefinitionCollection Pets { get; }
     public MinigameDefinitionCollection Minigames { get; }
@@ -183,6 +185,7 @@ public class ResourceManager : IResourceManager, IDisposable
         HousingFixtures = new(_logger);
         Fishing = new(_logger);
         Challenges = new(_logger);
+        Battles = new(_logger);
         Mounts = new(_logger);
         Pets = new(_logger);
         Minigames = new(_logger);
@@ -223,6 +226,7 @@ public class ResourceManager : IResourceManager, IDisposable
             ["housingfixtures"] = () => Reload(HousingFixtures, () => HousingFixtures.Load(HousingFixturesFile)),
             ["fishing"] = () => Fishing.Load(FishingFile),
             ["challenges"] = () => Reload(Challenges, () => Challenges.Load(ChallengesFile)),
+            ["battles"] = () => Reload(Battles, () => Battles.Load(BattlesFile)),
             ["mounts"] = () => Reload(Mounts, () => Mounts.Load(MountsFile)),
             ["minigames"] = () => Reload(Minigames, () => Minigames.Load(MinigamesDirectory)),
             ["profiles"] = () => Reload(Profiles, () => Profiles.Load(ProfilesFile)),
@@ -466,6 +470,9 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!Challenges.Load(ChallengesFile))
             return false;
 
+        if (!Battles.Load(BattlesFile))
+            return false;
+
         if (!Pets.Load(PetsFile))
             return false;
 
@@ -642,6 +649,8 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = Fishing.Load(FishingFile);
             else if (e.FullPath == ChallengesFile)
                 loaded = Reload(Challenges, () => Challenges.Load(ChallengesFile));
+            else if (e.FullPath == BattlesFile)
+                loaded = Reload(Battles, () => Battles.Load(BattlesFile));
             else if (e.FullPath == PetsFile)
                 loaded = Pets.Load(PetsFile);
             else if (isMinigame &&

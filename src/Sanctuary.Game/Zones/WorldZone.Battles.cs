@@ -1,0 +1,84 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
+
+using Sanctuary.Core.Extensions;
+using Sanctuary.Game.Battles;
+using Sanctuary.Game.Entities;
+using Sanctuary.Game.Resources.Definitions;
+
+namespace Sanctuary.Game.Zones;
+
+/// <summary>
+/// Battles: a battle is fought in its own copy of a world zone (see <see cref="BattleManager"/>), which spawns
+/// its enemies and its Exit.
+/// </summary>
+public sealed partial class WorldZone
+{
+    /// <summary>
+    /// The battle this copy of the zone is for; null for a zone everyone shares.
+    /// </summary>
+    public Battle? Battle { get; internal set; }
+
+    /// <summary>
+    /// A battle's copy stays up while its battle runs, even with nobody in it (the start panel is up, or everyone's
+    /// between respawns and teleports); the battle closes it.
+    /// </summary>
+    public override bool IsEmpty => base.IsEmpty && Battle is null;
+
+    /// <summary>
+    /// An enemy that fights as <paramref name="mobKey"/> (Mobs.json) and stays down once beaten.
+    /// </summary>
+    public bool TrySpawnBattleEnemy(NpcDefinition definition, string? mobKey, Vector4 position, float heading, [MaybeNullWhen(false)] out Npc enemy)
+    {
+        if (!TryCreateNpc(null, definition, out enemy))
+            return false;
+
+        // Hostile before it's placed: players see it as it was when it came into view.
+        enemy.Disposition = Npc.HostileDisposition;
+        enemy.MobKey = mobKey;
+
+        SyncCombat(enemy);
+
+        if (enemy.Combat is null)
+        {
+            enemy.Dispose();
+            enemy = null;
+            return false;
+        }
+
+        enemy.Combat.Respawns = false;
+
+        Place(enemy, position, heading);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Something that just stands there (the Exit, a pick-up).
+    /// </summary>
+    public bool TrySpawnBattleProp(NpcDefinition definition, Vector4 position, float heading, [MaybeNullWhen(false)] out Npc prop)
+    {
+        if (!TryCreateNpc(null, definition, out prop))
+            return false;
+
+        prop.Disposition = 1;
+
+        Place(prop, position, heading);
+
+        return true;
+    }
+
+    private static void Place(Npc npc, Vector4 position, float heading)
+    {
+        var rotation = QuaternionExtensions.FromHeading(heading);
+
+        npc.SpawnPosition = position;
+        npc.SpawnRotation = rotation;
+        npc.UpdatePosition(position, rotation);
+    }
+
+    /// <summary>
+    /// A player was knocked out here.
+    /// </summary>
+    public void OnPlayerKnockedOut(Player player) => _battleManager.OnKnockedOut(player);
+}

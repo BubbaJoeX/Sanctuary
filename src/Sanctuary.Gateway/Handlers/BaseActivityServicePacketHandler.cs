@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Sanctuary.Game;
+using Sanctuary.Game.Battles;
 using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Minigames;
 using Sanctuary.Game.Zones;
@@ -14,13 +15,14 @@ namespace Sanctuary.Gateway.Handlers;
 
 /// <summary>
 /// Activity service requests from the Games window: a list refresh re-sends the activities, and joining one opens
-/// its minigame's start screen (or goes fishing). Anything else is logged until it's implemented.
+/// its minigame's start screen (or goes fishing, or offers a battle). Anything else is logged until it's implemented.
 /// </summary>
 [PacketHandler]
 public static class BaseActivityServicePacketHandler
 {
     private static ILogger _logger = null!;
     private static IResourceManager _resourceManager = null!;
+    private static IBattleManager _battleManager = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
@@ -28,6 +30,7 @@ public static class BaseActivityServicePacketHandler
         _logger = loggerFactory.CreateLogger(nameof(BaseActivityServicePacketHandler));
 
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
+        _battleManager = serviceProvider.GetRequiredService<IBattleManager>();
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -47,9 +50,12 @@ public static class BaseActivityServicePacketHandler
             var activityId = BitConverter.ToInt32(data[4..]);
             _logger.LogInformation("{player} joined activity {activity}.", connection.Player.Name.FullName, activityId);
 
-            // A fishing pond's entry takes the player there; anything else is a minigame, whose start screen opens.
+            // A fishing pond's entry takes the player there, a battle's opens its start panel; anything else is a
+            // minigame, whose start screen opens.
             if (_resourceManager.Fishing.TryGetPondByActivity(activityId, out var pond))
                 FishingPond.GoFishing(connection.Player, pond);
+            else if (_resourceManager.Battles.TryGetByActivity(activityId, out var battle))
+                _battleManager.Offer(connection.Player, battle);
             else
                 MinigameManager.Join(connection.Player, activityId);
 

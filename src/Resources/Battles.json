@@ -1,0 +1,431 @@
+[
+  {
+    "Id": 1,
+    "Comment": "Frostfang Growler! (the live battle: Frostfang Growlers in Snowhill start it)",
+    "ZoneId": 1100,
+    "NameId": 93276,
+    "DescriptionId": 104171,
+    "IconId": 28605,
+    "Difficulty": 1,
+    "StarterNpcIds": [
+      33936,
+      34007,
+      34013,
+      36117
+    ],
+    "TimeLimitSeconds": 2000,
+    "Entry": [
+      130.11,
+      0.69,
+      120.04
+    ],
+    "EntryHeading": 0.2229,
+    "Exit": [
+      145.0,
+      0.0,
+      173.35
+    ],
+    "ObjectiveNameId": 104176,
+    "ObjectiveDescriptionId": 104177,
+    "Waves": [
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 34021,
+            "Position": [
+              129.33,
+              -0.73,
+              171.81
+            ],
+            "Heading": -1.809,
+            "Mob": "battle-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1000,
+        "Spawns": [
+          {
+            "NpcId": 34022,
+            "Position": [
+              166.08,
+              0.35,
+              197.34
+            ],
+            "Heading": -2.065,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              139.08,
+              1.64,
+              113.27
+            ],
+            "Heading": -0.182,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              122.4,
+              0.56,
+              114.63
+            ],
+            "Heading": 0.341,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              160.33,
+              1.69,
+              137.58
+            ],
+            "Heading": -0.803,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              102.58,
+              0.73,
+              203.86
+            ],
+            "Heading": 2.663,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              104.37,
+              1.56,
+              131.93
+            ],
+            "Heading": 0.714,
+            "Mob": "battle-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1000,
+        "Spawns": [
+          {
+            "NpcId": 34022,
+            "Position": [
+              99.96,
+              0.78,
+              138.62
+            ],
+            "Heading": 1.924,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              157.86,
+              0.72,
+              127.6
+            ],
+            "Heading": -0.511,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              197.86,
+              2.03,
+              173.21
+            ],
+            "Heading": -0.466,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              102.5,
+              1.44,
+              131.17
+            ],
+            "Heading": 0.606,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              169.48,
+              0.63,
+              153.74
+            ],
+            "Heading": -1.554,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              166.08,
+              0.35,
+              197.34
+            ],
+            "Heading": -2.065,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              120.73,
+              1.59,
+              111.62
+            ],
+            "Heading": 0.692,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              140.46,
+              1.76,
+              113.18
+            ],
+            "Heading": 0.118,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              97.46,
+              0.24,
+              173.99
+            ],
+            "Heading": 2.312,
+            "Mob": "battle-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1000,
+        "Spawns": [
+          {
+            "NpcId": 34022,
+            "Position": [
+              101.83,
+              -0.09,
+              190.66
+            ],
+            "Heading": 2.133,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              111.27,
+              0.8,
+              125.0
+            ],
+            "Heading": 0.91,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              170.8,
+              0.48,
+              191.63
+            ],
+            "Heading": -2.172,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              111.35,
+              -0.19,
+              210.22
+            ],
+            "Heading": 3.11,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              158.58,
+              1.58,
+              137.1
+            ],
+            "Heading": -0.608,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              136.48,
+              -0.36,
+              209.45
+            ],
+            "Heading": -3.08,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              97.55,
+              1.72,
+              160.75
+            ],
+            "Heading": 1.858,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              138.88,
+              2.02,
+              115.44
+            ],
+            "Heading": 1.468,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              111.35,
+              -0.19,
+              210.22
+            ],
+            "Heading": 3.11,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              138.88,
+              2.02,
+              115.44
+            ],
+            "Heading": 1.468,
+            "Mob": "battle-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1000,
+        "Spawns": [
+          {
+            "NpcId": 34022,
+            "Position": [
+              97.03,
+              0.26,
+              174.44
+            ],
+            "Heading": 2.12,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              183.62,
+              1.1,
+              183.02
+            ],
+            "Heading": -1.895,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34050,
+            "Position": [
+              154.32,
+              1.96,
+              209.35
+            ],
+            "Heading": -2.818,
+            "Boss": true,
+            "Mob": "battle-boss-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              108.96,
+              0.02,
+              209.94
+            ],
+            "Heading": 2.675,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34023,
+            "Position": [
+              183.2,
+              0.85,
+              163.49
+            ],
+            "Heading": -0.4,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              118.6,
+              0.94,
+              118.9
+            ],
+            "Heading": 0.641,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              97.03,
+              0.26,
+              174.44
+            ],
+            "Heading": 2.12,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              108.96,
+              0.02,
+              209.94
+            ],
+            "Heading": 2.675,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              108.96,
+              0.02,
+              209.94
+            ],
+            "Heading": 2.675,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              118.6,
+              0.94,
+              118.9
+            ],
+            "Heading": 0.641,
+            "Mob": "battle-1"
+          },
+          {
+            "NpcId": 34022,
+            "Position": [
+              118.6,
+              0.94,
+              118.9
+            ],
+            "Heading": 0.641,
+            "Mob": "battle-1"
+          }
+        ]
+      }
+    ],
+    "Stars": 100,
+    "Coins": 15
+  }
+]

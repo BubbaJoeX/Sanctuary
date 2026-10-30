@@ -144,6 +144,11 @@ public sealed class NpcCombat
     /// </summary>
     public bool IsDespawned { get; private set; }
 
+    /// <summary>
+    /// Comes back after <see cref="MobDefinition.RespawnSeconds"/>; a battle's enemies stay down.
+    /// </summary>
+    public bool Respawns { get; set; } = true;
+
     public ulong TargetGuid => _brain.TargetGuid;
 
     public MobControl Control
@@ -620,7 +625,7 @@ public sealed class NpcCombat
     {
         if (!IsDespawned && now >= _despawnAt)
             Hide();
-        else if (IsDespawned && now >= _respawnAt)
+        else if (IsDespawned && Respawns && now >= _respawnAt)
             Respawn();
     }
 

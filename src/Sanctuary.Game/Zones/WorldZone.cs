@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.Extensions;
 using Sanctuary.Core.IO;
 using Sanctuary.Database;
+using Sanctuary.Game.Battles;
 using Sanctuary.Game.Challenges;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
@@ -30,6 +31,7 @@ public sealed partial class WorldZone : BaseZone
     private readonly IRewardManager _rewardManager;
     private readonly IRefereePickManager _refereePickManager;
     private readonly IChallengeManager _challengeManager;
+    private readonly IBattleManager _battleManager;
 
     private readonly object _clientAreasLock = new();
     private readonly HashSet<SeasonalClientAreaDefinition> _activeSeasonalClientAreas = [];
@@ -88,6 +90,7 @@ public sealed partial class WorldZone : BaseZone
         _worldEventManager = serviceProvider.GetRequiredService<IWorldEventManager>();
         _refereePickManager = serviceProvider.GetRequiredService<IRefereePickManager>();
         _challengeManager = serviceProvider.GetRequiredService<IChallengeManager>();
+        _battleManager = serviceProvider.GetRequiredService<IBattleManager>();
 
         Fishing = _resourceManager.Fishing.TryGetPond(Name, out _) ? new FishingPond(this, serviceProvider) : null;
     }
@@ -162,9 +165,10 @@ public sealed partial class WorldZone : BaseZone
     {
         IReadOnlyList<NpcInteractionOption> quests = _questManager.IsQuestNpc(npc.DefinitionId) ? _questManager.GetInteractionOptions(player, npc) : [];
         var challenges = _challengeManager.GetInteractionOptions(player, npc);
+        var battles = _battleManager.GetInteractionOptions(player, npc);
         var fishing = Fishing?.GetInteractionOptions(player, npc) ?? [];
 
-        return challenges.Count == 0 && fishing.Count == 0 ? quests : [.. quests, .. challenges, .. fishing];
+        return challenges.Count == 0 && battles.Count == 0 && fishing.Count == 0 ? quests : [.. quests, .. challenges, .. battles, .. fishing];
     }
 
     public override NotificationInfo? GetQuestBadge(Player player, Npc npc)
@@ -179,6 +183,8 @@ public sealed partial class WorldZone : BaseZone
         player.UpdatePointOfInterest(GetNearestZoneArea(player.Position));
 
         Fishing?.OnPlayerArrived(player);
+
+        _battleManager.OnArrived(player, this);
     }
 
     protected override void UpdateEverySecond()

@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Game.Battles;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Helpers;
@@ -37,6 +38,7 @@ public static class MinigameManager
     private static ILogger _traceLogger = null!;
     private static IRewardManager _rewardManager = null!;
     private static IResourceManager _resourceManager = null!;
+    private static IBattleManager? _battleManager;
 
     private static readonly Dictionary<string, Func<FlashMinigame>> Games = new(StringComparer.OrdinalIgnoreCase);
 
@@ -63,6 +65,7 @@ public static class MinigameManager
 
         _rewardManager = serviceProvider.GetRequiredService<IRewardManager>();
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
+        _battleManager = serviceProvider.GetService<IBattleManager>();
 
         foreach (var type in typeof(FlashMinigame).Assembly.GetTypes())
         {
@@ -118,8 +121,9 @@ public static class MinigameManager
             })
             .ToList();
 
-        // The fishing ponds have their own tile.
+        // The fishing ponds have their own tile, and so does each battle (under Battles).
         activities.AddRange(FishingPond.GetActivities(_resourceManager));
+        activities.AddRange(_battleManager?.GetActivities() ?? []);
 
         player.SendTunneled(new ActivityPacketListOfActivities
         {

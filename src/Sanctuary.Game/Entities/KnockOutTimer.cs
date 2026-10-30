@@ -53,6 +53,22 @@ public sealed class KnockOutTimer
     }
 
     /// <summary>
+    /// Ends the countdown now (the knocked out window's Respawn). False if they aren't down.
+    /// </summary>
+    public bool TryRecoverNow()
+    {
+        lock (_lock)
+        {
+            if (_recoverAt is null)
+                return false;
+
+            _recoverAt = null;
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Gets them up where they lie instead, with a moment to get clear. False if they aren't down,
     /// so a revive and the recovery at the zone's start never both happen.
     /// </summary>
