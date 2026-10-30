@@ -7,7 +7,7 @@
 // Server headings, pitch and roll are the editor's yaw, pitch and roll (radians, three's 'YXZ' order).
 import * as THREE from "three";
 import { characterRig, finishRig, playClip, skinOn } from "./animation.js";
-import { getJson } from "./api.js";
+import { getJson, postJson } from "./api.js";
 import { applyTransform, variantTexture } from "./props.js";
 import { loadTexture } from "./textures.js";
 
@@ -347,6 +347,8 @@ export class LiveLayer {
       player.position.lerpVectors(glide.from, glide.to, glide.t);
     }
     for (const npc of this.drawn.values()) {
+      // One being edited stays where the editor puts it.
+      if (npc === this.held || npc.userData.pinned) continue;
       const glide = npc.userData.glide;
       glide.t = Math.min(glide.t + dt, 1);
       npc.position.lerpVectors(glide.from, glide.to, glide.t);
@@ -444,13 +446,18 @@ export class LiveLayer {
       const node = this.drawn.get(npc.id);
       if (!node) continue;
       node.userData.live = npc;
+      node.userData.label = npc.label;
+      node.scale.setScalar(npc.scale || 1);
+      this.dress(node, npc.look);
+      // The feed's numbers are rounded: one pinned to its spawn line stays put unless it went somewhere else.
+      const pinned = node.userData.pinned;
+      if (node === this.held || pinned && ["x", "y", "z"].every((k) => Math.abs(npc[k] - pinned[k]) < 0.11)) continue;
+      node.userData.pinned = null;
       const glide = node.userData.glide;
       glide.from.copy(node.position);
       glide.to.set(npc.x, npc.y, npc.z);
       glide.t = 0;
-      node.rotation.y = npc.h;
-      node.scale.setScalar(npc.scale || 1);
-      this.dress(node, npc.look);
+      node.rotation.set(npc.pitch ?? 0, npc.h, npc.roll ?? 0, "YXZ");
     }
     for (const id of changes.remove) this.npcs.delete(id);
     this.drop(this.drawn, new Set([...this.drawn.keys()].filter((id) => this.npcs.has(id))));
@@ -475,7 +482,7 @@ export class LiveLayer {
     node.position.set(npc.x, npc.y, npc.z);
     node.userData.glide.from.copy(node.position);
     node.userData.glide.to.copy(node.position);
-    node.rotation.y = npc.h;
+    node.rotation.set(npc.pitch ?? 0, npc.h, npc.roll ?? 0, "YXZ");
     node.scale.setScalar(npc.scale || 1);
     this.dress(node, npc.look);
     return node;
@@ -578,6 +585,93 @@ export class LiveLayer {
 
   async remove(object) {
     return !!(await this.send("Couldn't delete it", `${this.base()}/objects/${object.userData.live.id}`, "DELETE"));
+  }
+
+  // --- the zone's own NPCs (admins): the lines in the zone's Lua scripts that spawn them -------------------------
+
+  // Where one of the zone's NPCs starts, and the line that spawns it there: { spawn, line }, line being the editor
+  // server's answer ({ found, file, line, text, deletable }, or { found: false, scripts }).
+  async zoneNpc(node) {
+    const id = node.userData.live.id;
+    const spawn = await request(`${this.base()}/zone-npcs/${id}`);
+    const line = await postJson("api/zone-npcs/find", { zone: this.zone.name, guid: id, def: spawn.def, spawn });
+    return { spawn, line };
+  }
+
+  // Holds a zone NPC where its spawn line puts it, to the digit (the feed rounds), while it's selected.
+  pin(node, spawn) {
+    node.userData.pinned = spawn;
+    node.position.set(spawn.x, spawn.y, spawn.z);
+    node.rotation.set(spawn.pitch, spawn.h, spawn.roll, "YXZ");
+    const glide = node.userData.glide;
+    glide.from.copy(node.position);
+    glide.to.copy(node.position);
+    glide.t = 1;
+  }
+
+  // Changes a zone NPC's spawn line (op: move, delete), then the game (game: [path, method, body]); a refused
+  // game change puts the line back. Answers { edit, result } for the undo step, or null.
+  async zoneNpcEdit(action, node, op, extra, game) {
+    const { spawn } = node.userData.zoneNpc;
+    let edit;
+    try {
+      edit = await postJson("api/zone-npcs/edit", { zone: this.zone.name, op, guid: node.userData.live.id, def: spawn.def, spawn, ...extra });
+    } catch (error) {
+      this.hooks.toast(`${action}: ${error.message}`, "error");
+      return null;
+    }
+    const result = await this.send(action, ...game);
+    if (!result) {
+      await this.undoLine(edit).catch((error) => this.hooks.toast(`Couldn't put the spawn line back: ${error.message}`, "error"));
+      return null;
+    }
+    return { edit, result };
+  }
+
+  // Puts back the line an edit changed (a move) or took out (a delete).
+  undoLine(edit) {
+    return postJson("api/zone-npcs/edit", edit.was !== undefined
+      ? { zone: this.zone.name, op: "revert", file: edit.file, line: edit.line, now: edit.now, was: edit.was }
+      : { zone: this.zone.name, op: "restore", file: edit.file, line: edit.line, text: edit.text });
+  }
+
+  // Moves or turns a zone NPC to where the gizmo or inspector left it. Answers the undo step, or null.
+  async moveZoneNpc(node) {
+    node.rotation.reorder("YXZ");
+    const info = node.userData.zoneNpc;
+    const to = { x: node.position.x, y: node.position.y, z: node.position.z, h: node.rotation.y, pitch: node.rotation.x, roll: node.rotation.z };
+    const id = node.userData.live.id;
+    const done = await this.zoneNpcEdit("Couldn't move it", node, "move", { to }, [`${this.base()}/zone-npcs/${id}`, "PATCH", to]);
+    this.held = null;
+    const from = info.spawn;
+    if (!done) {
+      if (info.line.found && !info.spawn.walks) this.pin(node, from);
+      return null;
+    }
+    info.spawn = { ...from, ...to };
+    info.line = { ...info.line, line: done.edit.line, text: done.edit.text };
+    if (!from.walks) this.pin(node, info.spawn);
+    return async () => {
+      await this.undo();
+      await this.undoLine(done.edit);
+      info.spawn = from;
+      info.line = { ...info.line, text: done.edit.was.trim() };
+      if (!from.walks && node.parent) this.pin(node, from);
+    };
+  }
+
+  // Takes a zone NPC out of the game and its line out of the script. Answers the undo step, or null.
+  async removeZoneNpc(node) {
+    const done = await this.zoneNpcEdit("Couldn't delete it", node, "delete", {}, [`${this.base()}/zone-npcs/${node.userData.live.id}`, "DELETE"]);
+    return done && (async () => { await this.undo(); await this.undoLine(done.edit); });
+  }
+
+  // Makes a zone NPC a world NPC where it stands (saved in the database, edited like a placed one), taking its line
+  // out of the script. Answers { id, undo }, or null.
+  async adoptZoneNpc(node) {
+    const done = await this.zoneNpcEdit(`Couldn't make ${node.userData.label} a world NPC`, node, "delete", {},
+      [`${this.base()}/zone-npcs/${node.userData.live.id}/adopt`, "POST", {}]);
+    return done && { id: done.result.id, undo: async () => { await this.undo(); await this.undoLine(done.edit); } };
   }
 
   // The referee's last live edit in this zone, undone on the server.

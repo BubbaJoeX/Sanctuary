@@ -13,6 +13,7 @@ import { ConversationEditor, DefinitionEditor, NpcInspector, PLACED_MODEL, defin
 import { WorldTool, renderEnvironmentEditor } from "./world.js";
 import { parseSky, sampleSky } from "./sky.js";
 import { gradientColours, initTextures } from "./textures.js";
+import { closeMenu, showMenu } from "./menu.js";
 
 const $ = (selector) => document.querySelector(selector);
 const canvas = $("#canvas");
@@ -155,13 +156,16 @@ const state = {
   ecoTint: true,
   ecoTintAmount: 0.85,
   ecoTintPick: null,       // a tint the eyedropper took from the ground, painted instead of the eco's own colour
-  exclude: { mode: "cut", target: null, onlyInside: true },
+  // shape: how a cave model decides what ground is inside it (see cutTest): its mesh, under its mesh, or its box.
+  exclude: { mode: "cut", target: null, onlyInside: true, shape: "mesh" },
   // New objects: one at a time or scattered under a brush, with a random turn and scale, stood on the slope,
   // raised by offset, and given a texture variant and tint where their actor has them.
   // live places into the running game when the editor is opened from the admin panel (see live.js).
   place: {
     mode: "single", randomYaw: false, align: false, scaleMin: 1, scaleMax: 1, offset: 0,
     material: "", tintOn: false, tint: "#ffffff", spacing: 6, set: [], live: true,
+    onProps: true,  // a new object lands on top of a prop under the pointer, not only on the ground
+    cut: false,     // and cuts the ground inside it (caves and tunnels; see cutTest)
     as: "model",    // live: a placed model, or an NPC built on a definition of its own (Npcs.json)
   },
   npcPick: null,    // an NPC definition picked to spawn ({ id, name, model }), from the content browser's NPCs
@@ -222,13 +226,39 @@ function status(text) {
 }
 
 let toastTimer = null;
+// Errors stay until closed, so they can be read and copied; other notes go after a few seconds, but not while the
+// pointer is over them.
 function toast(text, kind = "") {
   const element = $("#toast");
-  element.textContent = text;
+  element.querySelector(".toast-text").textContent = text;
   element.className = kind;
-  element.style.display = "block";
+  element.style.display = "flex";
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { element.style.display = "none"; }, kind === "error" ? 9000 : 4500);
+  if (kind !== "error") toastTimer = setTimeout(hideToast, 4500);
+}
+
+function hideToast() {
+  clearTimeout(toastTimer);
+  $("#toast").style.display = "none";
+}
+
+{
+  const element = $("#toast");
+  element.querySelector(".toast-close").addEventListener("click", hideToast);
+  element.querySelector(".toast-copy").addEventListener("click", async () => {
+    const text = element.querySelector(".toast-text").textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      status("Copied the message.");
+    } catch {
+      // No clipboard (an insecure page): select it, for Ctrl+C.
+      getSelection().selectAllChildren(element.querySelector(".toast-text"));
+    }
+  });
+  element.addEventListener("pointerenter", () => clearTimeout(toastTimer));
+  element.addEventListener("pointerleave", () => {
+    if (!element.classList.contains("error") && element.style.display !== "none") toastTimer = setTimeout(hideToast, 2500);
+  });
 }
 
 // --- zones ---------------------------------------------------------------------------------------------
@@ -593,24 +623,113 @@ function insideTest(object) {
   return (x, y, z) => box.containsPoint(point.set(x, y, z).applyMatrix4(inverse));
 }
 
+// A test for ground inside a model's shape, from its triangles: the ground at (x, z) is inside when the model has
+// surface both above and below it there (a cave's roof and floor, a tunnel's ceiling and bed), so a hill over a
+// tunnel and the ground under an arch stay. With under, surface above is enough: everything beneath the model goes.
+function meshInsideTest(object, under = false) {
+  object.updateMatrixWorld(true);
+  const CELL = 2;
+  const cells = new Map();
+  const tris = [];
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  object.traverse((node) => {
+    if (!node.isMesh || !node.geometry?.attributes.position || node.isSprite) return;
+    const position = node.geometry.attributes.position, index = node.geometry.index;
+    const count = index ? index.count : position.count;
+    const at = (k) => (index ? index.getX(k) : k);
+    for (let k = 0; k + 2 < count; k += 3) {
+      a.fromBufferAttribute(position, at(k)).applyMatrix4(node.matrixWorld);
+      b.fromBufferAttribute(position, at(k + 1)).applyMatrix4(node.matrixWorld);
+      c.fromBufferAttribute(position, at(k + 2)).applyMatrix4(node.matrixWorld);
+      // Upright walls meet a vertical line nowhere.
+      const area = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+      if (Math.abs(area) < 1e-6) continue;
+      const t = tris.length;
+      tris.push([a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, area]);
+      for (let i = Math.floor(Math.min(a.x, b.x, c.x) / CELL); i <= Math.floor(Math.max(a.x, b.x, c.x) / CELL); i++) {
+        for (let j = Math.floor(Math.min(a.z, b.z, c.z) / CELL); j <= Math.floor(Math.max(a.z, b.z, c.z) / CELL); j++) {
+          const key = `${i},${j}`;
+          if (!cells.has(key)) cells.set(key, []);
+          cells.get(key).push(t);
+        }
+      }
+    }
+  });
+  // The model's height over (x, z) on triangle t, or null when the line misses it.
+  const heightOn = ([ax, ay, az, bx, by, bz, cx, cy, cz, area], x, z) => {
+    const u = ((bx - x) * (cz - z) - (cx - x) * (bz - z)) / area;
+    const v = ((cx - x) * (az - z) - (ax - x) * (cz - z)) / area;
+    const w = 1 - u - v;
+    return u < -1e-6 || v < -1e-6 || w < -1e-6 ? null : u * ay + v * by + w * cy;
+  };
+  return (x, y, z) => {
+    const list = cells.get(`${Math.floor(x / CELL)},${Math.floor(z / CELL)}`);
+    if (!list) return false;
+    let above = false, below = false;
+    for (const t of list) {
+      const h = heightOn(tris[t], x, z);
+      if (h === null) continue;
+      if (h > y) above = true; else below = true;
+      if (above && (below || under)) return true;
+    }
+    return false;
+  };
+}
+
+const CUT_SHAPES = {
+  mesh: ["Inside its shape", "Ground with the model above and below it: a cave's inside, a tunnel's bore. A hill over a tunnel stays."],
+  under: ["Under it", "All ground under the model: overhangs, floors and platforms that replace the ground."],
+  box: ["Inside its box", "Ground inside the model's turned bounding box, its shape aside."],
+};
+
+// The test the Exclude tool cuts with, for its shape.
+function cutTest(object, shape = state.exclude.shape) {
+  return shape === "box" ? insideTest(object) : meshInsideTest(object, shape === "under");
+}
+
 function excludeTarget() {
   const target = state.exclude.target;
   return target?.parent ? target : null;
 }
 
-// Cuts out (or restores) all the ground inside the exclude target's bounds, as one undo step.
-function cutInsideTarget(restore) {
-  const target = excludeTarget();
+function targetName(object) {
+  return object.userData.record?.file ?? object.userData.label ?? "the model";
+}
+
+// Cuts out (or restores) all the ground inside a model (the exclude target), as one undo step.
+function cutInsideTarget(restore, target = excludeTarget(), shape = state.exclude.shape) {
   if (!target) return toast("Shift+click a cave model first.");
   const box = new THREE.Box3().setFromObject(target);
+  if (box.isEmpty()) return toast(`${targetName(target)} hasn't loaded yet.`);
   const centre = box.getCenter(new THREE.Vector3());
   const radius = Math.hypot(box.max.x - box.min.x, box.max.z - box.min.z) / 2 + STEP;
   stroke = { snapshot: new Map() };
   snapshotChunks(terrain.editableChunksNear(centre.x, centre.z, radius));
-  const chunks = terrain.exclude(centre.x, centre.z, radius, restore, insideTest(target));
+  const chunks = terrain.exclude(centre.x, centre.z, radius, restore, cutTest(target, shape));
   endStroke();
   updateDirty();
-  toast(chunks ? `${restore ? "Restored" : "Cut out"} the ground inside ${target.userData.record.file} (${chunks} chunk(s)).` : "No ground inside it to change.", chunks ? "ok" : "");
+  const locked = !terrain.editableChunksNear(centre.x, centre.z, radius).length;
+  toast(chunks ? `${restore ? "Restored" : "Cut out"} the ground ${shape === "under" ? "under" : "inside"} ${targetName(target)} (${chunks} chunk(s)).`
+    : locked ? "The ground there is in stock chunks, which can't be cut: copy them into editable ones with the Chunks tool."
+    : `No ground ${shape === "under" ? "under" : "inside"} it to ${restore ? "restore" : "cut"}.`, chunks ? "ok" : "");
+}
+
+// Cuts the ground inside a model once its meshes have loaded (a cave just placed).
+async function cutWhenLoaded(object, shape = state.exclude.shape) {
+  try {
+    await object.userData.loaded;
+  } catch (error) {
+    return toast(`${targetName(object)} didn't load, so no ground was cut: ${error.message}`, "error");
+  }
+  if (object.parent) cutInsideTarget(false, object, shape);
+}
+
+// Cave and tunnel models (entrances, tunnels, cave pieces), for the Exclude tool's quick placing: the most used first.
+const CAVE_PATTERN = /(^|_)(cave_0\d_.*piece\d+|cave_entrance|caves?_generic|cave_transition|cavern_0\d|mines_01_cave|mines_ent|mines_01_entrance|batcave|caveopening|tunnel|npx_cavern_01_room)/i;
+function caveActors() {
+  const uses = (name) => content.uses(name)?.[0] ?? 0;
+  return content.names.filter((name) => CAVE_PATTERN.test(name) && !/blockade|_lod\d|water/i.test(name))
+    .sort((x, y) => uses(y) - uses(x) || x.localeCompare(y));
 }
 
 async function ecoColour(index) {
@@ -670,7 +789,7 @@ function renderPanel() {
   if (state.tool === "select") {
     const hidden = [...props.hiddenFiles];
     panel.innerHTML = `<h3>Select</h3>
-      <p class="hint">Click a prop, light or marker; Shift+click adds or removes one; drag over the ground to box-select (Shift adds).
+      <p class="hint">Click a prop, light or marker; Shift+click adds or removes one; drag over the ground to box-select (Shift adds); drag what's selected to slide it over the ground and props; right-click for what can be done there.
         The bar over the view moves, turns and scales it (G, R, T), with snapping; hold Shift while dragging to snap.
         Arrows and PgUp/PgDn nudge it, , and . turn it, - and = scale it. Keys ? lists every key.</p>
       ${hidden.length ? `<p class="hint">Hidden: ${hidden.map(escape).join(", ")}</p><div class="row"><button id="show-all">Show them again (Shift+H)</button></div>` : ""}
@@ -698,16 +817,31 @@ function renderPanel() {
     panel.querySelector("#terrace-step").addEventListener("input", (e) => { state.brush.step = Math.max(0.5, +e.target.value); });
   } else if (state.tool === "exclude") {
     const target = excludeTarget();
+    const caves = contentLoaded ? caveActors() : [];
     panel.innerHTML = `<h3>Exclude</h3>${noEditable}${brushControls(["cut", "restore"], state.exclude.mode)}
-      <h4>Cave model</h4>
-      <p class="hint">${target ? `<b>${escape(target.userData.record.file)}</b>` : "None: Shift+click a cave (or any model) to cut the ground inside it."}</p>
+      <h4>Cut from a model</h4>
+      <p class="hint">${target ? `<b>${escape(targetName(target))}</b>` : "None: Shift+click a cave, tunnel or any model (or right-click it) to cut the ground from its shape."}</p>
+      <div class="seg">${Object.entries(CUT_SHAPES).map(([key, [label, hint]]) => `<button data-cut-shape="${key}" class="${state.exclude.shape === key ? "active" : ""}" title="${hint}">${label}</button>`).join("")}</div>
+      <p class="hint">${CUT_SHAPES[state.exclude.shape][1]}</p>
       <label class="check"><input id="exclude-inside" type="checkbox" ${state.exclude.onlyInside ? "checked" : ""} ${target ? "" : "disabled"}> Brush only cuts inside the model</label>
-      <div class="row"><button id="exclude-all" ${target ? "" : "disabled"}>Cut all inside it</button><button id="restore-all" ${target ? "" : "disabled"}>Restore</button></div>
-      <p class="hint">Cuts holes in the ground, so a cave's mouth and inside aren't buried under terrain; the client leaves holes out of the ground's mesh and collision. Restore puts ground back: as it was if it was cut here, else at its surroundings' height. Keys 1 cut, 2 restore.</p>`;
+      <div class="row"><button id="exclude-all" ${target ? "" : "disabled"}>Cut it out</button><button id="restore-all" ${target ? "" : "disabled"}>Restore</button></div>
+      <h4>Caves and tunnels</h4>
+      <p class="hint">Pick one to place: it lands where you click and cuts the ground inside its shape, so its mouth and bore are open at once.</p>
+      ${contentLoaded ? `<select id="cave-pick" size="8" class="list">${caves.map((name) => `<option value="${escape(name)}" ${name === state.actor ? "selected" : ""}>${escape(name.replace(/\.a[dg]r$/i, ""))}${content.uses(name) ? ` (${content.uses(name)[0]})` : ""}</option>`).join("")}</select>`
+        : `<div class="row"><button id="cave-load">List the cave and tunnel models</button></div>`}
+      <p class="hint">Holes leave the ground's mesh and collision in the client. Restore puts ground back: as it was if it was cut here, else at its surroundings' height. Keys 1 cut, 2 restore.</p>`;
     bindBrush((value) => { state.exclude.mode = value; });
+    for (const button of panel.querySelectorAll("[data-cut-shape]")) {
+      button.addEventListener("click", () => { state.exclude.shape = button.dataset.cutShape; renderPanel(); });
+    }
     panel.querySelector("#exclude-inside").addEventListener("change", (e) => { state.exclude.onlyInside = e.target.checked; });
     panel.querySelector("#exclude-all").addEventListener("click", () => cutInsideTarget(false));
     panel.querySelector("#restore-all").addEventListener("click", () => cutInsideTarget(true));
+    panel.querySelector("#cave-pick")?.addEventListener("change", (e) => placeCave(e.target.value));
+    panel.querySelector("#cave-load")?.addEventListener("click", () => {
+      contentLoaded = true;
+      content.load().then(renderPanel).catch((error) => { contentLoaded = false; toast(error.message, "error"); });
+    });
   } else if (state.tool === "eco") {
     panel.innerHTML = `<h3>Eco layers</h3>${noEditable}${brushControls()}
       <label class="check"><input id="eco-tint" type="checkbox" ${state.ecoTint ? "checked" : ""}> Also tint the colour map</label>
@@ -806,6 +940,8 @@ function renderPanel() {
         ${p.live ? `<div class="row"><button id="npc-definitions" title="Npcs.json: what NPCs spawn from">NPC definitions…</button></div>` : ""}` : ""}
       <label class="check"><input id="place-turn" type="checkbox" ${p.randomYaw ? "checked" : ""}> Random turn</label>
       <label class="check"><input id="place-align" type="checkbox" ${p.align ? "checked" : ""}> Stand on the slope</label>
+      <label class="check" title="Off: new objects go through props to the ground"><input id="place-on-props" type="checkbox" ${p.onProps ? "checked" : ""}> Land on props (a crate on a table)</label>
+      ${scatter || (p.live && live.zone) ? "" : `<label class="check" title="Caves and tunnels: their mouth and bore open as they're placed (the Exclude tool's shape)"><input id="place-cut" type="checkbox" ${p.cut ? "checked" : ""}> Cut the ground inside it</label>`}
       <div class="row"><label>Scale from <input id="place-scale-min" type="number" min="0.05" step="0.05" value="${p.scaleMin}"></label>
         <label>to <input id="place-scale-max" type="number" min="0.05" step="0.05" value="${p.scaleMax}"></label></div>
       <label>Height above the ground (negative sinks them) <input id="place-offset" type="number" step="0.1" value="${p.offset}"></label>
@@ -828,6 +964,8 @@ function renderPanel() {
     panel.querySelector("#npc-definitions")?.addEventListener("click", () => definitionEditor.open(state.npcPick?.id ?? null));
     panel.querySelector("#place-turn").addEventListener("change", (e) => { p.randomYaw = e.target.checked; });
     panel.querySelector("#place-align").addEventListener("change", (e) => { p.align = e.target.checked; });
+    panel.querySelector("#place-on-props").addEventListener("change", (e) => { p.onProps = e.target.checked; });
+    panel.querySelector("#place-cut")?.addEventListener("change", (e) => { p.cut = e.target.checked; });
     panel.querySelector("#place-scale-min").addEventListener("input", (e) => { p.scaleMin = Math.max(0.05, +e.target.value); });
     panel.querySelector("#place-scale-max").addEventListener("input", (e) => { p.scaleMax = Math.max(0.05, +e.target.value); });
     panel.querySelector("#place-offset").addEventListener("input", (e) => { p.offset = +e.target.value; });
@@ -1031,7 +1169,7 @@ function renderLiveInspector(target) {
     <label>Position</label><div class="xyz">${[data.x, data.y, data.z].map((v, k) => `<input data-live-pos="${k}" type="number" step="0.25" value="${v.toFixed(2)}">`).join("")}</div>
     <label>Yaw / pitch / roll (degrees)</label><div class="xyz">${deg.map((v, k) => `<input data-live-rot="${k}" type="number" step="5" value="${v}">`).join("")}</div>
     <label>Scale <input id="live-scale" type="number" step="0.05" min="0.05" max="20" value="${data.scale.toFixed(3)}"></label>
-    <div class="row"><button id="live-ground" title="End">Drop to ground</button><button id="live-focus" title="F">Focus</button></div>
+    <div class="row"><button id="live-ground" title="End: onto what's below it, the ground or a prop's top">Drop down</button><button id="live-focus" title="F">Focus</button></div>
     <div class="row"><button id="duplicate">Duplicate</button><button id="delete" class="danger">Delete</button></div>
     <div class="row"><button id="live-bake" ${data.model ? "" : "disabled"} title="Make it one of the zone's own props, in the chunk under it, and take it out of the game">Bake into the zone</button></div>
     <div id="live-npc"></div>
@@ -1099,25 +1237,77 @@ function renderLivePlayerInspector(target) {
   });
 }
 
-// One of the zone's own NPCs, mobs or collection nodes: shown as the game has them, edited in their data files.
+// One of the zone's own NPCs, mobs or collection nodes, as the game has them. An NPC or mob its zone scripts spawn
+// from a plain line (src/Scripts/Zone) is edited here: moving, turning or deleting it changes the game at once and
+// rewrites that line (admins), and it can become a world NPC to edit like a placed one.
 function renderLiveNpcInspector(target) {
   const npc = selected;
   const data = npc.userData.live;
+  const info = npc.userData.zoneNpc;
   const kinds = { npc: "NPC", mob: "mob", node: "collection node", coin: "collection coin" };
+  const pooled = data.kind === "node" || data.kind === "coin";
+  let body;
+  if (pooled) {
+    body = `<p class="hint">Collection nodes and coins come from the zone's collection pools (CollectionNodeSpawns), placed in game
+      with <code>!collection place</code>.</p>`;
+  } else if (!info) {
+    body = `<p class="hint">Finding the line that spawns it…</p>`;
+  } else if (info.error) {
+    body = `<p class="hint warn">${escape(info.error)}</p>`;
+  } else if (!info.line.found) {
+    body = html`<p class="hint">None of the zone's scripts (${escape(info.line.scripts.join(", ") || "none")}) spawns it with a line the editor
+      can rewrite: a script may work its spot out in code, or a referee spawned it in game. Edit that script, or spawn a copy with Place live.</p>`;
+  } else {
+    const { spawn, line } = info;
+    const deg = [spawn.h, spawn.pitch, spawn.roll].map((r) => THREE.MathUtils.radToDeg(r).toFixed(1));
+    body = html`<p class="hint">Spawned by <code>${escape(line.file)}</code> line ${line.line}. Moving or turning it here (G and R) shows in
+      game at once and rewrites that line, so the zone starts it there.${spawn.walks ? " It walks a path (NpcMovements.json), which stays where it is." : ""}</p>
+      <label>Position</label><div class="xyz">${[spawn.x, spawn.y, spawn.z].map((v, k) => `<input data-zn-pos="${k}" type="number" step="0.25" value="${v.toFixed(2)}">`).join("")}</div>
+      <label>Yaw / pitch / roll (degrees)</label><div class="xyz">${deg.map((v, k) => `<input data-zn-rot="${k}" type="number" step="5" value="${v}">`).join("")}</div>
+      <div class="row"><button id="zn-ground" title="End: onto what's below it, the ground or a prop's top">Drop down</button><button id="live-focus" title="F">Focus</button></div>
+      <div class="row"><button id="zn-adopt" ${line.deletable ? "" : "disabled"} title="A world NPC saved in the database, edited like the ones placed here: its look, behaviour, conversation and script. Its spawn line goes.">Make it a placed NPC</button>
+        <button id="delete" class="danger" ${line.deletable ? "" : "disabled"}>Delete</button></div>
+      ${line.deletable ? "" : `<p class="hint">Its line keeps it in a variable for more code, so it isn't taken out here.</p>`}`;
+  }
   target.innerHTML = html`<h4>${escape(data.label)}</h4>
-    <p class="hint"><span class="live-badge">LIVE</span> zone ${kinds[data.kind] ?? data.kind} · ${data.id}</p>
+    <p class="hint"><span class="live-badge">LIVE</span> zone ${kinds[data.kind] ?? data.kind} · NPC #${data.def} · ${data.id}</p>
     <p class="hint">${escape(live.lookFiles(npc).join(", "))}</p>
-    <p class="hint">The zone's own NPCs come from its data files (Npcs.json, Mobs.json, the collection pools); spawn a copy with
-      Place live to have one to edit here.</p>
-    <div class="row"><button id="live-focus">Focus</button></div>`;
+    ${body}
+    ${isZoneNpc(npc) ? "" : `<div class="row"><button id="live-focus">Focus</button></div>`}`;
   target.querySelector("#live-focus").addEventListener("click", () => focusOn(npc, LIVE_FOCUS));
+  if (!pooled && !info) {
+    live.zoneNpc(npc)
+      .then((found) => {
+        npc.userData.zoneNpc = found;
+        if (found.line.found && !found.spawn.walks && selected === npc) live.pin(npc, found.spawn);
+      })
+      .catch((error) => { npc.userData.zoneNpc = { error: error.message }; })
+      .finally(() => { if (selected === npc) { attachGizmo(); renderInspector(); } });
+  }
+  if (!isZoneNpc(npc)) return;
+  const send = () => zoneNpcStep(live.moveZoneNpc(npc), "Updated in game and in its spawn line.");
+  for (const input of target.querySelectorAll("[data-zn-pos]")) {
+    input.addEventListener("change", () => { npc.position.setComponent(+input.dataset.znPos, +input.value); send(); });
+  }
+  for (const input of target.querySelectorAll("[data-zn-rot]")) {
+    input.addEventListener("change", () => {
+      npc.rotation.reorder("YXZ");
+      npc.rotation[["y", "x", "z"][+input.dataset.znRot]] = THREE.MathUtils.degToRad(+input.value);
+      send();
+    });
+  }
+  target.querySelector("#zn-ground").addEventListener("click", () => dropLiveToGround(npc));
+  target.querySelector("#zn-adopt").addEventListener("click", () => adoptZoneNpc(npc));
+  target.querySelector("#delete").addEventListener("click", () => deleteZoneNpc(npc));
 }
 
+// A live object or zone NPC onto what's below it: the ground or a prop's top.
 function dropLiveToGround(object) {
-  const ground = terrain.heightAt(object.position.x, object.position.z);
-  if (ground === null || ground === undefined) return toast("There's no loaded ground under it.");
+  const ground = surfaceBelow(object);
+  if (ground === null || ground === undefined) return toast("There's nothing loaded under it.");
   object.position.y = ground;
-  liveStep(live.commit(object), "Dropped to the ground in game.");
+  if (isZoneNpc(object)) zoneNpcStep(live.moveZoneNpc(object), "Dropped down in game and in its spawn line.");
+  else liveStep(live.commit(object), "Dropped down in game.");
 }
 
 // Several objects: what they are, their look and draw distance together, and the actions on all of them.
@@ -1280,8 +1470,10 @@ const isLive = (object) => !!object?.userData.kind?.startsWith?.("live");
 // Selects one object, or with add toggles it in the selection (props and lights; a marker selects alone).
 function select(object, add = false) {
   settleNudge();
-  // A live object's settings are fetched again each time it's selected: other referees edit it too.
-  if (object && object !== selected) delete object.userData.settings;
+  // A live object's settings (and a zone NPC's spawn line) are fetched again each time it's selected: other
+  // referees edit them too. A zone NPC let go of follows the feed again.
+  if (object && object !== selected) { delete object.userData.settings; delete object.userData.zoneNpc; }
+  if (selected && selected !== object && selected.userData.kind === "live-npc") selected.userData.pinned = null;
   if (add && object && !alone(object) && !alone(selected)) {
     if (selection.has(object)) {
       selection.delete(object);
@@ -1332,7 +1524,7 @@ function selectionChanged() {
 function attachGizmo() {
   gizmo.detach();
   const kind = selected?.userData.kind, chunk = selected?.userData.chunk;
-  if (!selected || (kind !== "marker" && kind !== "live" && !(chunk && chunk.editable))) {
+  if (!selected || (kind !== "marker" && kind !== "live" && !isZoneNpc(selected) && !(chunk && chunk.editable))) {
     updateTransformBar();
     return;
   }
@@ -1346,8 +1538,13 @@ function attachGizmo() {
     gizmo.attach(pivot);
   } else gizmo.attach(selected);
   gizmo.showY = true;
-  if ((kind === "light" && gizmo.mode !== "translate") || (kind === "marker" && gizmo.mode === "scale")) gizmo.setMode("translate");
+  if ((kind === "light" && gizmo.mode !== "translate") || ((kind === "marker" || kind === "live-npc") && gizmo.mode === "scale")) gizmo.setMode("translate");
   updateTransformBar();
+}
+
+// One of the zone's own NPCs whose spawn line the editor found, so it can be moved, turned and deleted here.
+function isZoneNpc(object) {
+  return object?.userData.kind === "live-npc" && !!object.userData.zoneNpc?.line?.found;
 }
 
 const RECORD_KEYS = ["file", "position", "rotation", "scale", "material", "tintAlias", "tint", "drawDistance"];
@@ -1421,7 +1618,7 @@ gizmo.addEventListener("dragging-changed", (event) => {
   if (event.value) {
     if (selected.userData.kind === "marker") { dragStart = null; return; }
     // A live object's server updates wait until the drag ends, then it goes to the game.
-    if (selected.userData.kind === "live") { live.held = selected; dragStart = null; return; }
+    if (selected.userData.kind === "live" || isZoneNpc(selected)) { live.held = selected; dragStart = null; return; }
     pivot.updateMatrixWorld();
     dragStart = {
       pivot: pivot.matrixWorld.clone().invert(),
@@ -1434,6 +1631,7 @@ gizmo.addEventListener("dragging-changed", (event) => {
   }
   if (selected.userData.kind === "marker") { selected.userData.apply?.(); renderInspector(); updateDirty(); return; }
   if (selected.userData.kind === "live") { liveStep(live.commit(selected), "Moved in game."); return; }
+  if (isZoneNpc(selected)) { zoneNpcStep(live.moveZoneNpc(selected), "Moved in game and in its spawn line."); return; }
   const entries = dragStart?.entries || [];
   for (const { object } of entries) {
     // Dragged into another editable chunk: it belongs there now.
@@ -1535,6 +1733,7 @@ function removeObjects(objects) {
 }
 
 function deleteSelected() {
+  if (isZoneNpc(selected)) return deleteZoneNpc(selected);
   if (!selected || selected.userData.kind === "marker" || selected.userData.kind?.startsWith("live-")) return;
   if (selected.userData.kind === "live") return liveStep(live.remove(selected), `Deleted ${selected.userData.label} in game.`);
   const count = removeObjects(selectedObjects());
@@ -1550,6 +1749,36 @@ async function liveStep(pending, done) {
   }));
   if (done) status(done);
   renderInspector();
+}
+
+// A zone NPC edit's answer: its undo step (the game's and the spawn line's), then the inspector catches up.
+async function zoneNpcStep(pending, done) {
+  const undo = await pending;
+  if (undo) {
+    undoStack.push(() => undo().then(() => { status("Undid it in game and in its spawn line."); renderInspector(); }));
+    if (done) status(done);
+  }
+  renderInspector();
+}
+
+async function deleteZoneNpc(node) {
+  const { line } = node.userData.zoneNpc;
+  if (!line.deletable) return toast(`${line.file} line ${line.line} keeps this NPC for more code: edit the script to remove it.`);
+  if (!confirm(`Delete ${node.userData.label}? It goes from the game now, and its line from ${line.file}.`)) return;
+  zoneNpcStep(live.removeZoneNpc(node), `Deleted ${node.userData.label} in game and took its line out of ${line.file}.`);
+}
+
+// Makes a zone NPC a world NPC where it stands, then selects that once the feed brings it.
+async function adoptZoneNpc(node) {
+  const { line } = node.userData.zoneNpc;
+  const label = node.userData.label;
+  if (!line.deletable) return toast(`${line.file} line ${line.line} keeps this NPC for more code, so it can't move to the database.`);
+  const done = await live.adoptZoneNpc(node);
+  if (!done) return;
+  undoStack.push(() => done.undo().then(() => status(`${label} is the zone's own again.`)));
+  status(`${label} is a world NPC now; its line left ${line.file}.`);
+  for (let tries = 0; tries < 20 && !live.objects.has(done.id); tries++) await new Promise((resolve) => setTimeout(resolve, 150));
+  if (live.objects.has(done.id)) select(live.objects.get(done.id));
 }
 
 // Turns a live object into one of the zone's own props, in the chunk under it, and takes it out of the game: from
@@ -1636,7 +1865,7 @@ function randomScale() {
 }
 
 const OBJECT_ACTIONS = {
-  ground: ["Drop to ground", (r) => { const h = terrain.heightAt(r.position[0], r.position[2]); if (h !== null) r.position[1] = h; }],
+  ground: ["Drop down", null],
   slope: ["Align to slope", (r) => { r.rotation = slopeRotation(r.rotation[0], groundNormal(r.position[0], r.position[2])); }],
   upright: ["Stand upright", (r) => { r.rotation = [r.rotation[0], 0, 0]; }],
   turn: ["Random turn", (r) => { r.rotation = [Math.random() * Math.PI * 2, r.rotation[1], r.rotation[2]]; }],
@@ -1646,12 +1875,8 @@ const OBJECT_ACTIONS = {
 
 function objectAction(name) {
   const [, action] = OBJECT_ACTIONS[name];
-  editObjects(selectedObjects().filter((o) => o.userData.kind === "prop" || name === "ground"), (record, object) => {
-    if (object.userData.kind === "light" && name === "ground") {
-      const h = terrain.heightAt(record.position[0], record.position[2]);
-      if (h !== null) record.position[1] = h + 6;
-    } else action(record);
-  });
+  if (name === "ground") return dropDown(selectedObjects().filter((o) => o.userData.kind === "prop" || o.userData.kind === "light"));
+  editObjects(selectedObjects().filter((o) => o.userData.kind === "prop"), (record) => action(record));
 }
 
 // Every loaded prop of the selected objects' actors.
@@ -1935,8 +2160,22 @@ function makeGhost() {
 function placeActor(name, hit, yaw = 0) {
   const chunk = editableChunkFor(hit.x, hit.z);
   if (!chunk) return toast("No chunk is loaded here. Add one with the Chunks tool (K).");
-  applyPlaceLook(addRecord(chunk, "prop", newRecord(name, hit, yaw)));
+  const object = addRecord(chunk, "prop", newRecord(name, hit, yaw));
+  applyPlaceLook(object);
   content.placed(name);
+  if (state.place.cut) cutWhenLoaded(object, state.exclude.shape === "box" ? "mesh" : state.exclude.shape);
+}
+
+// A cave or tunnel from the Exclude tool's list, to place with the Props tool, cutting the ground inside it.
+function placeCave(name) {
+  state.actor = name;
+  state.npcPick = null;
+  state.place.mode = "single";
+  state.place.live = false;
+  state.place.cut = true;
+  content.select?.(name);
+  setTool("props");
+  status(`Click to place ${name}: the ground inside it is cut as it lands (Ctrl+Z puts the ground back, again the model).`);
 }
 
 // Places the actor in the running game instead (Place live): a placed model, there for players at once.
@@ -2042,18 +2281,30 @@ $("#toggle-content").addEventListener("click", () => toggleContent());
 
 // Dragging a tile picks it (so the preview follows the pointer); dropping it on the ground places it.
 canvas.addEventListener("dragover", (event) => {
-  if (!event.dataTransfer.types.includes("text/x-zone-actor")) return;
+  if (!event.dataTransfer.types.includes("text/x-zone-actor") && !event.dataTransfer.types.includes("text/x-zone-npc")) return;
   event.preventDefault();
   event.dataTransfer.dropEffect = "copy";
   updatePointer(event);
   pointer.inside = true;
 });
 canvas.addEventListener("drop", (event) => {
+  const npc = event.dataTransfer.getData("text/x-zone-npc");
+  if (npc) {
+    event.preventDefault();
+    updatePointer(event);
+    const hit = placementHit();
+    if (!hit) return toast("Drop it on the ground.");
+    if (!live.zone) return toast("NPCs spawn in the running game: open the editor from the admin panel, with the zone running.");
+    const summary = JSON.parse(npc);
+    pickNpc(summary);
+    spawnNpc(summary, newRecord(summary.model ?? "", hit, ghost ? ghost.rotation.y : 0));
+    return;
+  }
   const name = event.dataTransfer.getData("text/x-zone-actor");
   if (!name) return;
   event.preventDefault();
   updatePointer(event);
-  const hit = terrainHit();
+  const hit = placementHit();
   if (!hit) return toast("Drop it on the ground.");
   if (state.place.live && live.zone) placeLive(name, hit, ghost ? ghost.rotation.y : 0);
   else placeActor(name, hit, ghost ? ghost.rotation.y : 0);
@@ -2084,6 +2335,94 @@ function selectInBox(a, b, add) {
   });
   selectMany(inside, add);
   status(`${selection.size} object(s) selected.`);
+}
+
+const surfaceCaster = new THREE.Raycaster();
+const DOWN = new THREE.Vector3(0, -1, 0);
+
+// Whether a mesh the ray met is drawn (its object, and every group up to it).
+function shown(node) {
+  for (; node; node = node.parent) if (!node.visible) return false;
+  return true;
+}
+
+// Where a ray first meets the world: the ground, or the surface of a prop or a live object, leaving out the objects
+// in skip. { x, y, z, chunk, object (the prop or live object it met, if one) }, or null.
+function surfaceHit(origin, direction, skip = new Set(), far = 4000) {
+  const ground = terrain.raycast(origin, direction, far);
+  surfaceCaster.set(origin, direction);
+  surfaceCaster.far = ground ? origin.distanceTo(new THREE.Vector3(ground.x, ground.y, ground.z)) : far;
+  const targets = props.pickables.filter((o) => o.visible && o.userData.kind === "prop" && !skip.has(o));
+  if (live.visible) for (const node of live.objects.values()) if (!skip.has(node)) targets.push(node);
+  for (const hit of surfaceCaster.intersectObjects(targets, true)) {
+    if (!hit.object.isMesh || !shown(hit.object)) continue;
+    let owner = hit.object;
+    while (owner.parent && !targets.includes(owner)) owner = owner.parent;
+    return { x: hit.point.x, y: hit.point.y, z: hit.point.z, chunk: terrain.chunkAt(hit.point.x, hit.point.z), object: owner };
+  }
+  return ground;
+}
+
+// Where the Props tool puts a new object under the pointer: on the ground, or with Land on props on whatever is there.
+function placementHit(ndc = pointer.ndc) {
+  if (!state.place.onProps) return terrainHit(ndc);
+  raycaster.setFromCamera(ndc, camera);
+  return surfaceHit(raycaster.ray.origin, raycaster.ray.direction);
+}
+
+// Where an object stands: the x/z extent and top of its lowest part (its bottom tenth, half a metre at least), so a
+// tree's base counts rather than its canopy.
+function footprint(object) {
+  object.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(object);
+  if (box.isEmpty()) return null;
+  const limit = box.min.y + Math.max(0.5, (box.max.y - box.min.y) * 0.1);
+  const foot = new THREE.Box3(), v = new THREE.Vector3();
+  object.traverse((node) => {
+    const position = node.isMesh && node.geometry?.attributes.position;
+    if (!position) return;
+    for (let k = 0; k < position.count; k++) {
+      v.fromBufferAttribute(position, k).applyMatrix4(node.matrixWorld);
+      if (v.y <= limit) foot.expandByPoint(v);
+    }
+  });
+  return { box: foot.isEmpty() ? box : foot, top: limit, height: box.max.y - box.min.y };
+}
+
+// The height an object drops to: the highest surface under its base, which is the ground under its middle or the
+// top of a prop under any of its base (so a crate dropped onto a table sits on the table, not half in it). One sunk
+// into the ground comes up to it, unless the ground is far over it (a cave's). skip: objects not to land on (those
+// dropping with it). Null with nothing under it.
+function surfaceBelow(object, skip = new Set([object])) {
+  const foot = footprint(object);
+  const { x, y, z } = object.position;
+  const box = foot?.box ?? new THREE.Box3().setFromCenterAndSize(object.position, new THREE.Vector3(0.5, 0.5, 0.5));
+  const start = Math.max(foot?.top ?? y, y) + 0.05;
+  const inX = [box.min.x + (box.max.x - box.min.x) * 0.15, box.max.x - (box.max.x - box.min.x) * 0.15];
+  const inZ = [box.min.z + (box.max.z - box.min.z) * 0.15, box.max.z - (box.max.z - box.min.z) * 0.15];
+  const feet = [[x, z], [inX[0], inZ[0]], [inX[1], inZ[0]], [inX[0], inZ[1]], [inX[1], inZ[1]]];
+  const ground = terrain.heightAt(x, z);
+  let best = ground !== null && !Number.isNaN(ground) && ground > start && ground - start < (foot?.height ?? 1) + 1 ? ground : null;
+  feet.forEach(([fx, fz], i) => {
+    const hit = surfaceHit(new THREE.Vector3(fx, start, fz), DOWN, skip, start + 2000);
+    // The ground counts under the middle only, so a slope doesn't hold it up off its downhill side.
+    if (hit && (i === 0 || hit.object) && (best === null || hit.y > best)) best = hit.y;
+  });
+  return best;
+}
+
+// Drops objects onto what's below each (lights go 6 above the ground), as one undo step.
+function dropDown(objects) {
+  const skip = new Set(objects);
+  const heights = new Map(objects.map((object) => {
+    if (object.userData.kind !== "light") return [object, surfaceBelow(object, skip)];
+    const h = terrain.heightAt(object.position.x, object.position.z);
+    return [object, h === null ? null : h + 6];
+  }));
+  editObjects(objects, (record, object) => {
+    const y = heights.get(object);
+    if (y !== null && y !== undefined) record.position[1] = y;
+  });
 }
 
 function terrainHit(ndc = pointer.ndc) {
@@ -2130,6 +2469,7 @@ canvas.addEventListener("lostpointercapture", (event) => {
 
 // Ends what a left drag started when its button came up where the canvas didn't hear it.
 function letGoOfLeft(event) {
+  if (slide) endSlide(true);
   if (boxSelect) {
     boxSelect = null;
     $("#select-box").style.display = "none";
@@ -2152,8 +2492,11 @@ canvas.addEventListener("pointerdown", async (event) => {
     if (tool === "exclude" && event.shiftKey) {
       raycaster.setFromCamera(pointer.ndc, camera);
       const propHit = props.pick(raycaster);
-      if (propHit?.object.userData.kind !== "prop") return toast("No model under the pointer.");
-      state.exclude.target = propHit.object;
+      const liveHit = live.pick(raycaster);
+      const hit = [propHit?.object.userData.kind === "prop" && propHit, liveHit?.object.userData.kind === "live" && liveHit]
+        .filter(Boolean).sort((x, y) => x.distance - y.distance)[0];
+      if (!hit) return toast("No model under the pointer.");
+      state.exclude.target = hit.object;
       return renderPanel();
     }
     if (tool === "eco" && state.ecoPick) {
@@ -2163,7 +2506,7 @@ canvas.addEventListener("pointerdown", async (event) => {
     stroke = { snapshot: new Map(), target: hit?.y ?? 0, last: performance.now() };
     if (tool === "sculpt" && hit && state.brush.mode === "slope") stroke.plane = terrain.fitPlane(hit.x, hit.z, state.brush.radius);
     if (tool === "sculpt" && hit && state.brush.mode === "ramp") stroke.start = { x: hit.x, y: hit.y, z: hit.z };
-    if (tool === "exclude") stroke.inside = excludeTarget() && state.exclude.onlyInside ? insideTest(excludeTarget()) : null;
+    if (tool === "exclude") stroke.inside = excludeTarget() && state.exclude.onlyInside ? cutTest(excludeTarget()) : null;
     return;
   }
   if (tool === "chunks") {
@@ -2172,14 +2515,13 @@ canvas.addEventListener("pointerdown", async (event) => {
     return;
   }
   raycaster.setFromCamera(pointer.ndc, camera);
-  const markerHit = raycaster.intersectObjects(markers.filter((m) => m.userData.kind === "marker"), true)[0];
   const propHit = props.pick(raycaster);
   if (tool === "props" && state.place.mode === "scatter" && scatterFiles().length) {
     scatter = { placed: [], erased: [], erase: event.shiftKey, budget: 1 };
     return;
   }
   if (tool === "props" && state.actor && !event.shiftKey) {
-    const hit = terrainHit();
+    const hit = placementHit();
     if (hit && state.place.live && live.zone) placeLive(state.actor, hit, ghost ? ghost.rotation.y : 0);
     else if (hit && state.npcPick) toast("NPCs spawn in the running game: open the editor from the admin panel, with the zone running.");
     else if (hit) placeActor(state.actor, hit, ghost ? ghost.rotation.y : 0);
@@ -2193,6 +2535,25 @@ canvas.addEventListener("pointerdown", async (event) => {
     addRecord(chunk, "light", { name: "newLight", colorName: "warm01", type: 0, position: [hit.x, hit.y + 6, hit.z], range: 20, intensity: 0.75, color: [239, 197, 25, 255] });
     return;
   }
+  const picked = pickUnderPointer();
+  // The Select tool decides on release: a drag over the view is a box selection, a click picks. Pressing on
+  // something already selected and dragging slides it over the ground and props instead.
+  if (tool === "select") {
+    if (picked && !event.shiftKey && (picked === selected || selection.has(picked)) && slideable(picked)) {
+      slide = { x: event.clientX, y: event.clientY, picked, active: false };
+      return;
+    }
+    boxSelect = { x: event.clientX, y: event.clientY, add: event.shiftKey, picked, active: false };
+    return;
+  }
+  select(picked, event.shiftKey && !!picked);
+});
+
+// What a click there picks: the nearest marker, prop, light or live object under the pointer.
+function pickUnderPointer() {
+  raycaster.setFromCamera(pointer.ndc, camera);
+  const markerHit = raycaster.intersectObjects(markers.filter((m) => m.userData.kind === "marker"), true)[0];
+  const propHit = props.pick(raycaster);
   let picked = propHit ? propHit.object : null;
   let pickedDistance = propHit?.distance ?? Infinity;
   if (markerHit && markerHit.distance < pickedDistance) {
@@ -2202,14 +2563,214 @@ canvas.addEventListener("pointerdown", async (event) => {
   }
   const liveHit = live.pick(raycaster);
   if (liveHit && liveHit.distance < pickedDistance) picked = liveHit.object;
-  // The Select tool decides on release: a drag over the view is a box selection, a click picks.
-  if (tool === "select") {
-    boxSelect = { x: event.clientX, y: event.clientY, add: event.shiftKey, picked, active: false };
+  return picked;
+}
+
+// --- sliding: dragging what's selected over the world --------------------------------------------------------------
+
+let slide = null;      // a press on the selection: { x, y, picked, active (dragged), objects, start, edit }
+
+// Props and lights in editable chunks, live objects and the zone's NPCs whose spawn line is known slide.
+function slideable(object) {
+  const kind = object.userData.kind;
+  return kind === "live" || isZoneNpc(object) || ((kind === "prop" || kind === "light") && object.userData.chunk?.editable);
+}
+
+function slideTo(event) {
+  if (!slide.active) {
+    if (Math.hypot(event.clientX - slide.x, event.clientY - slide.y) < 5) return;
+    slide.active = true;
+    const alone = isLive(slide.picked);
+    slide.objects = alone ? [slide.picked] : selectedObjects().filter(slideable);
+    slide.start = slide.picked.position.clone();
+    slide.from = slide.objects.map((object) => object.position.clone());
+    if (alone) live.held = slide.picked;
+    else slide.edit = liveEdit(slide.objects);
+    gizmo.enabled = false;
+  }
+  updatePointer(event);
+  raycaster.setFromCamera(pointer.ndc, camera);
+  const hit = surfaceHit(raycaster.ray.origin, raycaster.ray.direction, new Set(slide.objects));
+  if (!hit) return;
+  const delta = new THREE.Vector3(hit.x, hit.y, hit.z).sub(slide.start);
+  if (slide.edit) {
+    slide.edit.apply((record, object) => {
+      const from = slide.from[slide.objects.indexOf(object)];
+      record.position = [from.x + delta.x, from.y + delta.y, from.z + delta.z];
+    });
+  } else slide.picked.position.copy(slide.start).add(delta);
+}
+
+function endSlide(cancel = false) {
+  const ended = slide;
+  slide = null;
+  gizmo.enabled = true;
+  if (!ended.active) {
+    if (!cancel) select(ended.picked);
     return;
   }
-  select(picked, event.shiftKey && !!picked);
+  if (ended.edit) {
+    ended.edit.commit();
+    status(`Moved ${ended.objects.length} object(s).`);
+  } else if (isZoneNpc(ended.picked)) zoneNpcStep(live.moveZoneNpc(ended.picked), "Moved in game and in its spawn line.");
+  else liveStep(live.commit(ended.picked), "Moved in game.");
+}
+
+// --- the right-click menu ----------------------------------------------------------------------------------------
+
+let rightPress = null;   // a right press: let go where it started, it opens the menu; dragged, it turned the view
+canvas.addEventListener("pointerdown", (event) => {
+  if (event.button === 2) rightPress = { x: event.clientX, y: event.clientY };
 });
+canvas.addEventListener("pointerup", (event) => {
+  if (event.button !== 2 || !rightPress) return;
+  const press = rightPress;
+  rightPress = null;
+  if (Math.hypot(event.clientX - press.x, event.clientY - press.y) < 5) openContextMenu(event);
+});
+
+function openContextMenu(event) {
+  if (!state.zone) return;
+  updatePointer(event);
+  const target = pickUnderPointer();
+  if (target && target !== selected && !selection.has(target)) select(target);
+  raycaster.setFromCamera(pointer.ndc, camera);
+  const spot = surfaceHit(raycaster.ray.origin, raycaster.ray.direction, target ? new Set([target]) : new Set());
+  const items = target ? objectMenu(target) : groundMenu(spot);
+  if (items.length) showMenu(event.clientX, event.clientY, items);
+}
+
+const short = (file) => file.replace(/\.a[dg]r$/i, "");
+
+// What can be done to the object right-clicked (and the rest of the selection with it).
+function objectMenu(object) {
+  const kind = object.userData.kind;
+  const focus = { label: "Focus", key: "F", action: () => focusOn(object, isLive(object) ? LIVE_FOCUS : undefined) };
+  if (kind === "marker") {
+    return [{ heading: object.userData.label }, focus, { label: "Drop to ground", key: "End", action: () => objectAction("ground") }];
+  }
+  if (kind === "live-player") {
+    const data = object.userData.live;
+    return [{ heading: `${data.name} (player)` }, focus,
+      { label: "Message…", action: () => { panel.querySelector("#live-message")?.focus(); } },
+      { label: "Kick", danger: true, action: async () => { if (confirm(`Kick ${data.name} from the server?`) && await live.kick(object)) status(`Kicked ${data.name}.`); } }];
+  }
+  if (kind === "live-npc") {
+    const items = [{ heading: `${object.userData.label} (zone NPC)` }, focus];
+    if (isZoneNpc(object)) {
+      const { line } = object.userData.zoneNpc;
+      items.push({ label: "Drop down", key: "End", action: () => dropLiveToGround(object) }, "-",
+        { label: "Make it a placed NPC", disabled: !line.deletable, action: () => adoptZoneNpc(object) },
+        { label: "Delete", key: "Del", danger: true, disabled: !line.deletable, action: () => deleteZoneNpc(object) });
+    } else {
+      items.push({ label: object.userData.zoneNpc ? "Its script doesn't spawn it from a plain line" : "Finding its spawn line…", disabled: true, action: () => {} });
+    }
+    return items;
+  }
+  if (kind === "live") {
+    const data = object.userData.live;
+    return [{ heading: `${data.label} (live)` }, focus,
+      { label: "Drop down", key: "End", action: () => dropLiveToGround(object) },
+      { label: "Duplicate", key: "Ctrl+D", action: duplicateSelected },
+      ...(data.model ? [{ label: "Make it an NPC", action: () => makeNpc(object) },
+        { label: "Bake into the zone", action: () => bakeLive(object) }] : []),
+      { label: "Cut the ground inside it", disabled: !state.zone, action: () => cutFrom(object) },
+      { label: "Edit script…", action: () => scriptEditor.open(object) }, "-",
+      { label: "Delete", key: "Del", danger: true, action: deleteSelected }];
+  }
+  const objects = selectedObjects();
+  const editable = object.userData.chunk?.editable;
+  const count = objects.length;
+  const heading = count > 1 ? `${count} objects` : kind === "light" ? `Light ${object.userData.record.name}` : short(object.userData.record.file);
+  if (!editable) {
+    return [{ heading: `${heading} (stock)` }, focus,
+      ...(kind === "prop" ? [{ label: "Use as the content pick", action: () => pickActor(object.userData.record.file) },
+        { label: "Select all like this", action: selectSameModel },
+        { label: "Hide this model", key: "H", action: hideSelectedModels }] : [])];
+  }
+  const isProp = kind === "prop";
+  return [{ heading }, focus,
+    { label: "Drop down", key: "End", title: "Onto what's below: the ground or a prop's top", action: () => objectAction("ground") },
+    ...(isProp ? [{ label: "Align to slope", action: () => objectAction("slope") }, { label: "Stand upright", action: () => objectAction("upright") },
+      { label: "Reset turn and scale", action: () => objectAction("reset") }] : []), "-",
+    { label: "Duplicate", key: "Ctrl+D", action: duplicateSelected },
+    { label: "Copy", key: "Ctrl+C", action: copySelected },
+    ...(isProp ? ["-", { label: "Use as the content pick", action: () => pickActor(object.userData.record.file) },
+      { label: "Replace with the content pick", disabled: !state.actor, action: replaceSelectedModel },
+      { label: "Select all like this", action: selectSameModel },
+      { label: "Hide this model", key: "H", action: hideSelectedModels },
+      { label: "Cut the ground inside it", title: "Caves and tunnels: the Exclude tool's shape", action: () => cutFrom(object) }] : []), "-",
+    { label: count > 1 ? `Delete ${count} objects` : "Delete", key: "Del", danger: true, action: deleteSelected }];
+}
+
+// What can be done at a spot on the ground (or a prop's top) with nothing picked there.
+function groundMenu(spot) {
+  if (!spot) return [];
+  const items = [{ heading: `${spot.x.toFixed(1)}, ${spot.y.toFixed(1)}, ${spot.z.toFixed(1)}` }];
+  const yaw = ghost ? ghost.rotation.y : 0;
+  if (state.actor) {
+    items.push({ label: `Place ${short(state.actor)} here`, action: () => {
+      if (state.npcPick && live.zone) spawnNpc(state.npcPick, newRecord(state.actor, spot, yaw));
+      else if (state.place.live && live.zone) placeLive(state.actor, spot, yaw);
+      else placeActor(state.actor, spot, yaw);
+    } });
+  }
+  if (clipboard) {
+    items.push({ label: `Paste ${clipboard.items.length} object(s) here`, key: "Ctrl+V", action: () => {
+      const { items: copied, centre } = clipboard;
+      pasteRecords(copied, [spot.x - centre[0], spot.y - centre[1], spot.z - centre[2]]);
+    } });
+  }
+  items.push({ label: "Add a light here", action: () => {
+    const chunk = editableChunkFor(spot.x, spot.z);
+    if (!chunk) return toast("No editable chunk is loaded here. Add one with the Chunks tool (K).");
+    addRecord(chunk, "light", { name: "newLight", colorName: "warm01", type: 0, position: [spot.x, spot.y + 6, spot.z], range: 20, intensity: 0.75, color: [239, 197, 25, 255] });
+  } });
+  const moving = selected && slideable(selected) ? selected : null;
+  if (moving) {
+    items.push({ label: `Move ${isLive(moving) ? moving.userData.label : selection.size > 1 ? `${selection.size} objects` : short(moving.userData.record?.file ?? "it")} here`,
+      action: () => moveSelectionTo(spot) });
+  }
+  if (selected?.userData.kind === "live-player") {
+    items.push({ label: `Send ${selected.userData.live.name} here`, action: async () => {
+      if (await live.teleport(selected, spot)) status(`Sent ${selected.userData.live.name} there.`);
+    } });
+  }
+  if (selected) items.push("-", { label: "Select none", key: "Esc", action: () => select(null) });
+  return items;
+}
+
+// Moves what's selected so the picked one stands at spot (the rest keep their places around it), as one step.
+function moveSelectionTo(spot) {
+  if (isLive(selected)) {
+    selected.position.set(spot.x, spot.y, spot.z);
+    if (isZoneNpc(selected)) zoneNpcStep(live.moveZoneNpc(selected), "Moved in game and in its spawn line.");
+    else liveStep(live.commit(selected), "Moved in game.");
+    return;
+  }
+  const objects = selectedObjects().filter(slideable);
+  const delta = new THREE.Vector3(spot.x, spot.y, spot.z).sub(selected.position);
+  editObjects(objects, (record) => { record.position = record.position.map((v, k) => v + delta.getComponent(k)); });
+}
+
+// Picks a model as the Props tool's next placement, as the content browser does.
+function pickActor(file) {
+  state.actor = file;
+  state.npcPick = null;
+  content.select?.(file);
+  if (state.tool !== "props") setTool("props");
+  else { makeGhost(); renderPanel(); }
+  status(`${file} is the content pick: click to place it.`);
+}
+
+// Makes a model the Exclude tool's target and cuts the ground inside it.
+function cutFrom(object) {
+  state.exclude.target = object;
+  cutInsideTarget(false, object, state.exclude.shape);
+  if (state.tool === "exclude") renderPanel();
+}
 canvas.addEventListener("pointermove", (event) => {
+  if (slide && event.buttons & 1) return slideTo(event);
   if (!boxSelect || !(event.buttons & 1)) return;
   const dx = event.clientX - boxSelect.x, dy = event.clientY - boxSelect.y;
   if (!boxSelect.active && Math.hypot(dx, dy) < 6) return;
@@ -2222,6 +2783,7 @@ canvas.addEventListener("pointermove", (event) => {
 });
 canvas.addEventListener("pointerup", (event) => {
   pointer.buttons = event.buttons;
+  if (slide && event.button === 0) endSlide();
   if (boxSelect) {
     const box = boxSelect;
     boxSelect = null;
@@ -2298,6 +2860,8 @@ window.addEventListener("keydown", (event) => {
   if (event.key === "Shift" && gizmo.dragging && !event.repeat) applySnap(true);
 
   if (event.ctrlKey || event.metaKey) {
+    // Ctrl+C copies selected text (a message's) rather than the selected objects.
+    if (key === "c" && getSelection().toString()) return;
     if (BROWSER_SHORTCUTS.has(event.code)) event.preventDefault();
     if (event.repeat) return;
     settleNudge();
@@ -2338,7 +2902,7 @@ window.addEventListener("keydown", (event) => {
   else if (key === "f" && selected) focusOn(selected, isLive(selected) ? LIVE_FOCUS : undefined);
   else if (key === "h" && event.shiftKey) { props.showAll(); renderPanel(); }
   else if (key === "h" && selected) hideSelectedModels();
-  else if (key === "end" && selected?.userData.kind === "live") dropLiveToGround(selected);
+  else if (key === "end" && (selected?.userData.kind === "live" || isZoneNpc(selected))) dropLiveToGround(selected);
   else if (key === "end" && selected) objectAction("ground");
   else if (TOOL_KEYS[key] && !FLY_KEYS.has(event.code)) setTool(TOOL_KEYS[key]);
 });
@@ -2942,7 +3506,10 @@ function frame() {
     updateAnimations(dt, camera);
     live.update(dt, camera);
     for (const box of selectionBoxes.values()) box.update();
-    if (ghost && hover) ghost.position.set(hover.x, hover.y, hover.z);
+    if (ghost && hover) {
+      const spot = state.place.onProps ? placementHit() ?? hover : hover;
+      ghost.position.set(spot.x, spot.y, spot.z);
+    }
     if (hover) {
       const chunk = hover.chunk;
       const tile = chunk ? Math.floor((hover.z - chunk.z0) / 64) * 4 + Math.floor((hover.x - chunk.x0) / 64) : null;

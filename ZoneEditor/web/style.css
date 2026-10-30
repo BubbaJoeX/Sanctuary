@@ -258,21 +258,62 @@ button.icon { padding: 3px 9px; font-size: 15px; line-height: 1; }
   pointer-events: none;
 }
 
+/* Bottom right of the view, clear of the transform bar and the minimap; its text can be selected and copied. */
 #toast {
   position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(20, 22, 28, 0.94);
+  right: 12px;
+  bottom: 40px;
+  z-index: 20;
+  display: none;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(20, 22, 28, 0.96);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 8px 14px;
-  max-width: 70%;
-  white-space: pre-wrap;
-  display: none;
+  padding: 8px 8px 8px 14px;
+  max-width: min(560px, 70%);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  user-select: text;
+  cursor: text;
 }
+#toast .toast-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 40vh; overflow: auto; }
+#toast button { flex: none; padding: 1px 7px; font-size: 12px; cursor: pointer; }
+#toast .toast-close { font-size: 15px; line-height: 1; }
 #toast.error { border-color: var(--danger); }
 #toast.ok { border-color: var(--ok); }
+
+/* The view's right-click menu (menu.js). */
+.context-menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 210px;
+  max-width: 320px;
+  max-height: calc(100vh - 8px);
+  overflow-y: auto;
+  padding: 4px;
+  background: rgba(24, 27, 34, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.context-menu button {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border: 0;
+  background: none;
+  padding: 5px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.context-menu button:hover:not(:disabled), .context-menu button:focus-visible { background: var(--panel-2); outline: none; }
+.context-menu button:disabled { color: var(--muted); cursor: default; }
+.context-menu button.danger { color: var(--danger); }
+.context-menu kbd { font-size: 11px; color: var(--muted); opacity: 1; }
+.context-menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+.context-heading { padding: 4px 10px 2px; font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 #panel {
   grid-area: panel;
