@@ -77,6 +77,8 @@ public static partial class AdminApiEndpoints
         IResourceManager resourceManager)
     {
         var store = resourceManager.CoinStoreItems;
+        var text = search?.Trim() ?? string.Empty;
+        var searchId = int.TryParse(text, out var parsed) ? parsed : (int?)null;
         IEnumerable<ClientItemDefinition> definitions;
 
         if (all == true)
@@ -94,17 +96,16 @@ public static partial class AdminApiEndpoints
                 .OfType<ClientItemDefinition>();
         }
 
-        if (!string.IsNullOrWhiteSpace(search))
+        if (text.Length > 0)
         {
-            var text = search.Trim();
-            var id = int.TryParse(text, out var parsed) ? parsed : (int?)null;
-
-            definitions = definitions.Where(definition => definition.Id == id
+            definitions = definitions.Where(definition => definition.Id == searchId
                 || ItemName(definition).Contains(text, StringComparison.OrdinalIgnoreCase));
         }
 
+        // The item with the id searched for first, then names that start with the search, then by price.
         var matched = definitions
-            .OrderBy(definition => category is null && !string.IsNullOrWhiteSpace(search) ? !ItemName(definition).StartsWith(search.Trim(), StringComparison.OrdinalIgnoreCase) : false)
+            .OrderBy(definition => definition.Id != searchId)
+            .ThenBy(definition => category is null && text.Length > 0 && !ItemName(definition).StartsWith(text, StringComparison.OrdinalIgnoreCase))
             .ThenBy(definition => definition.GetMemberPurchasePrice())
             .ThenBy(definition => definition.Id)
             .ToList();

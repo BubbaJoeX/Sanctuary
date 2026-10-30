@@ -4,7 +4,8 @@ a pet's, an ability's, a house's or a point of interest's (an image id), or an N
 The client's image tables say which .dds each is: ImageSets.txt (ID^DESCRIPTION), ImageSetMappings.txt
 (IMAGE_SET_ID^IMAGE_TYPE^IMAGE_ID) and Images.txt (ID^FILE_NAME^CONTENT_ID), read from Sanctuary's client patch
 (src/Resources/ClientPatches/Resources/Images: the stock tables with Sanctuary's own icons added), else the client's.
-A set's picture is its largest: type 7 (128 px), 6 (64), 5 (32), else a button's up state (1). Types 8-10 are its
+A set's picture is its largest the assets have: type 7 (128 px), 6 (64), 5 (32), else a button's up state (1) (some
+sets list a 128 px file that was never shipped). Types 8-10 are its
 tint masks: a tint (a Tints.xml id) colours the icon where the mask of its size says, as dyes do in game. A notification
 (the client's Resources/NotificationImages.txt: ID^IMAGE_ID^LAYER_ORDER^SIZE_X^SIZE_Y^...) is layers of images, a
 bubble and the symbol on it, each a share of the icon's size, drawn bottom layer first.
@@ -54,15 +55,20 @@ class Icons:
                 self._tables, self._stamp = (sets, files), stamp
             return self._tables
 
-    def file(self, set_id: str | None = None, image_id: str | None = None) -> tuple[str, str | None]:
-        """The .dds an icon is drawn from, and its tint mask's (a set's), or KeyError."""
+    def files(self, set_id: str | None = None, image_id: str | None = None) -> list[tuple[str, str | None]]:
+        """The .dds files an icon can be drawn from, largest first, each with its tint mask's (a set's), or KeyError."""
         sets, files = self._load()
         if image_id is not None:
-            return files[str(int(image_id))], None
+            return [(files[str(int(image_id))], None)]
         mapping = sets[str(int(set_id))]
-        kind = next(t for t in PICTURE_TYPES if mapping.get(t) in files)
-        mask = mapping.get(MASK_TYPES.get(kind, ""))
-        return files[mapping[kind]], files.get(mask) if mask else None
+        found = []
+        for kind in PICTURE_TYPES:
+            if mapping.get(kind) in files:
+                mask = mapping.get(MASK_TYPES.get(kind, ""))
+                found.append((files[mapping[kind]], files.get(mask) if mask else None))
+        if not found:
+            raise KeyError(f"icon set {set_id}")
+        return found
 
     def _notifications(self) -> dict:
         """notification id -> [(layer order, image id, width share, height share)]"""
@@ -94,11 +100,15 @@ class Icons:
         return out.getvalue()
 
     def png(self, set_id: str | None = None, image_id: str | None = None, size: int = 64, tint: int = 0) -> bytes:
-        try:
-            name, mask_name = self.file(set_id, image_id)
-        except StopIteration as error:
-            raise KeyError(f"icon set {set_id}") from error
-        image = models.open_texture(self.ws.assets.read(name))
+        image = None
+        for name, mask_name in self.files(set_id, image_id):
+            try:
+                image = models.open_texture(self.ws.assets.read(name))
+                break
+            except KeyError:
+                continue
+        if image is None:
+            raise KeyError(name)
         colour = self.ws.tints().get(int(tint)) if tint else None
         if colour and mask_name:
             try:
