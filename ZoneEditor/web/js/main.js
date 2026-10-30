@@ -3197,7 +3197,7 @@ async function saveAll({ showLive = true } = {}) {
       overrides.length && unlock?.applied ? `Hid the client's stock copy of ${overrides.length} file(s), so it downloads yours.` : "",
       overrides.length && !unlock?.applied ? "The client is running, so it still reads its stock copies: Test in game closes it and fixes that." : "",
       sent.length ? `Sent ${sent.length} file(s) to the running client.` : "",
-      sent.some((name) => name.toLowerCase().endsWith(".gzne")) ? "The zone file changed: it loads when you next enter the zone in game." : "",
+      sent.some((name) => name.toLowerCase().endsWith(".gzne")) ? "The zone file changed: it shows once the zone loads again in game." : "",
       published?.missed.length ? `${published.missed.length} file(s) aren't among the client's live files (it lists them when it starts): Test in game to load them.` : "",
       zone.serverData ? "Zone or house data changed: Test in game with + servers to load it."
         : sent.length && !published.missed.length ? "" : "Test in game restarts the client to load it.",
@@ -3220,22 +3220,23 @@ async function saveAll({ showLive = true } = {}) {
   }
 }
 
-// After a save reached the running client's live files: its chunks show once the client loads that ground again,
-// which it does when the referee's character steps far off and comes back (LiveLayer.refreshView).
+// After a save reached the running client's live files: its chunks show once the client loads that ground again, and
+// the zone file once it loads the zone again, which it does when the referee's character steps far off and comes back,
+// or the zone loads again round them (LiveLayer.refreshView).
 async function showInGame(names) {
   const centre = (row, col) => ({ x: (+col + 2) * TILE, z: (+row + 2) * TILE });
   const changed = names.map((name) => name.match(/_(-?\d+)_(-?\d+)\.gc(?:nk|k2)$/i)).filter(Boolean)
     .map(([, row, col]) => centre(row, col));
-  if (!changed.length || !state.zone) return;
+  const zoneFile = names.some((name) => name.toLowerCase().endsWith(".gzne"));
+  if ((!changed.length && !zoneFile) || !state.zone) return;
   try {
-    const result = await live.refreshView(changed, state.zone.chunks.map((c) => centre(c.row, c.col)));
+    const result = await live.refreshView(state.zone.name, changed, state.zone.chunks.map((c) => centre(c.row, c.col)), zoneFile);
     status({
-      offline: "In game, go a couple of kilometres off and come back to see it.",
+      offline: "In game, leave the zone and come back (or, in a big one, go a couple of kilometres off and back) to see it.",
       "no-character": "None of your characters is in the game; the client shows it the next time it loads that ground.",
       elsewhere: `${result.name} is in another zone; the client shows it when they come here.`,
       far: `The client shows it when ${result.name} gets there.`,
-      small: "The zone has no ground far enough away to step over to: re-enter it in game to see it.",
-    }[result.reason] ?? `Reloaded the ground round ${result.name} in game.`);
+    }[result.reason] ?? (result.reloaded ? `Loaded the zone again round ${result.name} in game.` : `Reloaded the ground round ${result.name} in game.`));
   } catch (error) {
     toast(`Couldn't reload it in game: ${error.message}`, "error");
   }

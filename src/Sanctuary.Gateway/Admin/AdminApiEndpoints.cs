@@ -94,6 +94,7 @@ public static partial class AdminApiEndpoints
 
         referee.MapGet("/players", PlayersHandler);
         referee.MapPost("/players/{id}/teleport", TeleportHandler);
+        referee.MapPost("/players/{id}/reload-zone", ReloadZoneHandler);
         referee.MapPost("/players/{id}/message", MessageHandler);
         referee.MapPost("/players/{id}/kick", KickHandler);
 
@@ -433,6 +434,25 @@ public static partial class AdminApiEndpoints
         ChatHelper.SendSystemMessage(target, "You were moved by a referee.");
 
         Audit(GetReferee(context), "Teleport", target.Name.FullName, $"Zone: {zone.Name}, Position: {position.X:F1}, {position.Y:F1}, {position.Z:F1}");
+
+        return Results.NoContent();
+    }
+
+    /// <summary>
+    /// Loads a player's zone again round them where they stand (a loading screen), so their client reads the zone's
+    /// files again: what the zone editor saved shows without their leaving the zone, whatever its size or kind.
+    /// </summary>
+    private static IResult ReloadZoneHandler(HttpContext context, string id, IZoneManager zoneManager)
+    {
+        if (!TryGetOnlinePlayer(zoneManager, id, out var target))
+            return Results.NotFound("That player isn't online.");
+
+        if (!target.Visible)
+            return Results.Problem($"{target.Name.FullName} is still loading.", statusCode: StatusCodes.Status409Conflict);
+
+        target.ReloadZone();
+
+        Audit(GetReferee(context), "ReloadZone", target.Name.FullName, $"Zone: {target.Zone.Name}");
 
         return Results.NoContent();
     }

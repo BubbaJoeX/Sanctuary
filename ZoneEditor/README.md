@@ -82,9 +82,11 @@ each time it loads it. So while that client runs, a save copies the chunks it re
 from the admin panel your character then steps over to ground at least 2 km away for two seconds and back to
 where it stood, where the client drops the old chunks and reads the new ones: no restart. (Closer than about a
 kilometre, the client keeps the chunk and only re-places its props; with no ground under it, it drops nothing.)
-Opened on its own the editor can't move you, so go a couple of kilometres off and back yourself. What the
-client didn't list when it started (new chunks, another zone) and zone-wide changes (the `.gzne`:
-new ecos, the sky) still need Test in game, or re-entering the zone for the `.gzne`. Models the client has
+Where there's no ground that far off (a house, most zones but FabledRealms), or the save changed the `.gzne`
+(new ecos, the sky), the zone loads again round your character where it stands instead: a loading screen, and
+then the zone as saved. Opened on its own the editor can't move you, so leave the zone and come back (or, in a
+big one, go a couple of kilometres off and back) yourself. What the client didn't list when it started (new
+chunks, another zone) still needs Test in game. Models the client has
 loaded stay cached until it restarts. The folder goes a few seconds after the client closes, so it can't
 shadow later updates.
 
