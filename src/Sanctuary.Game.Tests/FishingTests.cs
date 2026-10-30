@@ -185,6 +185,27 @@ public sealed class FishingTests
     }
 
     [TestMethod]
+    public void Fishing_GamesWindowEntriesLeadToPonds()
+    {
+        var fishing = LoadFishing();
+
+        // The client's seven fishing entries (MiniGameData.txt type 21): Learn to Fish! and one per pond.
+        CollectionAssert.AreEquivalent(new[] { 595, 596, 597, 598, 599, 600, 601 },
+            fishing.Ponds.SelectMany(pond => pond.Activities).Select(activity => activity.Id).ToArray());
+
+        foreach (var pond in fishing.Ponds)
+        {
+            Assert.IsTrue(pond.Activities.Count > 0, $"{pond.Zone} isn't in the Games window.");
+
+            foreach (var activity in pond.Activities)
+            {
+                Assert.IsTrue(fishing.TryGetPondByActivity(activity.Id, out var found) && found == pond);
+                Assert.IsTrue(activity.NameId > 0 && activity.DescriptionId > 0);
+            }
+        }
+    }
+
+    [TestMethod]
     public void Fishing_TreasurePaysFromRewardTables()
     {
         var fishing = LoadFishing();

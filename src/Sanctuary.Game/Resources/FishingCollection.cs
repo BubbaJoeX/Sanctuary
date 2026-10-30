@@ -43,6 +43,12 @@ public sealed class FishingCollection
         _tables.PondsByHole.TryGetValue(npcDefinitionId, out pond);
 
     /// <summary>
+    /// The pond a Games window entry (a MiniGameData.txt id) leads to.
+    /// </summary>
+    public bool TryGetPondByActivity(int activityId, [MaybeNullWhen(false)] out FishingPondDefinition pond) =>
+        _tables.PondsByActivity.TryGetValue(activityId, out pond);
+
+    /// <summary>
     /// The rod whose item names this bobber, or null for anything else in the weapon slot.
     /// </summary>
     public FishingRodDefinition? GetRod(int bobberModelId) => _tables.Rods.GetValueOrDefault(bobberModelId);
@@ -114,6 +120,7 @@ public sealed class FishingCollection
 
         var zones = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var holes = new HashSet<int>();
+        var activities = new HashSet<int>();
 
         foreach (var pond in definition.Ponds)
         {
@@ -125,6 +132,9 @@ public sealed class FishingCollection
 
             if (pond.Fish.Count == 0 || pond.Fish.Any(id => !fish.Contains(id)))
                 return $"pond {pond.Zone} lists no fish or an unknown one";
+
+            if (pond.Activities.Any(activity => !activities.Add(activity.Id)))
+                return $"pond {pond.Zone} shares a Games window entry with another";
 
             if (pond.Schools.GroupBy(school => school.Id).Any(group => group.Count() > 1))
                 return $"pond {pond.Zone} has two schools with the same id";
@@ -152,6 +162,9 @@ public sealed class FishingCollection
             definition.Ponds.ToDictionary(pond => pond.Zone, StringComparer.OrdinalIgnoreCase);
 
         public Dictionary<int, FishingPondDefinition> PondsByHole { get; } = definition.Ponds.ToDictionary(pond => pond.HoleNpcId);
+
+        public Dictionary<int, FishingPondDefinition> PondsByActivity { get; } =
+            definition.Ponds.SelectMany(pond => pond.Activities.Select(activity => (activity.Id, Pond: pond))).ToDictionary(entry => entry.Id, entry => entry.Pond);
 
         public Dictionary<int, FishingRodDefinition> Rods { get; } = definition.Rods.ToDictionary(rod => rod.BobberModelId);
     }

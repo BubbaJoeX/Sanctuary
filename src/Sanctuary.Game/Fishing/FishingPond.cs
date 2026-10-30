@@ -119,6 +119,29 @@ public sealed class FishingPond
 
     private static Quaternion HeadingRotation(float heading) => new(MathF.Sin(heading), 0f, MathF.Cos(heading), 0f);
 
+    private const int ActivityIconId = 9870;
+    private const string ActivityImage = "Fishing_RainbowLake.dds";
+
+    /// <summary>
+    /// The Games window's Fishing tile: each pond's entries, which PLAY sends players to (see <see cref="GoFishing"/>).
+    /// </summary>
+    public static IEnumerable<ActivityDefinition> GetActivities(IResourceManager resourceManager) =>
+        resourceManager.Fishing.Ponds.SelectMany(pond => pond.Activities).OrderBy(activity => activity.Id).Select(activity => new ActivityDefinition
+        {
+            Id = activity.Id,
+            Type = BaseActivityServicePacket.MinigameActivityType,
+            Category = FishingRules.ActivityCategory,
+            ImageSetId = ActivityIconId,
+            DisplayNameId = activity.NameId,
+            DisplayDescriptionId = activity.DescriptionId,
+            NameId = activity.NameId,
+            DescriptionId = activity.DescriptionId,
+            CanPlayerJoin = true,
+            DetailImageFilename = ActivityImage,
+            ThumbnailImageFilename = ActivityImage,
+            Difficulty = 1
+        });
+
     #region Fishers
 
     /// <summary>

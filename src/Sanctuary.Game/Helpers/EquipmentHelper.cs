@@ -17,6 +17,19 @@ namespace Sanctuary.Game.Helpers;
 public static class EquipmentHelper
 {
     /// <summary>
+    /// Whether the job is ranked high enough for the item (its MinProfileRank), as Free Realms gated gear; tells
+    /// the player why not. Admins wear anything, for testing.
+    /// </summary>
+    public static bool CheckRank(Player player, ClientPcProfile profile, ClientItemDefinition definition)
+    {
+        if (definition.MinProfileRank <= profile.Rank || player.IsAdmin)
+            return true;
+
+        ChatHelper.SendSystemMessage(player, $"You need to reach rank {definition.MinProfileRank} in this job to wear that (it's rank {profile.Rank}).");
+        return false;
+    }
+
+    /// <summary>
     /// Wears the item in its slot of the profile. Returns the item it replaced there, or null.
     /// </summary>
     public static int? SetProfileItem(ClientPcProfile profile, ClientItem clientItem, ClientItemDefinition definition)

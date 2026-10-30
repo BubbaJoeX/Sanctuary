@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Sanctuary.Game.Entities;
+using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
@@ -116,6 +117,9 @@ public static class MinigameManager
                 Difficulty = x.Difficulty
             })
             .ToList();
+
+        // The fishing ponds have their own tile.
+        activities.AddRange(FishingPond.GetActivities(_resourceManager));
 
         player.SendTunneled(new ActivityPacketListOfActivities
         {
