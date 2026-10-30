@@ -77,6 +77,9 @@ public static class InventoryPacketEquipByGuidHandler
             return true;
         }
 
+        if (!EquipmentHelper.CheckRank(connection.Player, profile, clientItemDefinition))
+            return true;
+
         var oldItemId = EquipmentHelper.SetProfileItem(profile, clientItem, clientItemDefinition);
 
         var playerGuid = connection.Player.Guid;

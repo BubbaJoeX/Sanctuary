@@ -24,4 +24,10 @@ public sealed class LoginServerOptions : ServerOptions
 
     public bool UnlockAllTitles { get; set; }
     public bool UnlockAllProfiles { get; set; }
+
+    /// <summary>
+    /// The rank a new character's jobs start at: 1 for jobs earned from scratch, 20 to have every job maxed out
+    /// for testing.
+    /// </summary>
+    public int StartingProfileRank { get; set; } = 1;
 }

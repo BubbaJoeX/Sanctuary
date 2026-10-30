@@ -13,6 +13,7 @@
     "StartingCoins": 999999999,
 
     "UnlockAllTitles": true,
-    "UnlockAllProfiles": true
+    "UnlockAllProfiles": true,
+    "StartingProfileRank": 20
   }
 }

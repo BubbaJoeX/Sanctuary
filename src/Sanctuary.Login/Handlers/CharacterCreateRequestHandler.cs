@@ -11,6 +11,7 @@ using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
+using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
@@ -269,10 +270,12 @@ public static class CharacterCreateRequestHandler
             return true;
         }
 
+        var startingRank = Math.Clamp(_options.StartingProfileRank, 1, ProfileExperience.MaxRank);
+
         var dbProfile = new DbProfile
         {
             Id = profileData.Id,
-            Level = 20
+            Level = startingRank
         };
 
         dbCharacter.ActiveProfileId = dbProfile.Id;
@@ -317,7 +320,7 @@ public static class CharacterCreateRequestHandler
             UnlockAllTitles(dbCharacter);
 
         if (_options.UnlockAllProfiles)
-            UnlockAllProfiles(dbCharacter, chestItem, legItem, feetItem);
+            UnlockAllProfiles(dbCharacter, chestItem, legItem, feetItem, startingRank);
 
         dbContext.Characters.Add(dbCharacter);
 
@@ -356,7 +359,7 @@ public static class CharacterCreateRequestHandler
         }
     }
 
-    private static void UnlockAllProfiles(DbCharacter dbCharacter, DbItem chestItem, DbItem legItem, DbItem feetItem)
+    private static void UnlockAllProfiles(DbCharacter dbCharacter, DbItem chestItem, DbItem legItem, DbItem feetItem, int rank)
     {
         foreach (var profileData in _resourceManager.Profiles.Values)
         {
@@ -366,7 +369,7 @@ public static class CharacterCreateRequestHandler
             var dbProfile = new DbProfile
             {
                 Id = profileData.Id,
-                Level = 20
+                Level = rank
             };
 
             // TODO
