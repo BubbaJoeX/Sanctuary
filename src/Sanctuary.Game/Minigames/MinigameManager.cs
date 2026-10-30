@@ -152,7 +152,8 @@ public static class MinigameManager
             IconId = definition.IconId,
             DescriptionId = definition.DescriptionId,
             Difficulty = definition.Difficulty,
-            StageDefinitionId = definition.Id
+            // The movies cover the screen, so the world behind them isn't drawn or run, as it always has been.
+            HideWorld = true
         });
 
         return true;
