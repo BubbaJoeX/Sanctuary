@@ -36,6 +36,7 @@ public interface IResourceManager
     ZoneDefinitionCollection Zones { get; }
     HouseDefinitionCollection Houses { get; }
     HousingFixtureDefinitionCollection HousingFixtures { get; }
+    FishingCollection Fishing { get; }
     ZoneEnvironmentCollection ZoneEnvironments { get; }
     MountDefinitionCollection Mounts { get; }
     PetDefinitionCollection Pets { get; }

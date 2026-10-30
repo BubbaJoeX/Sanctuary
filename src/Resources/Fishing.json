@@ -1,0 +1,1367 @@
+{
+  "StarterRodItemId": 68185,
+  "GuideNpcId": 40018,
+  "Rods": [
+    {
+      "Comment": "Simple Bamboo Fishing Rod",
+      "BobberModelId": 1641,
+      "ItemId": 68185,
+      "MaxCastDistance": 12,
+      "Tier": 0
+    },
+    {
+      "Comment": "Golden Reel Fishing Rod",
+      "BobberModelId": 1642,
+      "ItemId": 68220,
+      "MaxCastDistance": 14,
+      "Tier": 1
+    },
+    {
+      "Comment": "Metal Fishing Rod",
+      "BobberModelId": 1643,
+      "ItemId": 68255,
+      "MaxCastDistance": 16,
+      "Tier": 2
+    },
+    {
+      "Comment": "Red Scoped Fishing Rod",
+      "BobberModelId": 1644,
+      "ItemId": 68290,
+      "MaxCastDistance": 18,
+      "Tier": 3
+    },
+    {
+      "Comment": "Golden Scoped Fishing Rod",
+      "BobberModelId": 1645,
+      "ItemId": 68325,
+      "MaxCastDistance": 20,
+      "Tier": 4
+    }
+  ],
+  "Fish": [
+    {
+      "Id": 1,
+      "Comment": "Winter Piranha",
+      "NameId": 99942,
+      "IconId": 4282,
+      "Region": "Snowhill",
+      "LureItemId": 68152,
+      "Rarity": 1,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68021,
+        "Medium": 68022
+      }
+    },
+    {
+      "Id": 2,
+      "Comment": "Toothy Tetra",
+      "NameId": 99923,
+      "IconId": 4281,
+      "Region": "SacredGrove",
+      "LureItemId": 68152,
+      "Rarity": 1,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68065,
+        "Medium": 68066
+      }
+    },
+    {
+      "Id": 3,
+      "Comment": "Blind Swurglefish",
+      "NameId": 23275,
+      "IconId": 4251,
+      "Region": "Briarwood",
+      "LureItemId": 68152,
+      "Rarity": 1,
+      "ModelId": 1671,
+      "Items": {
+        "Small": 68083,
+        "Medium": 68084,
+        "Large": 68085
+      }
+    },
+    {
+      "Id": 4,
+      "Comment": "Chilly Grouper",
+      "NameId": 99948,
+      "IconId": 4267,
+      "Region": "Snowhill",
+      "LureItemId": 68153,
+      "Rarity": 1,
+      "ModelId": 1672,
+      "Items": {
+        "Small": 68010,
+        "Medium": 68011,
+        "Large": 68012,
+        "ExtraLarge": 68013
+      }
+    },
+    {
+      "Id": 5,
+      "Comment": "Butter Flyfish",
+      "NameId": 99925,
+      "IconId": 4254,
+      "Region": "SacredGrove",
+      "LureItemId": 68153,
+      "Rarity": 1,
+      "ModelId": 1671,
+      "Items": {
+        "Medium": 68053,
+        "Large": 68054,
+        "ExtraLarge": 68055
+      }
+    },
+    {
+      "Id": 6,
+      "Comment": "Briar Nibbler",
+      "NameId": 99941,
+      "IconId": 4556,
+      "Region": "Briarwood",
+      "LureItemId": 68153,
+      "Rarity": 3,
+      "ModelId": 1670,
+      "Items": {
+        "Large": 68101,
+        "ExtraLarge": 68102
+      }
+    },
+    {
+      "Id": 7,
+      "Comment": "Blubracuda",
+      "NameId": 99946,
+      "IconId": 4252,
+      "Region": "Snowhill",
+      "LureItemId": 68154,
+      "Rarity": 2,
+      "ModelId": 1672,
+      "Items": {
+        "Small": 68035,
+        "Medium": 68036,
+        "Large": 68037
+      }
+    },
+    {
+      "Id": 8,
+      "Comment": "Baconfish",
+      "NameId": 99929,
+      "IconId": 4249,
+      "Region": "SacredGrove",
+      "LureItemId": 68154,
+      "Rarity": 3,
+      "ModelId": 1672,
+      "Items": {
+        "Medium": 68069,
+        "Large": 68070,
+        "ExtraLarge": 68071
+      }
+    },
+    {
+      "Id": 9,
+      "Comment": "Changed Salmon",
+      "NameId": 99940,
+      "IconId": 4256,
+      "Region": "Briarwood",
+      "LureItemId": 68154,
+      "Rarity": 2,
+      "ModelId": 1671,
+      "Items": {
+        "Medium": 68094,
+        "Large": 68095
+      }
+    },
+    {
+      "Id": 10,
+      "Comment": "Frostgill Smelt",
+      "NameId": 23274,
+      "IconId": 4265,
+      "Region": "Snowhill",
+      "LureItemId": 68155,
+      "Rarity": 1,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68017,
+        "Medium": 68018
+      }
+    },
+    {
+      "Id": 11,
+      "Comment": "Flutterfish",
+      "NameId": 99918,
+      "IconId": 4264,
+      "Region": "SacredGrove",
+      "LureItemId": 68155,
+      "Rarity": 1,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68041,
+        "Medium": 68042,
+        "Large": 68043,
+        "ExtraLarge": 68044
+      }
+    },
+    {
+      "Id": 12,
+      "Comment": "Ink Cod",
+      "NameId": 99931,
+      "IconId": 4635,
+      "Region": "Briarwood",
+      "LureItemId": 68155,
+      "Rarity": 1,
+      "ModelId": 1671,
+      "Items": {
+        "Small": 68072,
+        "Medium": 68073,
+        "Large": 68074
+      }
+    },
+    {
+      "Id": 13,
+      "Comment": "Goofy Grouper",
+      "NameId": 99952,
+      "IconId": 4269,
+      "Region": "Snowhill",
+      "LureItemId": 68156,
+      "Rarity": 2,
+      "ModelId": 1672,
+      "Items": {
+        "Medium": 68030,
+        "Large": 68031,
+        "ExtraLarge": 68032
+      }
+    },
+    {
+      "Id": 14,
+      "Comment": "Finless Fish",
+      "NameId": 99919,
+      "IconId": 4263,
+      "Region": "SacredGrove",
+      "LureItemId": 68156,
+      "Rarity": 2,
+      "ModelId": 1671,
+      "Items": {
+        "Small": 68045,
+        "Medium": 68046,
+        "Large": 68047
+      }
+    },
+    {
+      "Id": 15,
+      "Comment": "Fanged Grouper",
+      "NameId": 99939,
+      "IconId": 4261,
+      "Region": "Briarwood",
+      "LureItemId": 68156,
+      "Rarity": 2,
+      "ModelId": 1672,
+      "Items": {
+        "Medium": 68091,
+        "Large": 68092,
+        "ExtraLarge": 68093
+      }
+    },
+    {
+      "Id": 16,
+      "Comment": "Plattypus",
+      "NameId": 99953,
+      "IconId": 4273,
+      "Region": "Snowhill",
+      "LureItemId": 68157,
+      "Rarity": 3,
+      "ModelId": 1672,
+      "Items": {
+        "Large": 68033,
+        "ExtraLarge": 68034
+      }
+    },
+    {
+      "Id": 17,
+      "Comment": "Lady Tetra",
+      "NameId": 99922,
+      "IconId": 4270,
+      "Region": "SacredGrove",
+      "LureItemId": 68157,
+      "Rarity": 3,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68060,
+        "Medium": 68061
+      }
+    },
+    {
+      "Id": 18,
+      "Comment": "Roach Loach",
+      "NameId": 99936,
+      "IconId": 4275,
+      "Region": "Briarwood",
+      "LureItemId": 68157,
+      "Rarity": 3,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68098,
+        "Medium": 68099,
+        "Large": 68100
+      }
+    },
+    {
+      "Id": 19,
+      "Comment": "Pacu Pacu",
+      "NameId": 99951,
+      "IconId": 4272,
+      "Region": "Snowhill",
+      "LureItemId": 68158,
+      "Rarity": 1,
+      "ModelId": 1672,
+      "Items": {
+        "Medium": 68028,
+        "Large": 68029
+      }
+    },
+    {
+      "Id": 20,
+      "Comment": "Peachy Perch",
+      "NameId": 99920,
+      "IconId": 4341,
+      "Region": "SacredGrove",
+      "LureItemId": 68158,
+      "Rarity": 2,
+      "ModelId": 1671,
+      "Items": {
+        "Small": 68050,
+        "Medium": 68051,
+        "Large": 68052
+      }
+    },
+    {
+      "Id": 21,
+      "Comment": "Globfish",
+      "NameId": 6169,
+      "IconId": 4268,
+      "Region": "Briarwood",
+      "LureItemId": 68158,
+      "Rarity": 1,
+      "ModelId": 1672,
+      "Items": {
+        "Medium": 68078,
+        "Large": 68079,
+        "ExtraLarge": 68080
+      }
+    },
+    {
+      "Id": 22,
+      "Comment": "Coach Loach",
+      "NameId": 99944,
+      "IconId": 4259,
+      "Region": "Snowhill",
+      "LureItemId": 68159,
+      "Rarity": 3,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68023,
+        "Medium": 68024,
+        "Large": 68025
+      }
+    },
+    {
+      "Id": 23,
+      "Comment": "Feral Catfish",
+      "NameId": 99926,
+      "IconId": 4262,
+      "Region": "SacredGrove",
+      "LureItemId": 68159,
+      "Rarity": 3,
+      "ModelId": 1672,
+      "Items": {
+        "Large": 68056,
+        "ExtraLarge": 68057
+      }
+    },
+    {
+      "Id": 24,
+      "Comment": "Creeping Cod",
+      "NameId": 99930,
+      "IconId": 4260,
+      "Region": "Briarwood",
+      "LureItemId": 68159,
+      "Rarity": 1,
+      "ModelId": 1671,
+      "Items": {
+        "Medium": 68081,
+        "Large": 68082
+      }
+    },
+    {
+      "Id": 25,
+      "Comment": "Frozen Char",
+      "NameId": 99945,
+      "IconId": 4266,
+      "Region": "Snowhill",
+      "LureItemId": 68160,
+      "Rarity": 1,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68026,
+        "Medium": 68027
+      }
+    },
+    {
+      "Id": 26,
+      "Comment": "Slugmud Skipper",
+      "NameId": 99924,
+      "IconId": 4276,
+      "Region": "SacredGrove",
+      "LureItemId": 68160,
+      "Rarity": 1,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68048,
+        "Medium": 68049
+      }
+    },
+    {
+      "Id": 27,
+      "Comment": "Old Sole",
+      "NameId": 99933,
+      "IconId": 4271,
+      "Region": "Briarwood",
+      "LureItemId": 68160,
+      "Rarity": 2,
+      "ModelId": 1672,
+      "Items": {
+        "Small": 68086,
+        "Medium": 68087,
+        "Large": 68088
+      }
+    },
+    {
+      "Id": 28,
+      "Comment": "Talking Bass",
+      "NameId": 99950,
+      "IconId": 4279,
+      "Region": "Snowhill",
+      "LureItemId": 68161,
+      "Rarity": 3,
+      "ModelId": 1672,
+      "Items": {
+        "Large": 68019,
+        "ExtraLarge": 68020
+      }
+    },
+    {
+      "Id": 29,
+      "Comment": "Cheery Salmon",
+      "NameId": 99927,
+      "IconId": 4257,
+      "Region": "SacredGrove",
+      "LureItemId": 68161,
+      "Rarity": 2,
+      "ModelId": 1671,
+      "Items": {
+        "Small": 68062,
+        "Medium": 68063,
+        "Large": 68064
+      }
+    },
+    {
+      "Id": 30,
+      "Comment": "Bitter Betta",
+      "NameId": 99935,
+      "IconId": 4250,
+      "Region": "Briarwood",
+      "LureItemId": 68161,
+      "Rarity": 3,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68096,
+        "Medium": 68097
+      }
+    },
+    {
+      "Id": 31,
+      "Comment": "Blue Thornfin",
+      "NameId": 99949,
+      "IconId": 4253,
+      "Region": "Snowhill",
+      "LureItemId": 68162,
+      "Rarity": 2,
+      "ModelId": 1670,
+      "Items": {
+        "Medium": 68014,
+        "Large": 68015,
+        "ExtraLarge": 68016
+      }
+    },
+    {
+      "Id": 32,
+      "Comment": "Chipsen Fish",
+      "NameId": 99928,
+      "IconId": 4258,
+      "Region": "SacredGrove",
+      "LureItemId": 68162,
+      "Rarity": 2,
+      "ModelId": 1671,
+      "Items": {
+        "Medium": 68067,
+        "Large": 68068
+      }
+    },
+    {
+      "Id": 33,
+      "Comment": "Thorny Trout",
+      "NameId": 99934,
+      "IconId": 4280,
+      "Region": "Briarwood",
+      "LureItemId": 68162,
+      "Rarity": 1,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68089,
+        "Medium": 68090
+      }
+    },
+    {
+      "Id": 34,
+      "Comment": "Spineless Stickleback",
+      "NameId": 99947,
+      "IconId": 4277,
+      "Region": "Snowhill",
+      "LureItemId": 68163,
+      "Rarity": 2,
+      "ModelId": 1670,
+      "Items": {
+        "Small": 68038,
+        "Medium": 68039,
+        "Large": 68040
+      }
+    },
+    {
+      "Id": 35,
+      "Comment": "Calico Catfish",
+      "NameId": 6171,
+      "IconId": 4255,
+      "Region": "SacredGrove",
+      "LureItemId": 68163,
+      "Rarity": 1,
+      "ModelId": 1672,
+      "Items": {
+        "Medium": 68058,
+        "Large": 68059
+      }
+    },
+    {
+      "Id": 36,
+      "Comment": "Purplenosed Shark",
+      "NameId": 99932,
+      "IconId": 4274,
+      "Region": "Briarwood",
+      "LureItemId": 68163,
+      "Rarity": 2,
+      "ModelId": 1672,
+      "Items": {
+        "Medium": 68075,
+        "Large": 68076,
+        "ExtraLarge": 68077
+      }
+    },
+    {
+      "Id": 37,
+      "Comment": "Tangletooth Shark",
+      "NameId": 407895,
+      "IconId": 4421,
+      "Region": "Snowhill",
+      "LureItemId": 0,
+      "Rarity": 4,
+      "ModelId": 1672,
+      "Items": {
+        "ExtraLarge": 68113
+      }
+    },
+    {
+      "Id": 38,
+      "Comment": "Ferocious Fangler",
+      "NameId": 99970,
+      "IconId": 4419,
+      "Region": "SacredGrove",
+      "LureItemId": 0,
+      "Rarity": 4,
+      "ModelId": 1672,
+      "Items": {
+        "ExtraLarge": 68008
+      }
+    },
+    {
+      "Id": 39,
+      "Comment": "Golden Scaled Nettler",
+      "NameId": 99971,
+      "IconId": 4420,
+      "Region": "Briarwood",
+      "LureItemId": 0,
+      "Rarity": 4,
+      "ModelId": 1671,
+      "Items": {
+        "ExtraLarge": 68009
+      }
+    },
+    {
+      "Id": 40,
+      "Comment": "Tickled Trout (any pond)",
+      "NameId": 99963,
+      "IconId": 4422,
+      "LureItemId": 0,
+      "Rarity": 4,
+      "ModelId": 1671,
+      "Items": {
+        "Medium": 68001
+      }
+    }
+  ],
+  "Junk": [
+    {
+      "Comment": "Old Boot",
+      "ItemId": 68103
+    },
+    {
+      "Comment": "Soggy Socks",
+      "ItemId": 68104
+    },
+    {
+      "Comment": "Plastic Bag",
+      "ItemId": 68105
+    },
+    {
+      "Comment": "Rusty Can",
+      "ItemId": 68106
+    },
+    {
+      "Comment": "Clump of Fungus",
+      "ItemId": 68000
+    },
+    {
+      "Comment": "Soggy Stick of Dynamite",
+      "ItemId": 68002
+    }
+  ],
+  "Treasure": [
+    {
+      "Comment": "Small Pouch",
+      "NameId": 99958,
+      "IconId": 2416,
+      "Size": 1,
+      "RewardTable": "fishing-pouch-small",
+      "Weight": 4
+    },
+    {
+      "Comment": "Small Treasure Chest",
+      "NameId": 99966,
+      "IconId": 5569,
+      "Size": 1,
+      "RewardTable": "fishing-chest-small",
+      "Weight": 2.0
+    },
+    {
+      "Comment": "Medium Pouch",
+      "NameId": 99959,
+      "IconId": 2416,
+      "Size": 2,
+      "RewardTable": "fishing-pouch-medium",
+      "Weight": 3
+    },
+    {
+      "Comment": "Medium Treasure Chest",
+      "NameId": 99967,
+      "IconId": 5569,
+      "Size": 2,
+      "RewardTable": "fishing-chest-medium",
+      "Weight": 1.5
+    },
+    {
+      "Comment": "Large Pouch",
+      "NameId": 99960,
+      "IconId": 2416,
+      "Size": 3,
+      "RewardTable": "fishing-pouch-large",
+      "Weight": 2
+    },
+    {
+      "Comment": "Large Treasure Chest",
+      "NameId": 99968,
+      "IconId": 5569,
+      "Size": 3,
+      "RewardTable": "fishing-chest-large",
+      "Weight": 1.0
+    },
+    {
+      "Comment": "Extra Large Pouch",
+      "NameId": 99961,
+      "IconId": 2416,
+      "Size": 4,
+      "RewardTable": "fishing-pouch-extra-large",
+      "Weight": 1
+    },
+    {
+      "Comment": "Extra Large Treasure Chest",
+      "NameId": 99969,
+      "IconId": 5569,
+      "Size": 4,
+      "RewardTable": "fishing-chest-extra-large",
+      "Weight": 0.5
+    }
+  ],
+  "Ponds": [
+    {
+      "Comment": "Rainbow Lake",
+      "Zone": "sg_fishing_medpond",
+      "ZoneId": 1040,
+      "Region": "SacredGrove",
+      "HoleNpcId": 40013,
+      "WaterHeight": -65.88,
+      "UnderwaterSky": "sky_wilds_underwater_bbe.xml",
+      "Arrival": {
+        "Position": [
+          419,
+          -62.17,
+          321
+        ],
+        "Heading": -0.165
+      },
+      "Guide": {
+        "Position": [
+          421.47,
+          -61.83,
+          321.41
+        ],
+        "Heading": -1.736
+      },
+      "Fish": [
+        2,
+        5,
+        11,
+        26,
+        35,
+        14,
+        20,
+        29,
+        32,
+        8,
+        17,
+        23,
+        38,
+        40
+      ],
+      "Schools": [
+        {
+          "Id": 1,
+          "Position": [
+            357,
+            -65.88,
+            369
+          ],
+          "ModelId": 1605,
+          "Fish": [
+            2,
+            35,
+            32,
+            38
+          ]
+        },
+        {
+          "Id": 2,
+          "Position": [
+            413,
+            -65.88,
+            411
+          ],
+          "ModelId": 1617,
+          "Fish": [
+            5,
+            14,
+            8
+          ]
+        },
+        {
+          "Id": 3,
+          "Position": [
+            417,
+            -65.88,
+            333
+          ],
+          "ModelId": 1597,
+          "Fish": [
+            11,
+            20,
+            17
+          ]
+        },
+        {
+          "Id": 4,
+          "Position": [
+            313,
+            -65.88,
+            361
+          ],
+          "ModelId": 1609,
+          "Fish": [
+            26,
+            29,
+            23
+          ]
+        }
+      ],
+      "Return": {
+        "Position": [
+          -722.07,
+          -7.91,
+          786.28
+        ],
+        "Heading": 0.777
+      },
+      "ReturnZoneId": 1
+    },
+    {
+      "Comment": "Sacred Grove Shallows",
+      "Zone": "sg_fishing_stream",
+      "ZoneId": 1041,
+      "Region": "SacredGrove",
+      "HoleNpcId": 40014,
+      "WaterHeight": -66.19,
+      "UnderwaterSky": "sky_wilds_underwater_bbe.xml",
+      "Arrival": {
+        "Position": [
+          447,
+          -64.68,
+          325
+        ],
+        "Heading": 2.976
+      },
+      "Guide": {
+        "Position": [
+          444.53,
+          -64.93,
+          324.59
+        ],
+        "Heading": 1.405
+      },
+      "Fish": [
+        2,
+        5,
+        11,
+        26,
+        35,
+        14,
+        20,
+        29,
+        32,
+        8,
+        17,
+        23,
+        38,
+        40
+      ],
+      "Schools": [
+        {
+          "Id": 1,
+          "Position": [
+            467,
+            -66.19,
+            267
+          ],
+          "ModelId": 1605,
+          "Fish": [
+            2,
+            35,
+            32,
+            38
+          ]
+        },
+        {
+          "Id": 2,
+          "Position": [
+            509,
+            -66.19,
+            323
+          ],
+          "ModelId": 1617,
+          "Fish": [
+            5,
+            14,
+            8
+          ]
+        },
+        {
+          "Id": 3,
+          "Position": [
+            449,
+            -66.19,
+            313
+          ],
+          "ModelId": 1597,
+          "Fish": [
+            11,
+            20,
+            17
+          ]
+        },
+        {
+          "Id": 4,
+          "Position": [
+            465,
+            -66.19,
+            225
+          ],
+          "ModelId": 1609,
+          "Fish": [
+            26,
+            29,
+            23
+          ]
+        }
+      ],
+      "Return": {
+        "Position": [
+          -1322.97,
+          -64.82,
+          905.16
+        ],
+        "Heading": 0.082
+      },
+      "ReturnZoneId": 1
+    },
+    {
+      "Comment": "Darklit Lagoon",
+      "Zone": "bw_fishing_medpond",
+      "ZoneId": 1042,
+      "Region": "Briarwood",
+      "HoleNpcId": 40015,
+      "WaterHeight": -3.03,
+      "UnderwaterSky": "sky_briarwood_underwater_bbe.xml",
+      "Arrival": {
+        "Position": [
+          231,
+          -0.24,
+          295
+        ],
+        "Heading": -2.601
+      },
+      "Guide": {
+        "Position": [
+          228.86,
+          -0.57,
+          296.29
+        ],
+        "Heading": -4.172
+      },
+      "Fish": [
+        3,
+        12,
+        21,
+        24,
+        33,
+        9,
+        15,
+        27,
+        36,
+        6,
+        18,
+        30,
+        39,
+        40
+      ],
+      "Schools": [
+        {
+          "Id": 1,
+          "Position": [
+            213,
+            -3.03,
+            237
+          ],
+          "ModelId": 1605,
+          "Fish": [
+            3,
+            33,
+            36,
+            39
+          ]
+        },
+        {
+          "Id": 2,
+          "Position": [
+            269,
+            -3.03,
+            217
+          ],
+          "ModelId": 1617,
+          "Fish": [
+            12,
+            9,
+            6
+          ]
+        },
+        {
+          "Id": 3,
+          "Position": [
+            225,
+            -3.03,
+            285
+          ],
+          "ModelId": 1597,
+          "Fish": [
+            21,
+            15,
+            18
+          ]
+        },
+        {
+          "Id": 4,
+          "Position": [
+            195,
+            -3.03,
+            267
+          ],
+          "ModelId": 1609,
+          "Fish": [
+            24,
+            27,
+            30
+          ]
+        }
+      ],
+      "Return": {
+        "Position": [
+          -715.84,
+          -68.78,
+          2409.31
+        ],
+        "Heading": -0.543
+      },
+      "ReturnZoneId": 1
+    },
+    {
+      "Comment": "Brambleback's Bayou",
+      "Zone": "bw_fishing_stream",
+      "ZoneId": 1043,
+      "Region": "Briarwood",
+      "HoleNpcId": 40016,
+      "WaterHeight": -3.48,
+      "UnderwaterSky": "sky_briarwood_underwater_bbe.xml",
+      "Arrival": {
+        "Position": [
+          279,
+          0.48,
+          187
+        ],
+        "Heading": -1.326
+      },
+      "Guide": {
+        "Position": [
+          279.61,
+          -0.0,
+          189.43
+        ],
+        "Heading": -2.897
+      },
+      "Fish": [
+        3,
+        12,
+        21,
+        24,
+        33,
+        9,
+        15,
+        27,
+        36,
+        6,
+        18,
+        30,
+        39,
+        40
+      ],
+      "Schools": [
+        {
+          "Id": 1,
+          "Position": [
+            305,
+            -3.48,
+            247
+          ],
+          "ModelId": 1605,
+          "Fish": [
+            3,
+            33,
+            36,
+            39
+          ]
+        },
+        {
+          "Id": 2,
+          "Position": [
+            263,
+            -3.48,
+            191
+          ],
+          "ModelId": 1617,
+          "Fish": [
+            12,
+            9,
+            6
+          ]
+        },
+        {
+          "Id": 3,
+          "Position": [
+            347,
+            -3.48,
+            303
+          ],
+          "ModelId": 1597,
+          "Fish": [
+            21,
+            15,
+            18
+          ]
+        },
+        {
+          "Id": 4,
+          "Position": [
+            365,
+            -3.48,
+            211
+          ],
+          "ModelId": 1609,
+          "Fish": [
+            24,
+            27,
+            30
+          ]
+        }
+      ],
+      "Return": {
+        "Position": [
+          -536.33,
+          -74.25,
+          2025.39
+        ],
+        "Heading": 2.652
+      },
+      "ReturnZoneId": 1
+    },
+    {
+      "Comment": "Wintery Basin",
+      "Zone": "sh_fishing_medpond",
+      "ZoneId": 1044,
+      "Region": "Snowhill",
+      "HoleNpcId": 40017,
+      "WaterHeight": -0.9,
+      "UnderwaterSky": "sky_snowhill_underwater_bbe.xml",
+      "Arrival": {
+        "Position": [
+          345,
+          0.48,
+          259
+        ],
+        "Heading": -0.785
+      },
+      "Guide": {
+        "Position": [
+          346.77,
+          0.42,
+          260.77
+        ],
+        "Heading": -2.356
+      },
+      "Fish": [
+        1,
+        4,
+        10,
+        19,
+        25,
+        7,
+        13,
+        31,
+        34,
+        16,
+        22,
+        28,
+        37,
+        40
+      ],
+      "Schools": [
+        {
+          "Id": 1,
+          "Position": [
+            351,
+            -0.9,
+            323
+          ],
+          "ModelId": 1605,
+          "Fish": [
+            1,
+            25,
+            34,
+            37
+          ]
+        },
+        {
+          "Id": 2,
+          "Position": [
+            287,
+            -0.9,
+            295
+          ],
+          "ModelId": 1617,
+          "Fish": [
+            4,
+            7,
+            16
+          ]
+        },
+        {
+          "Id": 3,
+          "Position": [
+            337,
+            -0.9,
+            267
+          ],
+          "ModelId": 1597,
+          "Fish": [
+            10,
+            13,
+            22
+          ]
+        },
+        {
+          "Id": 4,
+          "Position": [
+            311,
+            -0.9,
+            327
+          ],
+          "ModelId": 1609,
+          "Fish": [
+            19,
+            31,
+            28
+          ]
+        }
+      ],
+      "Return": {
+        "Position": [
+          384.46,
+          98.18,
+          123.68
+        ],
+        "Heading": 0.055
+      },
+      "ReturnZoneId": 1
+    },
+    {
+      "Comment": "Frostbitten Banks",
+      "Zone": "sh_fishing_stream",
+      "ZoneId": 1045,
+      "Region": "Snowhill",
+      "HoleNpcId": 33620,
+      "WaterHeight": 23.24,
+      "UnderwaterSky": "sky_snowhill_underwater_bbe.xml",
+      "Arrival": {
+        "Position": [
+          507,
+          25.36,
+          465
+        ],
+        "Heading": 2.447
+      },
+      "Guide": {
+        "Position": [
+          505.08,
+          25.0,
+          463.4
+        ],
+        "Heading": 0.876
+      },
+      "Fish": [
+        1,
+        4,
+        10,
+        19,
+        25,
+        7,
+        13,
+        31,
+        34,
+        16,
+        22,
+        28,
+        37,
+        40
+      ],
+      "Schools": [
+        {
+          "Id": 1,
+          "Position": [
+            463,
+            23.24,
+            409
+          ],
+          "ModelId": 1605,
+          "Fish": [
+            1,
+            25,
+            34,
+            37
+          ]
+        },
+        {
+          "Id": 2,
+          "Position": [
+            393,
+            23.24,
+            409
+          ],
+          "ModelId": 1617,
+          "Fish": [
+            4,
+            7,
+            16
+          ]
+        },
+        {
+          "Id": 3,
+          "Position": [
+            517,
+            23.24,
+            453
+          ],
+          "ModelId": 1597,
+          "Fish": [
+            10,
+            13,
+            22
+          ]
+        },
+        {
+          "Id": 4,
+          "Position": [
+            507,
+            23.24,
+            413
+          ],
+          "ModelId": 1609,
+          "Fish": [
+            19,
+            31,
+            28
+          ]
+        }
+      ],
+      "Return": {
+        "Position": [
+          127.43,
+          25.9,
+          398.15
+        ],
+        "Heading": 1.503
+      },
+      "ReturnZoneId": 1
+    }
+  ]
+}

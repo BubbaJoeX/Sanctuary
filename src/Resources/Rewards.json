@@ -444,5 +444,447 @@
                 "Quantity": 1
             }
         ]
+    },
+    {
+        "Key": "fishing-pouch-small",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 40,
+                "Weight": 2
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 60,
+                "Weight": 1
+            }
+        ]
+    },
+    {
+        "Key": "fishing-pouch-medium",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 100,
+                "Weight": 2
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 150,
+                "Weight": 1
+            }
+        ]
+    },
+    {
+        "Key": "fishing-pouch-large",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 250,
+                "Weight": 2
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 350,
+                "Weight": 1
+            }
+        ]
+    },
+    {
+        "Key": "fishing-pouch-extra-large",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 500,
+                "Weight": 2
+            },
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 750,
+                "Weight": 1
+            }
+        ]
+    },
+    {
+        "Key": "fishing-chest-small",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 150,
+                "Weight": 6
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68152,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68153,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68154,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68155,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68156,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68157,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68158,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68159,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68160,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68161,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68162,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68163,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68164,
+                "Weight": 1,
+                "Quantity": 1
+            }
+        ]
+    },
+    {
+        "Key": "fishing-chest-medium",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 300,
+                "Weight": 6
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68152,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68153,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68154,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68155,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68156,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68157,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68158,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68159,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68160,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68161,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68162,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68163,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68164,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68220,
+                "Weight": 1,
+                "Quantity": 1
+            }
+        ]
+    },
+    {
+        "Key": "fishing-chest-large",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 600,
+                "Weight": 6
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68152,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68153,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68154,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68155,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68156,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68157,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68158,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68159,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68160,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68161,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68162,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68163,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68164,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68255,
+                "Weight": 1,
+                "Quantity": 1
+            }
+        ]
+    },
+    {
+        "Key": "fishing-chest-extra-large",
+        "DropTable": [
+            {
+                "RewardType": "Currency",
+                "CurrencyType": "Coins",
+                "Amount": 1200,
+                "Weight": 6
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68152,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68153,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68154,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68155,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68156,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68157,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68158,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68159,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68160,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68161,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68162,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68163,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68164,
+                "Weight": 1,
+                "Quantity": 1
+            },
+            {
+                "RewardType": "Item",
+                "ItemDefinitionId": 68325,
+                "Weight": 1,
+                "Quantity": 1
+            }
+        ]
     }
 ]

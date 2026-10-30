@@ -70,6 +70,7 @@ public static class PacketTunneledClientPacketHandler
             BaseCoinStorePacket.OpCode => BaseCoinStorePacketHandler.HandlePacket(connection, reader),
             MountBasePacket.OpCode => MountBasePacketHandler.HandlePacket(connection, reader),
             PetBasePacket.OpCode => PetBasePacketHandler.HandlePacket(connection, reader),
+            BaseFishingPacket.OpCode => BaseFishingPacketHandler.HandlePacket(connection, reader),
             PacketClientInitializationDetails.OpCode => PacketClientInitializationDetailsHandler.HandlePacket(connection, packetTunneledClientPacket.Payload),
             BaseNameChangePacket.OpCode => BaseNameChangePacketHandler.HandlePacket(connection, reader),
             BaseFirstTimeEventPacket.OpCode => BaseFirstTimeEventPacketHandler.HandlePacket(connection, reader),

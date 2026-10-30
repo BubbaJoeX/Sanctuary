@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1042,
+  "Name": "bw_fishing_medpond",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -4,
+  "StartLongitude": -4,
+  "EndLatitude": 32,
+  "EndLongitude": 32,
+  "Sky": "sky_briarwood24.xml",
+  "SpawnPosition": [
+    231,
+    -0.24,
+    295
+  ],
+  "SpawnRotation": [
+    -0.5146,
+    0,
+    -0.8574,
+    0
+  ]
+}
