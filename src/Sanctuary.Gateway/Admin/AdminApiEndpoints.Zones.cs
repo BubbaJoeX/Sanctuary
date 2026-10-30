@@ -310,10 +310,13 @@ public static partial class AdminApiEndpoints
                 Id(npc.Guid),
                 label,
                 kind,
+                npc.DefinitionId,
                 MathF.Round(npc.Position.X, 1),
                 MathF.Round(npc.Position.Y, 1),
                 MathF.Round(npc.Position.Z, 1),
-                MathF.Round(NpcProperties.GetHeading(npc.Rotation), 1),
+                MathF.Round(NpcProperties.GetHeading(npc.Rotation), 2),
+                Round(npc.Tilt?.Y ?? 0f),
+                Round(npc.Tilt?.Z ?? 0f),
                 MathF.Round(npc.Scale, 2),
                 looks.Add(LiveLooks.Of(npc, resourceManager)));
         }
