@@ -13,6 +13,7 @@ using Sanctuary.Core.Extensions;
 using Sanctuary.Database;
 using Sanctuary.Game;
 using Sanctuary.Game.Authoring;
+using Sanctuary.Game.Challenges;
 using Sanctuary.Game.Conversations;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Quests;
@@ -122,6 +123,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<IRewardManager, RewardManager>();
     serviceCollection.AddSingleton<IGroupManager, GroupManager>();
     serviceCollection.AddSingleton<ITradeManager, TradeManager>();
+    serviceCollection.AddSingleton<IChallengeManager, ChallengeManager>();
     serviceCollection.AddSingleton<IHousingManager, HousingManager>();
     serviceCollection.AddSingleton<IServerSettings, ServerSettings>();
     serviceCollection.AddSingleton<IWorldEventManager, WorldEventManager>();

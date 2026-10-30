@@ -2,14 +2,20 @@ using Sanctuary.Core.IO;
 
 namespace Sanctuary.Packet.Common;
 
+/// <summary>
+/// An objective: a quest's goal, or one of a minigame's or battle's (its Info lists them, and the minigame HUD toasts
+/// and counts them). The quest log doesn't read IsBonus, Kind, MembersOnly or Category; the minigame HUD does.
+/// </summary>
 public class QuestObjectiveInfo : ISerializableType
 {
     public int ObjectiveId { get; set; }
     public int NameId { get; set; }
     public int DescriptionId { get; set; }
 
-    // Never read by the client.
-    public bool Unknown { get; set; }
+    /// <summary>
+    /// A minigame's bonus goal: no toasts, and it counts as bonus on the end screen.
+    /// </summary>
+    public bool IsBonus { get; set; }
 
     public RewardBundleBase RewardBundle { get; set; } = new()
     {
@@ -23,25 +29,32 @@ public class QuestObjectiveInfo : ISerializableType
     public int CurrentCount { get; set; }
     public int RequiredCount { get; set; }
 
-    // Never read by the client.
-    public int Unknown6 { get; set; }
-    public bool Unknown7 { get; set; }
-    public int Unknown8 { get; set; }
+    /// <summary>
+    /// 1 for a failure condition ("don't get knocked out 5 times").
+    /// </summary>
+    public int Kind { get; set; }
+
+    public bool MembersOnly { get; set; }
+
+    /// <summary>
+    /// The text's prefix: 1 primary, 2 secondary, 3 job, 4 bonus, 5 elite, 0 none.
+    /// </summary>
+    public int Category { get; set; }
 
     public void Serialize(PacketWriter writer)
     {
         writer.Write(ObjectiveId);
         writer.Write(NameId);
         writer.Write(DescriptionId);
-        writer.Write(Unknown);
+        writer.Write(IsBonus);
 
         RewardBundle.Serialize(writer);
 
         writer.Write(State);
         writer.Write(CurrentCount);
         writer.Write(RequiredCount);
-        writer.Write(Unknown6);
-        writer.Write(Unknown7);
-        writer.Write(Unknown8);
+        writer.Write(Kind);
+        writer.Write(MembersOnly);
+        writer.Write(Category);
     }
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Sanctuary.Core.IO;
 using Sanctuary.Packet.Common;
 
@@ -112,17 +114,17 @@ public class MiniGamePayloadPacket : ISerializablePacket
 }
 
 /// <summary>
-/// Ends a minigame on the client (MiniGame:OnGameOver), which closes its window. Layout from Clone Wars
-/// Adventures' EndActiveMinigame.
+/// A minigame's result (MiniGame:OnGameOver). It shows nothing by itself: LeaveGame after it closes the game and,
+/// for an in-world game, opens the end screen with these.
 /// </summary>
 public class MiniGameGameOverPacket : ISerializablePacket
 {
     public int StageId;
     public int StageGroupId = -1;
     public bool Won;
-    public int Unknown2;
-    public int Unknown3;
-    public int Unknown4;
+    public int StarsEarned;
+    public int SecondsLeft;
+    public int Score;
 
     public byte[] Serialize()
     {
@@ -130,18 +132,18 @@ public class MiniGameGameOverPacket : ISerializablePacket
 
         BaseMiniGamePacket.WriteHeader(writer, BaseMiniGamePacket.GameOver, StageId, StageGroupId);
         writer.Write(Won);
-        writer.Write(Unknown2);
-        writer.Write(Unknown3);
-        writer.Write(Unknown4);
+        writer.Write(StarsEarned);
+        writer.Write(SecondsLeft);
+        writer.Write(Score);
 
         return writer.Buffer;
     }
 }
 
 /// <summary>
-/// Starts a minigame on the client (fires its MiniGame:JoinGame). Layout from the client's readers: the
-/// minigame header then the body.
-/// Field meanings follow Clone Wars Adventures' CreateActiveMinigame where the client doesn't name them.
+/// Starts a minigame on the client: it builds the game's state (keyed by StageId) and shows its start screen, or
+/// asks to start at once (RequestStartGame) without one. Layout from the client's Info reader; a new Info destroys
+/// the game the client had, so send LeaveGame first.
 /// </summary>
 public class MiniGameInfoPacket : ISerializablePacket
 {
@@ -151,32 +153,97 @@ public class MiniGameInfoPacket : ISerializablePacket
     public int NameId;
     public int IconId;
     public int DescriptionId;
-    public int Difficulty;
-    public int BattleClassType;
-    public int PortalEntryId;
-    public bool Unknown4;
-    public RewardBundleBase RewardBundle1 = new() { Success = false };
-    public RewardBundleBase RewardBundle2 = new() { Success = false };
-    public RewardBundleBase RewardBundle3 = new() { Success = false };
-    public int RewardBundleListCount;
+
     /// <summary>
-    /// The client reads one more int after the list's count, even when it is empty.
+    /// Also sets the start screen's level range.
     /// </summary>
-    public int RewardBundleListUnknown;
-    public bool Unknown9;
-    public bool Unknown10;
-    public bool Unknown11;
-    public bool Unknown12;
-    public bool ShowEndScoreScreen;
-    public string Unknown14 = string.Empty;
-    public int Unknown15;
-    public bool Unknown16;
-    public int StageDefinitionId;
-    public bool Unknown18;
-    public bool Unknown19;
-    public bool Unknown20;
-    public bool Unknown21;
-    public int Unknown22;
+    public int Difficulty;
+
+    /// <summary>
+    /// The job the game belongs to (a profile type).
+    /// </summary>
+    public int ProfileType;
+
+    /// <summary>
+    /// The client's minigame type (MiniGameTypeData.txt): 1 runs an in-world game with the minigame HUD, without a
+    /// movie. The Flash games have always been sent as 0.
+    /// </summary>
+    public int Type;
+
+    public bool MembersOnly;
+
+    /// <summary>
+    /// What the score screen shows as won.
+    /// </summary>
+    public RewardBundleBase Reward = new() { Success = false };
+
+    /// <summary>
+    /// Unused by the client on this path.
+    /// </summary>
+    public RewardBundleBase MemberReward = new() { Success = false };
+
+    /// <summary>
+    /// The start screen's prizes (up to four).
+    /// </summary>
+    public RewardBundleBase RewardPreview = new() { Success = false };
+
+    /// <summary>
+    /// The game's goals, for the start screen, the "Objective Complete" toasts and the end screen.
+    /// </summary>
+    public List<QuestObjectiveInfo> Objectives = [];
+
+    public bool ShowStarCounter;
+    public bool ShowStatusIcon;
+    public bool ShowActionBar;
+
+    /// <summary>
+    /// Off, the client skips the start screen and asks to start the game at once.
+    /// </summary>
+    public bool ShowStartScreen;
+
+    /// <summary>
+    /// Whether LeaveGame shows the end (score) screen.
+    /// </summary>
+    public bool ShowEndScreen;
+
+    /// <summary>
+    /// A movie to load first; not used by in-world games.
+    /// </summary>
+    public string PreloadSwf = string.Empty;
+
+    /// <summary>
+    /// Unused by the client.
+    /// </summary>
+    public int Unknown;
+    public bool Unknown2;
+
+    /// <summary>
+    /// The MiniGameData.txt id, which also finds the start screen's leaderboard.
+    /// </summary>
+    public int MiniGameId;
+
+    /// <summary>
+    /// Stops drawing and updating the 3D world while the game is up, as for a full-screen game.
+    /// </summary>
+    public bool HideWorld;
+
+    /// <summary>
+    /// Unused by the client.
+    /// </summary>
+    public bool Unknown3;
+    public bool Unknown4;
+
+    /// <summary>
+    /// Hides the start screen even when <see cref="ShowStartScreen"/> is set.
+    /// </summary>
+    public bool SuppressStartScreen;
+
+    public int Unknown6;
+
+    /// <summary>
+    /// Read after the body and ignored.
+    /// </summary>
+    public int Unknown7;
 
     public byte[] Serialize()
     {
@@ -184,32 +251,91 @@ public class MiniGameInfoPacket : ISerializablePacket
 
         BaseMiniGamePacket.WriteHeader(writer, BaseMiniGamePacket.Info, StageId, StageGroupId);
 
+        WriteBody(writer);
+
+        writer.Write(Unknown7);
+
+        return writer.Buffer;
+    }
+
+    /// <summary>
+    /// The body, which UpdateReward sends too.
+    /// </summary>
+    public void WriteBody(PacketWriter writer)
+    {
         writer.Write(NameId);
         writer.Write(IconId);
         writer.Write(DescriptionId);
         writer.Write(Difficulty);
-        writer.Write(BattleClassType);
-        writer.Write(PortalEntryId);
+        writer.Write(ProfileType);
+        writer.Write(Type);
+        writer.Write(MembersOnly);
+        Reward.Serialize(writer);
+        MemberReward.Serialize(writer);
+        RewardPreview.Serialize(writer);
+        writer.Write(Objectives);
+        writer.Write(ShowStarCounter);
+        writer.Write(ShowStatusIcon);
+        writer.Write(ShowActionBar);
+        writer.Write(ShowStartScreen);
+        writer.Write(ShowEndScreen);
+        writer.Write(PreloadSwf);
+        writer.Write(Unknown);
+        writer.Write(Unknown2);
+        writer.Write(MiniGameId);
+        writer.Write(HideWorld);
+        writer.Write(Unknown3);
         writer.Write(Unknown4);
-        RewardBundle1.Serialize(writer);
-        RewardBundle2.Serialize(writer);
-        RewardBundle3.Serialize(writer);
-        writer.Write(RewardBundleListCount);
-        writer.Write(RewardBundleListUnknown);
-        writer.Write(Unknown9);
-        writer.Write(Unknown10);
-        writer.Write(Unknown11);
-        writer.Write(Unknown12);
-        writer.Write(ShowEndScoreScreen);
-        writer.Write(Unknown14);
-        writer.Write(Unknown15);
-        writer.Write(Unknown16);
-        writer.Write(StageDefinitionId);
-        writer.Write(Unknown18);
-        writer.Write(Unknown19);
-        writer.Write(Unknown20);
-        writer.Write(Unknown21);
-        writer.Write(Unknown22);
+        writer.Write(SuppressStartScreen);
+        writer.Write(Unknown6);
+    }
+}
+
+/// <summary>
+/// Puts what was won on the score screen: the whole Info body again, of which the client uses the rewards.
+/// </summary>
+public class MiniGameUpdateRewardPacket : ISerializablePacket
+{
+    public int StageId;
+    public int StageGroupId = -1;
+
+    public MiniGameInfoPacket Info = new();
+
+    public byte[] Serialize()
+    {
+        using var writer = new PacketWriter();
+
+        BaseMiniGamePacket.WriteHeader(writer, BaseMiniGamePacket.UpdateReward, StageId, StageGroupId);
+
+        Info.WriteBody(writer);
+
+        return writer.Buffer;
+    }
+}
+
+/// <summary>
+/// The game's star tally (the HUD's star counter counts up to it).
+/// </summary>
+public class MiniGameStarsEarnedPacket : ISerializablePacket
+{
+    public int StageId;
+    public int StageGroupId = -1;
+
+    public int Stars;
+
+    public bool NoAnimation;
+
+    public byte[] Serialize()
+    {
+        using var writer = new PacketWriter();
+
+        // The header's middle int, -1 everywhere else, carries the total here.
+        writer.Write(BaseMiniGamePacket.OpCode);
+        writer.Write(BaseMiniGamePacket.StarsEarned);
+        writer.Write(StageId);
+        writer.Write(Stars);
+        writer.Write(StageGroupId);
+        writer.Write(NoAnimation);
 
         return writer.Buffer;
     }

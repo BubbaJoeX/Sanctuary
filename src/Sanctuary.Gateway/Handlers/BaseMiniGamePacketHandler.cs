@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Sanctuary.Core.IO;
+using Sanctuary.Game.Challenges;
 using Sanctuary.Game.Minigames;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
@@ -18,6 +19,7 @@ namespace Sanctuary.Gateway.Handlers;
 public static class BaseMiniGamePacketHandler
 {
     private static ILogger _logger = null!;
+    private static IChallengeManager _challengeManager = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
@@ -25,6 +27,8 @@ public static class BaseMiniGamePacketHandler
         _logger = loggerFactory.CreateLogger(nameof(BaseMiniGamePacketHandler));
 
         MinigameManager.ConfigureServices(serviceProvider);
+
+        _challengeManager = serviceProvider.GetRequiredService<IChallengeManager>();
     }
 
     public static bool HandlePacket(GatewayConnection connection, PacketReader reader)
@@ -39,7 +43,8 @@ public static class BaseMiniGamePacketHandler
             switch (subOpCode)
             {
                 case BaseMiniGamePacket.RequestStartGame:
-                    MinigameManager.RequestStart(connection.Player, stageId);
+                    if (!_challengeManager.TryStart(connection.Player, stageId))
+                        MinigameManager.RequestStart(connection.Player, stageId);
                     return true;
 
                 case BaseMiniGamePacket.Payload when reader.TryRead(out string payload):
@@ -48,7 +53,8 @@ public static class BaseMiniGamePacketHandler
 
                 case BaseMiniGamePacket.RequestCancelGame:
                 case BaseMiniGamePacket.RequestLeaveGame:
-                    MinigameManager.Cancel(connection.Player);
+                    if (!_challengeManager.TryCancel(connection.Player))
+                        MinigameManager.Cancel(connection.Player);
                     return true;
             }
         }

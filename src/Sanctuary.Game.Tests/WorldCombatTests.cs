@@ -391,9 +391,10 @@ public sealed class WorldCombatTests
     [TestMethod]
     public void CombatModePackets_MatchTheClient()
     {
-        // BaseEncounterPacket 41, then the client's sub-opcodes 132 (in a combat area) and 133 (fighting) and one bool.
-        CollectionAssert.AreEqual(new byte[] { 41, 0, 132, 0, 1 }, new EncounterOverworldCombatPacket { InWorldCombat = true }.Serialize());
-        CollectionAssert.AreEqual(new byte[] { 41, 0, 133, 0, 1 }, new EncounterPacketIsFighting { IsFighting = true }.Serialize());
+        // BaseEncounterPacket 41, the client's sub-opcodes 132 (in a combat area) and 133 (fighting), the two header
+        // ints and one bool, as the live servers sent them (29008400 00000000 00000000 01).
+        CollectionAssert.AreEqual(new byte[] { 41, 0, 132, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, new EncounterOverworldCombatPacket { InWorldCombat = true }.Serialize());
+        CollectionAssert.AreEqual(new byte[] { 41, 0, 133, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, new EncounterPacketIsFighting { IsFighting = true }.Serialize());
     }
 
     private static string FindSourceResources()
