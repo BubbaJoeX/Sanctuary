@@ -1124,5 +1124,68 @@
     "Stats": {
       "MaxMovementSpeed": 12.5
     }
+  },
+  {
+    "Comment": "fr_maya_mcp: FR MCP Carousel Unicorn",
+    "Id": 20001,
+    "NameId": 9100070,
+    "ImageSetId": 20035,
+    "TintAlias": "dyetint",
+    "ModelId": 483,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
+  },
+  {
+    "Comment": "fr_maya_mcp: FR MCP Spinning Teacup",
+    "Id": 20002,
+    "NameId": 9100072,
+    "ImageSetId": 20036,
+    "ModelId": 564,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
+  },
+  {
+    "Comment": "fr_maya_mcp: FR MCP Penny-Farthing",
+    "Id": 20003,
+    "NameId": 9100074,
+    "ImageSetId": 20037,
+    "TintAlias": "dyetint",
+    "ModelId": 1273,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
+  },
+  {
+    "Comment": "fr_maya_mcp: FR MCP Sky Rocket",
+    "Id": 20004,
+    "NameId": 9100076,
+    "ImageSetId": 20038,
+    "ModelId": 1279,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
+  },
+  {
+    "Comment": "fr_maya_mcp: FR MCP Hot-Air Balloon",
+    "Id": 20005,
+    "NameId": 9100078,
+    "ImageSetId": 20039,
+    "TextureAlias": "carpet-basic",
+    "ModelId": 1280,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
+  },
+  {
+    "Comment": "fr_maya_mcp: FR MCP Clawfoot Bathtub",
+    "Id": 20006,
+    "NameId": 9100080,
+    "ImageSetId": 20040,
+    "ModelId": 1285,
+    "Stats": {
+      "MaxMovementSpeed": 12.5
+    }
   }
 ]
