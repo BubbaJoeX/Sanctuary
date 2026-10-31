@@ -11,6 +11,12 @@ public interface IRewardManager
 
     bool TryGrantItem(Player player, int itemDefinitionId, int tint, int quantity = 1, ulong sourceGuid = 0);
 
+    /// <summary>
+    /// Opens a gift (Gifts.json) into what it holds, and shows it. False if the item isn't a gift. It doesn't take
+    /// the gift from the inventory.
+    /// </summary>
+    bool TryOpenGift(Player player, int itemDefinitionId, ulong sourceGuid = 0);
+
     bool TryGrantCurrency(Player player, CurrencyType currencyType, int amount);
 
     /// <summary>

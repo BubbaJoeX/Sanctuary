@@ -12,6 +12,7 @@ using Sanctuary.Database.Entities;
 using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
+using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
@@ -54,8 +55,113 @@ public class RewardManager : IRewardManager
                 item.TintTable?.SelectRandom().TintId ?? 0, item.Quantity, sourceGuid),
             CurrencyRewardDropDefinition currency => TryGrantCurrency(player, currency.CurrencyType,
                 currency.CurrencyType == CurrencyType.Coins ? player.ApplyCoinBoost(currency.Amount) : currency.Amount),
+            ExperienceRewardDropDefinition experience => TryGrantExperience(player, player.ApplyExperienceBoost(experience.Amount), experience.ProfileId),
             _ => false
         };
+    }
+
+    public bool TryOpenGift(Player player, int itemDefinitionId, ulong sourceGuid = 0)
+    {
+        if (!_resourceManager.Gifts.TryGetValue(itemDefinitionId, out var gift) ||
+            !_resourceManager.ClientItemDefinitions.TryGetValue(itemDefinitionId, out var giftItem))
+            return false;
+
+        var contents = new List<RewardDropDefinition>();
+
+        if (gift.PickByGender)
+        {
+            if (gift.Fixed.FirstOrDefault(drop => CanHave(player, drop)) is { } picked)
+                contents.Add(picked);
+        }
+        else
+        {
+            contents.AddRange(gift.Fixed);
+        }
+
+        foreach (var roll in gift.Rolls)
+        {
+            for (var i = 0; i < roll.Count; i++)
+            {
+                var choice = roll.Choose.Count > 0 ? PickChoice(roll.Choose) : new GiftChoiceDefinition { Table = roll.Table };
+
+                if (choice.Coins > 0)
+                {
+                    contents.Add(new CurrencyRewardDropDefinition { CurrencyType = CurrencyType.Coins, Amount = choice.Coins });
+                    continue;
+                }
+
+                if (choice.Table is null || !_resourceManager.RewardTables.TryGetValue(choice.Table.Trim().ToLowerInvariant(), out var table))
+                    continue;
+
+                var drops = table.DropTable.Where(drop => CanHave(player, drop)).ToList();
+
+                if (drops.Count > 0)
+                    contents.Add(PickWeighted(drops));
+            }
+        }
+
+        var coins = 0;
+        var stars = 0;
+
+        foreach (var drop in contents)
+        {
+            if (!TryGrantReward(player, drop, sourceGuid))
+                continue;
+
+            if (drop is CurrencyRewardDropDefinition { CurrencyType: CurrencyType.Coins } currency)
+                coins += player.ApplyCoinBoost(currency.Amount);
+            else if (drop is ExperienceRewardDropDefinition experience)
+                stars += player.ApplyExperienceBoost(experience.Amount);
+        }
+
+        // The items toast as they're added; this names the gift, with the coins and stars it held (as live did).
+        var opened = new RewardBundlePacket();
+        opened.RewardBundle.Coins = coins;
+        opened.RewardBundle.Experience = stars;
+        opened.RewardBundle.Unknown3 = 4;
+        opened.RewardBundle.SourceGuid = player.Guid;
+        opened.RewardBundle.PlayerGuid = player.Guid;
+        opened.RewardBundle.IconId = giftItem.Icon.Id;
+        opened.RewardBundle.NameId = giftItem.NameId;
+
+        player.SendTunneled(opened);
+
+        _logger.LogInformation("{player} opened gift {item} ({comment}): {count} rewards.", player.Name.FullName, itemDefinitionId, gift.Comment, contents.Count);
+
+        return true;
+    }
+
+    private static bool CanHave(Player player, RewardDropDefinition drop) =>
+        drop is not ItemRewardDropDefinition { GenderUsage: not 0 } item || item.GenderUsage == player.Gender;
+
+    private static GiftChoiceDefinition PickChoice(List<GiftChoiceDefinition> choices)
+    {
+        var roll = Random.Shared.Next(choices.Sum(choice => Math.Max(1, choice.Weight)));
+
+        foreach (var choice in choices)
+        {
+            roll -= Math.Max(1, choice.Weight);
+
+            if (roll < 0)
+                return choice;
+        }
+
+        return choices[^1];
+    }
+
+    private static RewardDropDefinition PickWeighted(List<RewardDropDefinition> choices)
+    {
+        var roll = Random.Shared.Next(choices.Sum(drop => Math.Max(1, drop.Weight)));
+
+        foreach (var drop in choices)
+        {
+            roll -= Math.Max(1, drop.Weight);
+
+            if (roll < 0)
+                return drop;
+        }
+
+        return choices[^1];
     }
 
     public bool TryGrantItem(Player player, int itemDefinitionId, int tint, int quantity, ulong sourceGuid = 0)
@@ -67,6 +173,17 @@ public class RewardManager : IRewardManager
         {
             _logger.LogError("Cannot grant unknown item definition {itemDefinitionId}.", itemDefinitionId);
             return false;
+        }
+
+        // A gift opens as it's given (live never put one in the inventory).
+        if (_resourceManager.Gifts.ContainsKey(itemDefinitionId))
+        {
+            var opened = false;
+
+            for (var i = 0; i < quantity; i++)
+                opened |= TryOpenGift(player, itemDefinitionId, sourceGuid);
+
+            return opened;
         }
 
         var characterId = GuidHelper.GetPlayerId(player.Guid);

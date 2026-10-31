@@ -1,0 +1,1179 @@
+[
+  {
+    "Comment": "Random Clothes (proposed)",
+    "ItemIds": [
+      16382,
+      16383,
+      16384,
+      16385,
+      16386,
+      16387,
+      16388,
+      16389,
+      16390,
+      16391,
+      16392,
+      16393,
+      16394,
+      16395,
+      16396,
+      16397,
+      16398,
+      16399,
+      16400,
+      16401
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-clothes",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Random Tool (proposed)",
+    "ItemIds": [
+      16402,
+      16403,
+      16404,
+      16405,
+      16406,
+      16407,
+      16408,
+      16409,
+      16410,
+      16411,
+      16412,
+      16413,
+      16414,
+      16415,
+      16416,
+      16417,
+      16418,
+      16419,
+      16420,
+      16421
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-tools",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Random Accessory (proposed)",
+    "ItemIds": [
+      16422,
+      16423,
+      16424,
+      16425,
+      16426,
+      16427,
+      16428,
+      16429,
+      16430,
+      16431,
+      16432,
+      16433,
+      16434,
+      16435,
+      16436,
+      16437,
+      16438,
+      16439,
+      16440,
+      16441
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-accessories",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Tiny Tournament Winnings (from locale)",
+    "ItemIds": [
+      36989
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 10,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Small Tournament Winnings (from locale)",
+    "ItemIds": [
+      36991
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 15,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Medium Tournament Winnings (from locale)",
+    "ItemIds": [
+      36993
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 20,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Large Tournament Winnings (from locale)",
+    "ItemIds": [
+      36995
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 30,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Extra Large Tournament Winnings (from locale)",
+    "ItemIds": [
+      36990
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 50,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Grand Tournament Winnings (from locale)",
+    "ItemIds": [
+      36992
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 100,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Big Time Tournament Winnings (from locale)",
+    "ItemIds": [
+      36994
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 200,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Champion's Tournament Winnings (from locale)",
+    "ItemIds": [
+      36996
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 500,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Adventurer Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      343
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 1,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Chef Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      351
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 45,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Ninja Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2837
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 2,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Postman Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2838
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 4,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Medic Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2839
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 11,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Wizard Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2840
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 12,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Miner Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2841
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 14,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Blacksmith Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2842
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 16,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Warrior Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2843
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 32,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Archer Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2844
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 35,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Brawler Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2845
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 43,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Chef Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2846
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 45,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Pet Trainer Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2847
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Card Duelist Bonus Stars (job from locale, amount proposed)",
+    "ItemIds": [
+      2848
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "ProfileId": 120,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Bonus Stars (proposed)",
+    "ItemIds": [
+      57021
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 250,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Adventurer (from locale)",
+    "ItemIds": [
+      68786
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 1,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Archer (from locale)",
+    "ItemIds": [
+      68787
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 35,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Blacksmith (from locale)",
+    "ItemIds": [
+      68788
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 16,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Brawler (from locale)",
+    "ItemIds": [
+      68789
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 43,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Card Duelist (from locale)",
+    "ItemIds": [
+      68790
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 120,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Chef (from locale)",
+    "ItemIds": [
+      68791
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 45,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Demo Derby Driver (from locale)",
+    "ItemIds": [
+      68792
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 49,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Kart Driver (from locale)",
+    "ItemIds": [
+      68793
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 48,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Medic (from locale)",
+    "ItemIds": [
+      68794
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 11,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Miner (from locale)",
+    "ItemIds": [
+      68795
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 14,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Ninja (from locale)",
+    "ItemIds": [
+      68796
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 2,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Pet Trainer (from locale)",
+    "ItemIds": [
+      68797
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Postman (from locale)",
+    "ItemIds": [
+      68798
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 4,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Warrior (from locale)",
+    "ItemIds": [
+      68799
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 32,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "500 Stars Potion - Wizard (from locale)",
+    "ItemIds": [
+      68800
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Experience",
+        "Amount": 500,
+        "ProfileId": 12,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Battle Item Mystery Pack (from capture + locale)",
+    "ItemIds": [
+      10482
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-battle-items",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Small Tattered Mystery Gift (proposed)",
+    "ItemIds": [
+      22120
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 100,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Small Ordinary Mystery Gift (proposed)",
+    "ItemIds": [
+      22122
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 250,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Small Ornate Mystery Gift (proposed)",
+    "ItemIds": [
+      22124
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 500,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Medium Tattered Mystery Gift (proposed)",
+    "ItemIds": [
+      22126
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 200,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 2
+      }
+    ]
+  },
+  {
+    "Comment": "Medium Ordinary Mystery Gift (proposed)",
+    "ItemIds": [
+      22128
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 500,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 2
+      }
+    ]
+  },
+  {
+    "Comment": "Medium Ornate Mystery Gift (proposed)",
+    "ItemIds": [
+      22130
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 1000,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 2
+      }
+    ]
+  },
+  {
+    "Comment": "Large Tattered Mystery Gift (proposed)",
+    "ItemIds": [
+      22132
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 400,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 4
+      }
+    ]
+  },
+  {
+    "Comment": "Large Ordinary Mystery Gift (proposed)",
+    "ItemIds": [
+      22134
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 1000,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 4
+      }
+    ]
+  },
+  {
+    "Comment": "Large Ornate Mystery Gift (proposed)",
+    "ItemIds": [
+      22136
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 2000,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 4
+      }
+    ]
+  },
+  {
+    "Comment": "Small Grab Bag (proposed)",
+    "ItemIds": [
+      386
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 25,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Medium Grab Bag (proposed)",
+    "ItemIds": [
+      387
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 50,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 2
+      }
+    ]
+  },
+  {
+    "Comment": "Large Grab Bag (proposed)",
+    "ItemIds": [
+      388
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 100,
+        "Weight": 1
+      }
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-consumables",
+        "Count": 3
+      }
+    ]
+  },
+  {
+    "Comment": "Mystery Gift (proposed)",
+    "ItemIds": [
+      9099,
+      9100,
+      9101,
+      9102,
+      9103,
+      9104,
+      9105,
+      9106,
+      9107,
+      9108,
+      9109,
+      9110,
+      9111,
+      9112,
+      9113,
+      9115,
+      10434,
+      10441,
+      10480,
+      10506,
+      10507,
+      10508,
+      10509,
+      10510,
+      11019,
+      11020,
+      11021,
+      11022,
+      11023,
+      11024,
+      11025,
+      11026,
+      69855,
+      69856
+    ],
+    "Rolls": [
+      {
+        "Choose": [
+          {
+            "Table": "gift-pool-clothes",
+            "Weight": 4
+          },
+          {
+            "Table": "gift-pool-accessories",
+            "Weight": 2
+          },
+          {
+            "Table": "gift-pool-consumables",
+            "Weight": 2
+          },
+          {
+            "Coins": 100,
+            "Weight": 2
+          }
+        ],
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Festival of Hearts Mystery Gift (proposed)",
+    "ItemIds": [
+      7892,
+      7893,
+      7894,
+      7895,
+      7896,
+      7897,
+      7898,
+      7899,
+      7900,
+      7901,
+      7902,
+      7903,
+      7904,
+      7905
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-festival-of-hearts",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Holiday Mystery Gift (proposed)",
+    "ItemIds": [
+      1912,
+      76630,
+      76631,
+      76632,
+      76633
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-holiday",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Mystery Candy (proposed)",
+    "ItemIds": [
+      69854
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-candy",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Luau Party Favor (proposed)",
+    "ItemIds": [
+      450
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-luau",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Pet Party Favor (proposed)",
+    "ItemIds": [
+      451
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-pet-supplies",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Level 20 Ninja Armor (from locale)",
+    "ItemIds": [
+      2736
+    ],
+    "Rolls": [
+      {
+        "Table": "gift-pool-jonin-ninja-armor",
+        "Count": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Dark Flower Island Shirt (proposed)",
+    "ItemIds": [
+      12851
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 11033,
+        "Weight": 1,
+        "Quantity": 1,
+        "GenderUsage": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 11034,
+        "Weight": 1,
+        "Quantity": 1,
+        "GenderUsage": 2
+      }
+    ],
+    "PickByGender": true
+  },
+  {
+    "Comment": "Gossamer Wings (proposed)",
+    "ItemIds": [
+      17253
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 17246,
+        "Weight": 1,
+        "Quantity": 1,
+        "GenderUsage": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 17247,
+        "Weight": 1,
+        "Quantity": 1,
+        "GenderUsage": 2
+      }
+    ],
+    "PickByGender": true
+  },
+  {
+    "Comment": "{n}Thorny Fasteners{pl=\"Thorny Fasteners\"} (proposed)",
+    "ItemIds": [
+      27923
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 56,
+        "Weight": 1,
+        "Quantity": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Wooden Plank (proposed)",
+    "ItemIds": [
+      27924
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 55,
+        "Weight": 1,
+        "Quantity": 1
+      }
+    ]
+  },
+  {
+    "Comment": "Singing Coal (proposed)",
+    "ItemIds": [
+      30555
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 879,
+        "Weight": 1,
+        "Quantity": 1
+      }
+    ]
+  },
+  {
+    "Comment": "March Member's Pack (from locale)",
+    "ItemIds": [
+      77767
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 10000,
+        "Weight": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 76884,
+        "Weight": 1,
+        "Quantity": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 76886,
+        "Weight": 1,
+        "Quantity": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 76888,
+        "Weight": 1,
+        "Quantity": 1
+      }
+    ]
+  },
+  {
+    "Comment": "April Member's Pack (proposed)",
+    "ItemIds": [
+      77996
+    ],
+    "Fixed": [
+      {
+        "RewardType": "Currency",
+        "CurrencyType": "Coins",
+        "Amount": 10000,
+        "Weight": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 76884,
+        "Weight": 1,
+        "Quantity": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 76886,
+        "Weight": 1,
+        "Quantity": 1
+      },
+      {
+        "RewardType": "Item",
+        "ItemDefinitionId": 76888,
+        "Weight": 1,
+        "Quantity": 1
+      }
+    ]
+  }
+]
