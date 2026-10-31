@@ -195,7 +195,7 @@ class Combat:
         out["Unknown"] = 4 if out["Trial"] else whole(profile.get("Unknown") or 0, "Unknown")
         out["Unknown2"] = whole(profile.get("Unknown2") or 0, "Unknown2")
         out["ItemClasses"] = classes
-        if defaults:
+        if defaults or "DefaultItems" in profile:
             out["DefaultItems"] = defaults
         return ordered(out, like)
 

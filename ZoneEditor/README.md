@@ -308,6 +308,18 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   running servers' copies; the panel then has the Gateway reload them. A definition can carry a `Conversation`
   (`Start` and `Nodes`, as the game checks them): every NPC spawned from it says that when clicked, unless it has
   its own, and a reload changes what they say from their next click.
+- **The admin panel's jobs, abilities, battles and titles.** Each saves every file it spans at once, checked first
+  as the servers check them: `GET /api/jobs`, `/api/jobs/entry`, `POST /api/jobs/save|delete` (a job's
+  `Profiles.json` entry, its `CombatJobs.json` kit and the `CombatAbilities.json` abilities it fights with; new
+  abilities are named by negative stand-in ids until the save gives them theirs, and no kit can be left naming an
+  ability that doesn't exist, which would stop the Gateway starting); `GET /api/abilities`, `POST
+  /api/abilities/save|delete`; `GET /api/battles`, `/api/battles/options`, `/api/battles/entry`, `POST
+  /api/battles/save|delete` (`Battles.json` with the `Mobs.json` mobs its waves fight as); and `GET /api/titles`,
+  `POST /api/titles/save|delete` (`PlayerTitles.json`). Names travel as text: text a string already says keeps its
+  id, and new text becomes a Sanctuary string with the locale patch rebuilt once per save. `GET /api/icons` and
+  `/api/client-ids?kind=animation|effect|imageset` search the client's images, animations, composite effects and
+  image sets by name. Saves keep each file's layout, PowerShell's included (`CombatAbilities.json`), and go to the
+  Login server's copy of the resources too.
 - **The admin panel's Coin Store and icons.** The panel's Store page changes the coin store's files through the
   editor too: `GET /api/store/categories` (what the client calls each category), `POST /api/store/save|remove`
   for `src/Resources/CoinStoreItems.json` and prices (`Cost`, `MemberDiscount`, `ResellValue`) in

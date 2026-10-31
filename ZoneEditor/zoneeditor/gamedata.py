@@ -44,8 +44,9 @@ class Texts:
                 text = given.get(field) if given else None
                 if text is None:
                     continue
+                # Compared as typed text: the game's own strings can carry stray spaces.
                 text = " ".join(str(text).split())
-                if text == now[field] and record.get(field):
+                if text == " ".join(now[field].split()) and record.get(field):
                     continue
                 if not text:
                     record[field] = 0

@@ -165,8 +165,10 @@ class Battles:
                     raise ValueError(f"{where}: there's no mob {spawn['Mob']}.")
                 checked.append(ordered({"NpcId": spawn["NpcId"], "Position": point(spawn.get("Position"), f"{where}'s position"),
                                         "Heading": number(spawn.get("Heading", 0), f"{where}'s heading", -7, 7),
-                                        "Mob": spawn.get("Mob") or None, "Boss": True if spawn.get("Boss") else None}, None))
-            out["Waves"].append(ordered({"DelayMs": whole(wave.get("DelayMs", 1000), f"Wave {w}'s delay", 0, 600_000),
+                                        "Boss": True if spawn.get("Boss") else None, "Mob": spawn.get("Mob") or None}, None))
+            # Guards there from the start have no delay; a wave without one waits the server's default.
+            delay = wave.get("DelayMs")
+            out["Waves"].append(ordered({"DelayMs": None if delay is None else whole(delay, f"Wave {w}'s delay", 0, 600_000),
                                          "AtStart": True if wave.get("AtStart") else None, "Spawns": checked}, None))
         _check_dungeon(out)
         out["Stars"] = whole(battle.get("Stars", 0), "The stars", 0, 100_000)
