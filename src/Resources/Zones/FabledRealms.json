@@ -23,7 +23,10 @@
     "HalloweenDanceOff",
     "MysteryMerchant",
     "lavendercoast",
-    "Battles"
+    "Battles",
+    "Milestones",
+    "Rescue",
+    "DailyBounties"
   ],
   "EnabledClientAreaIds": [
     4173

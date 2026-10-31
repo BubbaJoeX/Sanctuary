@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,7 @@ public class ScriptContext
     private readonly LuaValue[] _eventArguments;
     private readonly ConcurrentDictionary<string, LuaTable> _scriptEnvironments = new();
     private readonly ConcurrentDictionary<string, ConcurrentGroupedSet<LuaTable, LuaFunction>> _eventCallbacks = new();
+    private int _runningCallbacks;
 
     internal ScriptContext(ScriptRuntime runtime, ILogger logger, ILuaUserData? userData = null)
     {
@@ -206,8 +208,18 @@ public class ScriptContext
         foreach (var handler in callbacks.Snapshot)
         {
             // Fire and forget; safe since InvokeCallbackAsync does not throw.
+            Interlocked.Increment(ref _runningCallbacks);
             _ = InvokeCallbackAsync(eventName, handler, arguments);
         }
+    }
+
+    /// <summary>
+    /// Waits until every callback fired so far has run (for tests).
+    /// </summary>
+    internal async Task WaitForCallbacksAsync()
+    {
+        while (Volatile.Read(ref _runningCallbacks) > 0)
+            await Task.Delay(5);
     }
 
     private async Task InvokeCallbackAsync(string eventName, LuaFunction handler, LuaValue[] arguments)
@@ -219,6 +231,10 @@ public class ScriptContext
         catch (Exception ex)
         {
             _logger.LogError(ex, "Lua error during callback for event {EventName}", eventName);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _runningCallbacks);
         }
     }
 }

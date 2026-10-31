@@ -13,6 +13,18 @@ sandbox, and every call is stopped after 100 ms.
 local wait = {{cooldown}}        -- placeholders are filled in when the template is applied
 ```
 
+## Templates for the game's systems
+
+| Template | Parameters | |
+|---|---|---|
+| `battle-herald` | `battle` (a `Battles.json` id), `greeting` | Opens the battle's start panel when clicked, and asks the player's group along. |
+| `challenge-giver` | `challenge` (a `Challenges.json` id), `prize`, `greeting` | Offers the challenge, laid out around itself, and gives the prize item for a win. |
+| `recipe-tutor` | `recipe` (a `Recipes.json` id), `coins` | Teaches the recipe for a fee, and refunds it if the recipe doesn't exist. |
+| `dance-teacher` | `dance` (one of `!emote`'s dances), `greeting` | Shows the move, and the player dances it until they walk away. |
+| `achievement-gate` | `achievement` (an `Achievements.json` id), `distance`, `refusal` | Steps players who've earned the achievement through to its far side. |
+| `house-butler` | `welcome` | Greets a house's owner by name and welcomes their guests. |
+| `night-owl` | `dusk`, `dawn` | Wakes and sleeps by the game's clock, the same day and night the sky shows. |
+
 ## Hooks
 
 | Hook | When |

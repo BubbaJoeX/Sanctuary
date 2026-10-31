@@ -1,5 +1,20 @@
 [
   {
+    "Title": "Daily bounties",
+    "Text": "Every day brings three bounties out in Fabled Realms, from defeating creatures, winning minigames or challenges, completing quests and crafting. You'll hear the day's three when you arrive. Each pays 100 coins and 50 stars, and finishing all three pays 150 more.",
+    "Icon": "coin"
+  },
+  {
+    "Title": "Fishing Derby",
+    "Text": "When the Referees run a Fishing Derby, every fish you land at a pond counts, and the pond hears who's in the lead. The top three anglers still at the pond when it ends win 300, 200 and 100 coins. Every tenth catch of a trip pays 10 bonus stars too, and treasure chests get cheered across the pond.",
+    "Icon": "trophy"
+  },
+  {
+    "Title": "Better together",
+    "Text": "Win a battle with friends from your group, and you earn 5 bonus stars for each one there with you. When someone is knocked out, their group hears about it, and anyone close by with a Resurrection Scroll is told to use it. Everyone nearby cheers your rank-ups, and the whole zone cheers every fifth rank. Staying to the end of one of Bruce's songs, or a Halloween dance-off, earns 15 stars.",
+    "Icon": "friends"
+  },
+  {
     "Title": "Free to roam",
     "Text": "Walking through the wilds doesn't put you in combat anymore. In town and out in the wilds alike, your map and the job picker are yours, Fisherman and Pet Trainer included, until an enemy comes after you. Then you switch to your combat job and stay in the fight until it's beaten, gives up the chase or you get away, and everything's free again.",
     "Icon": "tree"

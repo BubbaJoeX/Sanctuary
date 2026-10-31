@@ -1,5 +1,5 @@
 -- @name night-owl
--- @description Sleeps by day and wakes at night by the server clock, changing its name, size and mood
+-- @description Sleeps by day and wakes at night by the game's clock (the sky's day and night), changing its name, size and mood
 -- @param dusk int 19
 -- @param dawn int 6
 
@@ -7,8 +7,13 @@ local awake = nil
 local clock = nil
 
 local function isNight()
-    local hour = tonumber(os.date("%H"))
+    local hour = npc.zone.gameHour
     return hour >= {{dusk}} or hour < {{dawn}}
+end
+
+local function gameTime()
+    local hour = npc.zone.gameHour
+    return string.format("%02d:%02d", math.floor(hour), math.floor(hour % 1 * 60))
 end
 
 local function update()
@@ -40,7 +45,7 @@ end
 
 function onInteract(player)
     if awake then
-        npc:sayTo(player, "Hoo hoo! Did you know it's " .. os.date("%H:%M") .. "? Prime owl time.")
+        npc:sayTo(player, "Hoo hoo! Did you know it's " .. gameTime() .. "? Prime owl time.")
     else
         npc:sayTo(player, "Zzz... come back after " .. tostring({{dusk}}) .. ":00... zzz")
     end

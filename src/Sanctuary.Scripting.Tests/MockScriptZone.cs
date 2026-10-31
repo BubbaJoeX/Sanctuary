@@ -10,7 +10,7 @@ internal class MockScriptZone(ILogger _logger) : IScriptableZone
 {
     public IScriptManager ScriptManager => throw new NotImplementedException();
 
-    public int Id => 0;
+    public int Id { get; set; }
 
     public string Name => "MockZone";
 
@@ -38,20 +38,15 @@ internal class MockScriptZone(ILogger _logger) : IScriptableZone
         throw new NotImplementedException();
     }
 
-    public void Broadcast(string message)
-    {
-        throw new NotImplementedException();
-    }
+    public List<string> Broadcasts { get; } = [];
 
-    public void BroadcastNear(string message, float x, float z, float radius)
-    {
-        throw new NotImplementedException();
-    }
+    public void Broadcast(string message) => Broadcasts.Add(message);
 
-    public bool IsSeasonActive(string seasonName)
-    {
-        throw new NotImplementedException();
-    }
+    public List<(string Message, float X, float Z, float Radius)> NearBroadcasts { get; } = [];
+
+    public void BroadcastNear(string message, float x, float z, float radius) => NearBroadcasts.Add((message, x, z, radius));
+
+    public bool IsSeasonActive(string seasonName) => ActiveEvents.Contains(seasonName);
 
     public bool TrySpawnNpc(int npcId, ulong? npcGuid, float x, float y, float z, float heading, float pitch, float roll, [MaybeNullWhen(false)] out IScriptableNpc npc)
     {
