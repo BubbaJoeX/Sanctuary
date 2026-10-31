@@ -181,6 +181,10 @@ public sealed class FishingTests
             var arrival = new Vector2(pond.Arrival.Position[0], pond.Arrival.Position[2]);
             var nearest = pond.Schools.Min(school => Vector2.Distance(arrival, new Vector2(school.Position[0], school.Position[2])));
             Assert.IsTrue(nearest <= fishing.Definition.Rods.Min(rod => rod.MaxCastDistance) + FishingRules.SchoolRadius, $"{pond.Zone}'s nearest school is {nearest:0} m out.");
+
+            // The way out stands beside them: the fisherman's Leave, as the client's fishing screen has none.
+            var guide = Vector2.Distance(arrival, new Vector2(pond.Guide.Position[0], pond.Guide.Position[2]));
+            Assert.IsTrue(guide <= 4f, $"{pond.Zone}'s fisherman is {guide:0.0} m from where players arrive.");
         }
     }
 
