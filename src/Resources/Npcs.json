@@ -1156,7 +1156,17 @@
     "Name": "Assistant Headmaster Tov",
     "ModelId": 468,
     "ModelFileName": "fairy_druid_m.adr",
-    "TextureAlias": "base_02"
+    "TextureAlias": "base_02",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Recovering from the Gloam Invasion has been difficult, especially since Headmaster Merk went to help the dwarves in Sunstone Valley.\n\nI understand, of course. It was the least he could do considering how much the dwarves sacrificed to help us. I just hope I can keep things under control until he gets back!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1438,
@@ -3613,14 +3623,34 @@
     "NameId": 73472,
     "Name": "Zzz... Zzz...",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "I'm not sleeping... I'm performing on stage in Snowhill in front of thousands of fans...",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1863,
     "NameId": 73472,
     "Name": "Zzz... Zzz...",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "I'm not sleeping... I'm performing on stage in Snowhill in front of thousands of fans...",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1873,
@@ -3766,7 +3796,17 @@
     "NameId": 74790,
     "Name": "Doctor Callahan",
     "ModelId": 774,
-    "ModelFileName": "human_m_dr_callahan.agr"
+    "ModelFileName": "human_m_dr_callahan.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Once you enter this place, you can't leave!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1896,
@@ -4094,7 +4134,17 @@
     "NameId": 45587,
     "Name": "Mr. Mudd",
     "ModelId": 184,
-    "ModelFileName": "human_m_freestyle_01.agr"
+    "ModelFileName": "human_m_freestyle_01.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Ya ain't welcome here, 'less you got more grub for us.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1952,
@@ -4898,7 +4948,17 @@
     "NameId": 20942,
     "Name": "Bartle",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Bandits! Beware of bandits on the road ahead!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2088,
@@ -5296,7 +5356,17 @@
     "NameId": 429530,
     "Name": "Madison",
     "ModelId": 573,
-    "ModelFileName": "fairy_f_freestyle_11.agr"
+    "ModelFileName": "fairy_f_freestyle_11.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Did you hear? More people are going into battle for a chance to win new gear.\n\nApparently, there's new bonus goals for all the combat encounters in Sacred Grove. You check them out yet?",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2172,
@@ -5449,7 +5519,17 @@
     "NameId": 40416,
     "Name": "Ronnie Britesmile",
     "ModelId": 9,
-    "ModelFileName": "humanchild_m_tshirtwithbeltbig.adr"
+    "ModelFileName": "humanchild_m_tshirtwithbeltbig.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "I am SO bored right now. I just want to go have fun! Not do my chores!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2196,
@@ -5628,7 +5708,17 @@
     "NameId": 40401,
     "Name": "Fuddle",
     "ModelId": 4,
-    "ModelFileName": "robgoblin_m_basic.adr"
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Today's special is snail pie. Extra slimy of course! Tee hee.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2224,
@@ -5775,7 +5865,17 @@
     "NameId": 70967,
     "Name": "Dubawug",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Move aside, you young sprats! Let an old man see!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2272,
@@ -6621,7 +6721,17 @@
     "Name": "Rika",
     "ModelId": 384,
     "ModelFileName": "fairy_sanctuary_f.adr",
-    "TextureAlias": "sanctuary_02"
+    "TextureAlias": "sanctuary_02",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "How long ya think coins can flow like this? Mark my words - NOT FOR LONG!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2429,
@@ -7437,14 +7547,34 @@
     "NameId": 3894,
     "Name": "Private Hurplelump",
     "ModelId": 65,
-    "ModelFileName": "chugawug_m_greenwood_soldier.adr"
+    "ModelFileName": "chugawug_m_greenwood_soldier.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Halt! By Darkthorne's decree, this section of the maze is off limits.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2567,
     "NameId": 3895,
     "Name": "Private Gorglemain",
     "ModelId": 64,
-    "ModelFileName": "chugawug_f_greenwood_soldier.adr"
+    "ModelFileName": "chugawug_f_greenwood_soldier.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Halt! By Darkthorne's decree, this section of the maze is off limits.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2568,
@@ -17718,7 +17848,17 @@
     "NameId": 401729,
     "Name": "Goalster Deedee",
     "ModelId": 1591,
-    "ModelFileName": "human_f_goalster_deedee.agr"
+    "ModelFileName": "human_f_goalster_deedee.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Those darn chugawugs are so lazy. I have to do all the work around here myself.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 4281,
@@ -17973,7 +18113,17 @@
     "NameId": 429529,
     "Name": "Declan",
     "ModelId": 8,
-    "ModelFileName": "humanchild_m_tshirtwithbaggypants.adr"
+    "ModelFileName": "humanchild_m_tshirtwithbaggypants.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Did you hear? More people are going into battle for a chance to win new gear.\n\nApparently, there's new bonus goals for all the combat encounters in Sacred Grove. You check them out yet?",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 4322,
@@ -23557,7 +23707,17 @@
         "Unknown2": 0,
         "Enabled": true
       }
-    ]
+    ],
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "You can find Heddy Heathcliff on the north side of Seaside where the fisherman huts are.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 33169,
@@ -46382,6 +46542,16 @@
       ],
       "Name": "",
       "Unknown2": true
+    },
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Roses are red, violets are blue... Almonds are nuts, and so are you!",
+          "Choices": []
+        }
+      ]
     }
   },
   {
@@ -50572,7 +50742,17 @@
         "Unknown2": 0,
         "Enabled": true
       }
-    ]
+    ],
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Hello. I will be setting up my fishing supplies shop soon. Make sure to stop by again later.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 33654,
