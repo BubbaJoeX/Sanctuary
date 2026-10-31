@@ -10,6 +10,11 @@ namespace Sanctuary.Game.Resources.Definitions.QuestGoals;
 [JsonDerivedType(typeof(TalkToNpcGoal), 0)]
 [JsonDerivedType(typeof(ReachLocationGoal), 1)]
 [JsonDerivedType(typeof(CollectGoal), 2)]
+[JsonDerivedType(typeof(DefeatGoal), 3)]
+[JsonDerivedType(typeof(BattleGoal), 4)]
+[JsonDerivedType(typeof(MinigameGoal), 5)]
+[JsonDerivedType(typeof(CraftGoal), 6)]
+[JsonDerivedType(typeof(EquipGoal), 7)]
 public abstract class QuestGoal
 {
     public int NameId { get; set; }

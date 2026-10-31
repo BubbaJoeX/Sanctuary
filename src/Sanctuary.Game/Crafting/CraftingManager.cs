@@ -11,6 +11,7 @@ using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Minigames;
+using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
@@ -175,6 +176,8 @@ public class CraftingManager : ICraftingManager
         }
 
         _logger.LogInformation("{player} crafted recipe {id} ({comment}).", player.Name.FullName, recipe.Id, recipe.Comment);
+
+        player.Quests.Record(new ItemCraftedEvent(recipe.Id, recipe.ResultItemId));
         return true;
     }
 

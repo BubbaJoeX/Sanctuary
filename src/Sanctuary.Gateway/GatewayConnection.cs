@@ -342,6 +342,8 @@ public class GatewayConnection : UdpConnection
                 questProgress.Goal.Load(progress.TargetId, progress.Count);
         }
 
+        _serviceProvider.GetRequiredService<IQuestManager>().Attach(Player);
+
         Player.Birthday = dbCharacter.Created;
         Player.PlayTime = dbCharacter.PlayTime;
 

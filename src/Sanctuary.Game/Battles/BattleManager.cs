@@ -15,6 +15,7 @@ using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
 using Sanctuary.Game.Minigames;
+using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
@@ -647,6 +648,8 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
                 if (fullGroup)
                     player.Achievements.Record(AchievementEvent.BattleFullGroup, battle.Definition.Id);
+
+                player.Quests.Record(new BattleWonEvent(battle.Definition.Id));
             }
 
             if (tookTooLong)

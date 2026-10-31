@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -48,6 +49,38 @@ public sealed class QuestDefinitionTests
 
         CollectionAssert.Contains(quests.ByTarget[500], 1);
         CollectionAssert.Contains(quests.ByTarget[600], 1);
+    }
+
+    [TestMethod]
+    public void Load_ReadsTheCombatAndCraftingGoals()
+    {
+        var quests = LoadQuests("""
+            [
+              {
+                "QuestId": 1,
+                "TargetNpcId": 500,
+                "AcceptItems": [2506],
+                "Goals": [
+                  { "Type": 3, "NameId": 10, "RequiredCount": 6, "NpcNameIds": [440711], "NpcIds": [3528] },
+                  { "Type": 4, "NameId": 11, "BattleId": 4 },
+                  { "Type": 5, "NameId": 12, "MinigameIds": [356, 357], "RequireWin": false },
+                  { "Type": 6, "NameId": 13, "RequiredCount": 5, "RecipeIds": [4] },
+                  { "Type": 7, "NameId": 14, "ItemDefinitionIds": [30280] }
+                ]
+              }
+            ]
+            """);
+
+        Assert.IsTrue(quests.TryGet(1, out var quest));
+        CollectionAssert.AreEqual(new[] { 2506 }, quest.AcceptItems);
+
+        var defeat = (DefeatGoal)quest.Goals[0];
+        Assert.IsTrue(defeat.Counts(npcId: 1, nameId: 440711));
+        Assert.IsTrue(defeat.Counts(npcId: 3528, nameId: 0));
+        Assert.AreEqual(4, ((BattleGoal)quest.Goals[1]).BattleId);
+        Assert.IsFalse(((MinigameGoal)quest.Goals[2]).RequireWin);
+        CollectionAssert.AreEqual(new[] { 4 }, ((CraftGoal)quest.Goals[3]).RecipeIds);
+        CollectionAssert.AreEqual(new[] { 30280 }, ((EquipGoal)quest.Goals[4]).ItemDefinitionIds);
     }
 
     [TestMethod]
@@ -135,6 +168,61 @@ public sealed class QuestDefinitionTests
             "Use null, not 0, for no prerequisite or next quest.");
         Assert.IsFalse(quests.Quests.Values.SelectMany(quest => quest.Goals).OfType<TalkToNpcGoal>()
             .Any(goal => !goal.AllTalkTargetNpcIds().Any()));
+    }
+
+    // The live game's quest ids, which the Hero's Journal lists.
+    private const int LiveQuestIdMax = 2608;
+
+    [TestMethod]
+    public void QuestsJson_NamesNpcsAndPickupsThatExist()
+    {
+        var resources = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../Resources"));
+        var quests = new QuestDefinitionCollection(NullLogger.Instance);
+        Assert.IsTrue(quests.Load(Path.Combine(resources, "Quests.json")));
+
+        using var npcsJson = JsonDocument.Parse(File.ReadAllText(Path.Combine(resources, "Npcs.json")));
+        var npcs = npcsJson.RootElement.EnumerateArray().ToDictionary(npc => npc.GetProperty("Id").GetInt32());
+        var hostileNameIds = npcs.Values
+            .Where(npc => npc.TryGetProperty("Disposition", out var disposition) && disposition.GetInt32() == 0 && npc.TryGetProperty("NameId", out _))
+            .Select(npc => npc.GetProperty("NameId").GetInt32())
+            .ToHashSet();
+
+        using var nodeTypesJson = JsonDocument.Parse(File.ReadAllText(Path.Combine(resources, "CollectionNodeTypes.json")));
+        var nodeTypes = nodeTypesJson.RootElement.EnumerateArray().Select(type => type.GetProperty("Key").GetString()).ToHashSet();
+
+        // Two of Sanctuary's own quests (3031, 3081) send players to NPCs a referee places, so only live quests' NPCs
+        // have to be in Npcs.json.
+        foreach (var quest in quests.Quests.Values)
+        {
+            var checkNpcs = quest.QuestId <= LiveQuestIdMax;
+
+            foreach (var npcId in new[] { quest.GiverNpcId, quest.TargetNpcId }.Where(id => id != 0 && checkNpcs))
+                Assert.IsTrue(npcs.ContainsKey(npcId), $"Quest {quest.QuestId} names NPC {npcId}, which Npcs.json doesn't have.");
+
+            foreach (var goal in quest.Goals)
+            {
+                switch (goal)
+                {
+                    case TalkToNpcGoal talk when checkNpcs:
+                        foreach (var npcId in talk.AllTalkTargetNpcIds())
+                            Assert.IsTrue(npcs.ContainsKey(npcId), $"Quest {quest.QuestId} sends players to NPC {npcId}, which Npcs.json doesn't have.");
+                        break;
+
+                    case CollectGoal collect:
+                        Assert.IsTrue(nodeTypes.Contains(collect.CollectNodeType), $"Quest {quest.QuestId} collects \"{collect.CollectNodeType}\", which isn't a node type.");
+                        break;
+
+                    case DefeatGoal defeat:
+                        foreach (var nameId in defeat.NpcNameIds)
+                            Assert.IsTrue(hostileNameIds.Contains(nameId), $"Quest {quest.QuestId} wants mobs named {nameId} defeated, but no hostile NPC has that name.");
+
+                        foreach (var npcId in defeat.NpcIds)
+                            Assert.IsTrue(npcs.TryGetValue(npcId, out var npc) && npc.TryGetProperty("Disposition", out var disposition) && disposition.GetInt32() == 0,
+                                $"Quest {quest.QuestId} wants NPC {npcId} defeated, but it isn't hostile.");
+                        break;
+                }
+            }
+        }
     }
 
     private static QuestDefinitionCollection LoadQuests(string json)

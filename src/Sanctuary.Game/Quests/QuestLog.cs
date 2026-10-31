@@ -18,6 +18,17 @@ public sealed class QuestLog
 
     public DateTime LastAcceptedAt { get; set; }
 
+    // Set by the quest manager once the log is loaded, so systems without one (combat, battles, minigames,
+    // crafting) can report what the player did.
+    internal IQuestManager? Manager { get; set; }
+    internal Entities.Player? Player { get; set; }
+
+    public void Record(QuestEvent questEvent)
+    {
+        if (Manager is not null && Player is not null)
+            Manager.OnEvent(Player, questEvent);
+    }
+
     public IReadOnlyList<QuestProgress> All
     {
         get
