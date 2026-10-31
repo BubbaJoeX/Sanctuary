@@ -3,8 +3,8 @@ using Sanctuary.Game.Zones;
 namespace Sanctuary.Game.Entities;
 
 /// <summary>
-/// Something an in-world challenge put out for one player: a pickup, a race flag, an animal to catch. Only they
-/// see it.
+/// Something an in-world challenge put out for one player: a pickup, a race flag, an animal to catch, a target to
+/// use. Only they see it.
 /// </summary>
 public sealed class ChallengeObject : Npc
 {
