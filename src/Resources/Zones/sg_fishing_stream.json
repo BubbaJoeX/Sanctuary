@@ -19,5 +19,9 @@
     0,
     -0.9863,
     0
+  ],
+  "Scripts": [
+    "FishingPond",
+    "Milestones"
   ]
 }

@@ -126,3 +126,16 @@ registerCallback("fishCaught", function(zone, player, kind, itemId)
     end
 end)
 ```
+
+## Shipped zone scripts
+
+| Script | Runs in | |
+|---|---|---|
+| `DailyBounties` | Fabled Realms | Three bounties a day out of five: defeat 25 creatures, win 3 minigames, win 2 challenges, complete 3 quests or craft 2 items. Players hear the day's three when they first arrive each day. Each pays 100 coins and 50 stars once a day, and finishing all three pays another 150 coins. Progress is lost on a restart. |
+| `Milestones` | Fabled Realms, the fishing ponds and every battle | Players within 40 m hear about a rank-up. Every fifth rank and rank 20 go to the whole zone, with fireworks. |
+| `Rescue` | Fabled Realms and every battle | A knocked-out player's group hears about it (in a battle, everyone in it does). Anyone within 60 m with a Resurrection Scroll is told to use it, and the downed player hears who has one. |
+| `Battle` | Every battle | Winning pays 5 stars for each group member in the battle too. Losing after being knocked out gives a tip about Resurrection Scrolls. |
+| `FishingPond` | The six ponds | Every tenth catch of a trip pays 10 stars, and treasure chests are announced to the pond. `!event on fishingderby` starts a Fishing Derby, in which fish (not junk) count and each new leader is announced. `!event off fishingderby` pays the pond's top three, if they're still there, 300, 200 and 100 coins. |
+| `BruceConcert`, `HalloweenDanceOff` | Fabled Realms | Players within 35 m of Bruce's stage when a song ends, and within 40 m of the dance floor when a dance-off's winner is crowned, get 15 stars. |
+
+The battles add `Battle`, `Rescue` and `Milestones` to every battle's zone (`BattleScripts` in `BattleManager`). The other zones list their scripts under `Scripts` in their zone files. `Shared/Jobs.lua` names the jobs by profile id, and `Shared/Places.lua` measures distances along the ground. `ZoneScriptTests` sends each script the events it handles.

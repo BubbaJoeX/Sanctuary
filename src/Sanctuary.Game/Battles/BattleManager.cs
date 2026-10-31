@@ -185,6 +185,11 @@ public sealed class BattleManager : IBattleManager, IDisposable
         return true;
     }
 
+    /// <summary>
+    /// The zone scripts (Scripts/Zone) every battle's zone runs: teamwork bonuses, rescue alerts and rank-ups.
+    /// </summary>
+    private static readonly string[] BattleScripts = ["Battle", "Rescue", "Milestones"];
+
     private bool TryCreate(BattleDefinition definition, out Battle battle)
     {
         battle = null!;
@@ -206,6 +211,9 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
         worldZone.Battle = battle;
         _battles[id] = battle;
+
+        foreach (var script in BattleScripts)
+            worldZone.TryAddScript(script);
 
         return true;
     }

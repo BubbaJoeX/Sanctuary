@@ -1,4 +1,5 @@
 local EventSchedule = require("EventSchedule")
+local Places = require("Places")
 
 local BruceNpcId = 3549
 
@@ -21,6 +22,10 @@ local IdleAnimationIds = { WaveAnimationId, HeyAnimationId, YoAnimationId, Point
 local IdleMinSeconds = 15
 local IdleMaxSeconds = 25
 local PerformAnimationSeconds = 8
+
+-- Everyone at the stage when a song ends earns a few stars.
+local AudienceRadius = 35
+local AudienceStars = 15
 
 local Stages = {
     {
@@ -91,11 +96,23 @@ local function removeBruce()
     end
 end
 
+local function thankAudience(zone, stage)
+    if bruce then
+        bruce:say("Thanks for jamming with me, everybody!")
+    end
+
+    for _, player in ipairs(Places.playersNear(zone, stage, AudienceRadius)) do
+        player:giveStars(AudienceStars)
+        player:message(string.format("Bruce: Thanks for coming to the show, %s! +%d stars.", player.name, AudienceStars))
+    end
+end
+
 local function enterPhase(zone, slot, phase, secondOfDay)
     local stage = getStage(slot)
 
     if currentSlot and currentPhase == Phase.Playing then
         setStageMusic(zone, getStage(currentSlot), false)
+        thankAudience(zone, getStage(currentSlot))
     end
 
     if phase == Phase.Gone then

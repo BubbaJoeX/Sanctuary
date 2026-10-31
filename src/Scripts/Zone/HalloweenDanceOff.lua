@@ -1,5 +1,6 @@
 
 local EventSchedule = require("EventSchedule")
+local Places = require("Places")
 
 local EventIntervalSeconds = 30 * EventSchedule.SecondsPerMinute
 local KickOffLeadSeconds = 2 * EventSchedule.SecondsPerMinute
@@ -22,6 +23,10 @@ local VampireCakeNpcId = 40012
 local FireworksCompositeEffectId = 5349
 local BoomboxSparksCompositeEffectId = 5120
 local CakeSeconds = 5 * EventSchedule.SecondsPerMinute
+
+-- Everyone watching when the winner is crowned earns a few stars.
+local AudienceRadius = 40
+local AudienceStars = 15
 
 local WalkSpeed = 1.5
 local MaxWalkSeconds = 20
@@ -485,6 +490,13 @@ local function updateRound(zone, round)
     end
 end
 
+local function rewardAudience(zone)
+    for _, player in ipairs(Places.playersNear(zone, DanceSpot, AudienceRadius)) do
+        player:giveStars(AudienceStars)
+        player:message(string.format("Pumpkin Prince: Thanks for cheering on the dancers, %s! +%d stars.", player.name, AudienceStars))
+    end
+end
+
 local function updateEnding(zone)
     local ending = Endings[winner]
     local loser = otherSide(winner)
@@ -497,6 +509,7 @@ local function updateEnding(zone)
         say(loser, ending.loserLineIds[math.random(#ending.loserLineIds)])
     elseif phaseSeconds == EndingTimes.reward then
         say(Prince, ending.rewardLineId)
+        rewardAudience(zone)
         cake = spawnAt(zone, ending.cakeNpcId, CakeSpot, headingTowards(CakeSpot, DanceSpot))
 
         if cake then
