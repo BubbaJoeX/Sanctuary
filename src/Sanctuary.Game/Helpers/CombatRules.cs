@@ -40,6 +40,12 @@ public static class CombatRules
     /// </summary>
     public const int OutOfCombatSeconds = 6;
 
+    /// <summary>
+    /// Still in combat at <paramref name="nowMs"/>, the last hit given or taken at <paramref name="lastCombatAtMs"/>
+    /// (<see cref="long.MinValue"/> for never, which a subtraction from now would overflow into "just now").
+    /// </summary>
+    public static bool IsInCombat(long lastCombatAtMs, long nowMs) => nowMs < lastCombatAtMs + OutOfCombatSeconds * 1000L;
+
     public const int PlayerRespawnSeconds = 8;
 
     /// <summary>
