@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1204,
+  "Name": "bs_cracked_claw_caverns",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_cracked_claw_caverns.xml",
+  "SpawnPosition": [
+    115.99,
+    41.24,
+    229.02
+  ],
+  "SpawnRotation": [
+    0.9132,
+    0,
+    0.4076,
+    0
+  ]
+}

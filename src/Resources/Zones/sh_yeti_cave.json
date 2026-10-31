@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1206,
+  "Name": "sh_yeti_cave",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 10,
+  "EndLongitude": 10,
+  "Sky": "sky_yeti_cave.xml",
+  "SpawnPosition": [
+    250.82,
+    88.77,
+    209.76
+  ],
+  "SpawnRotation": [
+    -0.9998,
+    0,
+    0.0198,
+    0
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1203,
+  "Name": "sg_bixie_hive",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 10,
+  "EndLongitude": 10,
+  "Sky": "sky_bixie_hive.xml",
+  "SpawnPosition": [
+    358.94,
+    84.69,
+    233.94
+  ],
+  "SpawnRotation": [
+    -0.4236,
+    0,
+    0.9058,
+    0
+  ]
+}

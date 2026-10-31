@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1214,
+  "Name": "sg_haunted_mines_150",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -1,
+  "EndLatitude": 5,
+  "EndLongitude": 5,
+  "Sky": "sky_haunted_mines.xml",
+  "SpawnPosition": [
+    146.21,
+    17.61,
+    150.23
+  ],
+  "SpawnRotation": [
+    0.5193,
+    0,
+    -0.8546,
+    0
+  ]
+}

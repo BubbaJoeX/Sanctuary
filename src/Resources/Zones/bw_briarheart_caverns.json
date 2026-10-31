@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1215,
+  "Name": "bw_briarheart_caverns",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 6,
+  "EndLongitude": 6,
+  "Sky": "sky_briarheart_caverns.xml",
+  "SpawnPosition": [
+    -222.32,
+    10.36,
+    -165.2
+  ],
+  "SpawnRotation": [
+    0.8767,
+    0,
+    0.481,
+    0
+  ]
+}

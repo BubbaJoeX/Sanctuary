@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1212,
+  "Name": "sh_frostfang_cavern",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 10,
+  "EndLongitude": 10,
+  "Sky": "sky_frostfang_cavern.xml",
+  "SpawnPosition": [
+    257.99,
+    88.71,
+    218.7
+  ],
+  "SpawnRotation": [
+    -0.4958,
+    0,
+    -0.8685,
+    0
+  ]
+}

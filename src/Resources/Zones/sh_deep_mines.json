@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1211,
+  "Name": "sh_deep_mines",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 5,
+  "EndLongitude": 5,
+  "Sky": "sky_deep_mines.xml",
+  "SpawnPosition": [
+    151.24,
+    11.72,
+    117.88
+  ],
+  "SpawnRotation": [
+    0.8,
+    0,
+    0.6,
+    0
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1213,
+  "Name": "sg_changeling_caverns",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 11,
+  "EndLongitude": 11,
+  "Sky": "sky_changeling_caverns.xml",
+  "SpawnPosition": [
+    509.26,
+    29.14,
+    336.81
+  ],
+  "SpawnRotation": [
+    0.1466,
+    0,
+    0.9892,
+    0
+  ]
+}
