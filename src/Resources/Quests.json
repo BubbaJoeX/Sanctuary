@@ -1,7 +1,7 @@
 [
   {
     "Name": "Introduce Yourself",
-    "QuestId": 2563,
+    "QuestId": 3082,
     "TitleId": 94247,
     "DescriptionId": 94360,
     "GiverDialogueId": 94246,
@@ -15,7 +15,7 @@
     "NextQuestId": 1801,
     "NotificationAvailable": 2,
     "NotificationActive": 6,
-    "ExcludesQuestIds": [2564],
+    "ExcludesQuestIds": [3083],
     "Goals": [
       {
         "Type": 0,
@@ -39,7 +39,7 @@
     "RewardCoins": 7,
     "RewardExperience": 70,
     "RewardItems": [],
-    "PrerequisiteQuestId": 2563,
+    "PrerequisiteQuestId": 3082,
     "NotificationAvailable": 2,
     "NotificationActive": 6,
     "Goals": [
@@ -61,7 +61,7 @@
   },
   {
     "Name": "Introduce Yourself",
-    "QuestId": 2564,
+    "QuestId": 3083,
     "TitleId": 94247,
     "DescriptionId": 104099,
     "GiverDialogueId": 104097,
@@ -74,7 +74,7 @@
     "RewardItems": [],
     "NotificationAvailable": 2,
     "NotificationActive": 6,
-    "ExcludesQuestIds": [2563],
+    "ExcludesQuestIds": [3082],
     "Goals": [
       {
         "Type": 0,
@@ -831,6 +831,798 @@
         "NameId": 437816,
         "DialogueId": 438842,
         "Targets": [{ "NpcId": 3840 }]
+      }
+    ]
+  },
+  {
+    "Name": "The Way of the Wilds",
+    "QuestId": 2538,
+    "TitleId": 5100108,
+    "DescriptionId": 5100109,
+    "GiverDialogueId": 5100107,
+    "ObjectiveDescriptionId": 5100112,
+    "IconId": 43278,
+    "GiverNpcId": 2378,
+    "TargetNpcId": 33143,
+    "RewardCoins": 20,
+    "RewardExperience": 80,
+    "RewardItems": [],
+    "NextQuestId": 2489,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 5100113,
+        "DialogueId": 5100110,
+        "Targets": [{ "NpcId": 33143 }]
+      }
+    ]
+  },
+  {
+    "Name": "Bixie Skirmish",
+    "QuestId": 2489,
+    "TitleId": 441670,
+    "DescriptionId": 441671,
+    "GiverDialogueId": 441669,
+    "ObjectiveDescriptionId": 441756,
+    "IconId": 43278,
+    "GiverNpcId": 33143,
+    "TargetNpcId": 33143,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2538,
+    "NextQuestId": 2490,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441759,
+        "RequiredCount": 6,
+        "NpcNameIds": [440711]
+      },
+      {
+        "Type": 0,
+        "NameId": 441765,
+        "DialogueId": 441672,
+        "Targets": [{ "NpcId": 33143 }]
+      }
+    ]
+  },
+  {
+    "Name": "Bixie-B-Gone",
+    "QuestId": 2490,
+    "TitleId": 441674,
+    "DescriptionId": 441675,
+    "GiverDialogueId": 441673,
+    "ObjectiveDescriptionId": 441768,
+    "IconId": 43278,
+    "GiverNpcId": 33143,
+    "TargetNpcId": 33143,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2489,
+    "NextQuestId": 2491,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 441769,
+        "RequiredCount": 1,
+        "CollectNodeType": "broken-down-caravan"
+      },
+      {
+        "Type": 2,
+        "NameId": 441771,
+        "RequiredCount": 3,
+        "CollectNodeType": "caravan-cargo"
+      },
+      {
+        "Type": 0,
+        "NameId": 441773,
+        "DialogueId": 441676,
+        "Targets": [{ "NpcId": 33143 }]
+      }
+    ]
+  },
+  {
+    "Name": "Spray and Play",
+    "QuestId": 2491,
+    "TitleId": 441678,
+    "DescriptionId": 441679,
+    "GiverDialogueId": 441677,
+    "ObjectiveDescriptionId": 441776,
+    "IconId": 43278,
+    "GiverNpcId": 33143,
+    "TargetNpcId": 33143,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2490,
+    "NextQuestId": 2492,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441777,
+        "RequiredCount": 5,
+        "NpcNameIds": [440711]
+      },
+      {
+        "Type": 3,
+        "NameId": 441779,
+        "RequiredCount": 3,
+        "NpcNameIds": [440712]
+      },
+      {
+        "Type": 0,
+        "NameId": 441781,
+        "DialogueId": 441680,
+        "Targets": [{ "NpcId": 33143 }]
+      }
+    ]
+  },
+  {
+    "Name": "Et Tu, Buzzuz?",
+    "QuestId": 2492,
+    "TitleId": 441682,
+    "DescriptionId": 441683,
+    "GiverDialogueId": 441681,
+    "ObjectiveDescriptionId": 441784,
+    "IconId": 43278,
+    "GiverNpcId": 33143,
+    "TargetNpcId": 33143,
+    "RewardCoins": 40,
+    "RewardExperience": 250,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2491,
+    "NextQuestId": 2493,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441785,
+        "RequiredCount": 4,
+        "NpcNameIds": [440713]
+      },
+      {
+        "Type": 3,
+        "NameId": 441787,
+        "RequiredCount": 1,
+        "NpcIds": [48004]
+      },
+      {
+        "Type": 0,
+        "NameId": 441789,
+        "DialogueId": 441684,
+        "Targets": [{ "NpcId": 33143 }]
+      }
+    ]
+  },
+  {
+    "Name": "Into the Hive",
+    "QuestId": 2493,
+    "TitleId": 441686,
+    "DescriptionId": 441687,
+    "GiverDialogueId": 441685,
+    "ObjectiveDescriptionId": 441792,
+    "IconId": 43278,
+    "GiverNpcId": 33143,
+    "TargetNpcId": 33143,
+    "RewardCoins": 60,
+    "RewardExperience": 300,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2492,
+    "NextQuestId": 2531,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 4,
+        "NameId": 441793,
+        "BattleId": 4
+      },
+      {
+        "Type": 0,
+        "NameId": 441797,
+        "DialogueId": 441688,
+        "Targets": [{ "NpcId": 33143 }]
+      }
+    ]
+  },
+  {
+    "Name": "Meet the Greenwood Archers",
+    "QuestId": 2531,
+    "TitleId": 4420124,
+    "DescriptionId": 4420125,
+    "GiverDialogueId": 4420123,
+    "ObjectiveDescriptionId": 4420128,
+    "IconId": 43278,
+    "GiverNpcId": 33143,
+    "TargetNpcId": 3474,
+    "RewardCoins": 20,
+    "RewardExperience": 80,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2493,
+    "NextQuestId": 2494,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 4420129,
+        "DialogueId": 4420126,
+        "Targets": [{ "NpcId": 3474 }]
+      }
+    ]
+  },
+  {
+    "Name": "Military Intelligence",
+    "QuestId": 2494,
+    "TitleId": 441690,
+    "DescriptionId": 441691,
+    "GiverDialogueId": 441689,
+    "ObjectiveDescriptionId": 441800,
+    "IconId": 43278,
+    "GiverNpcId": 3474,
+    "TargetNpcId": 3474,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2531,
+    "NextQuestId": 2495,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 441801,
+        "DialogueId": 4420145,
+        "Targets": [{ "NpcId": 48001 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 441803,
+        "DialogueId": 4420147,
+        "Targets": [{ "NpcId": 48002 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 441805,
+        "DialogueId": 441692,
+        "Targets": [{ "NpcId": 3474 }]
+      }
+    ]
+  },
+  {
+    "Name": "Thugawhomp",
+    "QuestId": 2495,
+    "TitleId": 441694,
+    "DescriptionId": 441695,
+    "GiverDialogueId": 441693,
+    "ObjectiveDescriptionId": 441808,
+    "IconId": 43278,
+    "GiverNpcId": 3474,
+    "TargetNpcId": 3474,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2494,
+    "NextQuestId": 2496,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441809,
+        "RequiredCount": 6,
+        "NpcNameIds": [440716]
+      },
+      {
+        "Type": 0,
+        "NameId": 441811,
+        "DialogueId": 441696,
+        "Targets": [{ "NpcId": 3474 }]
+      }
+    ]
+  },
+  {
+    "Name": "Scouting the Stompers",
+    "QuestId": 2496,
+    "TitleId": 441698,
+    "DescriptionId": 441699,
+    "GiverDialogueId": 441697,
+    "ObjectiveDescriptionId": 441814,
+    "IconId": 43278,
+    "GiverNpcId": 3474,
+    "TargetNpcId": 3474,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2495,
+    "NextQuestId": 2497,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 441815,
+        "RequiredCount": 4,
+        "CollectNodeType": "thugawug-documents"
+      },
+      {
+        "Type": 0,
+        "NameId": 441817,
+        "DialogueId": 441700,
+        "Targets": [{ "NpcId": 3474 }]
+      }
+    ]
+  },
+  {
+    "Name": "Searching the Hideout",
+    "QuestId": 2497,
+    "TitleId": 441702,
+    "DescriptionId": 441703,
+    "GiverDialogueId": 441701,
+    "ObjectiveDescriptionId": 441820,
+    "IconId": 43278,
+    "GiverNpcId": 3474,
+    "TargetNpcId": 3474,
+    "RewardCoins": 60,
+    "RewardExperience": 300,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2496,
+    "NextQuestId": 2498,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 4,
+        "NameId": 441821,
+        "BattleId": 2
+      },
+      {
+        "Type": 0,
+        "NameId": 441823,
+        "DialogueId": 441704,
+        "Targets": [{ "NpcId": 3474 }]
+      }
+    ]
+  },
+  {
+    "Name": "Stompenmugg",
+    "QuestId": 2498,
+    "TitleId": 441706,
+    "DescriptionId": 441707,
+    "GiverDialogueId": 441705,
+    "ObjectiveDescriptionId": 441826,
+    "IconId": 43278,
+    "GiverNpcId": 3474,
+    "TargetNpcId": 3474,
+    "RewardCoins": 40,
+    "RewardExperience": 250,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2497,
+    "NextQuestId": 2499,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441827,
+        "RequiredCount": 1,
+        "NpcIds": [3528]
+      },
+      {
+        "Type": 0,
+        "NameId": 441829,
+        "DialogueId": 441708,
+        "Targets": [{ "NpcId": 3474 }]
+      }
+    ]
+  },
+  {
+    "Name": "Jojo A-go-go",
+    "QuestId": 2499,
+    "TitleId": 441710,
+    "DescriptionId": 441711,
+    "GiverDialogueId": 441709,
+    "ObjectiveDescriptionId": 441832,
+    "IconId": 43278,
+    "GiverNpcId": 3474,
+    "TargetNpcId": 2502,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2498,
+    "NextQuestId": 2500,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 441833,
+        "DialogueId": 4420159,
+        "Targets": [{ "NpcId": 4630 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 441835,
+        "DialogueId": 4420161,
+        "Targets": [{ "NpcId": 4623 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 441837,
+        "DialogueId": 4420163,
+        "Targets": [{ "NpcId": 48003 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 441839,
+        "DialogueId": 441712,
+        "Targets": [{ "NpcId": 2502 }]
+      }
+    ]
+  },
+  {
+    "Name": "Jojo's Mojo",
+    "QuestId": 2500,
+    "TitleId": 441714,
+    "DescriptionId": 441715,
+    "GiverDialogueId": 441713,
+    "ObjectiveDescriptionId": 441842,
+    "IconId": 43278,
+    "GiverNpcId": 2502,
+    "TargetNpcId": 2502,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2499,
+    "NextQuestId": 2501,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441843,
+        "RequiredCount": 5,
+        "NpcNameIds": [440721]
+      },
+      {
+        "Type": 0,
+        "NameId": 441845,
+        "DialogueId": 441716,
+        "Targets": [{ "NpcId": 2502 }]
+      }
+    ]
+  },
+  {
+    "Name": "Jojo's Dojo",
+    "QuestId": 2501,
+    "TitleId": 441718,
+    "DescriptionId": 441719,
+    "GiverDialogueId": 441717,
+    "ObjectiveDescriptionId": 441848,
+    "IconId": 43278,
+    "GiverNpcId": 2502,
+    "TargetNpcId": 2502,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2500,
+    "NextQuestId": 2502,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 441849,
+        "RequiredCount": 4,
+        "CollectNodeType": "obstacle-course-object"
+      },
+      {
+        "Type": 0,
+        "NameId": 441851,
+        "DialogueId": 441720,
+        "Targets": [{ "NpcId": 2502 }]
+      }
+    ]
+  },
+  {
+    "Name": "Jojo's Ninjato",
+    "QuestId": 2502,
+    "TitleId": 441722,
+    "DescriptionId": 441723,
+    "GiverDialogueId": 441721,
+    "ObjectiveDescriptionId": 441854,
+    "IconId": 43278,
+    "GiverNpcId": 2502,
+    "TargetNpcId": 2502,
+    "RewardCoins": 60,
+    "RewardExperience": 300,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2501,
+    "NextQuestId": 2503,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 4,
+        "NameId": 441855,
+        "BattleId": 36
+      },
+      {
+        "Type": 0,
+        "NameId": 441857,
+        "DialogueId": 441724,
+        "Targets": [{ "NpcId": 2502 }]
+      }
+    ]
+  },
+  {
+    "Name": "Dojo Mojo",
+    "QuestId": 2503,
+    "TitleId": 441726,
+    "DescriptionId": 441727,
+    "GiverDialogueId": 441725,
+    "ObjectiveDescriptionId": 441860,
+    "IconId": 43278,
+    "GiverNpcId": 2502,
+    "TargetNpcId": 2502,
+    "RewardCoins": 40,
+    "RewardExperience": 250,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2502,
+    "NextQuestId": 2532,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441861,
+        "RequiredCount": 4,
+        "NpcNameIds": [440723]
+      },
+      {
+        "Type": 3,
+        "NameId": 441863,
+        "RequiredCount": 1,
+        "NpcIds": [4128]
+      },
+      {
+        "Type": 0,
+        "NameId": 441865,
+        "DialogueId": 441728,
+        "Targets": [{ "NpcId": 2502 }]
+      }
+    ]
+  },
+  {
+    "Name": "Merry Vale Mysteries",
+    "QuestId": 2532,
+    "TitleId": 4420174,
+    "DescriptionId": 4420175,
+    "GiverDialogueId": 4420173,
+    "ObjectiveDescriptionId": 4420180,
+    "IconId": 43278,
+    "GiverNpcId": 2502,
+    "TargetNpcId": 2266,
+    "RewardCoins": 20,
+    "RewardExperience": 80,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2503,
+    "NextQuestId": 2504,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 4420181,
+        "DialogueId": 4420176,
+        "Targets": [{ "NpcId": 2266 }]
+      }
+    ]
+  },
+  {
+    "Name": "The Mystery Caravan",
+    "QuestId": 2504,
+    "TitleId": 441730,
+    "DescriptionId": 441731,
+    "GiverDialogueId": 441729,
+    "ObjectiveDescriptionId": 441868,
+    "IconId": 43278,
+    "GiverNpcId": 2266,
+    "TargetNpcId": 2266,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2532,
+    "NextQuestId": 2505,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 441869,
+        "RequiredCount": 4,
+        "CollectNodeType": "merry-vale-clue"
+      },
+      {
+        "Type": 0,
+        "NameId": 441871,
+        "DialogueId": 441732,
+        "Targets": [{ "NpcId": 2266 }]
+      }
+    ]
+  },
+  {
+    "Name": "Confront the Cultists",
+    "QuestId": 2505,
+    "TitleId": 441734,
+    "DescriptionId": 441735,
+    "GiverDialogueId": 441733,
+    "ObjectiveDescriptionId": 441874,
+    "IconId": 43278,
+    "GiverNpcId": 2266,
+    "TargetNpcId": 2266,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2504,
+    "NextQuestId": 2506,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 3,
+        "NameId": 441875,
+        "RequiredCount": 6,
+        "NpcNameIds": [440726]
+      },
+      {
+        "Type": 0,
+        "NameId": 441877,
+        "DialogueId": 441736,
+        "Targets": [{ "NpcId": 2266 }]
+      }
+    ]
+  },
+  {
+    "Name": "Secrets of the Den",
+    "QuestId": 2506,
+    "TitleId": 441738,
+    "DescriptionId": 441739,
+    "GiverDialogueId": 441737,
+    "ObjectiveDescriptionId": 441880,
+    "IconId": 43278,
+    "GiverNpcId": 2266,
+    "TargetNpcId": 2266,
+    "RewardCoins": 60,
+    "RewardExperience": 300,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2505,
+    "NextQuestId": 2507,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 4,
+        "NameId": 441881,
+        "BattleId": 6
+      },
+      {
+        "Type": 0,
+        "NameId": 441889,
+        "DialogueId": 441740,
+        "Targets": [{ "NpcId": 2266 }]
+      }
+    ]
+  },
+  {
+    "Name": "Mayor McFairy!",
+    "QuestId": 2507,
+    "TitleId": 441742,
+    "DescriptionId": 441743,
+    "GiverDialogueId": 441741,
+    "ObjectiveDescriptionId": 441892,
+    "IconId": 43278,
+    "GiverNpcId": 2266,
+    "TargetNpcId": 2177,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2506,
+    "NextQuestId": 2508,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 441893,
+        "DialogueId": 4420191,
+        "Targets": [{ "NpcId": 2177 }]
+      },
+      {
+        "Type": 2,
+        "NameId": 441895,
+        "RequiredCount": 3,
+        "CollectNodeType": "mysterious-artifact"
+      },
+      {
+        "Type": 0,
+        "NameId": 441897,
+        "DialogueId": 441744,
+        "Targets": [{ "NpcId": 2177 }]
+      }
+    ]
+  },
+  {
+    "Name": "Unmasking the Villain",
+    "QuestId": 2508,
+    "TitleId": 441746,
+    "DescriptionId": 441747,
+    "GiverDialogueId": 441745,
+    "ObjectiveDescriptionId": 441900,
+    "IconId": 43278,
+    "GiverNpcId": 2177,
+    "TargetNpcId": 2266,
+    "RewardCoins": 80,
+    "RewardExperience": 400,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2507,
+    "NextQuestId": 2533,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 1,
+        "NameId": 441901,
+        "ReachPosition": [-818.0, -48.0, -701.0],
+        "ReachRadius": 10
+      },
+      {
+        "Type": 3,
+        "NameId": 441903,
+        "RequiredCount": 1,
+        "NpcIds": [3283]
+      },
+      {
+        "Type": 0,
+        "NameId": 441905,
+        "DialogueId": 441748,
+        "Targets": [{ "NpcId": 2266 }]
+      }
+    ]
+  },
+  {
+    "Name": "No More Necro(nomicus)",
+    "QuestId": 2533,
+    "TitleId": 4420198,
+    "DescriptionId": 4420199,
+    "GiverDialogueId": 4420197,
+    "ObjectiveDescriptionId": 4420202,
+    "IconId": 43278,
+    "GiverNpcId": 2266,
+    "TargetNpcId": 2378,
+    "RewardCoins": 100,
+    "RewardExperience": 400,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2508,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 4420203,
+        "DialogueId": 4420200,
+        "Targets": [{ "NpcId": 2378 }]
       }
     ]
   }

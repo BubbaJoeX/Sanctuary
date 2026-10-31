@@ -8133,5 +8133,47 @@
     "NodeType": "tin-ore",
     "MaxActiveNodes": 5,
     "RespawnSeconds": 30
+  },
+  {
+    "Key": "queensfields-broken-down-caravan",
+    "ZoneDefinitionId": 1,
+    "NodeType": "broken-down-caravan",
+    "MaxActiveNodes": 1,
+    "RespawnSeconds": 10
+  },
+  {
+    "Key": "queensfields-caravan-cargo",
+    "ZoneDefinitionId": 1,
+    "NodeType": "caravan-cargo",
+    "MaxActiveNodes": 4,
+    "RespawnSeconds": 30
+  },
+  {
+    "Key": "greenwood-thugawug-documents",
+    "ZoneDefinitionId": 1,
+    "NodeType": "thugawug-documents",
+    "MaxActiveNodes": 5,
+    "RespawnSeconds": 30
+  },
+  {
+    "Key": "summer-camp-obstacle-course-objects",
+    "ZoneDefinitionId": 1,
+    "NodeType": "obstacle-course-object",
+    "MaxActiveNodes": 5,
+    "RespawnSeconds": 30
+  },
+  {
+    "Key": "merry-vale-clues",
+    "ZoneDefinitionId": 1,
+    "NodeType": "merry-vale-clue",
+    "MaxActiveNodes": 5,
+    "RespawnSeconds": 30
+  },
+  {
+    "Key": "merry-vale-mysterious-artifacts",
+    "ZoneDefinitionId": 1,
+    "NodeType": "mysterious-artifact",
+    "MaxActiveNodes": 4,
+    "RespawnSeconds": 30
   }
 ]

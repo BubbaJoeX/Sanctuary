@@ -11574,105 +11574,150 @@
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3242,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3243,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3244,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3245,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3246,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3247,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3248,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3249,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3250,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3251,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3252,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3253,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3254,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3255,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3256,
@@ -11847,7 +11892,10 @@
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3281,
@@ -11861,14 +11909,21 @@
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3283,
     "NameId": 440729,
     "Name": "Necronomicus",
     "ModelId": 4220,
-    "ModelFileName": "necronomicus_m.adr"
+    "ModelFileName": "necronomicus_m.adr",
+    "Disposition": 0,
+    "Mob": "dungeon-boss-2",
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3284,
@@ -12925,7 +12980,10 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3461,
@@ -13088,49 +13146,70 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3488,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3489,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3490,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3491,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3492,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3493,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3494,
@@ -13168,63 +13247,90 @@
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3500,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3501,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3502,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3503,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3504,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3505,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3506,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3507,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3508,
@@ -13283,112 +13389,161 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3517,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3518,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3519,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3520,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3521,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3522,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3523,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3524,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3525,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3526,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3527,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3528,
     "NameId": 441706,
     "Name": "Stompenmugg",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "Mob": "dungeon-boss-1",
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3529,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3530,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3531,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3532,
@@ -16487,56 +16642,80 @@
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4119,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4120,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4121,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4122,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4123,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4124,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4125,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4126,
@@ -16557,7 +16736,11 @@
     "NameId": 440724,
     "Name": "Jintaka",
     "ModelId": 4094,
-    "ModelFileName": "human_m_ninja_shadowtalon_jintaka.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_jintaka.agr",
+    "Disposition": 0,
+    "Mob": "dungeon-boss-1",
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4129,
@@ -16977,7 +17160,10 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4194,
@@ -17841,42 +18027,60 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4332,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4333,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4334,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4335,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4336,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4337,
@@ -17888,7 +18092,10 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4339,
@@ -17905,21 +18112,30 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4342,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4343,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4344,
@@ -17959,14 +18175,20 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4351,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4352,
@@ -75459,5 +75681,93 @@
     "ModelId": 1436,
     "ModelFileName": "human_m_snowspurs_goalie.agr",
     "Comment": "Soccer player"
+  },
+  {
+    "Id": 48001,
+    "NameId": 441910,
+    "Name": "Advance Scout Herbert",
+    "ModelId": 214,
+    "ModelFileName": "chugawug_m_greenwood_archer_01.adr"
+  },
+  {
+    "Id": 48002,
+    "NameId": 441911,
+    "Name": "Advance Scout Hilda",
+    "ModelId": 215,
+    "ModelFileName": "chugawug_f_greenwood_archer_01.adr"
+  },
+  {
+    "Id": 48003,
+    "NameId": 441915,
+    "Name": "Counselor Amira",
+    "ModelId": 548,
+    "ModelFileName": "human_f_freestyle_06.agr"
+  },
+  {
+    "Id": 48004,
+    "NameId": 440714,
+    "Name": "Buzzuz",
+    "ModelId": 218,
+    "ModelFileName": "bixie_m_elite_guard.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "Mob": "dungeon-boss-1",
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48005,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48006,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48007,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48008,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48009,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   }
 ]

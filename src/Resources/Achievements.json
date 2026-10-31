@@ -8265,7 +8265,9 @@
           "Required": 1,
           "Trigger": {
             "Event": "Quest",
-            "Keys": [],
+            "Keys": [
+              2493
+            ],
             "Names": [
               "Complete Into the Hive"
             ]
@@ -8292,7 +8294,9 @@
           "Required": 1,
           "Trigger": {
             "Event": "Quest",
-            "Keys": [],
+            "Keys": [
+              2498
+            ],
             "Names": [
               "Complete Stompenmugg"
             ]
@@ -8319,7 +8323,9 @@
           "Required": 1,
           "Trigger": {
             "Event": "Quest",
-            "Keys": [],
+            "Keys": [
+              2503
+            ],
             "Names": [
               "Complete Dojo Mojo"
             ]
@@ -8346,7 +8352,9 @@
           "Required": 1,
           "Trigger": {
             "Event": "Quest",
-            "Keys": [],
+            "Keys": [
+              2508
+            ],
             "Names": [
               "Complete Unmasking the Villain"
             ]
@@ -8370,7 +8378,62 @@
           "Comment": "Southside Survivor",
           "NameId": 441997,
           "DescriptionId": 442017,
-          "Required": 1
+          "Required": 24,
+          "Trigger": {
+            "Event": "Quest",
+            "Keys": [
+              2489,
+              2490,
+              2491,
+              2492,
+              2493,
+              2494,
+              2495,
+              2496,
+              2497,
+              2498,
+              2499,
+              2500,
+              2501,
+              2502,
+              2503,
+              2504,
+              2505,
+              2506,
+              2507,
+              2508,
+              2531,
+              2532,
+              2533,
+              2538
+            ],
+            "Names": [
+              "Bixie Skirmish",
+              "Bixie-B-Gone",
+              "Spray and Play",
+              "Et Tu, Buzzuz?",
+              "Into the Hive",
+              "Military Intelligence",
+              "Thugawhomp",
+              "Scouting the Stompers",
+              "Searching the Hideout",
+              "Stompenmugg",
+              "Jojo A-go-go",
+              "Jojo's Mojo",
+              "Jojo's Dojo",
+              "Jojo's Ninjato",
+              "Dojo Mojo",
+              "The Mystery Caravan",
+              "Confront the Cultists",
+              "Secrets of the Den",
+              "Mayor McFairy!",
+              "Unmasking the Villain",
+              "Meet the Greenwood Archers",
+              "Merry Vale Mysteries",
+              "No More Necro(nomicus)",
+              "The Way of the Wilds"
+            ]
+          }
         }
       ]
     },
