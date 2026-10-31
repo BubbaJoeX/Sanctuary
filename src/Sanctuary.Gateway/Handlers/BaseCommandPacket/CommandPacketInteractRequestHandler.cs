@@ -316,7 +316,7 @@ public static class CommandPacketInteractRequestHandler
                 {
                     Id = dbCharacter.Items.Select(item => item.Id).DefaultIfEmpty(0).Max() + 1,
                     Definition = itemDefinitionId,
-                    Count = 1,
+                    Count = drop.Quantity,
                     Tint = 0
                 };
 
@@ -324,7 +324,7 @@ public static class CommandPacketInteractRequestHandler
             }
             else
             {
-                dbItem.Count++;
+                dbItem.Count += drop.Quantity;
             }
 
             if (dbContext.SaveChanges() <= 0)

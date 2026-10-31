@@ -281,13 +281,14 @@ public sealed class QuestManager : IQuestManager
 
     private void GrantAcceptItems(Player player, QuestDefinition quest)
     {
-        foreach (var itemDefinitionId in quest.AcceptItems)
+        foreach (var items in quest.AcceptItems.GroupBy(itemDefinitionId => itemDefinitionId))
         {
-            if (player.Items.Any(item => item.Definition == itemDefinitionId) ||
-                !_resourceManager.ClientItemDefinitions.TryGetValue(itemDefinitionId, out var itemDefinition))
+            var missing = items.Count() - player.Items.Where(item => item.Definition == items.Key).Sum(item => item.Count);
+
+            if (missing <= 0 || !_resourceManager.ClientItemDefinitions.TryGetValue(items.Key, out var itemDefinition))
                 continue;
 
-            _rewardManager.TryGrantItem(player, itemDefinitionId, itemDefinition.IsTintable ? 0 : itemDefinition.Icon.TintId);
+            _rewardManager.TryGrantItem(player, items.Key, itemDefinition.IsTintable ? 0 : itemDefinition.Icon.TintId, missing);
         }
     }
 
