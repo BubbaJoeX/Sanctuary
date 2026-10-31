@@ -58,6 +58,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string AchievementsFile = Path.Combine(BaseDirectory, "Achievements.json");
     public static readonly string RecipesFile = Path.Combine(BaseDirectory, "Recipes.json");
     public static readonly string StationsFile = Path.Combine(BaseDirectory, "Stations.json");
+    public static readonly string GiftsFile = Path.Combine(BaseDirectory, "Gifts.json");
     public static readonly string PetsFile = Path.Combine(BaseDirectory, "Pets.json");
     /// <summary>
     /// The minigames (one .json per game family), with each game's own data in a folder of its name.
@@ -122,6 +123,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public AchievementDefinitionCollection Achievements { get; }
     public RecipeDefinitionCollection Recipes { get; }
     public StationDefinitionCollection Stations { get; }
+    public GiftDefinitionCollection Gifts { get; }
     public MountDefinitionCollection Mounts { get; }
     public PetDefinitionCollection Pets { get; }
     public MinigameDefinitionCollection Minigames { get; }
@@ -195,6 +197,7 @@ public class ResourceManager : IResourceManager, IDisposable
         Achievements = new(_logger);
         Recipes = new(_logger);
         Stations = new(_logger);
+        Gifts = new(_logger);
         Mounts = new(_logger);
         Pets = new(_logger);
         Minigames = new(_logger);
@@ -239,6 +242,7 @@ public class ResourceManager : IResourceManager, IDisposable
             ["achievements"] = () => Reload(Achievements, () => Achievements.Load(AchievementsFile)),
             ["recipes"] = () => Reload(Recipes, () => LoadRecipes()),
             ["stations"] = () => Reload(Stations, () => Stations.Load(StationsFile)),
+            ["gifts"] = () => Reload(Gifts, () => LoadGifts()),
             ["mounts"] = () => Reload(Mounts, () => Mounts.Load(MountsFile)),
             ["minigames"] = () => Reload(Minigames, () => Minigames.Load(MinigamesDirectory)),
             ["profiles"] = () => Reload(Profiles, () => Profiles.Load(ProfilesFile)),
@@ -300,6 +304,19 @@ public class ResourceManager : IResourceManager, IDisposable
             return false;
 
         Recipes.UnlockIngredientStacks(ClientItemDefinitions);
+        Gifts.MarkOpenable(ClientItemDefinitions);
+        return true;
+    }
+
+    /// <summary>
+    /// The gifts, after the reward tables they roll on and the items they open.
+    /// </summary>
+    private bool LoadGifts()
+    {
+        if (!Gifts.Load(GiftsFile, RewardTables))
+            return false;
+
+        Gifts.MarkOpenable(ClientItemDefinitions);
         return true;
     }
 
@@ -519,6 +536,9 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!Stations.Load(StationsFile))
             return false;
 
+        if (!LoadGifts())
+            return false;
+
         if (!Pets.Load(PetsFile))
             return false;
 
@@ -703,6 +723,8 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = Reload(Recipes, () => LoadRecipes());
             else if (e.FullPath == StationsFile)
                 loaded = Reload(Stations, () => Stations.Load(StationsFile));
+            else if (e.FullPath == GiftsFile)
+                loaded = Reload(Gifts, () => LoadGifts());
             else if (e.FullPath == PetsFile)
                 loaded = Pets.Load(PetsFile);
             else if (isMinigame &&

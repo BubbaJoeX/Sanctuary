@@ -94,7 +94,10 @@ public sealed class GroupManager : IGroupManager
             return;
 
         foreach (var member in GetOnlineMembers(group).Where(member => member.Guid != invitee.Guid))
+        {
             ChatHelper.SendSystemMessage(member, $"{invitee.Name.FullName} joined the group.");
+            AcquaintanceHelper.Met(member, invitee);
+        }
 
         SendRoster(group);
 

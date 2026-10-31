@@ -37,6 +37,8 @@ public static class BaseInventoryPacketHandler
             InventoryPacketUseStyleCard.OpCode => InventoryPacketUseStyleCardHandler.HandlePacket(connection, reader.Span),
             InventoryPacketPreviewStyleCard.OpCode => InventoryPacketPreviewStyleCardHandler.HandlePacket(connection, reader.Span),
             InventoryPacketUseStyleCardByItemRecord.OpCode => InventoryPacketUseStyleCardByItemRecordHandler.HandlePacket(connection, reader.Span),
+            InventoryPacketCheckImmediateActivationItem.OpCode => InventoryPacketImmediateActivationHandler.HandleCheck(connection, reader.Span),
+            InventoryPacketUseImmediateActivationItem.OpCode => InventoryPacketImmediateActivationHandler.HandleUse(connection, reader.Span),
             _ => false
         };
     }
