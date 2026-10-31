@@ -21,11 +21,20 @@ public class RepeatingActivityAddPacket : ISerializablePacket
 
     public int ActivityId;
     public int CountRemaining;
-    public int Unknown;
+
     /// <summary>
-    /// Seconds from now, stored by the client as absolute times (resets).
+    /// 1 in every live packet.
+    /// </summary>
+    public int Unknown = 1;
+
+    /// <summary>
+    /// Seconds until the next one is available (the Games window's wheel shows it); 0 while one is.
     /// </summary>
     public int SecondsUntil1;
+
+    /// <summary>
+    /// Seconds until the count resets.
+    /// </summary>
     public int SecondsUntil2;
     public string Name = string.Empty;
     public string Unknown2 = string.Empty;
@@ -46,6 +55,44 @@ public class RepeatingActivityAddPacket : ISerializablePacket
         writer.Write(Name);
         writer.Write(Unknown2);
         writer.Write(Unknown3);
+
+        return writer.Buffer;
+    }
+}
+
+/// <summary>
+/// Updates an activity the client already has (the wheel after a spin): its count and when the next one comes.
+/// </summary>
+public class RepeatingActivityStatePacket : ISerializablePacket
+{
+    public const byte SubOpCode = 2;
+
+    public int ActivityId;
+    public int CountRemaining;
+    public int Unknown = 1;
+
+    /// <summary>
+    /// Seconds until the next one is available; 0 while one is.
+    /// </summary>
+    public int SecondsUntilNext;
+
+    /// <summary>
+    /// Seconds until the count resets.
+    /// </summary>
+    public int SecondsUntilReset;
+
+    public byte[] Serialize()
+    {
+        using var writer = new PacketWriter();
+
+        writer.Write(BaseRepeatingActivityPacket.OpCode);
+        writer.Write(SubOpCode);
+
+        writer.Write(ActivityId);
+        writer.Write(CountRemaining);
+        writer.Write(Unknown);
+        writer.Write(SecondsUntilNext);
+        writer.Write(SecondsUntilReset);
 
         return writer.Buffer;
     }

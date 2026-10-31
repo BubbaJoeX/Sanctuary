@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
 using Sanctuary.Game.Entities;
+using Sanctuary.Packet.Common;
 
 namespace Sanctuary.Game.Achievements;
 
@@ -69,6 +70,16 @@ public sealed class PlayerAchievements
     {
         if (Manager is not null && Player is not null)
             Manager.SendList(Player);
+    }
+
+    /// <summary>
+    /// The started and finished achievements, and the points they're worth (none before login).
+    /// </summary>
+    public List<ClientAchievement> GetStarted(out int points)
+    {
+        points = 0;
+
+        return Manager is not null && Player is not null ? Manager.GetStarted(Player, out points) : [];
     }
 
     /// <summary>

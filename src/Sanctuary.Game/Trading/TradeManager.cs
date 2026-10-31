@@ -237,6 +237,8 @@ public sealed class TradeManager : ITradeManager
                 SendEnd(session, inviter, TradeMessageId.Completed);
                 SendEnd(session, invitee, TradeMessageId.Completed);
 
+                AcquaintanceHelper.Met(inviter, invitee);
+
                 _logger.LogInformation("Trade {session} completed between {inviter} and {invitee}.", session.Id, inviter.Name.FullName, invitee.Name.FullName);
                 return;
             }
