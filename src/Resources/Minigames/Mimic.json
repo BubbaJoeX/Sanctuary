@@ -722,7 +722,8 @@
     "Stars": 30,
     "ProfileId": 45
   },
-  // Smelting (the Blacksmith job): the Games window's Smelting tile.
+  // Smelting (the Miner job: "being a miner is a two part job", and the live recipes file the bars under the
+  // Miner): the Games window's Smelting tile.
   {
     "Id": 77,
     "Comment": "Smelting: Copper Bar",
@@ -738,7 +739,7 @@
     "Level": 77,
     "Coins": 10,
     "Stars": 30,
-    "ProfileId": 16,
+    "ProfileId": 14,
     "Items": [{ "ItemId": 21785, "Quantity": 5 }]
   },
   {
@@ -756,7 +757,7 @@
     "Level": 134,
     "Coins": 15,
     "Stars": 40,
-    "ProfileId": 16,
+    "ProfileId": 14,
     "Items": [{ "ItemId": 21786, "Quantity": 5 }]
   },
   {
@@ -774,7 +775,7 @@
     "Level": 135,
     "Coins": 20,
     "Stars": 50,
-    "ProfileId": 16,
+    "ProfileId": 14,
     "Items": [{ "ItemId": 21787, "Quantity": 5 }]
   },
   {
@@ -792,7 +793,7 @@
     "Level": 136,
     "Coins": 25,
     "Stars": 60,
-    "ProfileId": 16,
+    "ProfileId": 14,
     "Items": [{ "ItemId": 21788, "Quantity": 5 }]
   },
   {
@@ -810,7 +811,7 @@
     "Level": 137,
     "Coins": 30,
     "Stars": 75,
-    "ProfileId": 16,
+    "ProfileId": 14,
     "Items": [{ "ItemId": 21789, "Quantity": 5 }]
   },
   // Feeling the Beat! (Micro-Games). 206 is a copy of 78 the world starts.

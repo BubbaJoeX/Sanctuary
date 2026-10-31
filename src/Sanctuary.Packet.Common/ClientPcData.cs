@@ -351,7 +351,11 @@ public class ClientPcData
     public int AchievementPoints;
 
     // public List<Acquaintance> Acquaintances = new();
-    // public List<RecipeData> Recipes = new();
+
+    /// <summary>
+    /// The recipes this character knows, with the stacks their ingredients are counted from.
+    /// </summary>
+    public List<RecipeData> ClientRecipes = new();
 
     public List<PetClientInfo> Pets = new();
 
@@ -541,7 +545,7 @@ public class ClientPcData
 
         writer.Write(0); // TODO Acquaintances
 
-        writer.Write(0); // TODO Recipes
+        writer.Write(ClientRecipes);
 
         writer.Write(Pets.Count);
 

@@ -43,6 +43,8 @@ public sealed partial class WorldZone
         if ((_challengeManager.IsGiver(definition.Id) || _battleManager.IsStarter(definition.Id)) && npc.InteractAction is null)
             npc.InteractAction = player => InteractionMenuHelper.TryOpenMenu(player, npc, GetInteractionOptions(player, npc));
 
+        SetUpStation(npc, definition);
+
         if (!_resourceManager.Fishing.TryGetPondByHole(definition.Id, out _))
             return;
 

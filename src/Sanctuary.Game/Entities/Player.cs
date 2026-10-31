@@ -180,6 +180,11 @@ public sealed class Player : ClientPcData, IEntity
 
     public PlayerAchievements Achievements { get; } = new();
 
+    /// <summary>
+    /// The Recipes.json ids this player knows. Lock it to read or change it.
+    /// </summary>
+    public HashSet<int> KnownRecipes { get; } = [];
+
     public QuestLog Quests { get; } = new();
 
     public QuestConversation QuestConversation { get; } = new();

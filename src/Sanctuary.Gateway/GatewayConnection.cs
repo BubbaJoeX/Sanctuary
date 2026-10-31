@@ -19,6 +19,7 @@ using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
 using Sanctuary.Game.Achievements;
+using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
@@ -500,6 +501,9 @@ public class GatewayConnection : UdpConnection
         // After the jobs, pets and rides: what the player already has counts toward achievements.
         _serviceProvider.GetRequiredService<IAchievementManager>().Load(Player, dbCharacter.Achievements);
 
+        // After achievements, so the recipes already known count toward theirs.
+        _serviceProvider.GetRequiredService<ICraftingManager>().Load(Player, dbCharacter.Recipes);
+
         // End ClientPcData
 
         Player.ChatBubbleForegroundColor = dbCharacter.ChatBubbleForegroundColor;
@@ -723,6 +727,8 @@ public class GatewayConnection : UdpConnection
 
         Player.ClientAchievements = _serviceProvider.GetRequiredService<IAchievementManager>().GetStarted(Player, out var achievementPoints);
         Player.AchievementPoints = achievementPoints;
+
+        Player.ClientRecipes = _serviceProvider.GetRequiredService<ICraftingManager>().GetRecipes(Player);
 
         var packetSendSelfToClient = new PacketSendSelfToClient();
 

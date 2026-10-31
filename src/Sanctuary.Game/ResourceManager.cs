@@ -56,6 +56,8 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string ChallengesFile = Path.Combine(BaseDirectory, "Challenges.json");
     public static readonly string BattlesFile = Path.Combine(BaseDirectory, "Battles.json");
     public static readonly string AchievementsFile = Path.Combine(BaseDirectory, "Achievements.json");
+    public static readonly string RecipesFile = Path.Combine(BaseDirectory, "Recipes.json");
+    public static readonly string StationsFile = Path.Combine(BaseDirectory, "Stations.json");
     public static readonly string PetsFile = Path.Combine(BaseDirectory, "Pets.json");
     /// <summary>
     /// The minigames (one .json per game family), with each game's own data in a folder of its name.
@@ -118,6 +120,8 @@ public class ResourceManager : IResourceManager, IDisposable
     public ChallengeDefinitionCollection Challenges { get; }
     public BattleDefinitionCollection Battles { get; }
     public AchievementDefinitionCollection Achievements { get; }
+    public RecipeDefinitionCollection Recipes { get; }
+    public StationDefinitionCollection Stations { get; }
     public MountDefinitionCollection Mounts { get; }
     public PetDefinitionCollection Pets { get; }
     public MinigameDefinitionCollection Minigames { get; }
@@ -189,6 +193,8 @@ public class ResourceManager : IResourceManager, IDisposable
         Challenges = new(_logger);
         Battles = new(_logger);
         Achievements = new(_logger);
+        Recipes = new(_logger);
+        Stations = new(_logger);
         Mounts = new(_logger);
         Pets = new(_logger);
         Minigames = new(_logger);
@@ -215,7 +221,7 @@ public class ResourceManager : IResourceManager, IDisposable
         _reloaders = new(StringComparer.OrdinalIgnoreCase)
         {
             ["models"] = () => Reload(Models, () => Models.Load(ModelsFile)),
-            ["items"] = () => Reload(ClientItemDefinitions, () => ClientItemDefinitions.Load(ClientItemDefinitionsFile)),
+            ["items"] = () => Reload(ClientItemDefinitions, () => LoadItems()),
             ["collections"] = () => Reload(Collections, () => Collections.Load(CollectionsFile)),
             ["nodepools"] = () => Reload(CollectionNodePools, () => CollectionNodePools.Load(CollectionNodePoolsFile)),
             ["nodetypes"] = () => Reload(CollectionNodeTypes, () => CollectionNodeTypes.Load(CollectionNodeTypesFile)),
@@ -231,6 +237,8 @@ public class ResourceManager : IResourceManager, IDisposable
             ["challenges"] = () => Reload(Challenges, () => Challenges.Load(ChallengesFile)),
             ["battles"] = () => Reload(Battles, () => Battles.Load(BattlesFile)),
             ["achievements"] = () => Reload(Achievements, () => Achievements.Load(AchievementsFile)),
+            ["recipes"] = () => Reload(Recipes, () => LoadRecipes()),
+            ["stations"] = () => Reload(Stations, () => Stations.Load(StationsFile)),
             ["mounts"] = () => Reload(Mounts, () => Mounts.Load(MountsFile)),
             ["minigames"] = () => Reload(Minigames, () => Minigames.Load(MinigamesDirectory)),
             ["profiles"] = () => Reload(Profiles, () => Profiles.Load(ProfilesFile)),
@@ -281,6 +289,31 @@ public class ResourceManager : IResourceManager, IDisposable
             Reloaded?.Invoke(name);
 
         return reloaded;
+    }
+
+    /// <summary>
+    /// The item definitions, with every recipe ingredient stacking (see <see cref="RecipeDefinitionCollection.UnlockIngredientStacks"/>).
+    /// </summary>
+    private bool LoadItems()
+    {
+        if (!ClientItemDefinitions.Load(ClientItemDefinitionsFile))
+            return false;
+
+        Recipes.UnlockIngredientStacks(ClientItemDefinitions);
+        return true;
+    }
+
+    private bool LoadRecipes()
+    {
+        if (!Recipes.Load(RecipesFile))
+            return false;
+
+        var unlocked = Recipes.UnlockIngredientStacks(ClientItemDefinitions);
+
+        if (unlocked > 0)
+            _logger.LogInformation("{count} recipe ingredients capped at one each now stack.", unlocked);
+
+        return true;
     }
 
     private static bool Reload<TKey, TValue>(ObservableConcurrentDictionary<TKey, TValue> collection, Func<bool> load) where TKey : notnull
@@ -480,6 +513,12 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!Achievements.Load(AchievementsFile))
             return false;
 
+        if (!LoadRecipes())
+            return false;
+
+        if (!Stations.Load(StationsFile))
+            return false;
+
         if (!Pets.Load(PetsFile))
             return false;
 
@@ -628,7 +667,7 @@ public class ResourceManager : IResourceManager, IDisposable
             else if (e.FullPath == MiniGameTutorialsFile)
                 loaded = MiniGameTutorials.Load(MiniGameTutorialsFile);
             else if (e.FullPath == ClientItemDefinitionsFile)
-                loaded = ClientItemDefinitions.Load(ClientItemDefinitionsFile);
+                loaded = LoadItems();
             else if (e.FullPath == CollectionsFile)
                 loaded = Collections.Load(CollectionsFile);
             else if (e.FullPath == CollectionCoinsFile)
@@ -660,6 +699,10 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = Reload(Battles, () => Battles.Load(BattlesFile));
             else if (e.FullPath == AchievementsFile)
                 loaded = Reload(Achievements, () => Achievements.Load(AchievementsFile));
+            else if (e.FullPath == RecipesFile)
+                loaded = Reload(Recipes, () => LoadRecipes());
+            else if (e.FullPath == StationsFile)
+                loaded = Reload(Stations, () => Stations.Load(StationsFile));
             else if (e.FullPath == PetsFile)
                 loaded = Pets.Load(PetsFile);
             else if (isMinigame &&

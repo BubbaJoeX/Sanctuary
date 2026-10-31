@@ -17,6 +17,7 @@ using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Battles;
 using Sanctuary.Game.Challenges;
 using Sanctuary.Game.Conversations;
+using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Trading;
@@ -128,6 +129,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<IChallengeManager, ChallengeManager>();
     serviceCollection.AddSingleton<IBattleManager, BattleManager>();
     serviceCollection.AddSingleton<IAchievementManager, AchievementManager>();
+    serviceCollection.AddSingleton<ICraftingManager, CraftingManager>();
     serviceCollection.AddSingleton<IHousingManager, HousingManager>();
     serviceCollection.AddSingleton<IServerSettings, ServerSettings>();
     serviceCollection.AddSingleton<IWorldEventManager, WorldEventManager>();

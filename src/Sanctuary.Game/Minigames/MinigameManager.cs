@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Battles;
+using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Helpers;
@@ -40,6 +41,7 @@ public static class MinigameManager
     private static IRewardManager _rewardManager = null!;
     private static IResourceManager _resourceManager = null!;
     private static IBattleManager? _battleManager;
+    private static ICraftingManager? _craftingManager;
 
     private static readonly Dictionary<string, Func<FlashMinigame>> Games = new(StringComparer.OrdinalIgnoreCase);
 
@@ -67,6 +69,7 @@ public static class MinigameManager
         _rewardManager = serviceProvider.GetRequiredService<IRewardManager>();
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
         _battleManager = serviceProvider.GetService<IBattleManager>();
+        _craftingManager = serviceProvider.GetService<ICraftingManager>();
 
         foreach (var type in typeof(FlashMinigame).Assembly.GetTypes())
         {
@@ -338,10 +341,15 @@ public static class MinigameManager
             player.Achievements.Record(AchievementEvent.MinigameWin, definition.Id);
 
         var items = new List<string>();
+        string? craftHint = null;
+
+        // A recipe's game (smelting, cooking, forging) makes its item only when started from the recipe, with the
+        // ingredients: winning takes them.
+        var makesItems = won && (_craftingManager?.TryCompleteCraft(player, definition.Id, out craftHint) ?? true);
 
         if (won)
         {
-            foreach (var item in definition.Items)
+            foreach (var item in makesItems ? definition.Items : [])
             {
                 if (_rewardManager.TryGrantItem(player, item.ItemId, 0, item.Quantity))
                     items.Add(item.Quantity > 1 ? $"{item.Quantity} {ItemName(item.ItemId)}" : ItemName(item.ItemId));
@@ -373,6 +381,9 @@ public static class MinigameManager
         ChatHelper.SendSystemMessage(player, earned.Count > 0
             ? $"{title}: {(won ? "you won" : "better luck next time")}! You earned {string.Join(", ", earned)}."
             : $"{title}: {(won ? "you won" : "better luck next time")}!");
+
+        if (craftHint is not null)
+            ChatHelper.SendSystemMessage(player, craftHint);
     }
 
     /// <summary>
