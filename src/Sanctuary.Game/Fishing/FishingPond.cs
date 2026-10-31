@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -45,6 +46,12 @@ public sealed class FishingPond
     private readonly Dictionary<ulong, FishingSession> _sessions = [];
     private readonly Random _random = new();
 
+    /// <summary>
+    /// Where each player went fishing from, and the job the pond switched them out of, by player guid. Going on to
+    /// another pond keeps the trip, so Leave still ends where it began.
+    /// </summary>
+    private static readonly ConcurrentDictionary<ulong, FishingTrip> Trips = new();
+
     private ulong _guideGuid;
 
     public FishingPond(WorldZone zone, IServiceProvider serviceProvider)
@@ -85,7 +92,7 @@ public sealed class FishingPond
 
     public IReadOnlyList<NpcInteractionOption> GetInteractionOptions(Player player, Npc npc)
     {
-        if (npc.Guid != _guideGuid || Definition is not { } pond)
+        if (npc.Guid != _guideGuid || Definition is null)
             return [];
 
         return
@@ -94,25 +101,62 @@ public sealed class FishingPond
             {
                 IconId = LeaveIconId,
                 ButtonTextId = LeaveButtonTextId,
-                Invoke = interactingPlayer => HeadBack(interactingPlayer, pond)
+                Invoke = Leave
             }
         ];
     }
 
-    private static void HeadBack(Player player, FishingPondDefinition pond)
+    /// <summary>
+    /// Takes a player out of the pond they're in, as the fisherman's Leave does. False if they aren't in one.
+    /// </summary>
+    public static bool TryLeave(Player player)
     {
-        var position = new Vector4(pond.Return.Position[0], pond.Return.Position[1], pond.Return.Position[2], 1f);
-        var rotation = HeadingRotation(pond.Return.Heading);
+        if ((player.Zone as WorldZone)?.Fishing is not { } pond)
+            return false;
 
-        player.TeleportToZone(pond.ReturnZoneId, null, position, rotation);
+        pond.Leave(player);
+        return true;
     }
 
     /// <summary>
-    /// Sends a player from a Fabled Realms fishing hole to its pond.
+    /// Back to where the player went fishing from (or the pond's fishing hole, if that's gone), in the job they had
+    /// before the pond made them a Fisherman. Changing jobs ends their fishing before they go.
+    /// </summary>
+    private void Leave(Player player)
+    {
+        if (!ReferenceEquals(player.Zone, _zone) || Definition is not { } pond)
+            return;
+
+        Trips.TryRemove(player.Guid, out var trip);
+
+        if (trip is { PreviousProfileId: not 0 } && trip.PreviousProfileId != player.ActiveProfileId)
+            player.ActivateProfile(trip.PreviousProfileId);
+
+        if (trip is { ZoneId: not 0 } && player.TeleportToZone(trip.ZoneId, trip.OwnerId, trip.Position, trip.Rotation))
+            return;
+
+        var position = new Vector4(pond.Return.Position[0], pond.Return.Position[1], pond.Return.Position[2], 1f);
+
+        player.TeleportToZone(pond.ReturnZoneId, null, position, HeadingRotation(pond.Return.Heading));
+    }
+
+    /// <summary>
+    /// Sends a player from a Fabled Realms fishing hole (or the Games window) to its pond, remembering where they
+    /// were for the way back.
     /// </summary>
     public static bool GoFishing(Player player, FishingPondDefinition pond)
     {
         var position = new Vector4(pond.Arrival.Position[0], pond.Arrival.Position[1], pond.Arrival.Position[2], 1f);
+
+        var zone = player.Zone as WorldZone;
+
+        if (zone?.Fishing is not null && Trips.TryGetValue(player.Guid, out var trip))
+            trip.PondZoneId = pond.ZoneId;
+        else if (zone is { Fishing: not null } or { Battle: not null } or { Arena: not null })
+            // Nowhere to come back to: Leave goes to the pond's fishing hole.
+            Trips[player.Guid] = new FishingTrip(0, null, default, default, pond.ZoneId);
+        else
+            Trips[player.Guid] = new FishingTrip(player.Zone.DefinitionId, player.Zone.OwnerId, player.Position, player.Rotation, pond.ZoneId);
 
         return player.TeleportToZone(pond.ZoneId, null, position, HeadingRotation(pond.Arrival.Heading));
     }
@@ -151,16 +195,25 @@ public sealed class FishingPond
     public void OnPlayerArrived(Player player)
     {
         if (player.ActiveProfileId == FishingRules.FishermanProfileId)
-        {
             StartFishing(player);
-            return;
+        else
+        {
+            var previousProfileId = player.ActiveProfileId;
+
+            // Switching jobs comes back through OnProfileChanged, which starts fishing.
+            if (player.ActivateProfile(FishingRules.FishermanProfileId))
+            {
+                if (Trips.TryGetValue(player.Guid, out var trip) && trip.PreviousProfileId == 0)
+                    trip.PreviousProfileId = previousProfileId;
+
+                ChatHelper.SendSystemMessage(player, "You switched to your Fisherman job to fish.");
+            }
+            else
+                ChatHelper.SendSystemMessage(player, "You need the Fisherman job to fish here.");
         }
 
-        // Switching jobs comes back through OnProfileChanged, which starts fishing.
-        if (player.ActivateProfile(FishingRules.FishermanProfileId))
-            ChatHelper.SendSystemMessage(player, "You switched to your Fisherman job to fish.");
-        else
-            ChatHelper.SendSystemMessage(player, "You need the Fisherman job to fish here.");
+        // Nothing on the client's fishing screen says how to leave.
+        ChatHelper.SendSystemMessage(player, "When you're done, talk to the Fisherman by the dock (or press X beside him) to head back.");
     }
 
     public void OnProfileChanged(Player player)
@@ -174,7 +227,14 @@ public sealed class FishingPond
             StopFishing(player, notify: true);
     }
 
-    public void OnPlayerLeft(Player player) => StopFishing(player, notify: false);
+    public void OnPlayerLeft(Player player)
+    {
+        StopFishing(player, notify: false);
+
+        // The trip ends wherever they went, unless GoFishing just pointed it at another pond.
+        if (Trips.TryGetValue(player.Guid, out var trip) && trip.PondZoneId == _zone.DefinitionId)
+            Trips.TryRemove(new KeyValuePair<ulong, FishingTrip>(player.Guid, trip));
+    }
 
     private void StartFishing(Player player)
     {
@@ -756,6 +816,30 @@ public sealed class FishingPond
         /// <summary>Nothing's biting this time.</summary>
         Empty,
         Reeling
+    }
+
+    private sealed class FishingTrip(int zoneId, ulong? ownerId, Vector4 position, Quaternion rotation, int pondZoneId)
+    {
+        /// <summary>
+        /// The zone they came from, or 0 if it was one there's no going back to.
+        /// </summary>
+        public int ZoneId { get; } = zoneId;
+
+        public ulong? OwnerId { get; } = ownerId;
+
+        public Vector4 Position { get; } = position;
+
+        public Quaternion Rotation { get; } = rotation;
+
+        /// <summary>
+        /// The pond the player was last sent to.
+        /// </summary>
+        public int PondZoneId { get; set; } = pondZoneId;
+
+        /// <summary>
+        /// The job the first pond switched them out of, or 0 if they came as a Fisherman.
+        /// </summary>
+        public int PreviousProfileId { get; set; }
     }
 
     private sealed class FishingSession(Player player)
