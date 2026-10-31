@@ -5,6 +5,8 @@
 //   its own in Npcs.json.
 // - Areas: the zone's named areas (its Sanctuary definition's AreaDefinitions), whose name shows as players walk in.
 // - Portals: circles that send a player on to a spot, in this zone or another (Portals).
+// - Combat: where the client counts a player as in a combat area (whole areas' IsCombatArea, and CombatAreas:
+//   stretches that are a combat area, or aren't one, whatever area they're in). The ground shows it by tile.
 // - Barriers: the zone file's invisible walls, posts the client won't let players walk between.
 // - Seasons: seasonal holidays (src/Resources/Seasons.json), event keys that are on between two days of the year.
 // Names are locale strings: new ones are Sanctuary's own (api/names). All of it but seasons saves with the zone.
@@ -12,7 +14,7 @@ import * as THREE from "three";
 import { getJson, postJson } from "./api.js";
 import { makeMarker } from "./props.js";
 
-const MODES = [["places", "Places"], ["areas", "Areas"], ["portals", "Portals"], ["barriers", "Barriers"], ["seasons", "Seasons"]];
+const MODES = [["places", "Places"], ["areas", "Areas"], ["combat", "Combat"], ["portals", "Portals"], ["barriers", "Barriers"], ["seasons", "Seasons"]];
 const POI_TYPES = { 7: "Warpstone destination", 6: "Place", 3: "Dungeon", 10: "Ruins" };
 // A warp destination as the game's own are: the warpstone icon, "Press to Teleport..." under its name.
 const HUB = { IconId: 1345, NotificationType: 7, SubNameId: 382845, Unknown: 651, Unknown2: 30 };
@@ -21,7 +23,11 @@ const PLACE = { IconId: 7555, NotificationType: 6, SubNameId: 382862 };
 const WARPSTONE = { id: 2163, model: "sg_warpstone_01.adr" };
 const SANCTUARY_STRINGS = 9500000;
 const WALL_HEIGHT = 100;
-const COLOURS = { place: 0xe8b84a, arrival: 0x3fd0ff, area: 0x6be27a, portal: 0xc77dff, destination: 0xff8a5c, post: 0xe2675f };
+const COLOURS = { place: 0xe8b84a, arrival: 0x3fd0ff, area: 0x6be27a, portal: 0xc77dff, destination: 0xff8a5c, post: 0xe2675f,
+  combat: 0xff4a3d, peace: 0xf4f4f4 };
+// The Combat mode's tiles: combat ground, ground in an area that isn't, and ground in no area.
+const TILE_TINTS = { combat: [235, 55, 45], peace: [80, 170, 235], none: [70, 70, 70] };
+const SHAPES = { Circle: "round", Rectangle: "square", Polygon: "outline" };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function escape(text) {
@@ -29,6 +35,23 @@ function escape(text) {
 }
 
 const round = (v, places = 3) => Math.round(v * 10 ** places) / 10 ** places;
+
+// Whether a shape (an area's or a stretch's: Circle, Rectangle or Polygon) holds (x, z), as Sanctuary's
+// Vector4Extensions test it.
+function contains(shape, x, z) {
+  if (shape.Shape === "Circle") return (x - shape.X1) ** 2 + (z - shape.Z1) ** 2 < shape.Radius ** 2;
+  if (shape.Shape === "Rectangle") {
+    return x > Math.min(shape.X1, shape.X2) && x < Math.max(shape.X1, shape.X2) && z > Math.min(shape.Z1, shape.Z2) && z < Math.max(shape.Z1, shape.Z2);
+  }
+  if (shape.Shape !== "Polygon") return false;
+  let inside = false;
+  const points = shape.Points ?? [];
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const [px, pz] = points[i], [qx, qz] = points[j];
+    if ((pz > z) !== (qz > z) && x < (qx - px) * (z - pz) / (qz - pz) + px) inside = !inside;
+  }
+  return inside;
+}
 
 export class WorldTool {
   // ctx: { state, live, toast(text, kind), status(text), changed() (the zone has unsaved world edits), redraw()
@@ -49,6 +72,7 @@ export class WorldTool {
     this.poisDeleted = [];
     this.areas = [];
     this.portals = [];
+    this.combat = [];
     this.walls = [];
     this.names = {};
     this.dirty = new Set();
@@ -61,6 +85,7 @@ export class WorldTool {
     this.pois = structuredClone(zone.pois ?? []);
     this.areas = structuredClone(zone.definition?.AreaDefinitions ?? []);
     this.portals = structuredClone(zone.definition?.Portals ?? []);
+    this.combat = structuredClone(zone.definition?.CombatAreas ?? []);
     this.walls = structuredClone(zone.walls ?? []);
     this.names = { ...(zone.names ?? {}) };
     this.selectedWall = null;
@@ -72,6 +97,7 @@ export class WorldTool {
     if (this.dirty.has("pois")) { out.pois = this.pois; out.poisDeleted = this.poisDeleted; }
     if (this.dirty.has("areas")) out.areas = this.areas;
     if (this.dirty.has("portals")) out.portals = this.portals;
+    if (this.dirty.has("combat")) out.combatAreas = this.combat;
     if (this.dirty.has("walls")) out.walls = this.walls;
     return out;
   }
@@ -79,6 +105,7 @@ export class WorldTool {
   touch(part) {
     this.dirty.add(part);
     this.ctx.changed();
+    if (part === "areas" || part === "combat") this.ctx.retint();
   }
 
   name(id) {
@@ -127,6 +154,26 @@ export class WorldTool {
         marker(COLOURS.area, `${this.name(area.NameId) || area.Comment || `Area ${area.Id}`} (corner)`, { type: "area", index: i }, [area.X1, ground(area.X1, area.Z1), area.Z1]);
         marker(COLOURS.area, `${this.name(area.NameId) || area.Comment || `Area ${area.Id}`} (other corner)`, { type: "area2", index: i }, [area.X2, ground(area.X2, area.Z2), area.Z2]);
         out.push(this.outline([[area.X1, area.Z1], [area.X2, area.Z1], [area.X2, area.Z2], [area.X1, area.Z2]], COLOURS.area));
+      } else if (area.Shape === "Polygon" && area.Points?.length > 2) {
+        out.push(this.outline(area.Points, COLOURS.area));
+      }
+    });
+    this.combat.forEach((stretch, i) => {
+      const colour = stretch.IsCombatArea === false ? COLOURS.peace : COLOURS.combat;
+      const label = this.stretchLabel(stretch, i);
+      if (stretch.Shape === "Circle") {
+        marker(colour, label, { type: "combat", index: i }, [stretch.X1, ground(stretch.X1, stretch.Z1), stretch.Z1]);
+        out.push(this.ring(stretch.X1, stretch.Z1, stretch.Radius, colour));
+      } else if (stretch.Shape === "Rectangle") {
+        marker(colour, `${label} (corner)`, { type: "combat", index: i }, [stretch.X1, ground(stretch.X1, stretch.Z1), stretch.Z1]);
+        marker(colour, `${label} (other corner)`, { type: "combat2", index: i }, [stretch.X2, ground(stretch.X2, stretch.Z2), stretch.Z2]);
+        out.push(this.outline([[stretch.X1, stretch.Z1], [stretch.X2, stretch.Z1], [stretch.X2, stretch.Z2], [stretch.X1, stretch.Z2]], colour));
+      } else if (stretch.Shape === "Polygon" && stretch.Points?.length) {
+        // A corner marker each; drawn in the Combat mode only, as an outline elsewhere.
+        if (this.mode === "combat") {
+          stretch.Points.forEach(([x, z], k) => marker(colour, `${label}, corner ${k + 1}`, { type: "combatPoint", index: i, point: k }, [x, ground(x, z), z]));
+        }
+        if (stretch.Points.length > 1) out.push(this.outline(stretch.Points, colour));
       }
     });
     this.portals.forEach((portal, i) => {
@@ -171,7 +218,7 @@ export class WorldTool {
 
   // A marker was dragged or turned: what it stands for follows it.
   moved(m) {
-    const { type, index, wall, post } = m.userData.world;
+    const { type, index, wall, post, point } = m.userData.world;
     const at = [round(m.position.x), round(m.position.y), round(m.position.z)];
     if (type === "poi") { this.pois[index].Position = at; this.touch("pois"); }
     else if (type === "arrival") {
@@ -179,6 +226,9 @@ export class WorldTool {
       this.touch("pois");
     } else if (type === "area") { Object.assign(this.areas[index], { X1: at[0], Z1: at[2] }); this.touch("areas"); }
     else if (type === "area2") { Object.assign(this.areas[index], { X2: at[0], Z2: at[2] }); this.touch("areas"); }
+    else if (type === "combat") { Object.assign(this.combat[index], { X1: at[0], Z1: at[2] }); this.touch("combat"); }
+    else if (type === "combat2") { Object.assign(this.combat[index], { X2: at[0], Z2: at[2] }); this.touch("combat"); }
+    else if (type === "combatPoint") { this.combat[index].Points[point] = [at[0], at[2]]; this.touch("combat"); }
     else if (type === "portal") {
       const portal = this.portals[index];
       if (portal.Shape === "Rectangle") Object.assign(portal, { X2: round(portal.X2 + at[0] - portal.X1), Z2: round(portal.Z2 + at[2] - portal.Z1) });
@@ -207,7 +257,13 @@ export class WorldTool {
       ${definition || this.mode === "barriers" || this.mode === "seasons" ? this[`${this.mode}Panel`](live) : `<p class="warn">This zone has no Sanctuary definition (Zones/${escape(this.zone?.name)}.json), so it has no places, areas or portals.</p>`}
       <div id="inspector"></div>`;
     for (const button of panel.querySelectorAll("[data-world-mode]")) {
-      button.addEventListener("click", () => { this.mode = button.dataset.worldMode; this.selectedWall = null; this.ctx.redraw(); this.ctx.renderPanel(); });
+      button.addEventListener("click", () => {
+        this.mode = button.dataset.worldMode;
+        this.selectedWall = null;
+        this.ctx.retint();
+        this.ctx.redraw();
+        this.ctx.renderPanel();
+      });
     }
     this[`${this.mode}Bind`]?.(panel);
   }
@@ -383,6 +439,7 @@ export class WorldTool {
       <p class="hint">Area #${area.Id} · ${escape(area.Shape || "tiles and environments")}</p>
       <label>Name <input data-area-name value="${escape(this.name(area.NameId))}"></label>
       ${area.Shape === "Circle" ? `<label>Radius (m) <input type="number" min="1" step="1" data-area-radius value="${area.Radius}"></label>` : ""}
+      <label class="check" title="The wilds, where hostile NPCs are enemies to a combat job; there the job picker keeps combat jobs to combat jobs"><input type="checkbox" data-area-combat ${area.IsCombatArea ? "checked" : ""}> A combat area</label>
       <label>Its place <select data-area-poi><option value="0">none</option>${this.pois.filter((p) => p.Id).map((p) => `<option value="${p.Id}" ${p.Id === area.PointOfInterestId ? "selected" : ""}>${escape(this.name(p.NameId) || `#${p.Id}`)}</option>`).join("")}</select></label>
       <div class="row"><button data-area-delete class="danger">Delete</button></div>`;
     target.querySelector("[data-area-name]").addEventListener("change", async (e) => {
@@ -398,6 +455,7 @@ export class WorldTool {
     });
     target.querySelector("[data-area-radius]")?.addEventListener("change", (e) => { area.Radius = Math.max(1, +e.target.value); this.touch("areas"); this.ctx.redraw(); });
     target.querySelector("[data-area-poi]").addEventListener("change", (e) => { area.PointOfInterestId = +e.target.value; this.touch("areas"); });
+    target.querySelector("[data-area-combat]").addEventListener("change", (e) => { this.setCombat(area, e.target.checked); this.ctx.renderPanel(); });
     target.querySelector("[data-area-delete]").addEventListener("click", () => {
       if (!confirm(`Delete the area ${this.name(area.NameId) || area.Id}?`)) return;
       this.areas.splice(index, 1);
@@ -413,6 +471,153 @@ export class WorldTool {
     this.ctx.select(null);
     const target = this.ctx.inspector();
     if (target && type === "area") this.inspectArea(target, index);
+  }
+
+  // Combat ----------------------------------------------------------------------------------------------------
+
+  // In a combat area the client counts a player as in the wilds: hostile NPCs are enemies to a combat job, and
+  // the job picker won't let a combat job go for another kind. Sanctuary decides it as ZoneAreaMap does: a stretch
+  // holding the spot (the first), else the area the spot is in.
+  combatPanel() {
+    const areas = this.areas.map((area, i) => ({ area, i })).sort((a, b) => (b.area.IsCombatArea === true) - (a.area.IsCombatArea === true)
+      || this.areaLabel(a.area).localeCompare(this.areaLabel(b.area)));
+    return `<p class="hint">Where combat jobs fight: the ground is red where it's a combat area, blue where it's an area that isn't, by tile.
+        A whole area is one when it's ticked; stretches override whatever area they're in (red: combat, white: not), the first that holds a spot deciding.
+        They load when the Gateway starts (Test in game with + servers); !area here says what the server makes of a spot.</p>
+      <h4>Areas</h4>
+      <div class="list">${areas.map(({ area, i }) => `<label class="check" data-combat-area="${i}"><input type="checkbox" ${area.IsCombatArea ? "checked" : ""}>
+        ${escape(this.areaLabel(area))} <small>${escape(this.areaKind(area))}</small></label>`).join("") || '<p class="hint">This zone has no areas.</p>'}</div>
+      <h4>Stretches</h4>
+      <label>Label <input id="combat-label" maxlength="160" placeholder="The bixie fields"></label>
+      <div class="row"><button id="add-combat-circle">Add a round one</button><button id="add-combat-rectangle">A square one</button><button id="add-combat-polygon">An outline</button></div>
+      <label class="check"><input id="add-combat-off" type="checkbox"> Not a combat area (a safe spot in the wilds)</label>
+      <div class="list">${this.combat.map((stretch, i) => `<div data-combat="${i}">${stretch.IsCombatArea === false ? "○ " : "● "}${escape(this.stretchLabel(stretch, i))}
+        <small>${SHAPES[stretch.Shape] ?? escape(stretch.Shape)}${stretch.Shape === "Circle" ? `, ${stretch.Radius} m` : ""} · ${stretch.IsCombatArea === false ? "not combat" : "combat"}</small></div>`).join("") || '<p class="hint">None.</p>'}</div>`;
+  }
+
+  combatBind(panel) {
+    for (const row of panel.querySelectorAll("[data-combat-area]")) {
+      row.querySelector("input").addEventListener("change", (e) => this.setCombat(this.areas[+row.dataset.combatArea], e.target.checked));
+    }
+    for (const row of panel.querySelectorAll("[data-combat]")) {
+      row.addEventListener("click", () => {
+        const stretch = this.combat[+row.dataset.combat];
+        this.focusMarker(stretch.Shape === "Polygon" ? "combatPoint" : "combat", +row.dataset.combat);
+      });
+    }
+    const add = (shape) => this.addStretch(shape, panel.querySelector("#combat-label").value.trim(), !panel.querySelector("#add-combat-off").checked);
+    panel.querySelector("#add-combat-circle").addEventListener("click", () => add("Circle"));
+    panel.querySelector("#add-combat-rectangle").addEventListener("click", () => add("Rectangle"));
+    panel.querySelector("#add-combat-polygon").addEventListener("click", () => add("Polygon"));
+  }
+
+  setCombat(area, on) {
+    if (on) area.IsCombatArea = true;
+    else delete area.IsCombatArea;
+    this.touch("areas");
+  }
+
+  areaLabel(area) {
+    return this.name(area.NameId) || area.Comment || `Area ${area.Id}`;
+  }
+
+  areaKind(area) {
+    if (area.Tiles?.length) return `${area.Tiles.length} tiles`;
+    if (area.EnvironmentIds?.length) return `environment ${area.EnvironmentIds.join(", ")}${area.EnvironmentMinX != null ? `, x ≥ ${area.EnvironmentMinX}` : ""}${area.EnvironmentMaxX != null ? `, x < ${area.EnvironmentMaxX}` : ""}`;
+    return SHAPES[area.Shape] ?? area.Shape ?? "";
+  }
+
+  stretchLabel(stretch, i) {
+    return stretch.Comment || `${stretch.IsCombatArea === false ? "Safe stretch" : "Combat stretch"} ${i + 1}`;
+  }
+
+  // A new stretch around the middle of the view: a 30 m circle, a 60 m square or a 60 m square outline to reshape.
+  addStretch(shape, label, combat) {
+    const at = this.ctx.centre();
+    if (!at) return this.ctx.toast("Point the view at the ground where it goes.");
+    const x = round(at.x), z = round(at.z);
+    const stretch = { Comment: label || undefined, Shape: shape };
+    if (shape === "Circle") Object.assign(stretch, { X1: x, Z1: z, Radius: 30 });
+    else if (shape === "Rectangle") Object.assign(stretch, { X1: x - 30, Z1: z - 30, X2: x + 30, Z2: z + 30 });
+    else stretch.Points = [[x - 30, z - 30], [x + 30, z - 30], [x + 30, z + 30], [x - 30, z + 30]];
+    if (!combat) stretch.IsCombatArea = false;
+    // A safe spot goes first, so it wins over the combat stretches around it.
+    if (combat) this.combat.push(stretch); else this.combat.unshift(stretch);
+    const index = combat ? this.combat.length - 1 : 0;
+    this.touch("combat");
+    this.ctx.redraw();
+    this.ctx.renderPanel();
+    this.focusMarker(shape === "Polygon" ? "combatPoint" : "combat", index);
+  }
+
+  inspectCombat(target, index, point) {
+    const stretch = this.combat[index];
+    const order = this.combat.length > 1 ? `<button data-combat-up ${index ? "" : "disabled"} title="Earlier stretches decide first">Earlier</button><button data-combat-down ${index < this.combat.length - 1 ? "" : "disabled"}>Later</button>` : "";
+    target.innerHTML = `<h4>${escape(this.stretchLabel(stretch, index))}</h4>
+      <p class="hint">Stretch ${index + 1} of ${this.combat.length} · ${SHAPES[stretch.Shape] ?? escape(stretch.Shape)}${point !== undefined ? ` · corner ${point + 1} of ${stretch.Points.length}` : ""}</p>
+      <label>Label <input data-combat-comment value="${escape(stretch.Comment ?? "")}"></label>
+      <label>It is <select data-combat-on><option value="1" ${stretch.IsCombatArea === false ? "" : "selected"}>a combat area</option><option value="0" ${stretch.IsCombatArea === false ? "selected" : ""}>not a combat area</option></select></label>
+      ${stretch.Shape === "Circle" ? `<label>Radius (m) <input type="number" min="1" step="1" data-combat-radius value="${stretch.Radius}"></label>` : ""}
+      ${stretch.Shape === "Polygon" ? `<div class="row"><button data-combat-point-add title="After this corner, halfway to the next">Add a corner</button>${point !== undefined ? `<button data-combat-point-delete ${stretch.Points.length <= 3 ? "disabled" : ""}>Delete this corner</button>` : ""}</div>` : ""}
+      <div class="row">${order}<button data-combat-delete class="danger">Delete</button></div>`;
+    const change = (panel = false) => { this.touch("combat"); this.ctx.redraw(); if (panel) this.ctx.renderPanel(); };
+    target.querySelector("[data-combat-comment]").addEventListener("change", (e) => { stretch.Comment = e.target.value.trim() || undefined; change(true); });
+    target.querySelector("[data-combat-on]").addEventListener("change", (e) => {
+      if (e.target.value === "1") delete stretch.IsCombatArea; else stretch.IsCombatArea = false;
+      change(true);
+    });
+    target.querySelector("[data-combat-radius]")?.addEventListener("change", (e) => { stretch.Radius = Math.max(1, +e.target.value); change(); });
+    target.querySelector("[data-combat-point-add]")?.addEventListener("click", () => {
+      const k = point ?? stretch.Points.length - 1;
+      const [ax, az] = stretch.Points[k], [bx, bz] = stretch.Points[(k + 1) % stretch.Points.length];
+      stretch.Points.splice(k + 1, 0, [round((ax + bx) / 2), round((az + bz) / 2)]);
+      change(true);
+      this.focusPoint(index, k + 1);
+    });
+    target.querySelector("[data-combat-point-delete]")?.addEventListener("click", () => {
+      stretch.Points.splice(point, 1);
+      this.ctx.select(null);
+      change(true);
+    });
+    const move = (to) => {
+      this.combat.splice(to, 0, ...this.combat.splice(index, 1));
+      this.ctx.select(null);
+      change(true);
+    };
+    target.querySelector("[data-combat-up]")?.addEventListener("click", () => move(index - 1));
+    target.querySelector("[data-combat-down]")?.addEventListener("click", () => move(index + 1));
+    target.querySelector("[data-combat-delete]").addEventListener("click", () => {
+      this.combat.splice(index, 1);
+      this.ctx.select(null);
+      change(true);
+    });
+  }
+
+  focusPoint(index, point) {
+    const m = this.ctx.markers().find((x) => x.userData.world?.type === "combatPoint" && x.userData.world.index === index && x.userData.world.point === point);
+    if (m) this.ctx.select(m);
+  }
+
+  // The area a spot is in, as Sanctuary's ZoneAreaMap finds it: an area's own tiles (the last area listing the tile),
+  // then shapes, then the tile's environment.
+  areaAt(x, z, environment) {
+    const latitude = Math.floor(x / 64), longitude = Math.floor(z / 64);
+    let tiled = null;
+    for (const area of this.areas) if (area.Tiles?.some(([lon, lat]) => lon === longitude && lat === latitude)) tiled = area;
+    if (tiled) return tiled;
+    const shaped = this.areas.find((area) => !area.Tiles?.length && !area.EnvironmentIds?.length && contains(area, x, z));
+    if (shaped) return shaped;
+    return this.areas.find((area) => !area.Tiles?.length && area.EnvironmentIds?.includes(environment)
+      && (area.EnvironmentMinX == null || x >= area.EnvironmentMinX) && (area.EnvironmentMaxX == null || x < area.EnvironmentMaxX)) ?? null;
+  }
+
+  // The Combat mode's ground colours, tile by tile (its middle): for the terrain's tile overlay, or null elsewhere.
+  tileTint() {
+    if (this.mode !== "combat" || !this.zone?.definition) return null;
+    return (x, z, environment) => {
+      const area = this.areaAt(x, z, environment);
+      return area?.IsCombatArea ? TILE_TINTS.combat : area ? TILE_TINTS.peace : TILE_TINTS.none;
+    };
   }
 
   // Portals ---------------------------------------------------------------------------------------------------
@@ -617,6 +822,7 @@ export class WorldTool {
     const world = m.userData.world;
     if (world.type === "poi" || world.type === "arrival") return this.inspectPoi(target, world.index);
     if (world.type === "area" || world.type === "area2") return this.inspectArea(target, world.index);
+    if (world.type === "combat" || world.type === "combat2" || world.type === "combatPoint") return this.inspectCombat(target, world.index, world.point);
     if (world.type === "portal" || world.type === "destination") return this.inspectPortal(target, world.index);
     if (world.type === "post") return this.inspectPost(target, world);
   }
