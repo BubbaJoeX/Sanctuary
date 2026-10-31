@@ -29,7 +29,8 @@ namespace Sanctuary.Game.Battles;
 /// Runs the battles, as the live game did: a start panel offers the battle, Play takes the player (and whoever of
 /// their group came along) into a private copy of its zone, enemies come in waves (the boss's health bar up top
 /// with the last), and clearing them puts an Exit in the zone. Going through it shows the end screen and pays; closing
-/// that takes everyone back to where they were. Knocked out players come back at the entry; too many knock outs, or
+/// that takes everyone back to where they were. Another Exit behind the entry is up from the start: going through it
+/// before then gives the battle up (after asking). Knocked out players come back at the entry; too many knock outs, or
 /// running out of time, loses the battle.
 /// </summary>
 public sealed class BattleManager : IBattleManager, IDisposable
@@ -45,8 +46,13 @@ public sealed class BattleManager : IBattleManager, IDisposable
     // "Your job has been switched because you are entering a combat area."
     private const int JobSwitchedMessageId = 634;
 
-    // The live battles' Exit (sg_exit_door_01).
+    // The live battles' Exit (sg_exit_door_01), and its button's icon.
     private const int ExitNpcId = 34061;
+    private const int ExitIconId = 9380;
+
+    // "Leave" and "Cancel": the Exit asks before a battle's given up.
+    private const int LeaveButtonTextId = 103018;
+    private const int CancelButtonTextId = 118054;
 
     // The Games window's Battles category, and the live tiles' icon set.
     private const int ActivityCategory = 10;
@@ -209,12 +215,18 @@ public sealed class BattleManager : IBattleManager, IDisposable
     /// </summary>
     private void AddParticipant(Battle battle, Player player)
     {
-        battle.Participants[player.Guid] = new BattleParticipant(player);
+        var participant = battle.Participants[player.Guid] = new BattleParticipant(player);
         _playerBattles[player.Guid] = battle;
 
-        // Live switched the player to a combat job as the battle was offered.
+        // Live switched the player to a combat job as the battle was offered. They get theirs back as they leave:
+        // out in the world the client won't let them pick a job that doesn't fight while in a combat area.
+        var previousProfileId = player.ActiveProfileId;
+
         if (player.TrySwitchToCombatJob())
+        {
+            participant.PreviousProfileId = previousProfileId;
             player.SendTunneled(new EncounterParticipantMessagePacket { MessageId = JobSwitchedMessageId, Guid = player.Guid, Name = player.Name.FullName });
+        }
 
         foreach (var state in (ReadOnlySpan<int>)[2, 3, 4])
             player.SendTunneled(new EncounterStatePacket { EncounterId = battle.Id, ReplyId = BattleRules.ServerId, State = state });
@@ -302,6 +314,8 @@ public sealed class BattleManager : IBattleManager, IDisposable
             battle.Participants.Remove(player.Guid);
             _playerBattles.TryRemove(new KeyValuePair<ulong, Battle>(player.Guid, battle));
 
+            GiveJobBack(participant);
+
             if (battle.Participants.Count == 0)
                 Close(battle);
         }
@@ -335,6 +349,10 @@ public sealed class BattleManager : IBattleManager, IDisposable
             participant.Left = false;
 
             player.SendTunneled(EncounterDataCommonPacket.Battle);
+
+            // The overworld combat mode too, which the client marks enemies by (red nameplates, targetable) as it does
+            // out in the world.
+            player.SendCombatMode();
 
             player.SendTunneled(new ObjectiveActivatePacket { ObjectiveId = KnockoutObjectiveId, Total = battle.Definition.MaxKnockouts });
             player.SendTunneled(new ObjectiveActivatePacket { ObjectiveId = DefeatObjectiveId, Total = battle.Total });
@@ -381,6 +399,14 @@ public sealed class BattleManager : IBattleManager, IDisposable
             if (battle.Definition.Waves[i].AtStart)
                 SpawnWave(battle, i);
         }
+
+        // A way out behind the entry, for anyone who'd rather not finish.
+        var entry = battle.EntryPosition.ToVector3();
+        var entryExitAt = BattleRules.EntryExitPosition(entry, battle.Definition.EntryHeading, battle.Zone.ClampStraightWalk);
+
+        entryExitAt = battle.Zone.GetGroundPosition(entryExitAt, 1f, 3f);
+
+        battle.EntryExit = SpawnExit(battle, new Vector4(entryExitAt, 1f));
 
         battle.NextWave = NextSequentialWave(battle, 0);
         battle.NextWaveAt = battle.NextWave < battle.Definition.Waves.Count ? now + battle.Definition.Waves[battle.NextWave].DelayMs : long.MaxValue;
@@ -562,27 +588,71 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
         var exitAt = battle.Definition.Exit is { } exit ? new Vector4(exit[0], exit[1], exit[2], 1f) : battle.LastKillPosition;
 
-        if (_resourceManager.Npcs.TryGetValue(ExitNpcId, out var exitDefinition)
-            && battle.Zone.TrySpawnBattleProp(exitDefinition, exitAt, battle.Definition.EntryHeading, out var door))
-        {
-            battle.Exit = door;
-            door.InteractAction = player => OnExitClicked(battle, player);
-        }
-        else
-        {
-            // Without a door the battle just ends.
+        battle.Exit = SpawnExit(battle, exitAt);
+
+        // Without a door anywhere the battle just ends.
+        if (battle.Exit is null && battle.EntryExit is null)
             End(battle, won: true, tookTooLong: false);
-        }
     }
 
-    private void OnExitClicked(Battle battle, Player player)
+    private Npc? SpawnExit(Battle battle, Vector4 position)
+    {
+        Npc? door = null;
+
+        if (!_resourceManager.Npcs.TryGetValue(ExitNpcId, out var exitDefinition)
+            || !battle.Zone.TrySpawnBattleProp(exitDefinition, position, battle.Definition.EntryHeading, player => OnExitClicked(battle, door!, player), out door))
+        {
+            _logger.LogError("Battle {encounter:X} ({name}): its Exit failed to spawn at {position}.", battle.Id, battle.Definition.Comment, position);
+            return null;
+        }
+
+        return door;
+    }
+
+    private void OnExitClicked(Battle battle, Npc door, Player player)
     {
         lock (battle)
         {
-            if (battle.State != BattleState.Cleared || !battle.Participants.ContainsKey(player.Guid))
+            // Before the goal's done, going through gives the battle up: the Exit asks first.
+            if (battle.State == BattleState.Running && battle.Participants.ContainsKey(player.Guid))
+            {
+                InteractionMenuHelper.TryOpenMenu(player, door,
+                [
+                    new NpcInteractionOption { IconId = ExitIconId, ButtonTextId = LeaveButtonTextId, Invoke = leaving => GoThroughExit(battle, leaving) },
+                    new NpcInteractionOption { IconId = 0, ButtonTextId = CancelButtonTextId, Invoke = _ => { } }
+                ]);
+                return;
+            }
+
+            GoThroughExit(battle, player);
+        }
+    }
+
+    /// <summary>
+    /// Going through an Exit: before the goal's done that gives the battle up, once it's done it ends the battle (the
+    /// end screen, then out), and once the end screen's up it takes the player straight out.
+    /// </summary>
+    private void GoThroughExit(Battle battle, Player player)
+    {
+        lock (battle)
+        {
+            if (!battle.Participants.TryGetValue(player.Guid, out var participant) || !participant.Arrived || participant.Left)
                 return;
 
-            End(battle, won: true, tookTooLong: false);
+            switch (battle.State)
+            {
+                case BattleState.Running:
+                    GiveUp(battle, participant);
+                    break;
+
+                case BattleState.Cleared:
+                    End(battle, won: true, tookTooLong: false);
+                    break;
+
+                case BattleState.Over:
+                    Leave(battle, participant);
+                    break;
+            }
         }
     }
 
@@ -684,6 +754,8 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
             SendToPlayers(battle, new ObjectiveUpdatePacket { ObjectiveId = KnockoutObjectiveId, Count = battle.Knockouts });
 
+            // Out of the overworld combat mode while down, so the window offers only the respawn at the entry.
+            player.SendCombatMode();
             player.SendTunneled(new EncounterShowRespawnWindowPacket { Milliseconds = CombatRules.PlayerRespawnSeconds * 1000 });
 
             if (battle.Knockouts >= battle.Definition.MaxKnockouts)
@@ -738,12 +810,23 @@ public sealed class BattleManager : IBattleManager, IDisposable
                 return;
             }
 
-            // Quitting a fight is losing it, for them.
-            if (battle.State is BattleState.Running or BattleState.Cleared && participant.Arrived)
-                player.SendTunneled(new EncounterPacketEncounterComplete { Won = false, ElapsedSeconds = (int)((Environment.TickCount64 - battle.StartedAt) / 1000) });
-
-            Leave(battle, participant);
+            GiveUp(battle, participant);
         }
+    }
+
+    private void GiveUp(Battle battle, BattleParticipant participant)
+    {
+        var player = participant.Player;
+
+        // Quitting a fight is losing it, for them.
+        if (battle.State is BattleState.Running or BattleState.Cleared && participant.Arrived)
+        {
+            player.SendTunneled(new EncounterPacketEncounterComplete { Won = false, ElapsedSeconds = (int)((Environment.TickCount64 - battle.StartedAt) / 1000) });
+
+            _logger.LogInformation("{player} left battle {encounter:X} ({name}) before it was won.", player.Name.FullName, battle.Id, battle.Definition.Comment);
+        }
+
+        Leave(battle, participant);
     }
 
     private void Leave(Battle battle, BattleParticipant participant)
@@ -759,8 +842,23 @@ public sealed class BattleManager : IBattleManager, IDisposable
         if (battle.Boss is { } boss && !battle.BossDefeated && participant.BossBarShown)
             player.SendTunneled(new CombatPacketEnableBossDisplay { BossGuid = boss.Guid, Enable = false });
 
+        GiveJobBack(participant);
+
         if (ReferenceEquals(player.Zone, battle.Zone))
             SendBack(player, participant);
+    }
+
+    /// <summary>
+    /// The job the battle switched them out of, back, unless they've left the combat job it gave them since.
+    /// </summary>
+    private static void GiveJobBack(BattleParticipant participant)
+    {
+        var profileId = participant.PreviousProfileId;
+
+        participant.PreviousProfileId = 0;
+
+        if (profileId != 0 && participant.Player.IsInCombatJob)
+            participant.Player.ActivateProfile(profileId);
     }
 
     /// <summary>
@@ -789,8 +887,8 @@ public sealed class BattleManager : IBattleManager, IDisposable
     }
 
     /// <summary>
-    /// A player who logged off or teleported away mid-battle is out of it. Those who left through the Exit or the end
-    /// screen are already gone from it.
+    /// A player who teleported away mid-battle is out of it. Those who left through the Exit or the end screen, or
+    /// logged off, are already gone from it.
     /// </summary>
     private void OnDeparted(Battle battle, ulong playerGuid)
     {
@@ -801,6 +899,32 @@ public sealed class BattleManager : IBattleManager, IDisposable
         participant.Left = true;
         battle.Participants.Remove(playerGuid);
         _playerBattles.TryRemove(new KeyValuePair<ulong, Battle>(playerGuid, battle));
+
+        GiveJobBack(participant);
+    }
+
+    public void OnLogout(Player player)
+    {
+        if (!_playerBattles.TryGetValue(player.Guid, out var battle))
+            return;
+
+        lock (battle)
+        {
+            if (!battle.Participants.TryGetValue(player.Guid, out var participant))
+                return;
+
+            participant.Left = true;
+            battle.Participants.Remove(player.Guid);
+            _playerBattles.TryRemove(new KeyValuePair<ulong, Battle>(player.Guid, battle));
+
+            // Their own job is the one saved with them, not the battle's (the client's gone, so nothing's sent).
+            if (participant.PreviousProfileId != 0 && player.IsInCombatJob)
+                player.ActiveProfileId = participant.PreviousProfileId;
+
+            // Nobody's in the zone of a battle still on its start panel; any other closes on its next update.
+            if (battle.State == BattleState.Offered && battle.Participants.Count == 0)
+                Close(battle);
+        }
     }
 
     /// <summary>
@@ -823,6 +947,8 @@ public sealed class BattleManager : IBattleManager, IDisposable
                 participant.Player.SendTunneled(new EncounterPacketEncounterShutdown { EncounterId = battle.Id, ReplyId = BattleRules.ServerId });
             else if (!participant.Left && ReferenceEquals(participant.Player.Zone, battle.Zone))
                 Leave(battle, participant);
+
+            GiveJobBack(participant);
         }
 
         battle.Participants.Clear();

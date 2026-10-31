@@ -19,6 +19,7 @@ using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
 using Sanctuary.Game.Achievements;
+using Sanctuary.Game.Battles;
 using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Groups;
@@ -98,6 +99,7 @@ public class GatewayConnection : UdpConnection
 
         _serviceProvider.GetRequiredService<IGroupManager>().OnLogout(Player);
         _serviceProvider.GetRequiredService<ITradeManager>().OnLogout(Player);
+        _serviceProvider.GetRequiredService<IBattleManager>().OnLogout(Player);
 
         _loginClient.SendCharacterLogout(GuidHelper.GetPlayerId(Player.Guid));
 
