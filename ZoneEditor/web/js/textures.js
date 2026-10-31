@@ -12,9 +12,10 @@ export function initTextures(renderer) {
   anisotropy = renderer.capabilities.getMaxAnisotropy();
 }
 
-// srgb: colour data (diffuse, colour maps) rather than masks. Mesh UVs are Direct3D's with v negated. A DDS can't be
-// flipped on upload, so every texture (the PNG fallback too) is uploaded as it's stored and its v negated back: then a
-// mask, glow map or second layer sampled at the colour texture's UVs lines up with it whichever way each loaded.
+// srgb: colour data (diffuse, colour maps) rather than masks. Mesh UVs are Direct3D's, which the client's vertex
+// shaders pass on as they are (plus any scroll): v runs down from the image's top row, and wraps (most meshes store
+// it negated, in -1..0). Every texture (the PNG fallback too) is uploaded unflipped, top row first, so the UVs read
+// it as the client does, and a mask, glow map or second layer sampled at the colour texture's UVs lines up with it.
 export function loadTexture(name, { srgb = true } = {}) {
   const key = `${name.toLowerCase()}|${srgb}`;
   if (cache.has(key)) return cache.get(key);
@@ -24,7 +25,6 @@ export function loadTexture(name, { srgb = true } = {}) {
     texture.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     texture.anisotropy = anisotropy;
     texture.flipY = false;
-    texture.repeat.set(1, -1);
     if (texture.image) texture.needsUpdate = true;
     return texture;
   };

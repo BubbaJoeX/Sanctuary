@@ -37,6 +37,9 @@ from .world import World
 NAME = re.compile(r"^[a-z][a-z0-9_]{2,47}$")
 # Downloaded assets, the actor usage count and prop thumbnails; beside the editor, not in the checkout it saves to.
 CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache"
+# Prop thumbnails' folder in it, renamed when the viewport draws props differently so they render again (2: their
+# textures the right way up).
+THUMBNAILS = "thumbs2"
 CHUNK_STEP = CHUNK_TILES                       # chunk names step 4 tiles in row and col
 # What the editor changes in a zone definition; the rest of the file is left as it is.
 DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky",
@@ -360,7 +363,7 @@ class Workspace:
             self._usage = usage
 
     def thumbnail(self, actor: str) -> bytes:
-        path = self.cache_dir / "thumbs" / (actor.lower() + ".png")
+        path = self.cache_dir / THUMBNAILS / (actor.lower() + ".png")
         if not path.exists():
             raise KeyError(actor)
         return path.read_bytes()
@@ -368,7 +371,7 @@ class Workspace:
     def save_thumbnail(self, actor: str, png: bytes):
         if not re.fullmatch(r"[\w.\-]+\.a[dg]r", actor, re.IGNORECASE) or png[:8] != b"\x89PNG\r\n\x1a\n":
             raise ValueError("not an actor thumbnail")
-        path = self.cache_dir / "thumbs" / (actor.lower() + ".png")
+        path = self.cache_dir / THUMBNAILS / (actor.lower() + ".png")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(png)
 
