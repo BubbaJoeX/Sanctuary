@@ -12,6 +12,7 @@ using Sanctuary.Core.Configuration;
 using Sanctuary.Core.Extensions;
 using Sanctuary.Database;
 using Sanctuary.Game;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Battles;
 using Sanctuary.Game.Challenges;
@@ -126,6 +127,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<ITradeManager, TradeManager>();
     serviceCollection.AddSingleton<IChallengeManager, ChallengeManager>();
     serviceCollection.AddSingleton<IBattleManager, BattleManager>();
+    serviceCollection.AddSingleton<IAchievementManager, AchievementManager>();
     serviceCollection.AddSingleton<IHousingManager, HousingManager>();
     serviceCollection.AddSingleton<IServerSettings, ServerSettings>();
     serviceCollection.AddSingleton<IWorldEventManager, WorldEventManager>();

@@ -18,6 +18,7 @@ using Sanctuary.Core.IO;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
@@ -496,6 +497,9 @@ public class GatewayConnection : UdpConnection
 
         Player.VipRank = dbCharacter.VipRank;
 
+        // After the jobs, pets and rides: what the player already has counts toward achievements.
+        _serviceProvider.GetRequiredService<IAchievementManager>().Load(Player, dbCharacter.Achievements);
+
         // End ClientPcData
 
         Player.ChatBubbleForegroundColor = dbCharacter.ChatBubbleForegroundColor;
@@ -716,6 +720,9 @@ public class GatewayConnection : UdpConnection
             Player.Guid, ownedItemDefinitionIds, collectedEntryIds);
 
         Player.QuestData = _serviceProvider.GetRequiredService<IQuestManager>().GetClientQuestData(Player);
+
+        Player.ClientAchievements = _serviceProvider.GetRequiredService<IAchievementManager>().GetStarted(Player, out var achievementPoints);
+        Player.AchievementPoints = achievementPoints;
 
         var packetSendSelfToClient = new PacketSendSelfToClient();
 

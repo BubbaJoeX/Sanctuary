@@ -13,6 +13,7 @@ using Sanctuary.Core.Helpers;
 using Sanctuary.Core.IO;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
@@ -176,6 +177,20 @@ public sealed partial class HousingZone : BaseZone
         SendHouseData(player);
 
         _housingManager.SendPlayerHouses(player, player.Guid, null);
+
+        if (IsOwner(player))
+        {
+            int fixtureCount;
+
+            lock (_houseLock)
+                fixtureCount = _fixtures.Count;
+
+            player.Achievements.Record(AchievementEvent.HouseItems, 0, fixtureCount);
+        }
+        else
+        {
+            player.Achievements.Record(AchievementEvent.HouseVisit);
+        }
     }
 
     public bool IsOwner(Player player) => player.Guid == OwnerGuid;
@@ -656,6 +671,8 @@ public sealed partial class HousingZone : BaseZone
             player.SendTunneled(GetFixtureItemList(player));
 
             BroadcastHouseInfo();
+
+            player.Achievements.Record(AchievementEvent.HouseItems, 0, _fixtures.Count);
         }
     }
 

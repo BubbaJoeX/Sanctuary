@@ -63,6 +63,7 @@ public sealed class DbCharacterConfiguration : IEntityTypeConfiguration<DbCharac
 
         builder.PrimitiveCollection(c => c.FirstTimeEvents).IsRequired(false);
         builder.PrimitiveCollection(c => c.MiniGameTutorials).IsRequired(false);
+        builder.PrimitiveCollection(c => c.Recipes).IsRequired(false);
 
         builder.Property(c => c.Created).IsRequired().HasDefaultValueSql("NOW()");
         builder.Property(c => c.LastLogin).IsRequired(false);
@@ -75,6 +76,11 @@ public sealed class DbCharacterConfiguration : IEntityTypeConfiguration<DbCharac
         builder.HasMany(c => c.Items)
             .WithOne(i => i.Character)
             .HasForeignKey(i => i.CharacterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(c => c.Achievements)
+            .WithOne(a => a.Character)
+            .HasForeignKey(a => a.CharacterId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(c => c.Titles)

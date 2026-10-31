@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Game;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
@@ -183,6 +184,8 @@ public static class InventoryPacketUseStyleCardHandler
         });
 
         connection.Player.SendTunneledToVisible(playerUpdatePacketCustomizationChange, true);
+
+        connection.Player.Achievements.Record(AchievementEvent.StyleCard);
 
         if (deleteItem)
         {

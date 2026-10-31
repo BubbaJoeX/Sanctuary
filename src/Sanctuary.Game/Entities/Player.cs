@@ -15,6 +15,7 @@ using Sanctuary.Core.Extensions;
 using Sanctuary.Core.IO;
 using Sanctuary.Core.Helpers;
 using Sanctuary.Game;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.ChatCommands;
 using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Groups;
@@ -176,6 +177,8 @@ public sealed class Player : ClientPcData, IEntity
 
 
     public ulong CharacterId { get; set; }
+
+    public PlayerAchievements Achievements { get; } = new();
 
     public QuestLog Quests { get; } = new();
 
@@ -1854,7 +1857,12 @@ public sealed class Player : ClientPcData, IEntity
         SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
     }
 
-    public void OnKilled(Npc mob) => MarkInCombat();
+    public void OnKilled(Npc mob)
+    {
+        MarkInCombat();
+
+        Achievements.RecordKill(mob);
+    }
 
     /// <summary>
     /// Damage from a mob, after DamageReductionPercent. Returns what was taken. Referees in god mode take none.
@@ -2119,6 +2127,8 @@ public sealed class Player : ClientPcData, IEntity
 
         if (!rankedUp)
             return;
+
+        Achievements.Record(AchievementEvent.JobRank, profile.Id, profile.Rank);
 
         SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect
         {

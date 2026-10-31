@@ -181,6 +181,9 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Property<float?>("PositionZ")
                         .HasColumnType("float");
 
+                    b.PrimitiveCollection<string>("Recipes")
+                        .HasColumnType("longtext");
+
                     b.Property<float?>("RotationX")
                         .HasColumnType("float");
 
@@ -213,6 +216,47 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterAchievement", b =>
+                {
+                    b.Property<ulong>("CharacterId")
+                        .HasColumnType("bigint unsigned");
+
+                    b.Property<int>("AchievementId")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("Finished")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Started")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("CharacterId", "AchievementId");
+
+                    b.ToTable("CharacterAchievements");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterAchievementObjective", b =>
+                {
+                    b.Property<ulong>("CharacterId")
+                        .HasColumnType("bigint unsigned");
+
+                    b.Property<int>("AchievementId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ObjectiveId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.HasKey("CharacterId", "AchievementId", "ObjectiveId");
+
+                    b.ToTable("CharacterAchievementObjectives");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterQuest", b =>
@@ -1243,6 +1287,28 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterAchievement", b =>
+                {
+                    b.HasOne("Sanctuary.Database.Entities.DbCharacter", "Character")
+                        .WithMany("Achievements")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterAchievementObjective", b =>
+                {
+                    b.HasOne("Sanctuary.Database.Entities.DbCharacterAchievement", "Achievement")
+                        .WithMany("Objectives")
+                        .HasForeignKey("CharacterId", "AchievementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Achievement");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterQuest", b =>
                 {
                     b.HasOne("Sanctuary.Database.Entities.DbCharacter", "Character")
@@ -1404,6 +1470,8 @@ namespace Sanctuary.Database.MySql.Migrations
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacter", b =>
                 {
+                    b.Navigation("Achievements");
+
                     b.Navigation("CollectionEntries");
 
                     b.Navigation("Friends");
@@ -1423,6 +1491,11 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Navigation("Quests");
 
                     b.Navigation("Titles");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterAchievement", b =>
+                {
+                    b.Navigation("Objectives");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterQuest", b =>

@@ -39,6 +39,7 @@ public interface IResourceManager
     FishingCollection Fishing { get; }
     ChallengeDefinitionCollection Challenges { get; }
     BattleDefinitionCollection Battles { get; }
+    AchievementDefinitionCollection Achievements { get; }
     ZoneEnvironmentCollection ZoneEnvironments { get; }
     MountDefinitionCollection Mounts { get; }
     PetDefinitionCollection Pets { get; }

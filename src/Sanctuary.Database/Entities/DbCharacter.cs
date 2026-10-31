@@ -65,6 +65,11 @@ public class DbCharacter
     /// </summary>
     public List<int>? MiniGameTutorials { get; set; }
 
+    /// <summary>
+    /// The Recipes.json ids this character knows.
+    /// </summary>
+    public List<int>? Recipes { get; set; }
+
     public DateTimeOffset Created { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? LastLogin { get; set; }
 
@@ -84,6 +89,7 @@ public class DbCharacter
     public ICollection<DbIgnore> Ignores { get; set; } = new HashSet<DbIgnore>();
     public ICollection<DbProfile> Profiles { get; set; } = new HashSet<DbProfile>();
     public ICollection<DbCharacterQuest> Quests { get; set; } = new HashSet<DbCharacterQuest>();
+    public ICollection<DbCharacterAchievement> Achievements { get; set; } = new HashSet<DbCharacterAchievement>();
 
     public ulong UserId { get; set; }
     public DbUser User { get; set; } = null!;

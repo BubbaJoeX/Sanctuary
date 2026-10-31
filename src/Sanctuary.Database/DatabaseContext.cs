@@ -32,6 +32,8 @@ public abstract class DatabaseContext : DbContext
     public DbSet<DbRefereePick> RefereePicks => Set<DbRefereePick>();
     public DbSet<DbCharacterQuest> CharacterQuests => Set<DbCharacterQuest>();
     public DbSet<DbCharacterQuestProgress> CharacterQuestProgress => Set<DbCharacterQuestProgress>();
+    public DbSet<DbCharacterAchievement> CharacterAchievements => Set<DbCharacterAchievement>();
+    public DbSet<DbCharacterAchievementObjective> CharacterAchievementObjectives => Set<DbCharacterAchievementObjective>();
 
     public DatabaseContext()
     {

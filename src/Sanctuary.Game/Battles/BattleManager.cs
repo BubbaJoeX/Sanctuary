@@ -9,7 +9,9 @@ using Microsoft.Extensions.Logging;
 
 using Sanctuary.Core.Extensions;
 using Sanctuary.Core.IO;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Entities;
+using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
 using Sanctuary.Game.Minigames;
@@ -610,6 +612,7 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
         var elapsedSeconds = (int)((Environment.TickCount64 - battle.StartedAt) / 1000);
         var (stars, coins) = BattleRules.Payout(battle.Definition, won, battle.Defeated, battle.Total);
+        var fullGroup = battle.Participants.Values.Count(participant => participant.Entered && !participant.Left) >= PlayerGroup.MaxMembers;
 
         foreach (var participant in battle.Participants.Values)
         {
@@ -637,6 +640,14 @@ public sealed class BattleManager : IBattleManager, IDisposable
             if (won && !string.IsNullOrWhiteSpace(battle.Definition.RewardTable)
                 && _rewardManager.TryRollReward(battle.Definition.RewardTable, out var drop) && drop is not null)
                 _rewardManager.TryGrantReward(player, drop, battle.Exit?.Guid ?? 0);
+
+            if (won)
+            {
+                player.Achievements.Record(AchievementEvent.Battle, battle.Definition.Id);
+
+                if (fullGroup)
+                    player.Achievements.Record(AchievementEvent.BattleFullGroup, battle.Definition.Id);
+            }
 
             if (tookTooLong)
                 ChatHelper.SendSystemMessage(player, "You ran out of time.");

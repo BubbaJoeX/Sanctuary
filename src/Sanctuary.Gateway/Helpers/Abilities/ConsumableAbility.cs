@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Game;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
@@ -71,6 +72,8 @@ public abstract class ConsumableAbility(AbilityServices services)
 
         if (dbContext.SaveChanges() <= 0)
             return SendFailure(player);
+
+        player.Achievements.Record(AchievementEvent.Consumable);
 
         if (shouldDeleteItem)
         {

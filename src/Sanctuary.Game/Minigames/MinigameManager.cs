@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Battles;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
@@ -330,6 +331,11 @@ public static class MinigameManager
 
         if (stars > 0)
             _rewardManager.TryGrantExperience(player, stars, definition.ProfileId);
+
+        player.Achievements.Record(AchievementEvent.Minigame, definition.Id);
+
+        if (won)
+            player.Achievements.Record(AchievementEvent.MinigameWin, definition.Id);
 
         var items = new List<string>();
 
