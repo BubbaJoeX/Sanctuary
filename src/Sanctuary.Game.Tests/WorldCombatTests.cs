@@ -389,6 +389,22 @@ public sealed class WorldCombatTests
     }
 
     [TestMethod]
+    public void HostileNpcs_GoOutRedAndClickable()
+    {
+        // As live sent its Bandit Patrolmen: a red name and interactable, which is what makes a mob red and lets a
+        // click select it; anyone else keeps the client's own colour.
+        var mob = new Npc(null!) { Name = "Wolf", Disposition = Npc.HostileDisposition }.GetAddNpcPacket();
+
+        Assert.AreEqual(unchecked((int)0xFFFF0000), mob.NameColor);
+        Assert.IsTrue(mob.IsInteractable);
+
+        var villager = new Npc(null!) { Name = "Pappy Farnum" }.GetAddNpcPacket();
+
+        Assert.AreEqual(0, villager.NameColor);
+        Assert.IsFalse(villager.IsInteractable);
+    }
+
+    [TestMethod]
     public void CombatModePackets_MatchTheClient()
     {
         // BaseEncounterPacket 41, the client's sub-opcodes 132 (in a combat area) and 133 (fighting), the two header

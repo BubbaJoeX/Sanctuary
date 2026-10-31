@@ -26,7 +26,7 @@ public static class BattleRules
     public const int OverworldReviveCost = 100;
 
     /// <summary>
-    /// How far behind the entry the Exit that's up from the start stands.
+    /// How far beside the entry the Exit that's up from the start stands.
     /// </summary>
     public const float EntryExitDistance = 4f;
 
@@ -66,8 +66,8 @@ public static class BattleRules
     }
 
     /// <summary>
-    /// Where the Exit that's up from the start stands: <see cref="EntryExitDistance"/> behind the entry, or (with
-    /// the entry's back to a wall) behind and to one side, or to one side, wherever the ground goes furthest.
+    /// Where the Exit that's up from the start stands: <see cref="EntryExitDistance"/> to the right of the entry, or
+    /// its left, or failing those wherever the ground goes furthest. Not behind, where the camera starts.
     /// <paramref name="walk"/> walks straight from the entry towards a spot and says where the ground stops it.
     /// </summary>
     public static Vector3 EntryExitPosition(Vector3 entry, float entryHeading, Func<Vector3, Vector3, Vector3> walk)
@@ -78,7 +78,14 @@ public static class BattleRules
         var best = entry;
         var bestDistance = 0f;
 
-        foreach (var direction in (ReadOnlySpan<Vector3>)[-forward, Vector3.Normalize(right - forward), Vector3.Normalize(-right - forward), right, -right])
+        ReadOnlySpan<Vector3> directions =
+        [
+            right, -right,
+            Vector3.Normalize(right + forward), Vector3.Normalize(-right + forward),
+            Vector3.Normalize(right - forward), Vector3.Normalize(-right - forward)
+        ];
+
+        foreach (var direction in directions)
         {
             var end = walk(entry, entry + direction * EntryExitDistance);
             var distance = Vector2.Distance(new Vector2(end.X, end.Z), new Vector2(entry.X, entry.Z));
