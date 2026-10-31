@@ -21,7 +21,7 @@ public sealed partial class WorldZone
 
     /// <summary>
     /// A game's driver or player: an NPC that only stands where the game puts it, shown with the game's character
-    /// state bit.
+    /// state bit, and kept in its players' view however far it goes.
     /// </summary>
     public bool TrySpawnArenaNpc(NpcDefinition definition, Vector4 position, float heading, int characterState, [MaybeNullWhen(false)] out Npc npc)
     {
@@ -30,6 +30,7 @@ public sealed partial class WorldZone
 
         npc.Disposition = 1;
         npc.CharacterState = characterState;
+        npc.StaysInView = true;
 
         var rotation = QuaternionExtensions.FromHeading(heading);
 

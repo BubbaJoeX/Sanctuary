@@ -18,6 +18,7 @@ using Sanctuary.Game.Resources;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Game.VehicleGames.Derby;
+using Sanctuary.Game.VehicleGames.Race;
 using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
@@ -159,6 +160,7 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
             match = stage.Kind switch
             {
                 VehicleGameKind.Derby => new DerbyMatch(id, stage, worldZone, this, logger),
+                VehicleGameKind.Race => new RaceMatch(id, stage, worldZone, this, logger),
                 _ => throw new NotSupportedException($"{stage.Kind} isn't run yet.")
             };
         }

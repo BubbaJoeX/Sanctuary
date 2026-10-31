@@ -252,6 +252,7 @@
       "MineExplosionEffectId": 16634,
       "PlayerVehicle": "kt_kart08",
       "PlayerSlot": 0,
+      "CentrelineSlot": 7,
       "Grid": [
         {
           "Slot": 0,

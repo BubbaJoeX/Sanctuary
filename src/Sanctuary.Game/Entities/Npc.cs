@@ -382,6 +382,12 @@ public class Npc : IScriptableNpc, IEntity
     /// </summary>
     public int CharacterState { get; set; } = 1;
 
+    /// <summary>
+    /// Once a player sees it, they keep seeing it however far it goes (until it's gone): a kart race's drivers
+    /// race round a track far bigger than the view, and the client keeps every kart in the race.
+    /// </summary>
+    public bool StaysInView { get; set; }
+
     private long _nextPositionSendAllowedAt;
     private byte _lastSentPositionState;
 

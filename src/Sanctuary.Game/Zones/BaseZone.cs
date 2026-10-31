@@ -1479,6 +1479,9 @@ public abstract class BaseZone : IZone, IDisposable
                 {
                     case Npc zoneTileNpc:
                         {
+                            if (entity is Player viewer && IsKeptInView(viewer, zoneTileNpc))
+                                continue;
+
                             npcsToAdd.Add(zoneTileNpc);
 
                             if (entity.Visible)
@@ -1498,6 +1501,9 @@ public abstract class BaseZone : IZone, IDisposable
 
                     case Player zoneTilePlayer:
                         {
+                            if (entity is Npc seen && IsKeptInView(zoneTilePlayer, seen))
+                                continue;
+
                             playersToAdd.Add(zoneTilePlayer);
 
                             if (entity.Visible)
@@ -1541,6 +1547,10 @@ public abstract class BaseZone : IZone, IDisposable
                 {
                     case Npc zoneTileNpc:
                         {
+                            // A 3D game's driver stays in its players' view however far it drives.
+                            if (zoneTileNpc.StaysInView && entity is Player)
+                                continue;
+
                             npcsToRemove.Add(zoneTileNpc);
 
                             if (entity.Visible)
@@ -1560,6 +1570,9 @@ public abstract class BaseZone : IZone, IDisposable
 
                     case Player zoneTilePlayer:
                         {
+                            if (entity is Npc { StaysInView: true })
+                                continue;
+
                             playersToRemove.Add(zoneTilePlayer);
 
                             if (entity.Visible)
@@ -1589,6 +1602,11 @@ public abstract class BaseZone : IZone, IDisposable
         entity.OnRemoveVisibleNpcs(npcsToRemove);
         entity.OnRemoveVisiblePlayers(playersToRemove);
     }
+
+    /// <summary>
+    /// An NPC that never left the player's view (see <see cref="Npc.StaysInView"/>) isn't shown to them again.
+    /// </summary>
+    private static bool IsKeptInView(Player player, Npc npc) => npc.StaysInView && player.VisibleNpcs.ContainsKey(npc.Guid);
 
     #endregion
 

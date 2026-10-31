@@ -207,6 +207,12 @@ public sealed class RaceTrackDefinition
 
     public int PlayerSlot { get; set; }
 
+    /// <summary>
+    /// The driver whose line, a lap and a bit from the grid, makes the track's centre line: places and distances
+    /// to the finish are measured along it.
+    /// </summary>
+    public int CentrelineSlot { get; set; }
+
     public List<RaceGridSlotDefinition> Grid { get; set; } = [];
 
     public List<RaceDriverDefinition> Drivers { get; set; } = [];

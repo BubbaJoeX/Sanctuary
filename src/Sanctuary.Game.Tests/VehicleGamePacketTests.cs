@@ -185,7 +185,27 @@ public class VehicleGamePacketTests
 
         Assert.IsNotNull(directory, "src/Sanctuary.Game.Tests/VehicleGameCaptures.json not found above the test output.");
 
-        return _captures = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(
-            File.ReadAllText(Path.Combine(directory.FullName, "Sanctuary.Game.Tests", "VehicleGameCaptures.json")))!;
+        Document = JsonDocument.Parse(File.ReadAllText(Path.Combine(directory.FullName, "Sanctuary.Game.Tests", "VehicleGameCaptures.json")));
+
+        // The three games' packets by "direction sub"; the file holds replays besides.
+        return _captures = new[] { "derby", "race", "soccer" }.ToDictionary(game => game,
+            game => Document.RootElement.GetProperty(game).Deserialize<Dictionary<string, List<string>>>()!);
     }
+
+    /// <summary>
+    /// The whole captures file, for the replays in it.
+    /// </summary>
+    internal static JsonDocument Document
+    {
+        get
+        {
+            if (_document is null)
+                Captures();
+
+            return _document!;
+        }
+        private set => _document = value;
+    }
+
+    private static JsonDocument? _document;
 }
