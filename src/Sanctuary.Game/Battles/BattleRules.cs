@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 using Sanctuary.Game.Resources.Definitions;
 
@@ -23,6 +24,11 @@ public static class BattleRules
     /// "Revive here" outside a battle.
     /// </summary>
     public const int OverworldReviveCost = 100;
+
+    /// <summary>
+    /// How far behind the entry the Exit that's up from the start stands.
+    /// </summary>
+    public const float EntryExitDistance = 4f;
 
     /// <summary>
     /// The encounter id: the instance number in the high 16 bits over the battle's id, as live.
@@ -57,5 +63,36 @@ public static class BattleRules
         var share = Math.Clamp((float)defeated / total, 0f, 1f) * LossStarShare;
 
         return ((int)MathF.Round(battle.Stars * share), 0);
+    }
+
+    /// <summary>
+    /// Where the Exit that's up from the start stands: <see cref="EntryExitDistance"/> behind the entry, or (with
+    /// the entry's back to a wall) behind and to one side, or to one side, wherever the ground goes furthest.
+    /// <paramref name="walk"/> walks straight from the entry towards a spot and says where the ground stops it.
+    /// </summary>
+    public static Vector3 EntryExitPosition(Vector3 entry, float entryHeading, Func<Vector3, Vector3, Vector3> walk)
+    {
+        var forward = new Vector3(MathF.Sin(entryHeading), 0f, MathF.Cos(entryHeading));
+        var right = new Vector3(forward.Z, 0f, -forward.X);
+
+        var best = entry;
+        var bestDistance = 0f;
+
+        foreach (var direction in (ReadOnlySpan<Vector3>)[-forward, Vector3.Normalize(right - forward), Vector3.Normalize(-right - forward), right, -right])
+        {
+            var end = walk(entry, entry + direction * EntryExitDistance);
+            var distance = Vector2.Distance(new Vector2(end.X, end.Z), new Vector2(entry.X, entry.Z));
+
+            if (distance >= EntryExitDistance - 0.5f)
+                return end;
+
+            if (distance > bestDistance)
+            {
+                best = end;
+                bestDistance = distance;
+            }
+        }
+
+        return best;
     }
 }

@@ -55,6 +55,27 @@ public sealed class BattleTests
     }
 
     [TestMethod]
+    public void EntryExit_StandsBehindTheEntryOrBesideItAgainstAWall()
+    {
+        var entry = new Vector3(10f, 2f, 20f);
+
+        // Facing +Z, with room all round: straight behind.
+        var open = BattleRules.EntryExitPosition(entry, 0f, (start, goal) => goal);
+
+        Assert.AreEqual(entry.X, open.X, 0.01f);
+        Assert.AreEqual(entry.Z - BattleRules.EntryExitDistance, open.Z, 0.01f);
+
+        // A wall a metre behind: back and to one side would hit it too, so off to the side.
+        static Vector3 WallBehind(Vector3 start, Vector3 goal) =>
+            goal.Z >= start.Z - 1f ? goal : Vector3.Lerp(start, goal, 1f / (start.Z - goal.Z));
+
+        var walled = BattleRules.EntryExitPosition(entry, 0f, WallBehind);
+
+        Assert.AreEqual(entry.Z, walled.Z, 0.01f);
+        Assert.AreEqual(BattleRules.EntryExitDistance, MathF.Abs(walled.X - entry.X), 0.01f);
+    }
+
+    [TestMethod]
     public void Battles_LoadAndPointAtRealData()
     {
         var resources = FindSourceResources();
@@ -184,6 +205,18 @@ public sealed class BattleTests
                 Assert.IsTrue(Vector2.Distance(new Vector2(end.X, end.Z), new Vector2(goal.X, goal.Z)) < 2.5f,
                     $"Battle {battle.Id} ({battle.Comment}): {goal} can't be reached from the entry (the way ends at {end}).");
             }
+
+            // The Exit that's up from the start stands clear of the entry, on ground the players can walk to.
+            var entryExit = BattleRules.EntryExitPosition(entry, battle.EntryHeading, (start, goal) =>
+            {
+                pathfinder.TryWalkStraight(start, goal, out var end);
+                return end;
+            });
+
+            Assert.IsTrue(Vector2.Distance(new Vector2(entryExit.X, entryExit.Z), new Vector2(entry.X, entry.Z)) >= 2f,
+                $"Battle {battle.Id} ({battle.Comment}): no room behind or beside the entry for its Exit (only {entryExit}).");
+            Assert.IsTrue(zone.Terrain.TryGetGroundHeight(entryExit.X, entryExit.Z, entryExit.Y + 1f, 3f, out _),
+                $"Battle {battle.Id} ({battle.Comment}): its entry's Exit at {entryExit} has no ground under it.");
 
             // A dungeon's players, enemies and Exit stand on the ground: not over it, not in it. (A random encounter's
             // enemies keep the spots the live servers sent.)

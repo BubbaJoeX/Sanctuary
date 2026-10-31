@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
@@ -14,6 +15,9 @@ namespace Sanctuary.Game.Zones;
 /// </summary>
 public sealed partial class WorldZone
 {
+    // The cursor the live servers gave a battle's enemies (the wolves of Frostfang Growler!).
+    private const byte EnemyCursorId = 11;
+
     /// <summary>
     /// The battle this copy of the zone is for; null for a zone everyone shares.
     /// </summary>
@@ -33,9 +37,19 @@ public sealed partial class WorldZone
         if (!TryCreateNpc(null, definition, out enemy))
             return false;
 
-        // Hostile before it's placed: players see it as it was when it came into view.
+        // Hostile and clickable before it's placed: players see it as it was when it came into view. Live gave each
+        // enemy the attack cursor, whatever it was out in the world.
         enemy.Disposition = Npc.HostileDisposition;
+        enemy.HasCursor = true;
+        enemy.CursorId = EnemyCursorId;
+        enemy.RelevanceUnknown2 = true;
         enemy.MobKey = mobKey;
+
+        // Fought, not talked to: anything its definition does when clicked out in the world would make it clickable
+        // instead of a target.
+        enemy.InteractAction = null;
+        enemy.InteractionList = null;
+        enemy.OpensAtlas = false;
 
         SyncCombat(enemy);
 
@@ -54,14 +68,19 @@ public sealed partial class WorldZone
     }
 
     /// <summary>
-    /// Something that just stands there (the Exit, a pick-up).
+    /// Something that just stands there and does <paramref name="onInteract"/> when clicked (the Exit, a pick-up).
     /// </summary>
-    public bool TrySpawnBattleProp(NpcDefinition definition, Vector4 position, float heading, [MaybeNullWhen(false)] out Npc prop)
+    public bool TrySpawnBattleProp(NpcDefinition definition, Vector4 position, float heading, Action<Player> onInteract, [MaybeNullWhen(false)] out Npc prop)
     {
         if (!TryCreateNpc(null, definition, out prop))
             return false;
 
         prop.Disposition = 1;
+
+        // Clickable before it's placed, so players see the prompt as it comes into view. The click goes to it rather
+        // than the definition's own list (the live Exit's interaction 4490, which nothing here answers).
+        prop.InteractionList = null;
+        prop.InteractAction = onInteract;
 
         Place(prop, position, heading);
 

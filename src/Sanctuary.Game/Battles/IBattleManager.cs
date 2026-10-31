@@ -45,5 +45,10 @@ public interface IBattleManager
 
     void OnPlayerLeft(Player player, WorldZone zone);
 
+    /// <summary>
+    /// A player logging out (before they're saved) is out of any battle they're in, with the job they had before it.
+    /// </summary>
+    void OnLogout(Player player);
+
     void OnKnockedOut(Player player);
 }

@@ -1875,8 +1875,19 @@ public sealed class Player : ClientPcData, IEntity
     /// </summary>
     public void SendCombatMode()
     {
-        // A battle's or a 3D game's own zone isn't the overworld: its rules come with EncounterDataCommon instead.
-        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = Zone is not (WorldZone { Battle: not null } or WorldZone { Arena: not null }) });
+        var inWorldCombat = Zone switch
+        {
+            // A 3D game's own zone isn't the overworld: its rules come with EncounterDataCommon instead.
+            WorldZone { Arena: not null } => false,
+
+            // A battle's has its rules besides, and is the overworld for its enemies' sake, except to a knocked out
+            // player, whose window then offers only the respawn an instance has.
+            WorldZone { Battle: not null } => !IsDead,
+
+            _ => true
+        };
+
+        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = inWorldCombat });
         SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
     }
 
@@ -1988,6 +1999,10 @@ public sealed class Player : ClientPcData, IEntity
         SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(IdleCharacterState) }, true);
 
         _lastCombatAt = long.MinValue;
+
+        // A battle took the combat mode away for the knocked out window.
+        if (battle is not null)
+            SendCombatMode();
     }
 
     /// <summary>
@@ -2014,6 +2029,9 @@ public sealed class Player : ClientPcData, IEntity
             CurrentHitpoints = _hitpoints,
             Delta = _hitpoints
         }, true);
+
+        if (Zone is WorldZone { Battle: not null })
+            SendCombatMode();
 
         return true;
     }

@@ -1,5 +1,10 @@
 [
   {
+    "Title": "Battles, patched up",
+    "Text": "Battle enemies have red nameplates again and you can target them, and the Exit works: once the goal's done, go through it for the end screen and your rewards. Had enough? Another Exit stands just behind where you come in, so you can give up and head back at any time. And if a battle switched you into your combat job, you get your own job back when you leave, even if you log out inside it.",
+    "Icon": "trophy"
+  },
+  {
     "Title": "Bring your friends",
     "Text": "Kart races, demo derbies and soccer matches take more than one player now. Start one with your group and they're asked along: everyone who joins gets a place, and the AI drive the rest. Or pick Kart Race Lobby, Demo Derby Lobby or Game Lobby at the kiosks and the soccer gates, press Quick Play, and play with whoever else is in line.",
     "Icon": "friends"

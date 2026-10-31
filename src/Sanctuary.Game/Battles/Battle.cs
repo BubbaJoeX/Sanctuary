@@ -77,6 +77,12 @@ public sealed class Battle(int id, BattleDefinition definition, WorldZone zone)
 
     public Npc? Exit { get; set; }
 
+    /// <summary>
+    /// The Exit behind the entry, up from the start: the way out before the goal's done (giving the battle up), and
+    /// after it, as the other Exit is.
+    /// </summary>
+    public Npc? EntryExit { get; set; }
+
     public bool Won { get; set; }
 
     public Vector4 EntryPosition => new(Definition.Entry[0], Definition.Entry[1], Definition.Entry[2], 1f);
@@ -96,6 +102,11 @@ public sealed class BattleParticipant(Player player)
     public bool Left { get; set; }
 
     public bool BossBarShown { get; set; }
+
+    /// <summary>
+    /// The job the battle switched them out of for a combat job (0 if it didn't), given back as they leave.
+    /// </summary>
+    public int PreviousProfileId { get; set; }
 
     /// <summary>
     /// Where they were when they went in, to go back to.
