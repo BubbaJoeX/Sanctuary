@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -80,6 +81,44 @@ public class ScriptingTests
             }
         }
         Assert.IsTrue(allSucceeded, "One or more NPC scripts failed to load.");
+    }
+
+    [TestMethod]
+    public async Task ZoneEvents_PassThePlayerAndValues()
+    {
+        var mockZone = new MockScriptZone(_logger);
+        _scriptManager.GetOrCreateContext(mockZone, out var context);
+
+        var scriptPath = Path.Combine(Path.GetTempPath(), $"zone-events-{Guid.NewGuid():N}.lua");
+        await File.WriteAllTextAsync(scriptPath, """
+            registerCallback("battleEnd", function(zone, player, battleId, won)
+                player:message(zone.name .. " " .. battleId .. " " .. tostring(won))
+            end)
+            registerCallback("fishCaught", function(zone, player, kind, itemId)
+                player:message(kind .. " " .. itemId)
+            end)
+            """);
+
+        try
+        {
+            Assert.IsTrue(await context.LoadScriptAsync(scriptPath));
+            Assert.IsTrue(context.HasCallbacks("battleEnd"));
+            Assert.IsFalse(context.HasCallbacks("questComplete"));
+
+            var player = new ScriptSandboxTests.MockScriptPlayer();
+            context.FireEvent("battleEnd", player, 12, true);
+            context.FireEvent("fishCaught", player, "fish", 3012);
+
+            // The callbacks run in the background, one at a time.
+            for (var waited = 0; player.Messages.Count < 2 && waited < 5000; waited += 20)
+                await Task.Delay(20);
+
+            CollectionAssert.AreEquivalent(new[] { $"{mockZone.Name} 12 true", "fish 3012" }, player.Messages);
+        }
+        finally
+        {
+            File.Delete(scriptPath);
+        }
     }
 
     [TestCleanup]

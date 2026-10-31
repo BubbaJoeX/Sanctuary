@@ -722,6 +722,8 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
             if (tookTooLong)
                 ChatHelper.SendSystemMessage(player, "You ran out of time.");
+
+            player.Zone?.FirePlayerEvent("battleEnd", player, battle.Definition.Id, won);
         }
 
         _logger.LogInformation("Battle {encounter:X} ({name}) {result} after {seconds}s: {defeated}/{total} defeated, {knockouts} knock out(s), {stars} stars, {coins} coins each.",

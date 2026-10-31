@@ -389,6 +389,7 @@ public static class MinigameManager
             player.Achievements.Record(AchievementEvent.MinigameWin, definition.Id);
 
         player.Quests.Record(new MinigameFinishedEvent(definition.Id, won));
+        player.Zone?.FirePlayerEvent("minigameEnd", player, definition.Id, won);
 
         var items = new List<string>();
         string? craftHint = null;

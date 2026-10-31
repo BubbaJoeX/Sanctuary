@@ -345,9 +345,11 @@ export class TerrainChunk {
 
   updateEnvironmentTexture() {
     // Texel (row = tile x, column = tile z) like the colour map; tiles are numbered z-major.
+    const tint = this.manager.tileTint;
     for (let t = 0; t < 16; t++) {
       const tz = Math.floor(t / 4), tx = t % 4;
-      const [r, g, b] = environmentColour(this.tiles[t]?.environment ?? 0);
+      const environment = this.tiles[t]?.environment ?? 0;
+      const [r, g, b] = tint?.(this.x0 + (tx + 0.5) * TILE, this.z0 + (tz + 0.5) * TILE, environment) ?? environmentColour(environment);
       this.envPixels.set([r, g, b, 255], (tx * 4 + tz) * 4);
     }
     this.envTexture.needsUpdate = true;
@@ -375,6 +377,7 @@ export class TerrainManager {
     this.selectedEco = null;
     this.anisotropy = 1;
     this.falloff = "smooth";       // FALLOFFS: the brushes' shape
+    this.tileTint = null;          // (x, z, environment) -> rgb: what the tile overlay shows instead of environments
     this.details = new Map();      // eco index -> { texture, period }
     this.uniforms = {
       ecoOverlay: { value: 0 },
@@ -384,6 +387,14 @@ export class TerrainManager {
       brush: { value: new THREE.Vector3(0, 0, 0) },
       brushColor: { value: new THREE.Color(1, 0.85, 0.2) },
     };
+  }
+
+  // Colours each tile by tint(x, z, environment) (at the tile's middle) in the tile overlay, or by its
+  // environment again (null).
+  setTileTint(tint) {
+    if (!tint && !this.tileTint) return;
+    this.tileTint = tint;
+    for (const chunk of this.chunks.values()) chunk.updateEnvironmentTexture();
   }
 
   setZone(zone) {
@@ -690,6 +701,45 @@ export class TerrainManager {
       const h = chunk.heights[i * SAMPLES + j];
       if (w <= 0 || Number.isNaN(h)) continue;
       changes.push([chunk, i, j, h + (start.y + s * (end.y - start.y) - h) * w]);
+    }
+    return this.applyHeights(changes);
+  }
+
+  // Moulds the ground within radius of (x, z) to a model: surface(x, z) is the height the ground takes there, or
+  // null off the model. Samples under it take that height; those within blend metres of it ease from the nearest
+  // one's height back to their own. direction "raise" or "lower" only moves the ground that way; holes stay.
+  mold(surface, x, z, radius, { blend = 0, direction = "both" } = {}) {
+    const samples = this.samplesNear(x, z, radius).filter(([chunk, i, j]) => !Number.isNaN(chunk.heights[i * SAMPLES + j]));
+    const under = new Map();
+    for (const [, , , px, pz] of samples) {
+      if (under.has(`${px},${pz}`)) continue;
+      const goal = surface(px, pz);
+      if (goal !== null) under.set(`${px},${pz}`, goal);
+    }
+    if (!under.size) return 0;
+    // The footprint's rim: what the ground around it eases from.
+    const rim = [];
+    for (const [key, goal] of under) {
+      const [px, pz] = key.split(",").map(Number);
+      if ([[STEP, 0], [-STEP, 0], [0, STEP], [0, -STEP]].some(([a, b]) => !under.has(`${px + a},${pz + b}`))) rim.push([px, pz, goal]);
+    }
+    const changes = [];
+    for (const [chunk, i, j, px, pz] of samples) {
+      const h = chunk.heights[i * SAMPLES + j];
+      let next = under.get(`${px},${pz}`);
+      if (next === undefined) {
+        if (blend <= 0) continue;
+        let nearest = null, best = blend * blend;
+        for (const r of rim) {
+          const d = (r[0] - px) ** 2 + (r[1] - pz) ** 2;
+          if (d < best) { best = d; nearest = r; }
+        }
+        if (!nearest) continue;
+        next = h + (nearest[2] - h) * falloff(Math.sqrt(best) / blend, "smooth");
+      }
+      if (direction === "raise") next = Math.max(h, next);
+      else if (direction === "lower") next = Math.min(h, next);
+      if (Math.abs(next - h) > 1e-4) changes.push([chunk, i, j, next]);
     }
     return this.applyHeights(changes);
   }

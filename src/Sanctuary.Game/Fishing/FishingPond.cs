@@ -791,6 +791,8 @@ public sealed class FishingPond
         }
 
         _rewardManager.TryGrantExperience(player, player.ApplyExperienceBoost(FishingRules.Stars(fishingCatch)), FishingRules.FishermanProfileId);
+
+        player.Zone?.FirePlayerEvent("fishCaught", player, fishingCatch.Kind.ToString().ToLowerInvariant(), fishingCatch.ItemId);
     }
 
     /// <summary>

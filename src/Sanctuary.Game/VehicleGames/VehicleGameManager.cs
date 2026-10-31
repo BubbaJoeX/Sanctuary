@@ -673,6 +673,8 @@ public sealed partial class VehicleGameManager : IVehicleGameManager, IDisposabl
 
             player.Quests.Record(new MinigameFinishedEvent(match.Stage.Id, participant.Won));
 
+            player.Zone?.FirePlayerEvent("minigameEnd", player, match.Stage.Id, participant.Won);
+
             _logger.LogInformation("{player} finished {name} ({encounter:X}) in place {place}: {stars} stars, {coins} coins.",
                 player.Name.FullName, match.Stage.Comment, match.Id, participant.Place + 1, boostedStars, boostedCoins);
         }

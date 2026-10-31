@@ -19,6 +19,12 @@ public interface IChallengeManager
     bool IsGiver(int npcDefinitionId);
 
     /// <summary>
+    /// Opens a challenge's start screen (a Challenges.json id) for the player, laid out round the giver. False if
+    /// there's no such challenge or the player is busy with another.
+    /// </summary>
+    bool Offer(Player player, int challengeId, Npc giver);
+
+    /// <summary>
     /// The start screen's Go. False when the player has no challenge of that stage waiting, so it's another game's.
     /// </summary>
     bool TryStart(Player player, int stageId);

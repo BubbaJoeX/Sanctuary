@@ -23,6 +23,8 @@ public sealed partial class WorldZone
     /// </summary>
     public Battle? Battle { get; internal set; }
 
+    public override int BattleId => Battle?.Definition.Id ?? 0;
+
     /// <summary>
     /// A battle's copy stays up while its battle runs, even with nobody in it (the start panel is up, or everyone's
     /// between respawns and teleports); the battle closes it. So does a 3D game's (see <see cref="Arena"/>).
@@ -100,4 +102,9 @@ public sealed partial class WorldZone
     /// A player was knocked out here.
     /// </summary>
     public void OnPlayerKnockedOut(Player player) => _battleManager.OnKnockedOut(player);
+
+    /// <summary>
+    /// A script's npc:offerChallenge: the challenge's start screen, laid out round the giver.
+    /// </summary>
+    public bool OfferChallenge(Player player, int challengeId, Npc giver) => _challengeManager.Offer(player, challengeId, giver);
 }

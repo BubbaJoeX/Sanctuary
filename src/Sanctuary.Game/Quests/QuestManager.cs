@@ -336,6 +336,7 @@ public sealed class QuestManager : IQuestManager
 
         player.Achievements.Record(AchievementEvent.Quest, questId);
         player.Achievements.Record(AchievementEvent.QuestCount, 0, player.Quests.CompletedCount);
+        player.Zone?.FirePlayerEvent("questComplete", player, questId);
 
         RefreshQuestNotifications(player, quest);
 

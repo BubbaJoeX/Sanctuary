@@ -1820,7 +1820,7 @@ public sealed class Player : ClientPcData, IEntity
     private long _lastCombatAt = long.MinValue;
     private readonly KnockOutTimer _knockOut = new();
 
-    public bool IsInCombat => Environment.TickCount64 - _lastCombatAt < CombatRules.OutOfCombatSeconds * 1000L;
+    public bool IsInCombat => CombatRules.IsInCombat(_lastCombatAt, Environment.TickCount64);
 
     public void MarkInCombat()
     {
@@ -2012,6 +2012,8 @@ public sealed class Player : ClientPcData, IEntity
 
         // The knocked out window, and a battle's count of knock outs.
         (Zone as WorldZone)?.OnPlayerKnockedOut(this);
+
+        Zone?.FirePlayerEvent("playerKnockedOut", this);
     }
 
     private void UpdateRespawn()
@@ -2256,6 +2258,7 @@ public sealed class Player : ClientPcData, IEntity
             return;
 
         Achievements.Record(AchievementEvent.JobRank, profile.Id, profile.Rank);
+        Zone?.FirePlayerEvent("jobRankUp", this, profile.Id, profile.Rank);
 
         SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect
         {

@@ -389,6 +389,19 @@ public sealed class WorldCombatTests
     }
 
     [TestMethod]
+    public void InCombat_UntilSixSecondsAfterTheLastHit_AndNeverBeforeTheFirst()
+    {
+        const long now = 1_000_000;
+
+        Assert.IsTrue(CombatRules.IsInCombat(now - 1000, now));
+        Assert.IsFalse(CombatRules.IsInCombat(now - CombatRules.OutOfCombatSeconds * 1000L, now));
+
+        // A player who's never fought (or just left a battle) isn't in combat: now - long.MinValue overflows.
+        Assert.IsFalse(CombatRules.IsInCombat(long.MinValue, now));
+        Assert.IsFalse(CombatRules.IsInCombat(long.MinValue, long.MaxValue));
+    }
+
+    [TestMethod]
     public void HostileNpcs_GoOutRedAndClickable()
     {
         // As live sent its Bandit Patrolmen: a red name, interactable and with a profile, which together make a mob

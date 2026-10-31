@@ -43,7 +43,7 @@ THUMBNAILS = "thumbs2"
 CHUNK_STEP = CHUNK_TILES                       # chunk names step 4 tiles in row and col
 # What the editor changes in a zone definition; the rest of the file is left as it is.
 DEFINITION_KEYS = ["StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude", "SpawnPosition", "SpawnRotation", "Sky",
-                   "AreaDefinitions", "Portals", "SeasonalClientAreas"]
+                   "AreaDefinitions", "Portals", "CombatAreas", "SeasonalClientAreas"]
 PAYLOAD_CACHE = 32                             # chunk payloads kept per zone, about 5 MB each
 # Loose files in this folder of the client beat its packs and the manifest it downloaded: it lists their names when
 # it starts and reads a file each time it loads it. A client the editor starts gets the zone's files there.
@@ -1430,8 +1430,9 @@ class ZoneProject:
                         definition["Sky"] = settings["sky"]
                     else:
                         definition.pop("Sky", None)
-                # Named areas and portals, as the World tool left them.
-                for key, field in (("areas", "AreaDefinitions"), ("portals", "Portals"), ("seasons", "SeasonalClientAreas")):
+                # Named areas, portals and combat stretches, as the World tool left them.
+                for key, field in (("areas", "AreaDefinitions"), ("portals", "Portals"), ("combatAreas", "CombatAreas"),
+                                   ("seasons", "SeasonalClientAreas")):
                     if settings.get(key) is not None:
                         definition[field] = settings[key]
                 if self.zone_dirty or not self.stock:

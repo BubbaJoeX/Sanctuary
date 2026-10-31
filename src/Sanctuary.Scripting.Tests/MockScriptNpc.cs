@@ -168,4 +168,12 @@ internal class MockScriptNpc(IScriptableZone _zone) : IScriptableNpc
         Attacks.Add((player.Guid, damage));
         return damage;
     }
+
+    public List<(ulong Guid, int ChallengeId)> OfferedChallenges { get; } = [];
+
+    public bool OfferChallenge(IScriptablePlayer player, int challengeId)
+    {
+        OfferedChallenges.Add((player.Guid, challengeId));
+        return challengeId == 5;
+    }
 }
