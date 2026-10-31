@@ -5,6 +5,18 @@
     "Icon": "friends"
   },
   {
+    "Title": "The Southern Wilds",
+    "Text": "The Hero's Journal's Southern Wilds chapters are in. Talk to Captain Sunspark in Sanctuary to start The Way of the Wilds, then help Sergeant Larkspur drive off the bixies, Glugmort's Greenwood Archers stop the Thugawug bandits, Jojo become a ninja at Summer Camp and Shaggy Mysterychaser get to the bottom of the kidnappings in Merry Vale. The bandits, ninjas and fairy cultists along the way fight back now, and a few townsfolk have something to say when you click them.",
+    "Action": "OpenHerosJournal",
+    "Icon": "journal",
+    "Button": "Hero's Journal"
+  },
+  {
+    "Title": "Every dungeon is open",
+    "Text": "All 38 dungeons are back, from Highroad Hijinx and Sheep Watch to the Forest Troll Fort and Tanglewood Fort, and each has its door where the map marks it: click the cave mouth, gate or hedge door. Out in the world, look for creatures and dens with crossed swords over them. Troll Summoners, robgoblin camps, the hooligans' brawling club, Moldy Shamblers, Mudshell and 56 more random encounters are waiting for a fight.",
+    "Icon": "trophy"
+  },
+  {
     "Title": "Start your engines",
     "Text": "Kart racing, the demo derby and soccer are back. Click the kiosks by Johnny Thunder at the Wildwood speedway for Wildwood Kart Racing, the Wildwood Demo Derby or the Kart & Demo Derby Garage, or the soccer gates in Sacred Grove for a match, or pick one from the Games window. Race three laps against seven drivers, smash your way to the crown in four minutes, or score more goals than the Snowspurs. Kit out your kart and derby car in the garage and they're the ones you drive.",
     "Icon": "trophy"

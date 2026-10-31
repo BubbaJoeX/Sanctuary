@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1238,
+  "Name": "sg_sheep_watch",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    383.95,
+    -57.0,
+    545.62
+  ],
+  "SpawnRotation": [
+    -0.0489,
+    0,
+    0.9988,
+    0
+  ]
+}

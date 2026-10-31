@@ -14,6 +14,12 @@ public interface IQuestManager
 
     void OnEvent(Player player, QuestEvent questEvent);
 
+    /// <summary>
+    /// Lets the player's quest log take events from systems that don't hold a quest manager
+    /// (<see cref="QuestLog.Record"/>). Call once the log is loaded.
+    /// </summary>
+    void Attach(Player player);
+
     void AcceptQuest(Player player, int questId);
 
     bool CompleteQuest(Player player, int questId);

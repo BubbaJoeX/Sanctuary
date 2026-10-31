@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1221,
+  "Name": "bw_bristlewood_glade",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_bristlewood_glade.xml",
+  "SpawnPosition": [
+    188.37,
+    -13.53,
+    193.21
+  ],
+  "SpawnRotation": [
+    -0.247,
+    0,
+    0.969,
+    0
+  ]
+}

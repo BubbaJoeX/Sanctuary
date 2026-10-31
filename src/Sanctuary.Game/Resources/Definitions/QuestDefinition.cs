@@ -38,6 +38,10 @@ public sealed class QuestDefinition
 
     public int RewardCollectionId { get; set; }
 
+    // Item definition ids handed over on accepting, as live givers did: a package to deliver, a sprayer to use, the
+    // recipe card a crafting quest teaches. A player who already has one isn't given another.
+    public List<int> AcceptItems { get; set; } = [];
+
     public int? PrerequisiteQuestId { get; set; }
     public int? NextQuestId { get; set; }
 

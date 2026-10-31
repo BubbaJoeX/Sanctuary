@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1233,
+  "Name": "bw_hidden_valley",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_hidden_valley24.xml",
+  "SpawnPosition": [
+    145.23,
+    -31.15,
+    440.92
+  ],
+  "SpawnRotation": [
+    0.5615,
+    0,
+    -0.8274,
+    0
+  ]
+}

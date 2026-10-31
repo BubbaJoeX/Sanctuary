@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1228,
+  "Name": "gl_misty_mountain",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 25,
+  "EndLongitude": 25,
+  "Sky": "sky_misty_mountain.xml",
+  "SpawnPosition": [
+    144.7,
+    27.85,
+    388.16
+  ],
+  "SpawnRotation": [
+    0.4748,
+    0,
+    0.8801,
+    0
+  ]
+}

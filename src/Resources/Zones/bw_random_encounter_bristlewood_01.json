@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1250,
+  "Name": "bw_random_encounter_bristlewood_01",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 6,
+  "EndLongitude": 6,
+  "Sky": "sky_briarwood24.xml",
+  "SpawnPosition": [
+    136.49,
+    2.02,
+    136.46
+  ],
+  "SpawnRotation": [
+    0.0525,
+    0,
+    0.9986,
+    0
+  ]
+}

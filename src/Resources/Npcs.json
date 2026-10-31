@@ -1156,7 +1156,17 @@
     "Name": "Assistant Headmaster Tov",
     "ModelId": 468,
     "ModelFileName": "fairy_druid_m.adr",
-    "TextureAlias": "base_02"
+    "TextureAlias": "base_02",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Recovering from the Gloam Invasion has been difficult, especially since Headmaster Merk went to help the dwarves in Sunstone Valley.\n\nI understand, of course. It was the least he could do considering how much the dwarves sacrificed to help us. I just hope I can keep things under control until he gets back!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1438,
@@ -3613,14 +3623,34 @@
     "NameId": 73472,
     "Name": "Zzz... Zzz...",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "I'm not sleeping... I'm performing on stage in Snowhill in front of thousands of fans...",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1863,
     "NameId": 73472,
     "Name": "Zzz... Zzz...",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "I'm not sleeping... I'm performing on stage in Snowhill in front of thousands of fans...",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1873,
@@ -3766,7 +3796,17 @@
     "NameId": 74790,
     "Name": "Doctor Callahan",
     "ModelId": 774,
-    "ModelFileName": "human_m_dr_callahan.agr"
+    "ModelFileName": "human_m_dr_callahan.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Once you enter this place, you can't leave!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1896,
@@ -4094,7 +4134,17 @@
     "NameId": 45587,
     "Name": "Mr. Mudd",
     "ModelId": 184,
-    "ModelFileName": "human_m_freestyle_01.agr"
+    "ModelFileName": "human_m_freestyle_01.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Ya ain't welcome here, 'less you got more grub for us.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 1952,
@@ -4898,7 +4948,17 @@
     "NameId": 20942,
     "Name": "Bartle",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Bandits! Beware of bandits on the road ahead!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2088,
@@ -5296,7 +5356,17 @@
     "NameId": 429530,
     "Name": "Madison",
     "ModelId": 573,
-    "ModelFileName": "fairy_f_freestyle_11.agr"
+    "ModelFileName": "fairy_f_freestyle_11.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Did you hear? More people are going into battle for a chance to win new gear.\n\nApparently, there's new bonus goals for all the combat encounters in Sacred Grove. You check them out yet?",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2172,
@@ -5449,7 +5519,17 @@
     "NameId": 40416,
     "Name": "Ronnie Britesmile",
     "ModelId": 9,
-    "ModelFileName": "humanchild_m_tshirtwithbeltbig.adr"
+    "ModelFileName": "humanchild_m_tshirtwithbeltbig.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "I am SO bored right now. I just want to go have fun! Not do my chores!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2196,
@@ -5628,7 +5708,17 @@
     "NameId": 40401,
     "Name": "Fuddle",
     "ModelId": 4,
-    "ModelFileName": "robgoblin_m_basic.adr"
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Today's special is snail pie. Extra slimy of course! Tee hee.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2224,
@@ -5775,7 +5865,17 @@
     "NameId": 70967,
     "Name": "Dubawug",
     "ModelId": 221,
-    "ModelFileName": "chugawug_m_02.adr"
+    "ModelFileName": "chugawug_m_02.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Move aside, you young sprats! Let an old man see!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2272,
@@ -6621,7 +6721,17 @@
     "Name": "Rika",
     "ModelId": 384,
     "ModelFileName": "fairy_sanctuary_f.adr",
-    "TextureAlias": "sanctuary_02"
+    "TextureAlias": "sanctuary_02",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "How long ya think coins can flow like this? Mark my words - NOT FOR LONG!",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2429,
@@ -7437,14 +7547,34 @@
     "NameId": 3894,
     "Name": "Private Hurplelump",
     "ModelId": 65,
-    "ModelFileName": "chugawug_m_greenwood_soldier.adr"
+    "ModelFileName": "chugawug_m_greenwood_soldier.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Halt! By Darkthorne's decree, this section of the maze is off limits.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2567,
     "NameId": 3895,
     "Name": "Private Gorglemain",
     "ModelId": 64,
-    "ModelFileName": "chugawug_f_greenwood_soldier.adr"
+    "ModelFileName": "chugawug_f_greenwood_soldier.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Halt! By Darkthorne's decree, this section of the maze is off limits.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 2568,
@@ -9039,7 +9169,23 @@
     "Name": "Shady Smuggler",
     "ModelId": 669,
     "ModelFileName": "human_blackspore_thief_m.adr",
-    "TextureAlias": "03"
+    "TextureAlias": "03",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 140959,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 2835,
@@ -10648,7 +10794,23 @@
     "NameId": 102128,
     "Name": "Alpha Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 102128,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3097,
@@ -10683,7 +10845,23 @@
     "NameId": 102128,
     "Name": "Alpha Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 102128,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3102,
@@ -10708,7 +10886,23 @@
     "NameId": 102128,
     "Name": "Alpha Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 102128,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3106,
@@ -10962,14 +11156,46 @@
     "NameId": 72269,
     "Name": "Troll Bone Shaman",
     "ModelId": 168,
-    "ModelFileName": "troll_shaman.adr"
+    "ModelFileName": "troll_shaman.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 72269,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3150,
     "NameId": 72269,
     "Name": "Troll Bone Shaman",
     "ModelId": 168,
-    "ModelFileName": "troll_shaman.adr"
+    "ModelFileName": "troll_shaman.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 72269,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3151,
@@ -11478,105 +11704,150 @@
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3242,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3243,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3244,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3245,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3246,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3247,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3248,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3249,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3250,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3251,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3252,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3253,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3254,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3255,
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3256,
@@ -11751,7 +12022,10 @@
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3281,
@@ -11765,14 +12039,21 @@
     "NameId": 440726,
     "Name": "Cultist Initiate",
     "ModelId": 500,
-    "ModelFileName": "sprite_cultist_m.adr"
+    "ModelFileName": "sprite_cultist_m.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3283,
     "NameId": 440729,
     "Name": "Necronomicus",
     "ModelId": 4220,
-    "ModelFileName": "necronomicus_m.adr"
+    "ModelFileName": "necronomicus_m.adr",
+    "Disposition": 0,
+    "Mob": "dungeon-boss-2",
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3284,
@@ -12829,7 +13110,10 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3461,
@@ -12992,49 +13276,70 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3488,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3489,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3490,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3491,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3492,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3493,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3494,
@@ -13072,63 +13377,90 @@
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3500,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3501,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3502,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3503,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3504,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3505,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3506,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3507,
     "NameId": 440721,
     "Name": "Ninja Apprentice",
     "ModelId": 395,
-    "ModelFileName": "human_m_ninja_shadowtalon_03.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3508,
@@ -13187,112 +13519,161 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3517,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3518,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3519,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3520,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3521,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3522,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3523,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3524,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3525,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3526,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3527,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3528,
     "NameId": 441706,
     "Name": "Stompenmugg",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "Mob": "dungeon-boss-1",
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3529,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3530,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3531,
     "NameId": 440717,
     "Name": "Thugawug Stomper",
     "ModelId": 200,
-    "ModelFileName": "chugawug_f_bandit_01.adr"
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3532,
@@ -13422,12 +13803,48 @@
   {
     "Id": 3564,
     "ModelId": 1914,
-    "ModelFileName": "sg_spawner_robgoblin_01.adr"
+    "ModelFileName": "sg_spawner_robgoblin_01.adr",
+    "Name": "Band of Robgoblins!",
+    "NameId": 41569,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 41569,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3565,
     "ModelId": 1914,
-    "ModelFileName": "sg_spawner_robgoblin_01.adr"
+    "ModelFileName": "sg_spawner_robgoblin_01.adr",
+    "Name": "Robgoblin Adept Trouble!",
+    "NameId": 42062,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 42062,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3566,
@@ -13594,7 +14011,23 @@
     "NameId": 78096,
     "Name": "Frostfang Snarler",
     "ModelId": 1938,
-    "ModelFileName": "sg_spawner_wolf_01.adr"
+    "ModelFileName": "sg_spawner_wolf_01.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 78096,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3593,
@@ -16160,7 +16593,25 @@
   {
     "Id": 4099,
     "ModelId": 1914,
-    "ModelFileName": "sg_spawner_robgoblin_01.adr"
+    "ModelFileName": "sg_spawner_robgoblin_01.adr",
+    "Name": "Explosive Robgoblins!",
+    "NameId": 42055,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 42055,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4100,
@@ -16175,7 +16626,25 @@
   {
     "Id": 4102,
     "ModelId": 1914,
-    "ModelFileName": "sg_spawner_robgoblin_01.adr"
+    "ModelFileName": "sg_spawner_robgoblin_01.adr",
+    "Name": "Robgoblin Camp!",
+    "NameId": 70112,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 70112,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4103,
@@ -16216,7 +16685,25 @@
   {
     "Id": 4110,
     "ModelId": 1914,
-    "ModelFileName": "sg_spawner_robgoblin_01.adr"
+    "ModelFileName": "sg_spawner_robgoblin_01.adr",
+    "Name": "Robgoblin Geomancer!",
+    "NameId": 42053,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 42053,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4111,
@@ -16247,7 +16734,23 @@
     "NameId": 75450,
     "Name": "Thugawug Thug!",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 75450,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4116,
@@ -16269,56 +16772,80 @@
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4119,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4120,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4121,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4122,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4123,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4124,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4125,
     "NameId": 440723,
     "Name": "Ninja Deceiver",
     "ModelId": 394,
-    "ModelFileName": "human_m_ninja_shadowtalon_02.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4126,
@@ -16339,7 +16866,11 @@
     "NameId": 440724,
     "Name": "Jintaka",
     "ModelId": 4094,
-    "ModelFileName": "human_m_ninja_shadowtalon_jintaka.agr"
+    "ModelFileName": "human_m_ninja_shadowtalon_jintaka.agr",
+    "Disposition": 0,
+    "Mob": "dungeon-boss-1",
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4129,
@@ -16506,7 +17037,23 @@
     "NameId": 74374,
     "Name": "Hooligan Brawling Club!",
     "ModelId": 1913,
-    "ModelFileName": "sg_spawner_human_01.adr"
+    "ModelFileName": "sg_spawner_human_01.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 74374,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4157,
@@ -16548,7 +17095,23 @@
     "NameId": 74753,
     "Name": "Hooligan Bullies!",
     "ModelId": 1913,
-    "ModelFileName": "sg_spawner_human_01.adr"
+    "ModelFileName": "sg_spawner_human_01.adr",
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 74753,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4163,
@@ -16727,7 +17290,10 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4194,
@@ -17282,7 +17848,17 @@
     "NameId": 401729,
     "Name": "Goalster Deedee",
     "ModelId": 1591,
-    "ModelFileName": "human_f_goalster_deedee.agr"
+    "ModelFileName": "human_f_goalster_deedee.agr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Those darn chugawugs are so lazy. I have to do all the work around here myself.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 4281,
@@ -17418,7 +17994,25 @@
   {
     "Id": 4303,
     "ModelId": 1914,
-    "ModelFileName": "sg_spawner_robgoblin_01.adr"
+    "ModelFileName": "sg_spawner_robgoblin_01.adr",
+    "Name": "Robgoblin Troublemakers!",
+    "NameId": 93268,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 93268,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4304,
@@ -17519,7 +18113,17 @@
     "NameId": 429529,
     "Name": "Declan",
     "ModelId": 8,
-    "ModelFileName": "humanchild_m_tshirtwithbaggypants.adr"
+    "ModelFileName": "humanchild_m_tshirtwithbaggypants.adr",
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Did you hear? More people are going into battle for a chance to win new gear.\n\nApparently, there's new bonus goals for all the combat encounters in Sacred Grove. You check them out yet?",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 4322,
@@ -17573,42 +18177,60 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4332,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4333,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4334,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4335,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4336,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4337,
@@ -17620,7 +18242,10 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4339,
@@ -17637,21 +18262,30 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4342,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4343,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4344,
@@ -17691,14 +18325,20 @@
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4351,
     "NameId": 440716,
     "Name": "Bandit Patrolman",
     "ModelId": 199,
-    "ModelFileName": "chugawug_m_bandit_01.adr"
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4352,
@@ -18508,7 +19148,25 @@
   {
     "Id": 4499,
     "ModelId": 1914,
-    "ModelFileName": "sg_spawner_robgoblin_01.adr"
+    "ModelFileName": "sg_spawner_robgoblin_01.adr",
+    "Name": "Robgoblin Pondblasters!",
+    "NameId": 94365,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 94365,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ],
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4500,
@@ -23049,7 +23707,17 @@
         "Unknown2": 0,
         "Enabled": true
       }
-    ]
+    ],
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "You can find Heddy Heathcliff on the north side of Seaside where the fisherman huts are.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 33169,
@@ -45874,6 +46542,16 @@
       ],
       "Name": "",
       "Unknown2": true
+    },
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Roses are red, violets are blue... Almonds are nuts, and so are you!",
+          "Choices": []
+        }
+      ]
     }
   },
   {
@@ -50064,7 +50742,17 @@
         "Unknown2": 0,
         "Enabled": true
       }
-    ]
+    ],
+    "Conversation": {
+      "Start": 1,
+      "Nodes": [
+        {
+          "Id": 1,
+          "Text": "Hello. I will be setting up my fishing supplies shop soon. Make sure to stop by again later.",
+          "Choices": []
+        }
+      ]
+    }
   },
   {
     "Id": 33654,
@@ -71269,6 +71957,3719 @@
     "RelevanceUnknown2": true
   },
   {
+    "Id": 46049,
+    "NameId": 4230,
+    "ModelId": 180,
+    "ModelFileName": "snake.adr",
+    "Scale": 1.4,
+    "Name": "Maze Viper",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46050,
+    "NameId": 4084,
+    "ModelId": 74,
+    "ModelFileName": "treesoldier.adr",
+    "Scale": 1,
+    "Name": "Hedge Guardian",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46051,
+    "NameId": 4215,
+    "ModelId": 74,
+    "ModelFileName": "treesoldier.adr",
+    "Scale": 1.25,
+    "Name": "Hedge Knight",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46052,
+    "NameId": 4093,
+    "ModelId": 1682,
+    "ModelFileName": "robgoblin_m_master.adr",
+    "Scale": 1.5,
+    "Name": "Nogg the Cruel",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46053,
+    "NameId": 4212,
+    "ModelId": 100,
+    "ModelFileName": "troll_ice.adr",
+    "Scale": 1,
+    "Name": "Ice Troll",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46054,
+    "NameId": 103604,
+    "ModelId": 176,
+    "ModelFileName": "wolf.adr",
+    "Scale": 1.1,
+    "Name": "Snow Wolf",
+    "TextureAlias": "snow",
+    "TintAlias": "snow_blue",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46055,
+    "NameId": 92194,
+    "ModelId": 100,
+    "ModelFileName": "troll_ice.adr",
+    "Scale": 1.1,
+    "Name": "Ice Wolf Trainer",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46056,
+    "NameId": 5044,
+    "ModelId": 100,
+    "ModelFileName": "troll_ice.adr",
+    "Scale": 1.6,
+    "Name": "Snognosh",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46057,
+    "NameId": 7156,
+    "ModelId": 142,
+    "ModelFileName": "wolf_vinegolum.adr",
+    "Scale": 1.1,
+    "Name": "Briar Patch Wolf",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46058,
+    "NameId": 434079,
+    "ModelId": 478,
+    "ModelFileName": "treesoldier_mushroom.adr",
+    "Scale": 1,
+    "Name": "Mutated Tree Soldier",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46059,
+    "NameId": 103401,
+    "ModelId": 186,
+    "ModelFileName": "wolf_vinegolum_fungus.adr",
+    "Scale": 1.2,
+    "Name": "Vicious Vinewolf",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46060,
+    "NameId": 6455,
+    "ModelId": 383,
+    "ModelFileName": "human_briarpatchboss_m.adr",
+    "Scale": 1.1,
+    "Name": "Azure",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46061,
+    "NameId": 4186,
+    "ModelId": 74,
+    "ModelFileName": "treesoldier.adr",
+    "Scale": 1,
+    "Name": "Tree Soldier",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46062,
+    "NameId": 5739,
+    "ModelId": 75,
+    "ModelFileName": "forestgiantboss.adr",
+    "Scale": 1,
+    "Name": "Treeleaf Hedge",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46063,
+    "NameId": 15801,
+    "ModelId": 134,
+    "ModelFileName": "floren.adr",
+    "Scale": 1.1,
+    "Name": "Vile Floren",
+    "TextureAlias": "Default1",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46064,
+    "NameId": 72007,
+    "ModelId": 134,
+    "ModelFileName": "floren.adr",
+    "Scale": 1.8,
+    "Name": "Grumpy Amaranthus",
+    "TextureAlias": "Default1",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46065,
+    "NameId": 16874,
+    "ModelId": 266,
+    "ModelFileName": "warthog_ghost.adr",
+    "Scale": 1.2,
+    "Name": "Warthog Spirit",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46066,
+    "NameId": 414851,
+    "ModelId": 1010,
+    "ModelFileName": "birds_raven_ghost.adr",
+    "Scale": 1.3,
+    "Name": "Ghostly Raven",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46067,
+    "NameId": 4259,
+    "ModelId": 1011,
+    "ModelFileName": "snake_ghost.adr",
+    "Scale": 1.4,
+    "Name": "Ghostly Snake",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46068,
+    "NameId": 37912,
+    "ModelId": 512,
+    "ModelFileName": "fairy_druidmugwort_m.adr",
+    "Scale": 1.2,
+    "Name": "Elder Druid Mugwort",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46069,
+    "NameId": 15961,
+    "ModelId": 134,
+    "ModelFileName": "floren.adr",
+    "Scale": 1,
+    "Name": "Withering Floren",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46070,
+    "NameId": 15802,
+    "ModelId": 180,
+    "ModelFileName": "snake.adr",
+    "Scale": 1.5,
+    "Name": "Twisted Serpent",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46071,
+    "NameId": 16040,
+    "ModelId": 134,
+    "ModelFileName": "floren.adr",
+    "Scale": 1.7,
+    "Name": "Blighted Floren",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46072,
+    "NameId": 4171,
+    "ModelId": 77,
+    "ModelFileName": "troll_forest.adr",
+    "Scale": 1,
+    "Name": "Forest Troll",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46073,
+    "NameId": 5356,
+    "ModelId": 182,
+    "ModelFileName": "troll_scout.adr",
+    "Scale": 1,
+    "Name": "Troll Pathfinder",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46074,
+    "NameId": 5237,
+    "ModelId": 168,
+    "ModelFileName": "troll_shaman.adr",
+    "Scale": 1,
+    "Name": "Troll Hedge Wizard",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46075,
+    "NameId": 22804,
+    "ModelId": 836,
+    "ModelFileName": "human_m_sampson_idlefist.agr",
+    "Scale": 1.15,
+    "Name": "Sampson Idlefist",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46076,
+    "NameId": 36097,
+    "ModelId": 168,
+    "ModelFileName": "troll_shaman.adr",
+    "Scale": 1.15,
+    "Name": "Verda's Guardian Seerdoctor",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46077,
+    "NameId": 40425,
+    "ModelId": 168,
+    "ModelFileName": "troll_shaman.adr",
+    "Scale": 1,
+    "Name": "Forest Troll Ritualist",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46078,
+    "NameId": 17075,
+    "ModelId": 408,
+    "ModelFileName": "troll_queenverda_f.adr",
+    "Scale": 1.2,
+    "Name": "Queen Verda",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46079,
+    "NameId": 37614,
+    "ModelId": 489,
+    "ModelFileName": "human_m_hooligan_brawler_02.agr",
+    "Scale": 1,
+    "Name": "Hooligan Scrapper",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46080,
+    "NameId": 15368,
+    "ModelId": 3897,
+    "ModelFileName": "human_m_hooligan_boss_02.agr",
+    "Scale": 1.15,
+    "Name": "Mac",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46081,
+    "NameId": 37695,
+    "ModelId": 3284,
+    "ModelFileName": "wolf_generic.adr",
+    "Scale": 1,
+    "Name": "Hooligan Guard Wolf",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46082,
+    "NameId": 3892,
+    "ModelId": 65,
+    "ModelFileName": "chugawug_m_greenwood_soldier.adr",
+    "Scale": 1,
+    "Name": "Tanglewood Soldier",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46083,
+    "NameId": 94370,
+    "ModelId": 1016,
+    "ModelFileName": "chugawug_m_greenwood_soldierarcher_01.adr",
+    "Scale": 1,
+    "Name": "Tanglewood Guard",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46084,
+    "NameId": 90308,
+    "ModelId": 65,
+    "ModelFileName": "chugawug_m_greenwood_soldier.adr",
+    "Scale": 1.45,
+    "Name": "Commander Kluggenkrush",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46085,
+    "NameId": 103636,
+    "ModelId": 3933,
+    "ModelFileName": "gloam_m_construct.adr",
+    "Scale": 1,
+    "Name": "Elemental Guardian",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46086,
+    "NameId": 103654,
+    "ModelId": 1026,
+    "ModelFileName": "graveelemental_m_ghost.adr",
+    "Scale": 1,
+    "Name": "Wind Elemental",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46087,
+    "NameId": 140750,
+    "ModelId": 3956,
+    "ModelFileName": "gloam_m_boss.adr",
+    "Scale": 1.1,
+    "Name": "Snowface",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46088,
+    "NameId": 414852,
+    "ModelId": 10,
+    "ModelFileName": "ghostdwarf_m_miner_01.adr",
+    "Scale": 1,
+    "Name": "Ghostly Digger",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46089,
+    "NameId": 414857,
+    "ModelId": 767,
+    "ModelFileName": "graveelemental_m_skullwgraves.adr",
+    "Scale": 1,
+    "Name": "Fresh Grave Elemental",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46090,
+    "NameId": 414851,
+    "ModelId": 1010,
+    "ModelFileName": "birds_raven_ghost.adr",
+    "Scale": 1.2,
+    "Name": "Graveyard Raven",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46091,
+    "NameId": 414861,
+    "ModelId": 751,
+    "ModelFileName": "wraith_m_cloakedskelly.adr",
+    "Scale": 1.35,
+    "Name": "Necromancer",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46092,
+    "NameId": 74152,
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Name": "Rebel Bixie Warrior",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46093,
+    "NameId": 74153,
+    "ModelId": 211,
+    "ModelFileName": "bixie_f_mage.adr",
+    "Scale": 1,
+    "Name": "Rebel Bixie Mage",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46094,
+    "NameId": 74155,
+    "ModelId": 218,
+    "ModelFileName": "bixie_m_elite_guard.adr",
+    "Scale": 1,
+    "Name": "Rebel Bixie Elite",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46095,
+    "NameId": 74022,
+    "ModelId": 211,
+    "ModelFileName": "bixie_f_mage.adr",
+    "Scale": 1.35,
+    "Name": "Rebel Mage Pollentine",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46096,
+    "NameId": 4448,
+    "ModelId": 51,
+    "ModelFileName": "sasquatch_01.adr",
+    "Scale": 1.15,
+    "Name": "Yeti Sentry",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46097,
+    "NameId": 4218,
+    "ModelId": 146,
+    "ModelFileName": "sasquatch_boss.adr",
+    "Scale": 1.1,
+    "Name": "Unga Frostclaw",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46098,
+    "NameId": 4692,
+    "ModelId": 478,
+    "ModelFileName": "treesoldier_mushroom.adr",
+    "Scale": 1.2,
+    "Name": "Dark Spore Knight",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46099,
+    "NameId": 4456,
+    "ModelId": 72,
+    "ModelFileName": "necrowartzombie_02.adr",
+    "Scale": 1,
+    "Name": "Spore Shambler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46100,
+    "NameId": 4580,
+    "ModelId": 478,
+    "ModelFileName": "treesoldier_mushroom.adr",
+    "Scale": 2.1,
+    "Name": "Necrolaceous",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46101,
+    "NameId": 5199,
+    "ModelId": 182,
+    "ModelFileName": "troll_scout.adr",
+    "Scale": 1.05,
+    "Name": "Forest Troll Handler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46102,
+    "NameId": 23044,
+    "ModelId": 412,
+    "ModelFileName": "shaggyspider_01.adr",
+    "Scale": 1.1,
+    "Name": "Grexan's Wood Spider",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46103,
+    "NameId": 23045,
+    "ModelId": 52,
+    "ModelFileName": "blackwidow_01.adr",
+    "Scale": 1.1,
+    "Name": "Grexan's Noxious Spider",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46104,
+    "NameId": 5357,
+    "ModelId": 99,
+    "ModelFileName": "troll_stone_grey.adr",
+    "Scale": 1.5,
+    "Name": "General Grexan",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46105,
+    "NameId": 16181,
+    "ModelId": 234,
+    "ModelFileName": "changeling_m_mage.adr",
+    "Scale": 1.1,
+    "Name": "Changeling Arcanus",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46106,
+    "NameId": 16939,
+    "ModelId": 238,
+    "ModelFileName": "changeling_fighter_f.adr",
+    "Scale": 1,
+    "Name": "Changeling Kicker",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46107,
+    "NameId": 37255,
+    "ModelId": 239,
+    "ModelFileName": "changeling_fighter_m.adr",
+    "Scale": 1,
+    "Name": "Changeling Brawler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46108,
+    "NameId": 40154,
+    "ModelId": 254,
+    "ModelFileName": "changeling_elder_m_01.adr",
+    "Scale": 1.45,
+    "Name": "Amoranth",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46109,
+    "NameId": 15568,
+    "ModelId": 396,
+    "ModelFileName": "human_m_ninja_shadowtalon_01.agr",
+    "Scale": 1,
+    "Name": "Shadow Talon Ninja",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46110,
+    "NameId": 15567,
+    "ModelId": 394,
+    "ModelFileName": "human_m_ninja_shadowtalon_02.agr",
+    "Scale": 1,
+    "Name": "Shadow Talon Blade",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46111,
+    "NameId": 15572,
+    "ModelId": 127,
+    "ModelFileName": "birds_eagle.adr",
+    "Scale": 1.3,
+    "Name": "Trained Eagle",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46112,
+    "NameId": 39871,
+    "ModelId": 4094,
+    "ModelFileName": "human_m_ninja_shadowtalon_jintaka.agr",
+    "Scale": 1.15,
+    "Name": "Shadow Talon Master",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46113,
+    "NameId": 6285,
+    "ModelId": 177,
+    "ModelFileName": "wolf_evil.adr",
+    "Scale": 1.1,
+    "Name": "Corrupted Wolf",
+    "TextureAlias": "evil",
+    "TintAlias": "evil_purple",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46114,
+    "NameId": 437671,
+    "ModelId": 3317,
+    "ModelFileName": "wolf_black.adr",
+    "Scale": 1.1,
+    "Name": "Gloam Hound",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46115,
+    "NameId": 18891,
+    "ModelId": 733,
+    "ModelFileName": "human_f_gloam_agent.agr",
+    "Scale": 1.1,
+    "Name": "Mysterious Stranger",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46116,
+    "NameId": 91865,
+    "ModelId": 669,
+    "ModelFileName": "human_blackspore_thief_m.adr",
+    "Scale": 1,
+    "Name": "Smuggler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46117,
+    "NameId": 20002,
+    "ModelId": 1648,
+    "ModelFileName": "toad_black.adr",
+    "Scale": 2.2,
+    "Name": "Belching Toad",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46118,
+    "NameId": 75936,
+    "ModelId": 1648,
+    "ModelFileName": "toad_black.adr",
+    "Scale": 1.6,
+    "Name": "Black Swamp Frog",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46119,
+    "NameId": 77319,
+    "ModelId": 685,
+    "ModelFileName": "human_blackspore_thief_f.adr",
+    "Scale": 1.15,
+    "Name": "Smuggler Hannah",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46120,
+    "NameId": 77317,
+    "ModelId": 669,
+    "ModelFileName": "human_blackspore_thief_m.adr",
+    "Scale": 1.15,
+    "Name": "Smuggler Han",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46121,
+    "NameId": 374,
+    "ModelId": 3284,
+    "ModelFileName": "wolf_generic.adr",
+    "Scale": 1,
+    "Name": "Wolf",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46122,
+    "NameId": 92655,
+    "ModelId": 3284,
+    "ModelFileName": "wolf_generic.adr",
+    "Scale": 1.5,
+    "Name": "Female Alpha Wolf",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46123,
+    "NameId": 92652,
+    "ModelId": 3317,
+    "ModelFileName": "wolf_black.adr",
+    "Scale": 1.6,
+    "Name": "Male Alpha Wolf",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46124,
+    "NameId": 45406,
+    "ModelId": 1952,
+    "ModelFileName": "robgoblin_m_drummer.adr",
+    "Scale": 1,
+    "Name": "Party Crasher",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46125,
+    "NameId": 70381,
+    "ModelId": 4,
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Scale": 1,
+    "Name": "Robgoblin Troublemaker",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46126,
+    "NameId": 15623,
+    "ModelId": 168,
+    "ModelFileName": "troll_shaman.adr",
+    "Scale": 1.2,
+    "Name": "Troll Summoner",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46127,
+    "NameId": 433397,
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Name": "Unruly Bixie Warrior",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46128,
+    "NameId": 433558,
+    "ModelId": 3938,
+    "ModelFileName": "fairy_f_druid_viper.agr",
+    "Scale": 1.2,
+    "Name": "Cultist Leader",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46129,
+    "NameId": 130764,
+    "ModelId": 517,
+    "ModelFileName": "fairy_m_hooligan_brawler_01.agr",
+    "Scale": 1,
+    "Name": "PCA Trickster",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46130,
+    "NameId": 383059,
+    "ModelId": 519,
+    "ModelFileName": "human_m_hooligan_brawler_03.agr",
+    "Scale": 1,
+    "Name": "PCA Operative",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46131,
+    "NameId": 6494,
+    "ModelId": 51,
+    "ModelFileName": "sasquatch_01.adr",
+    "Scale": 1.2,
+    "Name": "Yeti Trapper",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46132,
+    "NameId": 116756,
+    "ModelId": 51,
+    "ModelFileName": "sasquatch_01.adr",
+    "Scale": 0.9,
+    "Name": "Petty Yeti",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46133,
+    "NameId": 420583,
+    "ModelId": 1935,
+    "ModelFileName": "robgoblin_m_reindeerantlers.adr",
+    "Scale": 1,
+    "Name": "Crafty Robgoblin Builder",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46134,
+    "NameId": 6720,
+    "ModelId": 786,
+    "ModelFileName": "robgoblin_m_brute.adr",
+    "Scale": 1.3,
+    "Name": "Robgoblin Kaboomer",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46135,
+    "NameId": 42034,
+    "ModelId": 4,
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Scale": 1,
+    "Name": "Robgoblin Boomer",
+    "TextureAlias": "longjohns",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46136,
+    "NameId": 434061,
+    "ModelId": 4,
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Scale": 1,
+    "Name": "Robgoblin Thief",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46137,
+    "NameId": 101932,
+    "ModelId": 721,
+    "ModelFileName": "robgoblin_jester_m.adr",
+    "Scale": 1,
+    "Name": "Robgoblin Prankster",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46138,
+    "NameId": 116426,
+    "ModelId": 786,
+    "ModelFileName": "robgoblin_m_brute.adr",
+    "Scale": 1.6,
+    "Name": "Brutus the Brute",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46139,
+    "NameId": 41955,
+    "ModelId": 188,
+    "ModelFileName": "robgoblin_f_mage.adr",
+    "Scale": 1.25,
+    "Name": "Robgoblin Adept",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46140,
+    "NameId": 71841,
+    "ModelId": 191,
+    "ModelFileName": "robgoblin_m_mage.adr",
+    "Scale": 1.3,
+    "Name": "Robgoblin Geomancer",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46141,
+    "NameId": 141584,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1.3,
+    "Name": "Thugawug Bumbler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46142,
+    "NameId": 93120,
+    "ModelId": 945,
+    "ModelFileName": "human_m_ninja_ghost.adr",
+    "Scale": 1,
+    "Name": "Stealthy Despoiler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46143,
+    "NameId": 141586,
+    "ModelId": 200,
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Scale": 1,
+    "Name": "Thugawug Sneak",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46144,
+    "NameId": 100883,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1,
+    "Name": "Thugawug Ambusher",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46145,
+    "NameId": 423127,
+    "ModelId": 390,
+    "ModelFileName": "human_m_ninja_flyingdragon_01.agr",
+    "Scale": 1,
+    "Name": "Fleetfoot Ninja",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46146,
+    "NameId": 76013,
+    "ModelId": 354,
+    "ModelFileName": "human_f_ninja_01.agr",
+    "Scale": 1.1,
+    "Name": "Niobe",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46147,
+    "NameId": 139702,
+    "ModelId": 395,
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Scale": 1,
+    "Name": "Shadowtalon Guard",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46148,
+    "NameId": 139741,
+    "ModelId": 397,
+    "ModelFileName": "human_m_ninja_shadowtalon_04.agr",
+    "Scale": 1.1,
+    "Name": "Shadowtalon Enforcer",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46149,
+    "NameId": 95047,
+    "ModelId": 4,
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Scale": 1,
+    "Name": "Robgoblin Pondblaster",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46150,
+    "NameId": 103726,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1,
+    "Name": "Thugamug Henchman",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46151,
+    "NameId": 103031,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1.6,
+    "Name": "Thugamug",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46152,
+    "NameId": 389678,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1.2,
+    "Name": "Thugamug's Right Hand",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46153,
+    "NameId": 389699,
+    "ModelId": 200,
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Scale": 1.2,
+    "Name": "Thugamug's Left Hand",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46154,
+    "NameId": 45247,
+    "ModelId": 221,
+    "ModelFileName": "chugawug_m_02.adr",
+    "Scale": 1.5,
+    "Name": "Brugo",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46155,
+    "NameId": 72269,
+    "ModelId": 168,
+    "ModelFileName": "troll_shaman.adr",
+    "Scale": 1.15,
+    "Name": "Troll Bone Shaman",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46156,
+    "NameId": 102128,
+    "ModelId": 3284,
+    "ModelFileName": "wolf_generic.adr",
+    "Scale": 1.5,
+    "Name": "Alpha Wolf",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46157,
+    "NameId": 3973,
+    "ModelId": 478,
+    "ModelFileName": "treesoldier_mushroom.adr",
+    "Scale": 0.8,
+    "Name": "Nettleseed",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46158,
+    "NameId": 72862,
+    "ModelId": 65,
+    "ModelFileName": "chugawug_m_greenwood_soldier.adr",
+    "Scale": 1.7,
+    "Name": "Chugawump",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46159,
+    "NameId": 103398,
+    "ModelId": 142,
+    "ModelFileName": "wolf_vinegolum.adr",
+    "Scale": 0.9,
+    "Name": "Ravaging Vineweed",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46160,
+    "NameId": 73980,
+    "ModelId": 72,
+    "ModelFileName": "necrowartzombie_02.adr",
+    "Scale": 1.1,
+    "Name": "Moldy Shambler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46161,
+    "NameId": 15847,
+    "ModelId": 180,
+    "ModelFileName": "snake.adr",
+    "Scale": 1.2,
+    "Name": "Forest Snake",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46162,
+    "NameId": 141109,
+    "ModelId": 134,
+    "ModelFileName": "floren.adr",
+    "Scale": 1.15,
+    "Name": "Corrupted Floren",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46163,
+    "NameId": 74008,
+    "ModelId": 121,
+    "ModelFileName": "shroomgiant.adr",
+    "Scale": 0.6,
+    "Name": "Mushroom Gigas",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46164,
+    "NameId": 20009,
+    "ModelId": 1669,
+    "ModelFileName": "toad_purple.adr",
+    "Scale": 2.6,
+    "Name": "Black Squirm Toad",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46165,
+    "NameId": 76573,
+    "ModelId": 470,
+    "ModelFileName": "cray_ocean.adr",
+    "Scale": 1.2,
+    "Name": "Cray Marauder",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46166,
+    "NameId": 76574,
+    "ModelId": 676,
+    "ModelFileName": "cray_boss_ocean.adr",
+    "Scale": 0.8,
+    "Name": "Cray Marauder Captain",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46167,
+    "NameId": 78144,
+    "ModelId": 677,
+    "ModelFileName": "cray_boss_swamp.adr",
+    "Scale": 1.2,
+    "Name": "Mudshell",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46168,
+    "NameId": 92321,
+    "ModelId": 750,
+    "ModelFileName": "birds_seagull.adr",
+    "Scale": 1.6,
+    "Name": "Seaside Swooper",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46169,
+    "NameId": 139701,
+    "ModelId": 311,
+    "ModelFileName": "human_m_freestyle_02.agr",
+    "Scale": 1,
+    "Name": "Surfmonger Arthur",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46170,
+    "NameId": 116195,
+    "ModelId": 11122,
+    "ModelFileName": "cray_king_lowtide.adr",
+    "Scale": 0.85,
+    "Name": "Prince of Low Tide",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46171,
+    "NameId": 76190,
+    "ModelId": 1026,
+    "ModelFileName": "graveelemental_m_ghost.adr",
+    "Scale": 0.9,
+    "Name": "Tormented Spirit",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46172,
+    "NameId": 5101517,
+    "ModelId": 10,
+    "ModelFileName": "ghostdwarf_m_miner_01.adr",
+    "Scale": 1,
+    "Name": "Ghost Pirate",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46173,
+    "NameId": 90419,
+    "ModelId": 1054,
+    "ModelFileName": "dwarf_m_blacksporethiefghost.adr",
+    "Scale": 1.4,
+    "Name": "Bergram Stumpfinger",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46174,
+    "NameId": 140959,
+    "ModelId": 669,
+    "ModelFileName": "human_blackspore_thief_m.adr",
+    "Scale": 1,
+    "Name": "Shady Smuggler",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46175,
+    "NameId": 91885,
+    "ModelId": 730,
+    "ModelFileName": "dwarf_blackspore_thief_m.adr",
+    "Scale": 1.4,
+    "Name": "Smuggler Boss",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46176,
+    "NameId": 115850,
+    "ModelId": 767,
+    "ModelFileName": "graveelemental_m_skullwgraves.adr",
+    "Scale": 0.85,
+    "Name": "Lesser Grave Elemental",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46177,
+    "NameId": 115827,
+    "ModelId": 751,
+    "ModelFileName": "wraith_m_cloakedskelly.adr",
+    "Scale": 1.2,
+    "Name": "Graveyard Wraith",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46178,
+    "NameId": 139728,
+    "ModelId": 743,
+    "ModelFileName": "blackwidow_baby_01.adr",
+    "Scale": 1.6,
+    "Name": "Spawn of Necrosis",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46179,
+    "NameId": 388854,
+    "ModelId": 767,
+    "ModelFileName": "graveelemental_m_skullwgraves.adr",
+    "Scale": 1.6,
+    "Name": "Grave Lord",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46180,
+    "NameId": 141352,
+    "ModelId": 751,
+    "ModelFileName": "wraith_m_cloakedskelly.adr",
+    "Scale": 1,
+    "Name": "Vengeful Wraith",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46181,
+    "NameId": 16565,
+    "ModelId": 177,
+    "ModelFileName": "wolf_evil.adr",
+    "Scale": 1.4,
+    "Name": "Cursed Wolf",
+    "TextureAlias": "evil",
+    "TintAlias": "evil_black",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46182,
+    "NameId": 35588,
+    "ModelId": 343,
+    "ModelFileName": "vulture.adr",
+    "Scale": 1.4,
+    "Name": "Corrupted Vulture",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46183,
+    "NameId": 101891,
+    "ModelId": 52,
+    "ModelFileName": "blackwidow_01.adr",
+    "Scale": 1,
+    "Name": "Roaming Briarwood Arachnid",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46184,
+    "NameId": 2273,
+    "ModelId": 413,
+    "ModelFileName": "bw_spiderweb_gate_01.adr",
+    "Scale": 2.28,
+    "Name": "Arachnia's Lair",
+    "TerrainObjectId": 1254797208,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 2273,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46185,
+    "NameId": 3269,
+    "ModelId": 10907,
+    "ModelFileName": "cave_entrance_facade_01_ice.adr",
+    "Scale": 1.0,
+    "Name": "Hot Springs Haven",
+    "TerrainObjectId": 1254790311,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 3269,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46186,
+    "NameId": 5172,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 0.94,
+    "Name": "Bandit Hideout",
+    "TerrainObjectId": 1363903320,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5172,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46187,
+    "NameId": 5493,
+    "ModelId": 15377,
+    "ModelFileName": "sh_tavern_cellardoors_01.adr",
+    "Scale": 1.0,
+    "Name": "Tavern Cellar",
+    "TerrainObjectId": 1254786636,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5493,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46188,
+    "NameId": 21188,
+    "ModelId": 267,
+    "ModelFileName": "bw_hedge_door_01.adr",
+    "Scale": 1.0,
+    "Name": "The Snarling Hedges",
+    "TerrainObjectId": 1254795729,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 21188,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46189,
+    "NameId": 4229,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1.0,
+    "Name": "Snowy Canyon",
+    "TerrainObjectId": 1345838279,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 4229,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46190,
+    "NameId": 6456,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.0,
+    "Name": "The Bat Cave!",
+    "TerrainObjectId": 1259130085,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 6456,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46191,
+    "NameId": 5697,
+    "ModelId": 267,
+    "ModelFileName": "bw_hedge_door_01.adr",
+    "Scale": 0.55,
+    "Name": "Robgoblin Treasure Trove",
+    "TerrainObjectId": 1254791995,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5697,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46192,
+    "NameId": 5699,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.0,
+    "Name": "Deep Mines",
+    "TerrainObjectId": 1259129820,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5699,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46193,
+    "NameId": 5702,
+    "ModelId": 14410,
+    "ModelFileName": "sg_bixie_hive_door_01.adr",
+    "Scale": 1.05,
+    "Name": "Bixie Hive",
+    "TerrainObjectId": 1254769567,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5702,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46194,
+    "NameId": 5703,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.11,
+    "Name": "Forgotten Caves",
+    "TerrainObjectId": 1254788342,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5703,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46195,
+    "NameId": 5711,
+    "ModelId": 15208,
+    "ModelFileName": "sh_corral_gate_01.adr",
+    "Scale": 1,
+    "Name": "Danger Peaks",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5711,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46196,
+    "NameId": 5708,
+    "ModelId": 15105,
+    "ModelFileName": "sg_troll_door_01.adr",
+    "Scale": 2.34,
+    "Name": "Forest Troll Fort",
+    "TerrainObjectId": 1254794331,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5708,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46197,
+    "NameId": 5707,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.0,
+    "Name": "Briarheart Caverns",
+    "TerrainObjectId": 1254799334,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5707,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46198,
+    "NameId": 5706,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1.0,
+    "Name": "Trail of Betrayal",
+    "TerrainObjectId": 1254798907,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5706,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46199,
+    "NameId": 5710,
+    "ModelId": 15208,
+    "ModelFileName": "sh_corral_gate_01.adr",
+    "Scale": 1,
+    "Name": "Highroad Hijinx",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5710,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46200,
+    "NameId": 5705,
+    "ModelId": 63,
+    "ModelFileName": "bw_gate_01.adr",
+    "Scale": 1.0,
+    "Name": "Floren Forest",
+    "TerrainObjectId": 1254785469,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5705,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46201,
+    "NameId": 5704,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1.11,
+    "Name": "Mugwort's Hollow",
+    "TerrainObjectId": 1254792750,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5704,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46202,
+    "NameId": 5078,
+    "ModelId": 10452,
+    "ModelFileName": "bw_thornygate_01.adr",
+    "Scale": 2.39,
+    "Name": "Briar Patch",
+    "TerrainObjectId": 1254798130,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5078,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46203,
+    "NameId": 18219,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1.0,
+    "Name": "Croaking Vale",
+    "TerrainObjectId": 1254798983,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 18219,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46204,
+    "NameId": 6488,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1.16,
+    "Name": "Howling Hills",
+    "TerrainObjectId": 1254787755,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 6488,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46205,
+    "NameId": 4469,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.0,
+    "Name": "Dark Spore Depths",
+    "TerrainObjectId": 1254797702,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 4469,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46206,
+    "NameId": 4187,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.0,
+    "Name": "Mushroom Cavern",
+    "TerrainObjectId": 1254798778,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 4187,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46207,
+    "NameId": 5701,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1.0,
+    "Name": "Bristlewood Glade",
+    "TerrainObjectId": 1254796456,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5701,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46208,
+    "NameId": 18143,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1.0,
+    "Name": "Vale of the Ancients",
+    "TerrainObjectId": 1254797063,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 18143,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46209,
+    "NameId": 5133,
+    "ModelId": 267,
+    "ModelFileName": "bw_hedge_door_01.adr",
+    "Scale": 1.0,
+    "Name": "Treeleaf's Retreat",
+    "TerrainObjectId": 1254796060,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5133,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46210,
+    "NameId": 162,
+    "ModelId": 413,
+    "ModelFileName": "bw_spiderweb_gate_01.adr",
+    "Scale": 2.33,
+    "Name": "Grexan's Camp",
+    "TerrainObjectId": 1254793728,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 162,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46211,
+    "NameId": 7697,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.05,
+    "Name": "Darvon's Descent",
+    "TerrainObjectId": 1254788114,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 7697,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46212,
+    "NameId": 71769,
+    "ModelId": 15208,
+    "ModelFileName": "sh_corral_gate_01.adr",
+    "Scale": 1.0,
+    "Name": "Sweetwater Climb",
+    "TerrainObjectId": 1254787669,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 71769,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46213,
+    "NameId": 71770,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 0.85,
+    "Name": "Den of Secrets",
+    "TerrainObjectId": 1363903242,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 71770,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46214,
+    "NameId": 71694,
+    "ModelId": 15555,
+    "ModelFileName": "ss_seaside_tunnel_01.adr",
+    "Scale": 1.0,
+    "Name": "Cray Caves",
+    "TerrainObjectId": 1254784359,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 71694,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46215,
+    "NameId": 71771,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 0.98,
+    "Name": "Cracked Claw Caverns",
+    "TerrainObjectId": 1254772387,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 71771,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46216,
+    "NameId": 23555,
+    "ModelId": 111,
+    "ModelFileName": "sh_gates_01.adr",
+    "Scale": 1,
+    "Name": "Tanglewood Fort",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 23555,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46217,
+    "NameId": 71772,
+    "ModelId": 15209,
+    "ModelFileName": "sh_corral_gate_02.adr",
+    "Scale": 1.0,
+    "Name": "Sheep Watch",
+    "TerrainObjectId": 1254768044,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 71772,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46218,
+    "NameId": 5700,
+    "ModelId": 251,
+    "ModelFileName": "sh_cave_entrance_bat_cave_01.adr",
+    "Scale": 1.0,
+    "Name": "Haunted Mines",
+    "TerrainObjectId": 1254771865,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 5700,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46219,
+    "NameId": 90478,
+    "ModelId": 63,
+    "ModelFileName": "bw_gate_01.adr",
+    "Scale": 1.0,
+    "Name": "Misty Mountain",
+    "TerrainObjectId": 1345842609,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 90478,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46220,
+    "NameId": 414849,
+    "ModelId": 10273,
+    "ModelFileName": "bs_gate_01.adr",
+    "Scale": 1.58,
+    "Name": "Bone Bog Cemetery",
+    "TerrainObjectId": 1254777617,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 414849,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46221,
+    "NameId": 115822,
+    "ModelId": 10273,
+    "ModelFileName": "bs_gate_01.adr",
+    "Scale": 1.0,
+    "Name": "Cursed Graveyard!",
+    "TerrainObjectId": 1254776086,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 115822,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46222,
+    "NameId": 45406,
+    "ModelId": 1952,
+    "ModelFileName": "robgoblin_m_drummer.adr",
+    "Scale": 1,
+    "Name": "Party Crasher",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 45406,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46223,
+    "NameId": 6831,
+    "ModelId": 837,
+    "ModelFileName": "human_m_snowhill.adr",
+    "Scale": 1,
+    "Name": "Victor",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": true
+  },
+  {
+    "Id": 46224,
+    "NameId": 6831,
+    "ModelId": 837,
+    "ModelFileName": "human_m_snowhill.adr",
+    "Scale": 1,
+    "Name": "Victor",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 6831,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46225,
+    "NameId": 434061,
+    "ModelId": 4,
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Scale": 1,
+    "Name": "Robgoblin Thief",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 434061,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46226,
+    "NameId": 3973,
+    "ModelId": 478,
+    "ModelFileName": "treesoldier_mushroom.adr",
+    "Scale": 0.8,
+    "Name": "Nettleseed",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 3973,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46227,
+    "NameId": 73980,
+    "ModelId": 72,
+    "ModelFileName": "necrowartzombie_02.adr",
+    "Scale": 1.1,
+    "Name": "Moldy Shambler",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 73980,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46228,
+    "NameId": 74008,
+    "ModelId": 121,
+    "ModelFileName": "shroomgiant.adr",
+    "Scale": 0.6,
+    "Name": "Mushroom Gigas",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 74008,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46229,
+    "NameId": 76573,
+    "ModelId": 470,
+    "ModelFileName": "cray_ocean.adr",
+    "Scale": 1.2,
+    "Name": "Cray Marauder",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 76573,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46230,
+    "NameId": 141584,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1.3,
+    "Name": "Thugawug Bumbler",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 141584,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46231,
+    "NameId": 74008,
+    "ModelId": 121,
+    "ModelFileName": "shroomgiant.adr",
+    "Scale": 0.6,
+    "Name": "Mushroom Gigas",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 74008,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46232,
+    "NameId": 93120,
+    "ModelId": 945,
+    "ModelFileName": "human_m_ninja_ghost.adr",
+    "Scale": 1,
+    "Name": "Stealthy Despoiler",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 93120,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46233,
+    "NameId": 141586,
+    "ModelId": 200,
+    "ModelFileName": "chugawug_f_bandit_01.adr",
+    "Scale": 1,
+    "Name": "Thugawug Sneak",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 141586,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46234,
+    "NameId": 423127,
+    "ModelId": 390,
+    "ModelFileName": "human_m_ninja_flyingdragon_01.agr",
+    "Scale": 1,
+    "Name": "Fleetfoot Ninja",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 423127,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46235,
+    "NameId": 433397,
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Name": "Unruly Bixie Warrior",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 433397,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46236,
+    "NameId": 6494,
+    "ModelId": 51,
+    "ModelFileName": "sasquatch_01.adr",
+    "Scale": 1.2,
+    "Name": "Yeti Trapper",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 6494,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46237,
+    "NameId": 76190,
+    "ModelId": 1026,
+    "ModelFileName": "graveelemental_m_ghost.adr",
+    "Scale": 0.9,
+    "Name": "Tormented Spirit",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 76190,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46238,
+    "NameId": 433397,
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Name": "Unruly Bixie Warrior",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 433397,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46239,
+    "NameId": 95047,
+    "ModelId": 4,
+    "ModelFileName": "robgoblin_m_basic.adr",
+    "Scale": 1,
+    "Name": "Robgoblin Pondblaster",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 95047,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46240,
+    "NameId": 90419,
+    "ModelId": 1054,
+    "ModelFileName": "dwarf_m_blacksporethiefghost.adr",
+    "Scale": 1.4,
+    "Name": "Bergram Stumpfinger",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 90419,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46241,
+    "NameId": 78144,
+    "ModelId": 677,
+    "ModelFileName": "cray_boss_swamp.adr",
+    "Scale": 1.2,
+    "Name": "Mudshell",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 78144,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46242,
+    "NameId": 91930,
+    "ModelId": 470,
+    "ModelFileName": "cray_ocean.adr",
+    "Scale": 1,
+    "Name": "Cray Snapper",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 91930,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46243,
+    "NameId": 92321,
+    "ModelId": 750,
+    "ModelFileName": "birds_seagull.adr",
+    "Scale": 1.6,
+    "Name": "Seaside Swooper",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 92321,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46244,
+    "NameId": 35588,
+    "ModelId": 343,
+    "ModelFileName": "vulture.adr",
+    "Scale": 1.4,
+    "Name": "Corrupted Vulture",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 35588,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46245,
+    "NameId": 101891,
+    "ModelId": 52,
+    "ModelFileName": "blackwidow_01.adr",
+    "Scale": 1,
+    "Name": "Roaming Briarwood Arachnid",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 101891,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46246,
+    "NameId": 72862,
+    "ModelId": 65,
+    "ModelFileName": "chugawug_m_greenwood_soldier.adr",
+    "Scale": 1.7,
+    "Name": "Chugawump",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 72862,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46247,
+    "NameId": 15847,
+    "ModelId": 180,
+    "ModelFileName": "snake.adr",
+    "Scale": 1.2,
+    "Name": "Forest Snake",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 15847,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46248,
+    "NameId": 103398,
+    "ModelId": 142,
+    "ModelFileName": "wolf_vinegolum.adr",
+    "Scale": 0.9,
+    "Name": "Ravaging Vineweed",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 103398,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46249,
+    "NameId": 100883,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1,
+    "Name": "Thugawug Ambusher",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 100883,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46250,
+    "NameId": 139701,
+    "ModelId": 311,
+    "ModelFileName": "human_m_freestyle_02.agr",
+    "Scale": 1,
+    "Name": "Surfmonger Arthur",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 139701,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46251,
+    "NameId": 103031,
+    "ModelId": 199,
+    "ModelFileName": "chugawug_m_bandit_01.adr",
+    "Scale": 1.6,
+    "Name": "Thugamug",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 103031,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46252,
+    "NameId": 116195,
+    "ModelId": 11122,
+    "ModelFileName": "cray_king_lowtide.adr",
+    "Scale": 0.85,
+    "Name": "Prince of Low Tide",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 116195,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46253,
+    "NameId": 116426,
+    "ModelId": 786,
+    "ModelFileName": "robgoblin_m_brute.adr",
+    "Scale": 1.6,
+    "Name": "Brutus the Brute",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 116426,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46254,
+    "NameId": 16565,
+    "ModelId": 177,
+    "ModelFileName": "wolf_evil.adr",
+    "Scale": 1.4,
+    "Name": "Cursed Wolf",
+    "TextureAlias": "evil",
+    "TintAlias": "evil_black",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 16565,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46255,
+    "NameId": 139728,
+    "ModelId": 743,
+    "ModelFileName": "blackwidow_baby_01.adr",
+    "Scale": 1.6,
+    "Name": "Spawn of Necrosis",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 139728,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46256,
+    "NameId": 45247,
+    "ModelId": 221,
+    "ModelFileName": "chugawug_m_02.adr",
+    "Scale": 1.5,
+    "Name": "Brugo",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 45247,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46257,
+    "NameId": 388854,
+    "ModelId": 767,
+    "ModelFileName": "graveelemental_m_skullwgraves.adr",
+    "Scale": 1.6,
+    "Name": "Grave Lord",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 388854,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46258,
+    "NameId": 141352,
+    "ModelId": 751,
+    "ModelFileName": "wraith_m_cloakedskelly.adr",
+    "Scale": 1,
+    "Name": "Vengeful Wraith",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 141352,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46259,
+    "NameId": 433558,
+    "ModelId": 3938,
+    "ModelFileName": "fairy_f_druid_viper.agr",
+    "Scale": 1.2,
+    "Name": "Cultist Leader",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 433558,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46260,
+    "NameId": 141109,
+    "ModelId": 134,
+    "ModelFileName": "floren.adr",
+    "Scale": 1.15,
+    "Name": "Corrupted Floren",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 141109,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46261,
+    "NameId": 130764,
+    "ModelId": 517,
+    "ModelFileName": "fairy_m_hooligan_brawler_01.agr",
+    "Scale": 1,
+    "Name": "PCA Trickster",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 130764,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46262,
+    "NameId": 75936,
+    "ModelId": 1648,
+    "ModelFileName": "toad_black.adr",
+    "Scale": 1.6,
+    "Name": "Black Swamp Frog",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 75936,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46263,
+    "NameId": 139702,
+    "ModelId": 395,
+    "ModelFileName": "human_m_ninja_shadowtalon_03.agr",
+    "Scale": 1,
+    "Name": "Shadowtalon Guard",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 139702,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 46264,
+    "NameId": 4171,
+    "ModelId": 77,
+    "ModelFileName": "troll_forest.adr",
+    "Scale": 1,
+    "Name": "Forest Troll",
+    "HasCursor": true,
+    "CursorId": 11,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 3,
+        "IconId": 7,
+        "IconState": 24,
+        "Unknown": 0,
+        "NameId": 4171,
+        "ReferenceId": -1,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
     "Id": 47001,
     "NameId": 17958,
     "Name": "Wildwood Kart Racing",
@@ -71460,5 +75861,93 @@
     "ModelId": 1436,
     "ModelFileName": "human_m_snowspurs_goalie.agr",
     "Comment": "Soccer player"
+  },
+  {
+    "Id": 48001,
+    "NameId": 441910,
+    "Name": "Advance Scout Herbert",
+    "ModelId": 214,
+    "ModelFileName": "chugawug_m_greenwood_archer_01.adr"
+  },
+  {
+    "Id": 48002,
+    "NameId": 441911,
+    "Name": "Advance Scout Hilda",
+    "ModelId": 215,
+    "ModelFileName": "chugawug_f_greenwood_archer_01.adr"
+  },
+  {
+    "Id": 48003,
+    "NameId": 441915,
+    "Name": "Counselor Amira",
+    "ModelId": 548,
+    "ModelFileName": "human_f_freestyle_06.agr"
+  },
+  {
+    "Id": 48004,
+    "NameId": 440714,
+    "Name": "Buzzuz",
+    "ModelId": 218,
+    "ModelFileName": "bixie_m_elite_guard.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "Mob": "dungeon-boss-1",
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48005,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48006,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48007,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48008,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48009,
+    "NameId": 440713,
+    "Name": "Bixie Pikeman",
+    "ModelId": 220,
+    "ModelFileName": "bixie_m_warrior.adr",
+    "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   }
 ]

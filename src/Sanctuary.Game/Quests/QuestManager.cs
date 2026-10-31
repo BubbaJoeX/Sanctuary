@@ -129,6 +129,12 @@ public sealed class QuestManager : IQuestManager
             QuestDialogue.Begin(player, goal.ConversationFor(npc.DefinitionId), npc.Guid);
     }
 
+    public void Attach(Player player)
+    {
+        player.Quests.Manager = this;
+        player.Quests.Player = player;
+    }
+
     public void OnEvent(Player player, QuestEvent questEvent)
     {
         foreach (var (quest, progress, goal) in ActiveGoals(player).ToList())
@@ -267,6 +273,36 @@ public sealed class QuestManager : IQuestManager
 
         // GM-authored quests carry free text the quest window can't show.
         _customQuestManager.AnnounceGoal(player, questId, 0);
+
+        GrantAcceptItems(player, quest);
+
+        CompleteIfAlreadyMet(player, quest, progress);
+    }
+
+    private void GrantAcceptItems(Player player, QuestDefinition quest)
+    {
+        foreach (var itemDefinitionId in quest.AcceptItems)
+        {
+            if (player.Items.Any(item => item.Definition == itemDefinitionId) ||
+                !_resourceManager.ClientItemDefinitions.TryGetValue(itemDefinitionId, out var itemDefinition))
+                continue;
+
+            _rewardManager.TryGrantItem(player, itemDefinitionId, itemDefinition.IsTintable ? 0 : itemDefinition.Icon.TintId);
+        }
+    }
+
+    // An equip goal the player already meets would otherwise wait for them to take the item off and put it back on.
+    private void CompleteIfAlreadyMet(Player player, QuestDefinition quest, QuestProgress progress)
+    {
+        if (progress.GoalIndex < quest.Goals.Count && quest.Goals[progress.GoalIndex] is EquipGoal equipGoal && IsWearingAny(player, equipGoal.ItemDefinitionIds))
+            CompleteGoal(player, quest, progress);
+    }
+
+    private static bool IsWearingAny(Player player, List<int> itemDefinitionIds)
+    {
+        var equippedItemIds = player.Profiles.SelectMany(profile => profile.Items.Values).Select(profileItem => profileItem.Id).ToHashSet();
+
+        return player.Items.Any(item => equippedItemIds.Contains(item.Id) && itemDefinitionIds.Contains(item.Definition));
     }
 
     public bool CompleteQuest(Player player, int questId)
@@ -681,6 +717,8 @@ public sealed class QuestManager : IQuestManager
 
             QuestDialogue.Begin(player, completedGoal.ConversationFor(speakerNpcId), speakerGuid);
         }
+
+        CompleteIfAlreadyMet(player, quest, progress);
     }
 
     private const int YouGotItTextId = 103085;
@@ -857,6 +895,18 @@ public sealed class QuestManager : IQuestManager
             var untalked = NearestUntalkedTarget(player, countedGoal, progress);
             if (untalked != 0)
                 return untalked;
+        }
+
+        // The nearest mob that counts, or the door or NPC that starts the battle.
+        if (goalIndex >= 0 && goalIndex < goals.Count && goals[goalIndex] is DefeatGoal defeatGoal)
+            return NearestNpc(player, npc => defeatGoal.Counts(npc.DefinitionId, npc.NameId))?.Guid ?? 0;
+
+        if (goalIndex >= 0 && goalIndex < goals.Count && goals[goalIndex] is BattleGoal battleGoal)
+        {
+            if (!_resourceManager.Battles.TryGetValue(battleGoal.BattleId, out var battle))
+                return 0;
+
+            return NearestNpc(player, npc => battle.StarterNpcIds.Contains(npc.DefinitionId))?.Guid ?? 0;
         }
 
         return NearestNpcGuid(player, GoalTargetNpcId(quest, goalIndex));

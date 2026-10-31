@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1225,
+  "Name": "sg_troll_fort",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    264.88,
+    27.41,
+    208.24
+  ],
+  "SpawnRotation": [
+    -0.5059,
+    0,
+    -0.8626,
+    0
+  ]
+}

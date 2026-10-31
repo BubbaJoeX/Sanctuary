@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1220,
+  "Name": "bw_treeleaf_retreat",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_briarwood24.xml",
+  "SpawnPosition": [
+    139.18,
+    1.01,
+    173.77
+  ],
+  "SpawnRotation": [
+    0.0422,
+    0,
+    0.9991,
+    0
+  ]
+}

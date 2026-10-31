@@ -95,4 +95,33 @@ public sealed class NavMeshBuilderTests
             File.Delete(path);
         }
     }
+
+    // A zone that ships terrain without its navmesh has it built at every fresh server start, a minute or more
+    // for the big ones.
+    [TestMethod]
+    public void EveryTerrain_ShipsItsNavMesh()
+    {
+        var resources = FindSourceResources();
+
+        var missing = Directory.GetFiles(Path.Combine(resources, "Terrain"), "*.terrain")
+            .Select(Path.GetFileNameWithoutExtension)
+            .Where(zone => !File.Exists(Path.Combine(resources, "NavMeshes", zone + ".navmesh")))
+            .ToList();
+
+        Assert.AreEqual(0, missing.Count,
+            $"No navmesh in src/Resources/NavMeshes for: {string.Join(", ", missing)}. Start the Gateway once and copy " +
+            "the ones it saved under bin\\Debug\\net9.0\\Resources\\NavMeshes.");
+    }
+
+    private static string FindSourceResources()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "Resources", "Terrain")))
+            directory = directory.Parent;
+
+        Assert.IsNotNull(directory, "src/Resources/Terrain not found above the test output.");
+
+        return Path.Combine(directory.FullName, "Resources");
+    }
 }
