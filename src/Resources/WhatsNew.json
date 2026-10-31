@@ -1,13 +1,13 @@
 [
   {
+    "Title": "Battles, patched up",
+    "Text": "Enemies have red names again, in battles and out in the wilds, and a click picks one out for a fight. Battle Exits work: once the goal's done, go through one for the end screen and your rewards, or use the Exit beside where you come in to give up and head back at any time. Leaving a battle, or the end of any fight, takes you out of combat, and if a battle switched you into your combat job you get your own job back.",
+    "Icon": "trophy"
+  },
+  {
     "Title": "Change jobs in town",
     "Text": "Stuck in your combat job? Not anymore: in Sanctuary, Snowhill, Briarwood, Seaside and the other towns you can pick any job again, Fisherman and Pet Trainer included, and at the fishing ponds too. Out in the wilds the job picker still keeps you to combat jobs, and the enemies there are red and ready for a fight.",
     "Icon": "tree"
-  },
-  {
-    "Title": "Battles, patched up",
-    "Text": "Battle enemies have red nameplates again and you can target them, and the Exit works: once the goal's done, go through it for the end screen and your rewards. Had enough? Another Exit stands just behind where you come in, so you can give up and head back at any time. And if a battle switched you into your combat job, you get your own job back when you leave, even if you log out inside it.",
-    "Icon": "trophy"
   },
   {
     "Title": "Bring your friends",
