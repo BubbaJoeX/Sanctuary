@@ -2424,6 +2424,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "onArrive()  reached its moveTo target\r" +
    "onSignal(name, data, fromGuid)  another script's npc:signal\r" +
    "onHurt(player, amount)  onDeath(killer)  onRespawn()  mobs only\r" +
+   "onChallengeEnd(player, challengeId, won)  a challenge it offered ended\r" +
    "\rTIMERS (on the one-second tick)\r" +
    "after(seconds, fn)  every(seconds, fn)  return an id\r" +
    "cancel(id)\r" +
@@ -2444,6 +2445,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "npc:getPlayersOnTop(radius, minHeight, maxHeight)\r" +
    "npc:startConversation(player [, nodeId])\r" +
    "npc:signal(name [, data [, radius]])\r" +
+   "npc:offerChallenge(player, challengeId)\r" +
    "\rMOBS (!npc mob)\r" +
    "npc.isMob  npc.health  npc.maxHealth  npc.isDead  npc.target (guid or nil)\r" +
    "npc:hurt(player, amount)  npc:attack(player, amount)\r" +
@@ -2453,12 +2455,14 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "player:giveItem(itemId [, qty])  player:giveCoins(amount)\r" +
    "player:heal(amount)\r" +
    "player:teleport(x, y, z [, heading])  player:dismount()\r" +
-   "player:emote(animId)  player:playEffect(effectId)\r" +
+   "player:emote(name or animId)  player:stopEmote()  player:playEffect(effectId)\r" +
    "player:transform(modelId, seconds)  player:clearTransform()\r" +
    "player:resize(scale, seconds)\r" +
    "player:acceptQuest(questId)  player:hasCompletedQuest(questId)\r" +
    "player.zoneId  player.zoneName  player:warp(zoneId [, x, y, z [, heading]])\r" +
-   "player:startMinigame(minigameId)  (ids: !minigame list)\r" +
+   "player:startMinigame(minigameId)  (ids: !minigame list)  player.inMinigame\r" +
+   "player.battleId  player.inBattle  player:startBattle(battleId)  player.isFishing\r" +
+   "player:hasAchievement(id)  player:knowsRecipe(id)  player:learnRecipe(id)\r" +
    "player.health  player.maxHealth  player.inCombat  player.isKnockedOut\r" +
    "player:revive([healthPercent])\r" +
    "player.job  player.jobRank  player:giveStars(amount)\r" +
@@ -2475,6 +2479,7 @@ var GM_SCRIPT_HELP = "HOOKS (define any of them)\r" +
    "zone:setClientAreaEnabled(areaId, on)\r" +
    "zone:isSeasonActive(name)  zone:isEventActive(key)\r" +
    "zone.playerCount  zone:getPlayers()  zone:getPlayer(guid or name)\r" +
+   "zone.gameHour  zone.battleId  zone.isHouse  zone.owner\r" +
    "\rHELPERS\r" +
    "distance(a, b)  pick(list)  chance(probability)  shuffle(list)  countdown(seconds)\r" +
    "\rLUA\r" +

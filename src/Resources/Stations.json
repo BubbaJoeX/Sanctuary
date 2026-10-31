@@ -871,5 +871,13 @@
     "MinigameIds": [
       91
     ]
+  },
+  {
+    "NpcId": 48010,
+    "Comment": "Anvil (Farnum Farmstead)",
+    "RecipeFilters": [
+      12,
+      9
+    ]
   }
 ]

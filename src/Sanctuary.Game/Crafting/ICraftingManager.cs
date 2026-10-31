@@ -40,4 +40,9 @@ public interface ICraftingManager
     /// recipe's game only when it was started from the recipe.
     /// </summary>
     bool WillMakeItem(Player player, int minigameId);
+
+    /// <summary>
+    /// Teaches a recipe, as its recipe card does. False if there's no such recipe or the player knows it.
+    /// </summary>
+    bool Learn(Player player, int recipeId);
 }

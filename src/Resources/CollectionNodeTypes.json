@@ -261,5 +261,65 @@
     "InteractRange": 12,
     "CursorId": 17,
     "PlacementYOffset": 0
+  },
+  {
+    "Key": "farnum-water-bucket",
+    "Name": "Water Bucket",
+    "ModelId": 521,
+    "Scale": 1,
+    "CompositeEffectId": 5742,
+    "InteractRange": 12,
+    "CursorId": 17,
+    "PlacementYOffset": 0
+  },
+  {
+    "Key": "farnum-fire",
+    "Name": "Fire",
+    "ModelId": 206,
+    "Scale": 0.8,
+    "CompositeEffectId": 5742,
+    "InteractRange": 12,
+    "CursorId": 17,
+    "PlacementYOffset": 0
+  },
+  {
+    "Key": "harvesting-practice-gummyfruit",
+    "Name": "Harvesting Practice",
+    "ModelId": 3633,
+    "Scale": 1,
+    "CompositeEffectId": 5742,
+    "InteractRange": 12,
+    "CursorId": 18,
+    "PlacementYOffset": 0
+  },
+  {
+    "Key": "harvesting-practice-rainleaf",
+    "Name": "Harvesting Practice",
+    "ModelId": 3653,
+    "Scale": 0.6,
+    "CompositeEffectId": 5742,
+    "InteractRange": 12,
+    "CursorId": 18,
+    "PlacementYOffset": 0
+  },
+  {
+    "Key": "miner-training-node",
+    "Name": "Miner Training Node",
+    "ModelId": 587,
+    "Scale": 1,
+    "CompositeEffectId": 5742,
+    "InteractRange": 12,
+    "CursorId": 18,
+    "PlacementYOffset": 0
+  },
+  {
+    "Key": "gloam-artifact",
+    "Name": "Gloam Artifact",
+    "ModelId": 3934,
+    "Scale": 0.35,
+    "CompositeEffectId": 5742,
+    "InteractRange": 12,
+    "CursorId": 17,
+    "PlacementYOffset": 0
   }
 ]

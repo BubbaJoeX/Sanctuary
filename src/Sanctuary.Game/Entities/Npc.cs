@@ -810,6 +810,10 @@ public class Npc : IScriptableNpc, IEntity
 
     public int Attack(IScriptablePlayer player, int damage) =>
         player is ScriptPlayer { Player: var target } && target.Zone == Zone ? target.TakeDamage(damage, this) : 0;
+
+    public bool OfferChallenge(IScriptablePlayer player, int challengeId) =>
+        player is ScriptPlayer { Player: var target } && target.Zone == Zone && Zone is WorldZone worldZone
+        && worldZone.OfferChallenge(target, challengeId, this);
     
     private const byte SetBaseAnimationFlag = 1;
 

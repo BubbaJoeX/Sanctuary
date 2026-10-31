@@ -270,6 +270,10 @@ internal sealed class ZoneUserData(IScriptableZone zone) : ILuaUserData
                 "playerCount" => new LuaValue(self._zone.PlayerCount),
                 "getPlayers" => GetPlayersFunction,
                 "getPlayer" => GetPlayerFunction,
+                "gameHour" => new LuaValue(self._zone.GameHour),
+                "battleId" => new LuaValue(self._zone.BattleId),
+                "isHouse" => new LuaValue(self._zone.HouseOwnerGuid != 0),
+                "owner" => self._zone.HouseOwnerGuid == 0 ? LuaValue.Nil : new LuaValue(self._zone.HouseOwnerGuid.ToString(CultureInfo.InvariantCulture)),
                 _ => LuaValue.Nil
             };
 

@@ -412,10 +412,16 @@ public class ResourceManager : IResourceManager, IDisposable
             }
         }
 
-        var collectionItemDefinitionIds = Collections.Values
+        // Recipes load ahead of the collection node pools: a gathering node (a mining vein, a harvesting bush) can give
+        // what a recipe is made from instead of a collection's item.
+        if (!LoadRecipes())
+            return false;
+
+        var droppableItemDefinitionIds = Collections.Values
             .SelectMany(collection => collection.Entries)
             .Where(entry => entry.ItemDefinitionId > 0)
             .Select(entry => entry.ItemDefinitionId)
+            .Concat(Recipes.Values.SelectMany(recipe => recipe.Components).Select(component => component.ItemId))
             .ToHashSet();
 
         foreach (var type in CollectionNodeTypes.Values)
@@ -441,9 +447,9 @@ public class ResourceManager : IResourceManager, IDisposable
         {
             if (!CollectionNodeTypes.ContainsKey(pool.NodeType) ||
                 pool.DropTable.Any(drop => !ClientItemDefinitions.ContainsKey(drop.ItemDefinitionId) ||
-                    !collectionItemDefinitionIds.Contains(drop.ItemDefinitionId)))
+                    !droppableItemDefinitionIds.Contains(drop.ItemDefinitionId)))
             {
-                _logger.LogError("Collection node pool {pool} has an invalid node type or collection drop reference.",
+                _logger.LogError("Collection node pool {pool} has an invalid node type or drop reference.",
                     pool.Key);
                 return false;
             }
@@ -536,9 +542,6 @@ public class ResourceManager : IResourceManager, IDisposable
             return false;
 
         if (!Achievements.Load(AchievementsFile))
-            return false;
-
-        if (!LoadRecipes())
             return false;
 
         if (!Stations.Load(StationsFile))

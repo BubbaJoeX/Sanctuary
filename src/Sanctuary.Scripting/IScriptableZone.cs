@@ -33,4 +33,19 @@ public interface IScriptableZone : IScriptable
     /// A player in this zone, by guid or else by name, or null.
     /// </summary>
     IScriptablePlayer? GetPlayer(ulong guid, string? name);
+
+    /// <summary>
+    /// The hour of the game day, 0 to just under 24, as the clients' sky shows it.
+    /// </summary>
+    float GameHour { get; }
+
+    /// <summary>
+    /// The Battles.json id of the battle this zone was made for, or 0.
+    /// </summary>
+    int BattleId { get; }
+
+    /// <summary>
+    /// The owner of the house this zone is, or 0 for any other zone.
+    /// </summary>
+    ulong HouseOwnerGuid { get; }
 }

@@ -5296,6 +5296,10 @@ local function spawnStaticNpcs(zone)
     zone:spawnNpcWithGuid(48007, 100000048007, -1476.77, -34.931, 150.04, 6.0548)
     zone:spawnNpcWithGuid(48008, 100000048008, -1472.65, -34.098, 140.29, 7.3114)
     zone:spawnNpcWithGuid(48009, 100000048009, -1462.11, -34.348, 141.2, 8.568)
+
+    -- Hero's Journal: Cobblestone Village
+    zone:spawnNpcWithGuid(48010, 100000048010, -2078.29, -55.98, 198.65, -1.571)
+    zone:spawnNpcWithGuid(48011, 100000048011, -2167.52, -32.0, 356.49, -2.2)
 end
 
 registerCallback("start", function(zone)

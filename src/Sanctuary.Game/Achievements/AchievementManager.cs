@@ -245,6 +245,7 @@ public class AchievementManager : IAchievementManager
             }
 
             player.SendTunneled(new AchievementCompletePacket { AchievementId = definition.Id });
+            player.Zone?.FirePlayerEvent("achievementEarned", player, definition.Id);
 
             if (Definitions.GainEffectOf(definition) is > 0 and var effect)
             {

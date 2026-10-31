@@ -1,14 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Sanctuary.Core.Extensions;
+using Sanctuary.Game.Battles;
+using Sanctuary.Game.ChatCommands;
+using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Minigames;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Game.Resources.Definitions.Zones;
+using Sanctuary.Game.VehicleGames;
+using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
 using Sanctuary.Scripting;
 
@@ -18,7 +26,7 @@ namespace Sanctuary.Game.Conversations;
 /// Exposes a player to GM-authored scripts.
 /// </summary>
 public sealed class ScriptPlayer(Player player, IRewardManager rewardManager, IQuestManager questManager,
-    IResourceManager resourceManager) : IScriptablePlayer
+    IResourceManager resourceManager, IServiceProvider serviceProvider) : IScriptablePlayer
 {
     public Player Player => player;
 
@@ -109,7 +117,10 @@ public sealed class ScriptPlayer(Player player, IRewardManager rewardManager, IQ
 
     public bool GiveStars(int amount) => rewardManager.TryGrantExperience(player, player.ApplyExperienceBoost(amount));
 
-    public bool StartMinigame(int minigameId) => MinigameManager.Join(player, minigameId);
+    public bool StartMinigame(int minigameId) =>
+        resourceManager.VehicleGames.TryGetStage(minigameId, out var stage)
+            ? serviceProvider.GetService<IVehicleGameManager>()?.Offer(player, stage) == true
+            : MinigameManager.Join(player, minigameId);
 
     public bool Warp(int zoneId, (float x, float y, float z)? position, float? heading)
     {
@@ -122,4 +133,28 @@ public sealed class ScriptPlayer(Player player, IRewardManager rewardManager, IQ
 
         return player.TeleportToZone(zoneId, null, destination, rotation);
     }
+
+    public int BattleId => player.Zone is WorldZone { Battle: { } battle } ? battle.Definition.Id : 0;
+
+    public bool IsFishing => player.IsFishing;
+
+    public bool IsInMinigame =>
+        MinigameManager.GetSession(player) is not null || serviceProvider.GetService<IVehicleGameManager>()?.IsPlaying(player) == true;
+
+    public bool StartBattle(int battleId) =>
+        resourceManager.Battles.TryGetValue(battleId, out var battle) && serviceProvider.GetRequiredService<IBattleManager>().Offer(player, battle);
+
+    public bool HasAchievement(int achievementId) => player.Achievements.IsFinished(achievementId);
+
+    public bool KnowsRecipe(int recipeId)
+    {
+        lock (player.KnownRecipes)
+            return player.KnownRecipes.Contains(recipeId);
+    }
+
+    public bool LearnRecipe(int recipeId) => serviceProvider.GetService<ICraftingManager>()?.Learn(player, recipeId) == true;
+
+    public bool PlayEmote(string name) => EmoteChatCommand.TryPlay(player, name);
+
+    public void StopEmote() => player.StopLoopingEmote();
 }

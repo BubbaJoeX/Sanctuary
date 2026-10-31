@@ -255,22 +255,39 @@ public class EmoteChatCommand : IChatCommand
             return true;
         }
 
-        invoker.StopLoopingEmote();
+        Play(invoker, emote);
+        return true;
+    }
+
+    /// <summary>
+    /// Plays a named emote for everyone near the player (Lua's player:emote(name)). False for a name it doesn't know,
+    /// or while they ride.
+    /// </summary>
+    public static bool TryPlay(Player player, string name)
+    {
+        if (!Emotes.TryGetValue(name, out var emote) || player.Mount is not null)
+            return false;
+
+        Play(player, emote);
+        return true;
+    }
+
+    private static void Play(Player player, (int AnimationId, bool Loop, EmoteKind Kind) emote)
+    {
+        player.StopLoopingEmote();
 
         if (emote.Loop)
         {
-            invoker.LoopingEmoteAnimation = emote.AnimationId;
-            invoker.LoopingEmoteFrom = invoker.Position;
+            player.LoopingEmoteAnimation = emote.AnimationId;
+            player.LoopingEmoteFrom = player.Position;
         }
 
-        invoker.SendTunneledToVisible(new PlayerUpdatePacketSetAnimation
+        player.SendTunneledToVisible(new PlayerUpdatePacketSetAnimation
         {
-            Guid = invoker.Guid,
+            Guid = player.Guid,
             AnimationId = emote.AnimationId,
             Flags = (byte)(emote.Loop ? 1 : 0)
         }, true);
-
-        return true;
     }
 
     private static void SendList(Player invoker)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -174,6 +175,25 @@ public class ScriptContext
     /// </summary>
     public void FireEvent(string eventName, IScriptablePlayer player, string argument) =>
         FireEvent(eventName, [.. _eventArguments, new LuaValue(new PlayerUserData(player)), argument]);
+
+    /// <summary>
+    /// Fires an event whose callbacks get the owner, then a player and plain values: numbers, booleans and text, with
+    /// null as nil.
+    /// </summary>
+    public void FireEvent(string eventName, IScriptablePlayer player, params object?[] arguments) =>
+        FireEvent(eventName, [.. _eventArguments, new LuaValue(new PlayerUserData(player)), .. arguments.Select(ToLuaValue)]);
+
+    private static LuaValue ToLuaValue(object? value) => value switch
+    {
+        null => LuaValue.Nil,
+        bool flag => flag,
+        int number => number,
+        long number => number,
+        float number => number,
+        double number => number,
+        string text => text,
+        _ => throw new ArgumentException($"A {value.GetType().Name} can't be passed to Lua.", nameof(value))
+    };
 
     public bool HasCallbacks(string eventName) =>
         _eventCallbacks.TryGetValue(eventName, out var callbacks) && !callbacks.Snapshot.IsEmpty;

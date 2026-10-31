@@ -114,6 +114,36 @@ public sealed class CollectionNodePoolDefinitionTests
     }
 
     [TestMethod]
+    public void Load_ReadsADropsQuantityAndRejectsNone()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"collection-node-pools-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path,
+            "[{\"Key\":\"ore\",\"ZoneDefinitionId\":1,\"NodeType\":\"miner-training-node\",\"MaxActiveNodes\":6,\"RespawnSeconds\":15," +
+            "\"DropTable\":[{\"ItemDefinitionId\":2739,\"Weight\":1,\"Quantity\":5}]}," +
+            "{\"Key\":\"mushrooms\",\"ZoneDefinitionId\":1,\"NodeType\":\"mushrooms\",\"MaxActiveNodes\":2,\"RespawnSeconds\":30," +
+            "\"DropTable\":[{\"ItemDefinitionId\":1001,\"Weight\":1}]}]");
+
+        try
+        {
+            var definitions = new CollectionNodePoolDefinitionCollection(NullLogger.Instance);
+
+            Assert.IsTrue(definitions.Load(path));
+            Assert.AreEqual(5, definitions["ore"].DropTable[0].Quantity);
+            Assert.AreEqual(1, definitions["mushrooms"].DropTable[0].Quantity);
+
+            File.WriteAllText(path,
+                "[{\"Key\":\"ore\",\"ZoneDefinitionId\":1,\"NodeType\":\"miner-training-node\",\"MaxActiveNodes\":6,\"RespawnSeconds\":15," +
+                "\"DropTable\":[{\"ItemDefinitionId\":2739,\"Weight\":1,\"Quantity\":0}]}]");
+
+            Assert.IsFalse(new CollectionNodePoolDefinitionCollection(NullLogger.Instance).Load(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
     public void SelectSpawnsToActivate_ExcludesActivePointsAndFillsCapWithoutDuplicates()
     {
         var pool = CreatePool(maxActiveNodes: 3);

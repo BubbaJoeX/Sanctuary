@@ -104,4 +104,10 @@ public interface IScriptableNpc : IScriptable
     /// The NPC hits the player (mitigated like a mob's hit). Returns what the player took.
     /// </summary>
     int Attack(IScriptablePlayer player, int damage);
+
+    /// <summary>
+    /// Opens a challenge's start screen (a Challenges.json id) for the player, with this NPC as its giver, where its
+    /// course is laid out. False if there's no such challenge, it isn't in a world zone or the player is busy.
+    /// </summary>
+    bool OfferChallenge(IScriptablePlayer player, int challengeId);
 }

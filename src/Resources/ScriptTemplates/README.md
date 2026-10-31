@@ -26,6 +26,8 @@ local wait = {{cooldown}}        -- placeholders are filled in when the template
 | `onHear(player, message)` | A player says something nearby. |
 | `onChoice(player, hook)` | A conversation choice with that hook is picked. |
 | `onSignal(name, data, fromGuid)` | Another NPC's script called `npc:signal`. |
+| `onHurt(player, amount)`, `onDeath(killer)`, `onRespawn()` | Mobs only: a hit it survived, the killing blow, and coming back. |
+| `onChallengeEnd(player, challengeId, won)` | A challenge this NPC gave with `npc:offerChallenge` ended, unless it was cancelled. The `challenge-giver` template pays a prize for a win: `!npc script use challenge-giver challenge=25 prize=<itemId>`. |
 
 ## Globals
 
@@ -61,6 +63,7 @@ Fields: `guid`, `name`, `position`, `home` (where it was placed), `zone`, `isMov
 | `startConversation(player, node)` | |
 | `signal(name, data, radius)` | Runs `onSignal` on other scripted NPCs; a radius of 0 reaches the whole zone. Each NPC can send 10 signals a second. |
 | `remove(effect)` | |
+| `offerChallenge(player, id)` | Opens a challenge's start screen (a `Resources/Challenges.json` id), laid out around this NPC. |
 
 ## `player`
 
@@ -73,14 +76,18 @@ Fields: `guid`, `name`, `position`, `isGm`, `isMounted`.
 | `acceptQuest(id)`, `hasCompletedQuest(id)` | |
 | `teleport(x, y, z, heading)` | Within the zone. |
 | `dismount()`, `heal(amount)` | |
-| `playEffect(effect)`, `emote(animation)` | Seen by everyone nearby. |
+| `playEffect(effect)`, `emote(name or animation)`, `stopEmote()` | Seen by everyone nearby. Names are `!emote`'s; dances loop until the player walks away. |
 | `transform(model, 1 to 3600 seconds)`, `clearTransform()` | |
 | `resize(0.25 to 4, 1 to 3600 seconds)` | |
 | `startMinigame(id)` | Opens a minigame's start screen (ids from `!minigame list`); false if the server doesn't run it. The `minigame-table` template turns any NPC or prop into a game table: `!prop script use minigame-table games=20` for chess, or `games=46,173,174` for a random recipe, with an optional `coins=`/`ticket=` fee and `cooldown=`. |
 
+| `startBattle(id)`, `hasAchievement(id)`, `knowsRecipe(id)`, `learnRecipe(id)` | Also the fields `battleId`, `inBattle`, `inMinigame` and `isFishing`. |
+
+`src/Scripts/README.md` lists everything else a player has, such as health, jobs, coins, groups, items and warps.
+
 ## `npc.zone`
 
-Fields: `id`, `name`.
+Fields: `id`, `name`, `gameHour`, `battleId`, `isHouse`, `owner`.
 
 | Method | |
 |---|---|
