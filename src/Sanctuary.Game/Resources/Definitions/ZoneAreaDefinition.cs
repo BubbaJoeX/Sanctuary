@@ -17,9 +17,9 @@ public class ZoneAreaDefinition
     public List<int[]> Tiles { get; set; } = [];
 
     /// <summary>
-    /// The client's combat area (EncounterOverworldCombatPacket): the wilds, where hostile NPCs are enemies to a
-    /// combat job. In one the job picker won't let a combat job go for another kind, so towns aren't, as live sent
-    /// it in Snowhill.
+    /// Where hostile NPCs roam: the wilds, not towns. Being in one changes nothing for the player: they're in combat
+    /// only while a mob has aggro on them (see <see cref="Entities.Player.HasAggro"/>), so the map and job picker stay
+    /// free until one does. <c>!area</c> shows it, and CombatAreaTests keeps every hostile NPC a script places in one.
     /// </summary>
     public bool IsCombatArea { get; set; }
 

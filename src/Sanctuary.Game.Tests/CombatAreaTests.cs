@@ -19,8 +19,9 @@ using Sanctuary.Game.Zones;
 namespace Sanctuary.Game.Tests;
 
 /// <summary>
-/// The client's combat area (EncounterOverworldCombatPacket), which live sent per area: 0 in towns, 1 in the wilds.
-/// In one, the job picker won't let a combat job go for another kind; out of one, hostile NPCs aren't red.
+/// Combat areas: where enemies roam, as live's per-area combat flag drew them (0 in towns, 1 in the wilds). Sanctuary
+/// no longer sends them; a player is in combat only while a mob has aggro on them (see WorldCombatTests), but the
+/// world keeps its enemies to these areas.
 /// </summary>
 [TestClass]
 public sealed class CombatAreaTests
@@ -118,7 +119,7 @@ public sealed class CombatAreaTests
         {
             var (x, z) = GetPointOfInterestPosition(pointOfInterests, id);
 
-            Assert.IsFalse(fabledRealms.IsCombatArea(x, z), $"{pointOfInterests[id].GetProperty("Comment")} is a combat area, so a combat job can't pick another job there.");
+            Assert.IsFalse(fabledRealms.IsCombatArea(x, z), $"{pointOfInterests[id].GetProperty("Comment")} is a combat area.");
         }
     }
 
@@ -150,8 +151,8 @@ public sealed class CombatAreaTests
     [TestMethod]
     public void HostileNpcs_StandInCombatAreas()
     {
-        // Out of a combat area the client shows no enemy as one, so every hostile NPC the zone places needs one: an area
-        // marked IsCombatArea, or one of the zone's CombatAreas around it in a town.
+        // Towns stay free of enemies: every hostile NPC the zone places stands in a combat area, one marked IsCombatArea
+        // or one of the zone's CombatAreas around it in a town.
         var fabledRealms = new FabledRealms();
         var npcs = LoadById("Npcs.json");
         var scriptsDirectory = Path.Combine(GetResourcesDirectory(), "..", "Scripts", "Zone");

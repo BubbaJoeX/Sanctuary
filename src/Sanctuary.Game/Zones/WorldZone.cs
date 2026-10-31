@@ -303,7 +303,7 @@ public sealed partial class WorldZone : BaseZone
     }
 
     /// <summary>
-    /// Whether <paramref name="position"/> is a combat area (see <see cref="Player.SendCombatArea"/>). Off every
+    /// Whether <paramref name="position"/> is a combat area (see <see cref="ZoneAreaDefinition.IsCombatArea"/>). Off every
     /// area, as at sea, it's the area the player was last in (<paramref name="zoneAreaId"/>), or else the nearest.
     /// </summary>
     public bool IsCombatArea(Vector4 position, int zoneAreaId = 0)

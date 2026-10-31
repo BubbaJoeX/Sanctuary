@@ -84,7 +84,7 @@ An NPC that gives a challenge with `npc:offerChallenge` also gets `onChallengeEn
 |---|---|
 | `guid`, `name`, `position`, `isGm`, `isMounted` | |
 | `zoneId`, `zoneName` | The zone's definition id is what `warp` takes. |
-| `health`, `maxHealth`, `inCombat`, `isKnockedOut` | |
+| `health`, `maxHealth`, `inCombat`, `isKnockedOut` | `inCombat` is true while a mob has aggro on the player, and for 6 seconds after an `attack` from an NPC that doesn't. |
 | `job`, `jobRank` | The active job's profile id and its rank. |
 | `coins` | |
 | `groupId`, `groupMembers`, `isGroupLeader`, `isGroupedWith(other)` | `groupId` is 0 without a group. `groupMembers` lists guids, leader first. |

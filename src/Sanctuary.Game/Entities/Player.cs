@@ -73,7 +73,6 @@ public sealed class Player : ClientPcData, IEntity
 
     private ZoneAreaDefinition? _pendingZoneArea;
     private long _pendingZoneAreaSince;
-    private bool _isInCombatArea;
 
     public int ChatBubbleForegroundColor { get; set; }
     public int ChatBubbleBackgroundColor { get; set; }
@@ -564,10 +563,7 @@ public sealed class Player : ClientPcData, IEntity
         SnowballInteraction.Update(this);
         UpdatePortrait();
         UpdatePendingPointOfInterest();
-        UpdateCombatArea();
-
-        // A fight that's over says so.
-        SendFighting();
+        UpdateAggro();
     }
 
     public void RelayPosition(PlayerUpdatePacketUpdatePosition playerUpdatePacketUpdatePosition)
@@ -970,9 +966,6 @@ public sealed class Player : ClientPcData, IEntity
         };
 
         SendTunneled(chatPacketEnterArea);
-
-        // Live sent the combat area with the area's name.
-        UpdateCombatArea();
     }
 
     public void SetMountMovementSpeed(float? mountMovementSpeed)
@@ -1820,21 +1813,109 @@ public sealed class Player : ClientPcData, IEntity
     private long _lastCombatAt = long.MinValue;
     private readonly KnockOutTimer _knockOut = new();
 
-    public bool IsInCombat => CombatRules.IsInCombat(_lastCombatAt, Environment.TickCount64);
+    // The mobs with this player on their threat list (see NpcCombat.HasAggroOn), by guid.
+    private readonly Dictionary<ulong, Npc> _aggro = [];
 
-    public void MarkInCombat()
+    /// <summary>
+    /// A mob has them on its threat list: it spotted them, they clicked or hit it, or they came close to its fight.
+    /// </summary>
+    public bool HasAggro
     {
-        _lastCombatAt = Environment.TickCount64;
-        SendFighting();
+        get
+        {
+            lock (_aggro)
+                return _aggro.Count > 0;
+        }
     }
 
     /// <summary>
-    /// Out of any fight now (leaving a battle, back on their feet at the zone's start), not in a few seconds.
+    /// In a fight: while any mob has aggro on them (see <see cref="HasAggro"/>), and for
+    /// <see cref="CombatRules.OutOfCombatSeconds"/> after a hit that came without it (a script's npc:attack).
+    /// Once no mob has them they're out, and the map and job picker are free again.
+    /// </summary>
+    public bool IsInCombat => HasAggro || CombatRules.IsInCombat(_lastCombatAt, Environment.TickCount64);
+
+    /// <summary>
+    /// Out of any fight now (leaving a battle, knocked out, back on their feet at the zone's start), not in a few
+    /// seconds. The mobs that had them forget them on their next think, as they can no longer be attacked.
     /// </summary>
     public void LeaveCombat()
     {
+        DropAllAggro();
+
         _lastCombatAt = long.MinValue;
-        SendFighting();
+        UpdateCombatMode();
+    }
+
+    /// <summary>
+    /// <paramref name="mob"/> put them on its threat list: they're in a fight, and get their combat job out. The
+    /// mob says so on every think, so for a player who already knows it does nothing.
+    /// </summary>
+    public void AddAggro(Npc mob)
+    {
+        // Knocked out, protected or gone since the mob last looked: it lets them go on its next think.
+        if (!NpcCombat.CanBeAttacked(this, mob))
+            return;
+
+        lock (_aggro)
+        {
+            if (!_aggro.TryAdd(mob.Guid, mob))
+                return;
+        }
+
+        EnterCombat();
+    }
+
+    /// <summary>
+    /// <paramref name="mob"/> let them go: it died, gave up at its leash, walked home or lost them. With no mob left
+    /// on them they're out of the fight.
+    /// </summary>
+    public void DropAggro(Npc mob)
+    {
+        lock (_aggro)
+        {
+            if (!_aggro.Remove(mob.Guid))
+                return;
+        }
+
+        UpdateCombatMode();
+    }
+
+    private void DropAllAggro()
+    {
+        lock (_aggro)
+            _aggro.Clear();
+    }
+
+    /// <summary>
+    /// Lets go of any mob that no longer has them, in case its word went astray, and says so once a fight is over.
+    /// </summary>
+    private void UpdateAggro()
+    {
+        KeyValuePair<ulong, Npc>[] aggro;
+
+        lock (_aggro)
+            aggro = [.. _aggro];
+
+        foreach (var (guid, mob) in aggro)
+        {
+            if (ReferenceEquals(mob.Zone, Zone) && mob.Combat?.HasAggroOn(Guid) == true)
+                continue;
+
+            lock (_aggro)
+                _aggro.Remove(guid);
+        }
+
+        UpdateCombatMode();
+    }
+
+    /// <summary>
+    /// The mobs that have them on their threat list, for <c>!area here</c>.
+    /// </summary>
+    public IReadOnlyList<Npc> GetAggro()
+    {
+        lock (_aggro)
+            return [.. _aggro.Values];
     }
 
     /// <summary>
@@ -1853,28 +1934,25 @@ public sealed class Player : ClientPcData, IEntity
         CombatRules.PickCombatProfileId(Profiles, [.. _resourceManager.CombatJobs.Keys], LastCombatProfileId);
 
     /// <summary>
-    /// A fight is starting: out of combat regen stops, and a player in a non-combat job (a Miner, a Chef...)
-    /// switches to their combat job, as clicking an enemy in Free Realms does. They stay in it afterwards.
+    /// A fight is starting (a mob's aggro, or the player's own attack): a player in a non-combat job (a Miner, a
+    /// Chef...) switches to their combat job, as clicking an enemy in Free Realms does, and stays in it afterwards.
+    /// The fight itself lasts while a mob has aggro on them (see <see cref="IsInCombat"/>).
     /// </summary>
     public void EnterCombat()
     {
-        MarkInCombat();
-
         // A revived player who picks a fight is fair game again.
         _knockOut.EndProtection();
 
-        if (IsInCombatJob)
-            return;
+        if (!IsInCombatJob)
+        {
+            var profileId = GetCombatProfileId();
 
-        var profileId = GetCombatProfileId();
+            if (profileId != 0 && ActivateProfile(profileId))
+                ChatHelper.SendSystemMessage(this, "You switched to your combat job to fight.");
+        }
 
-        if (profileId == 0 || !ActivateProfile(profileId))
-            return;
-
-        ChatHelper.SendSystemMessage(this, "You switched to your combat job to fight.");
+        UpdateCombatMode();
     }
-
-    public void OnAttackedBy(Npc mob) => EnterCombat();
 
     /// <summary>
     /// Puts a player in a non-combat job in their combat job, as entering a battle does. False if they're in one
@@ -1891,27 +1969,74 @@ public sealed class Player : ClientPcData, IEntity
     }
 
     /// <summary>
-    /// The client's overworld combat mode, which needs both packets: a combat area (see <see cref="SendCombatArea"/>)
-    /// and fighting (see <see cref="IsFighting"/>). While it's on the client counts the player in combat: the game
-    /// dock's combat indicator, no job change, popups held back. (A hostile NPC's red nameplate and clicks come with
-    /// its own AddNpc, see <see cref="Npc.GetAddNpcPacket"/>.)
+    /// The client's overworld combat mode, which needs both packets: in world combat (see
+    /// <see cref="IsInWorldCombat"/>) and fighting (see <see cref="IsFighting"/>). While both are on the client counts
+    /// the player in combat, as its CallHandler.SetInWorldCombat does it: the game dock's combat indicator lit, its
+    /// map, welcome and mail buttons greyed out, no job change, popups held back. (A hostile NPC's red nameplate and
+    /// clicks come with its own AddNpc, see <see cref="Npc.GetAddNpcPacket"/>.)
     /// </summary>
     public void SendCombatMode()
     {
-        SendCombatArea();
-        SendFighting(force: true);
+        lock (_combatModeLock)
+        {
+            SendInWorldCombat(force: true);
+            SendFighting(force: true);
+        }
     }
 
     /// <summary>
-    /// In a fight, as the client's combat mode means it: in a combat job and hit or hitting in the last
-    /// <see cref="CombatRules.OutOfCombatSeconds"/>. Live sent it only while a fight lasted.
+    /// InWorldCombat (EncounterOverworldCombatPacket, see <see cref="CombatRules.IsInWorldCombat"/>). Live sent it for
+    /// whole regions, which kept the job picker to combat jobs there ("You cannot select this job while in a combat
+    /// area."); here it's on only while a mob has them. A battle's or a 3D game's own zone isn't the overworld: its
+    /// rules come with EncounterDataCommon instead (live sent 0 in a battle, so the knocked out window offers only the
+    /// respawn an instance has).
     /// </summary>
-    public bool IsFighting => IsInCombatJob && IsInCombat;
+    public bool IsInWorldCombat => CombatRules.IsInWorldCombat(Zone is WorldZone { Arena: null, Battle: null }, IsInCombat, IsKnockedOut);
 
-    // What the client was last told of IsFighting.
+    /// <summary>
+    /// In a fight, as the client's combat mode means it: in a combat job and in combat (see
+    /// <see cref="IsInCombat"/>). Live sent it only while a fight lasted.
+    /// </summary>
+    public bool IsFighting => CombatRules.IsFighting(IsInCombatJob, IsInCombat);
+
+    // What the client was last told of each, sent one at a time so the last word is the current one.
+    private readonly object _combatModeLock = new();
+    private bool _isInWorldCombat;
     private bool _isFighting;
 
-    private void SendFighting(bool force = false)
+    /// <summary>
+    /// Sends InWorldCombat on its own, as live did at login (zoning in sends both).
+    /// </summary>
+    public void SendInWorldCombat()
+    {
+        lock (_combatModeLock)
+            SendInWorldCombat(force: true);
+    }
+
+    /// <summary>
+    /// Tells the client of a fight that started or ended.
+    /// </summary>
+    private void UpdateCombatMode()
+    {
+        lock (_combatModeLock)
+        {
+            SendInWorldCombat(force: false);
+            SendFighting(force: false);
+        }
+    }
+
+    private void SendInWorldCombat(bool force)
+    {
+        var isInWorldCombat = IsInWorldCombat;
+
+        if (!force && isInWorldCombat == _isInWorldCombat)
+            return;
+
+        _isInWorldCombat = isInWorldCombat;
+        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = isInWorldCombat });
+    }
+
+    private void SendFighting(bool force)
     {
         var isFighting = IsFighting;
 
@@ -1922,41 +2047,8 @@ public sealed class Player : ClientPcData, IEntity
         SendTunneled(new EncounterPacketIsFighting { IsFighting = isFighting });
     }
 
-    /// <summary>
-    /// Whether the player is in a combat area, which live sent per area: the wilds are, towns aren't. In one the
-    /// client's job picker refuses every job but a combat job ("You cannot select this job while in a combat area.").
-    /// </summary>
-    public void SendCombatArea()
-    {
-        _isInCombatArea = Zone switch
-        {
-            // A battle's or a 3D game's own zone isn't the overworld: its rules come with EncounterDataCommon instead
-            // (live sent 0 in a battle, so the knocked out window offers only the respawn an instance has).
-            WorldZone { Arena: not null } or WorldZone { Battle: not null } => false,
-
-            // The wilds and the hostile spots in towns. Zones without combat areas, like a fishing pond, have none.
-            WorldZone worldZone => worldZone.IsCombatArea(Position, PointOfInterestId),
-
-            // A house.
-            _ => false
-        };
-
-        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = _isInCombatArea });
-    }
-
-    /// <summary>
-    /// Walking into or out of a combat area says so (battles and 3D games send theirs as they change).
-    /// </summary>
-    private void UpdateCombatArea()
-    {
-        if (Zone is WorldZone { Arena: null, Battle: null } worldZone && worldZone.IsCombatArea(Position, PointOfInterestId) != _isInCombatArea)
-            SendCombatArea();
-    }
-
     public void OnKilled(Npc mob)
     {
-        MarkInCombat();
-
         Achievements.RecordKill(mob);
 
         Quests.Record(new MobDefeatedEvent(mob));
@@ -1971,6 +2063,10 @@ public sealed class Player : ClientPcData, IEntity
             return 0;
 
         damage = CombatRules.Mitigate(damage, GetStatValue(CharacterStatId.DamageReductionPercent));
+
+        // A mob's hit comes with its aggro. One without (a script's npc:attack) is a fight for a few seconds.
+        if (source.Combat?.HasAggroOn(Guid) != true)
+            _lastCombatAt = Environment.TickCount64;
 
         EnterCombat();
 
@@ -2003,6 +2099,9 @@ public sealed class Player : ClientPcData, IEntity
         RemoveEffectGroup("Health");
 
         _knockOut.KnockOut(Environment.TickCount64);
+
+        // Every mob lets them go (still "in world combat" while down, for the knocked out window's Revive here).
+        LeaveCombat();
 
         SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(KnockedOutCharacterState) }, true);
 
@@ -2089,6 +2188,9 @@ public sealed class Player : ClientPcData, IEntity
             CurrentHitpoints = _hitpoints,
             Delta = _hitpoints
         }, true);
+
+        // Up again, and out of the fight.
+        UpdateCombatMode();
 
         return true;
     }
@@ -2507,6 +2609,9 @@ public sealed class Player : ClientPcData, IEntity
 
     public void OnZoneChanged(IZone zone, Vector4 position, Quaternion rotation)
     {
+        // Leaving a zone (into a battle too) leaves its mobs' fights; zoning in tells the client.
+        DropAllAggro();
+
         PlayerPet.RecallPet(remember: zone is not CombatZone);
 
         RemoveFromVisibleEntities(true);
@@ -2524,6 +2629,8 @@ public sealed class Player : ClientPcData, IEntity
 
     public void Dispose()
     {
+        DropAllAggro();
+
         PlayerPet.Dispose();
 
         RemoveFromVisibleEntities(false); // no need to notify self since we're DCing

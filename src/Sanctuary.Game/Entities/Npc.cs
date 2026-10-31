@@ -959,6 +959,9 @@ public class Npc : IScriptableNpc, IEntity
 
     public virtual void Dispose()
     {
+        // A mob taken away mid-fight lets its players go.
+        Combat?.Release();
+
         foreach (var visiblePlayer in VisiblePlayers)
             visiblePlayer.Value.OnRemoveVisibleNpcs([this]);
 

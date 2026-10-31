@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Text.Json;
 
@@ -60,19 +61,62 @@ public sealed class WorldCombatTests
 
         Assert.AreEqual(MobActionType.Chase, action.Type);
         Assert.AreEqual(PlayerGuid, action.TargetGuid);
-        Assert.IsTrue(action.Engaged);
+        Assert.IsTrue(brain.Threat.ContainsKey(PlayerGuid), "Spotted, they're in the fight.");
         Assert.AreEqual(MobState.Fighting, brain.State);
     }
 
     [TestMethod]
-    public void Engaged_OnlyOnTheFirstThinkOfAFight()
+    public void Aggro_TakesInAnyoneWhoComesCloseMidFight()
     {
         var brain = new MobBrain(CreateMob());
 
-        brain.Think(0, Home, Home, [At(10f)]);
-        var action = brain.Think(250, Home, Home, [At(10f)]);
+        brain.Think(0, Home, Home, [At(10f), At(30f, OtherPlayerGuid)]);
 
-        Assert.IsFalse(action.Engaged);
+        CollectionAssert.AreEquivalent(new[] { PlayerGuid }, brain.Threat.Keys.ToArray());
+
+        // In the fight too, though it's still after the first.
+        var action = brain.Think(250, Home, Home, [At(10f), At(11f, OtherPlayerGuid)]);
+
+        Assert.AreEqual(PlayerGuid, action.TargetGuid);
+        CollectionAssert.AreEquivalent(new[] { PlayerGuid, OtherPlayerGuid }, brain.Threat.Keys.ToArray());
+    }
+
+    [TestMethod]
+    public void Aggro_LetsGoOfAPlayerWhoGetsAway()
+    {
+        var brain = new MobBrain(CreateMob());
+
+        brain.AddThreat(PlayerGuid, 0);
+        brain.AddThreat(OtherPlayerGuid, 50);
+        brain.Think(0, Home, Home, [At(2f), At(2f, OtherPlayerGuid)]);
+
+        // As far from it as its leash: out of the fight. It keeps after the one still close.
+        var action = brain.Think(250, Home, Home, [At(2f), At(41f, OtherPlayerGuid)]);
+
+        Assert.AreEqual(PlayerGuid, action.TargetGuid);
+        Assert.IsFalse(brain.Threat.ContainsKey(OtherPlayerGuid));
+
+        // With nobody left it walks home, and has aggro on no one.
+        Assert.AreEqual(MobActionType.Return, brain.Think(500, Home, Home, [At(41f)]).Type);
+        Assert.AreEqual(0, brain.Threat.Count);
+    }
+
+    [TestMethod]
+    public void Aggro_LetsGoOfAPlayerKnockedOutOrGone()
+    {
+        var brain = new MobBrain(CreateMob());
+
+        brain.AddThreat(PlayerGuid, 100);
+        brain.AddThreat(OtherPlayerGuid, 50);
+        brain.Think(0, Home, Home, [At(2f), At(2f, OtherPlayerGuid)]);
+
+        brain.Think(250, Home, Home, [At(2f, canBeAttacked: false), At(2f, OtherPlayerGuid)]);
+
+        CollectionAssert.AreEquivalent(new[] { OtherPlayerGuid }, brain.Threat.Keys.ToArray());
+
+        // Left the zone (or logged off): no longer among the players it can see.
+        Assert.AreEqual(MobActionType.Return, brain.Think(500, Home, Home, []).Type);
+        Assert.AreEqual(0, brain.Threat.Count);
     }
 
     [TestMethod]
@@ -144,7 +188,6 @@ public sealed class WorldCombatTests
         var action = brain.Think(250, Home, Home, [At(2f, canBeAttacked: false), At(2f, OtherPlayerGuid)]);
 
         Assert.AreEqual(OtherPlayerGuid, action.TargetGuid);
-        Assert.IsTrue(action.Engaged);
     }
 
     [TestMethod]
@@ -210,6 +253,30 @@ public sealed class WorldCombatTests
         brain.Revive();
 
         Assert.AreEqual(MobActionType.Attack, brain.Think(250, Home, Home, [At(2f)]).Type);
+    }
+
+    [TestMethod]
+    public void MobAggro_StartsWithAClickHitOrHold_AndEndsWhenItLetsGo()
+    {
+        var npc = new Npc(null!);
+        var combat = new NpcCombat(npc, CreateMob(), null!);
+        var player = new Player(null!, null!, null!, null!) { Guid = PlayerGuid };
+
+        Assert.IsFalse(combat.HasAggroOn(PlayerGuid));
+
+        combat.TakeDamage(player, 10);
+        Assert.IsTrue(combat.HasAggroOn(PlayerGuid), "Hit it, and it has aggro on them.");
+
+        // No longer hostile.
+        combat.Detach();
+        Assert.IsFalse(combat.HasAggroOn(PlayerGuid));
+
+        Assert.IsTrue(combat.ApplyControl(player, MobControl.Stun, 1000));
+        Assert.IsTrue(combat.HasAggroOn(PlayerGuid), "An orb's hold turns it on whoever threw it.");
+
+        // Its NPC taken away.
+        combat.Release();
+        Assert.IsFalse(combat.HasAggroOn(PlayerGuid));
     }
 
     #endregion
@@ -422,9 +489,27 @@ public sealed class WorldCombatTests
     }
 
     [TestMethod]
+    public void CombatMode_FollowsAggro_NotTheArea()
+    {
+        // Out in the world, the wilds too, with no mob on them: neither, so the map and every job are free.
+        Assert.IsFalse(CombatRules.IsInWorldCombat(inOverworld: true, inCombat: false, knockedOut: false));
+        Assert.IsFalse(CombatRules.IsFighting(inCombatJob: true, inCombat: false));
+
+        // A mob has them: both, which is the client's combat mode (no map, no job change).
+        Assert.IsTrue(CombatRules.IsInWorldCombat(inOverworld: true, inCombat: true, knockedOut: false));
+        Assert.IsTrue(CombatRules.IsFighting(inCombatJob: true, inCombat: true));
+
+        // Knocked out there every mob lets go, but the knocked out window still offers Revive here.
+        Assert.IsTrue(CombatRules.IsInWorldCombat(inOverworld: true, inCombat: false, knockedOut: true));
+
+        // A battle's or a 3D game's own zone, or a house: never.
+        Assert.IsFalse(CombatRules.IsInWorldCombat(inOverworld: false, inCombat: true, knockedOut: true));
+    }
+
+    [TestMethod]
     public void CombatModePackets_MatchTheClient()
     {
-        // BaseEncounterPacket 41, the client's sub-opcodes 132 (in a combat area) and 133 (fighting), the two header
+        // BaseEncounterPacket 41, the client's sub-opcodes 132 (in world combat) and 133 (fighting), the two header
         // ints and one bool, as the live servers sent them (29008400 00000000 00000000 01).
         CollectionAssert.AreEqual(new byte[] { 41, 0, 132, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, new EncounterOverworldCombatPacket { InWorldCombat = true }.Serialize());
         CollectionAssert.AreEqual(new byte[] { 41, 0, 133, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, new EncounterPacketIsFighting { IsFighting = true }.Serialize());
