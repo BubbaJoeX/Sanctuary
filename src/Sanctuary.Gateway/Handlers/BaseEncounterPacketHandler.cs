@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 
 using Sanctuary.Core.IO;
 using Sanctuary.Game.Battles;
+using Sanctuary.Game.Fishing;
 using Sanctuary.Game.VehicleGames;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
@@ -14,7 +15,8 @@ namespace Sanctuary.Gateway.Handlers;
 /// <summary>
 /// Battle requests, for <see cref="IBattleManager"/>: Play and Cancel on the start panel, leaving, the knocked out
 /// window and group battle invitations. The 3D games (<see cref="IVehicleGameManager"/>) get first look at Play,
-/// Cancel, leaving and invitation answers. Anything else is logged in full.
+/// Cancel, leaving and invitation answers, and a fishing pond (<see cref="FishingPond"/>) first look at leaving.
+/// Anything else is logged in full.
 /// </summary>
 [PacketHandler]
 public static class BaseEncounterPacketHandler
@@ -58,8 +60,9 @@ public static class BaseEncounterPacketHandler
                     _battleManager.CancelPending(player);
                 return true;
 
+            // Fishing's Quit (the client's QuitMiniGame, with no Flash game running) sends it too.
             case EncounterParticipantRequestExitPacket.OpCode when EncounterParticipantRequestExitPacket.TryDeserialize(data, out _):
-                if (!_vehicleGameManager.RequestExit(player))
+                if (!FishingPond.TryLeave(player) && !_vehicleGameManager.RequestExit(player))
                     _battleManager.RequestExit(player);
                 return true;
 
