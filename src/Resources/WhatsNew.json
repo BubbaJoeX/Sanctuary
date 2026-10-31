@@ -1,5 +1,10 @@
 [
   {
+    "Title": "Bring your friends",
+    "Text": "Kart races, demo derbies and soccer matches take more than one player now. Start one with your group and they're asked along: everyone who joins gets a place, and the AI drive the rest. Or pick Kart Race Lobby, Demo Derby Lobby or Game Lobby at the kiosks and the soccer gates, press Quick Play, and play with whoever else is in line.",
+    "Icon": "friends"
+  },
+  {
     "Title": "The Southern Wilds",
     "Text": "The Hero's Journal's Southern Wilds chapters are in. Talk to Captain Sunspark in Sanctuary to start The Way of the Wilds, then help Sergeant Larkspur drive off the bixies, Glugmort's Greenwood Archers stop the Thugawug bandits, Jojo become a ninja at Summer Camp and Shaggy Mysterychaser get to the bottom of the kidnappings in Merry Vale. The bandits, ninjas and fairy cultists along the way fight back now, and a few townsfolk have something to say when you click them.",
     "Action": "OpenHerosJournal",

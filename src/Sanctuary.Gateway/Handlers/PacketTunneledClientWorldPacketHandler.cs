@@ -58,12 +58,13 @@ public static class PacketTunneledClientWorldPacketHandler
             WallOfDataBasePacket.OpCode => WallOfDataBasePacketHandler.HandlePacket(connection, reader),
             BaseRatingPacket.OpCode => BaseRatingPacketHandler.HandlePacket(connection, reader),
 
-            // Notices that want no answer: quitting, closing an inspect, telemetry, the matchmaking poll.
+            BaseMatchmakingPacket.OpCode => BaseMatchmakingPacketHandler.HandlePacket(connection, packetTunneledClientWorldPacket.Payload),
+
+            // Notices that want no answer: quitting, closing an inspect, telemetry.
             PacketClientLogout.OpCode => true,
             BaseInspectPacket.OpCode => true,
             NudgeBasePacket.OpCode => true,
             PacketClientLuaMetrics.OpCode => true,
-            BaseMatchmakingPacket.OpCode => true,
             _ => false
         };
 

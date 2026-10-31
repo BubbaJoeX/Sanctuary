@@ -12,6 +12,11 @@ public sealed class VehicleGamesDefinition
 {
     public List<VehicleGameStageDefinition> Stages { get; set; } = [];
 
+    /// <summary>
+    /// The lobby's matchmaking queues, in the order it lists them.
+    /// </summary>
+    public List<VehicleGameQueueDefinition> Queues { get; set; } = [];
+
     public DerbyArenaDefinition Derby { get; set; } = new();
 
     public List<RaceTrackDefinition> Tracks { get; set; } = [];
@@ -103,6 +108,84 @@ public sealed class VehicleGameStageDefinition
 
     [JsonIgnore]
     public Vector4 EntryPosition => new(Entry[0], Entry[1], Entry[2], 1f);
+}
+
+/// <summary>
+/// One of the lobby's matchmaking queues (a row of the live queue list) and the games it starts. Players queue from
+/// the lobby's Quick Play (a group leader queues the group); once the queue holds a game's worth of players, or the
+/// oldest has waited <see cref="FillSeconds"/>, they're asked in, and those who accept play one of
+/// <see cref="StageIds"/> together, with AI in the places left.
+/// </summary>
+public sealed class VehicleGameQueueDefinition
+{
+    /// <summary>
+    /// The live queue id.
+    /// </summary>
+    public int Id { get; set; }
+
+    public string Comment { get; set; } = string.Empty;
+
+    public int NameId { get; set; }
+
+    /// <summary>
+    /// The games' MiniGameType (10 kart race, 11 demolition derby, 12 soccer).
+    /// </summary>
+    public int MatchType { get; set; }
+
+    public int MinPlayers { get; set; } = 1;
+
+    /// <summary>
+    /// A team's players, and the largest group that can queue.
+    /// </summary>
+    public int MaxPlayers { get; set; }
+
+    public int MinTeams { get; set; } = 1;
+    public int MaxTeams { get; set; } = 1;
+
+    /// <summary>
+    /// Shown by nothing in the client; live 120.
+    /// </summary>
+    public int MaxGameStartDelay { get; set; }
+
+    /// <summary>
+    /// The queue list's Param1-7, as live sent them (Param5 and 6 are the description and picture, Param7 the
+    /// encounter kind).
+    /// </summary>
+    public int[] Params { get; set; } = new int[7];
+
+    /// <summary>
+    /// The Quick Play page's text and picture (an Images.txt start-panel graphic).
+    /// </summary>
+    public int DescriptionId { get; set; }
+    public int IconId { get; set; }
+
+    /// <summary>
+    /// The games' job type.
+    /// </summary>
+    public int ProfileType { get; set; }
+
+    /// <summary>
+    /// The games it starts (one picked at random each time).
+    /// </summary>
+    public List<int> StageIds { get; set; } = [];
+
+    /// <summary>
+    /// How long the oldest request waits for more players before a game starts with whoever is in the queue.
+    /// </summary>
+    public int FillSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// The NPCs (Npcs.json ids) whose Lobby option opens this queue's Quick Play page, and the option's look.
+    /// </summary>
+    public List<int> LobbyNpcIds { get; set; } = [];
+    public int LobbyIconId { get; set; }
+    public int LobbyTextId { get; set; }
+
+    /// <summary>
+    /// The players one game takes from the queue: a team's worth for each team.
+    /// </summary>
+    [JsonIgnore]
+    public int MatchSize => MaxPlayers * System.Math.Max(1, MaxTeams);
 }
 
 /// <summary>

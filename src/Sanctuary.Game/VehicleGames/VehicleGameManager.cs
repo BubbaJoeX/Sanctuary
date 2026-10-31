@@ -31,12 +31,17 @@ namespace Sanctuary.Game.VehicleGames;
 
 /// <summary>
 /// Runs the 3D games (kart racing, the demolition derby, soccer) and the kart garage, as the live game did: the game's
-/// NPC (or Games window tile) puts up its start panel, Play takes the player into a private copy of the game's zone,
-/// and as it loads their character state switches the game's own processor on in their client. From there the game
-/// (an <see cref="ArenaMatch"/>) runs on the server at 20 Hz against server-driven AI: the client only drives the
+/// NPC (or Games window tile) puts up its start panel, Play takes the player into a copy of the game's zone, and as it
+/// loads their character state switches the game's own processor on in their client. From there the game (an
+/// <see cref="ArenaMatch"/>) runs on the server at 20 Hz against server-driven AI: each client only drives its
 /// player's own vehicle or footballer. The results screen's Exit takes them back to where they were.
+/// <para>
+/// Several play one game together two ways: the player's group members are asked along when the start panel goes up
+/// (as for a group battle), and the lobby's matchmaking queues match up players who queued (see the Queues part).
+/// The game holds its start for everyone coming, then fills the empty places with AI.
+/// </para>
 /// </summary>
-public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
+public sealed partial class VehicleGameManager : IVehicleGameManager, IDisposable
 {
     public const int TickMs = 50;
 
@@ -44,6 +49,7 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
     private const int JobSwitchedMessageId = 4594;
 
     private const int OfferTimeoutMs = 3 * 60 * 1000;
+    private const int InvitationTimeoutSeconds = 60;
     private const int ResultsTimeoutMs = 2 * 60 * 1000;
 
     // The 3D games' encounter ids carry this over the stage id, clear of the battles' ids.
@@ -61,6 +67,9 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
 
     private readonly ConcurrentDictionary<int, ArenaMatch> _matches = new();
     private readonly ConcurrentDictionary<ulong, ArenaMatch> _playerMatches = new();
+
+    // Group members asked along to a game, by the game.
+    private readonly ConcurrentDictionary<ulong, ArenaMatch> _invitations = new();
 
     // Players who left a game's zone. They're told of from inside the zone manager's move, so they're dealt with on
     // the next tick rather than under the match's lock there.
@@ -96,7 +105,7 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
             IconId = stage.IconId,
             ButtonTextId = stage.NameId,
             Invoke = interactingPlayer => Offer(interactingPlayer, stage)
-        }).ToList();
+        }).Concat(GetLobbyOptions(npc)).ToList();
 
     public IEnumerable<ActivityDefinition> GetActivities() =>
         _resourceManager.VehicleGames.Stages.Where(stage => stage.Image is not null).OrderBy(stage => stage.Kind).ThenBy(stage => stage.Id)
@@ -123,17 +132,8 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
 
     public bool Offer(Player player, VehicleGameStageDefinition stage)
     {
-        if (IsPlaying(player))
-        {
-            ChatHelper.SendSystemMessage(player, "Finish the game you're playing first.");
+        if (!CanPlay(player, tell: true))
             return false;
-        }
-
-        if (MinigameManager.GetSession(player) is not null || player.Zone is WorldZone { Battle: not null })
-        {
-            ChatHelper.SendSystemMessage(player, "Finish the game you're playing first.");
-            return false;
-        }
 
         if (!TryCreate(stage, out var match))
         {
@@ -142,9 +142,119 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
         }
 
         lock (match)
+        {
             AddParticipant(match, player);
 
+            // Group members are asked along; each one who accepts gets the start panel too.
+            if (stage.Kind != VehicleGameKind.Garage)
+                Invite(match, player);
+        }
+
         _logger.LogInformation("{player} was offered {name} ({stage}) as {encounter:X}.", player.Name.FullName, stage.Comment, stage.Id, match.Id);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Free to start a game: not in one (or offered one), a minigame or a battle.
+    /// </summary>
+    private bool CanPlay(Player player, bool tell)
+    {
+        if (!IsPlaying(player) && MinigameManager.GetSession(player) is null && player.Zone is not WorldZone { Battle: not null })
+            return true;
+
+        if (tell)
+            ChatHelper.SendSystemMessage(player, "Finish the game you're playing first.");
+
+        return false;
+    }
+
+    /// <summary>
+    /// Asks the offerer's group members along, as many as the game has places for: the group window's timer and a
+    /// "Join [game]?" notification. Members busy with a game, or asked to another, are left out.
+    /// </summary>
+    private void Invite(ArenaMatch match, Player offerer)
+    {
+        foreach (var memberGuid in offerer.Group?.Members ?? [])
+        {
+            if (memberGuid == offerer.Guid || match.Participants.Count + match.Invited.Count >= match.Capacity
+                || !_zoneManager.TryGetPlayer(memberGuid, out var member) || !CanPlay(member, tell: false)
+                || !_invitations.TryAdd(memberGuid, match))
+                continue;
+
+            match.Invited[memberGuid] = Environment.TickCount64 + InvitationTimeoutSeconds * 1000L;
+
+            member.SendTunneled(new EncounterInvitationPacket
+            {
+                EncounterId = match.Id,
+                ReplyId = BattleRules.ServerId,
+                Guid = offerer.Guid,
+                NameId = match.Stage.NameId,
+                Timeout = InvitationTimeoutSeconds
+            });
+        }
+    }
+
+    public bool AnswerInvitation(Player player, bool accept)
+    {
+        if (!_invitations.TryRemove(player.Guid, out var match))
+            return false;
+
+        lock (match)
+        {
+            if (!match.Invited.Remove(player.Guid))
+                return true;
+
+            // Everyone's group window ticks or crosses them, and the timers close.
+            foreach (var participant in match.Participants.Values)
+            {
+                participant.Player.SendTunneled(new GroupPacketAnnounceEncounterReply { MemberGuid = player.Guid, Accepted = accept });
+                participant.Player.SendTunneled(new EncounterInvitationPacket { EncounterId = match.Id, ReplyId = BattleRules.ServerId, NameId = match.Stage.NameId });
+            }
+
+            player.SendTunneled(new EncounterInvitationPacket { EncounterId = match.Id, ReplyId = BattleRules.ServerId, NameId = match.Stage.NameId });
+
+            if (!accept)
+                return true;
+
+            if (match.Started || match.State is ArenaMatchState.Over or ArenaMatchState.Closed)
+            {
+                ChatHelper.SendSystemMessage(player, "That game has already started.");
+                return true;
+            }
+
+            if (CanPlay(player, tell: true))
+                AddParticipant(match, player);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// A game for players a queue matched up: each gets the start panel, on the side given.
+    /// </summary>
+    private bool Launch(VehicleGameStageDefinition stage, IReadOnlyList<(Player Player, int Side)> players)
+    {
+        if (!TryCreate(stage, out var match))
+            return false;
+
+        lock (match)
+        {
+            foreach (var (player, side) in players)
+            {
+                if (CanPlay(player, tell: true))
+                    AddParticipant(match, player, side);
+            }
+
+            if (match.Participants.Count == 0)
+            {
+                Close(match);
+                return false;
+            }
+        }
+
+        _logger.LogInformation("{players} were matched for {name} ({stage}) as {encounter:X}.",
+            string.Join(", ", players.Select(player => player.Player.Name.FullName)), stage.Comment, stage.Id, match.Id);
 
         return true;
     }
@@ -192,10 +302,13 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
     /// <summary>
     /// Puts the start panel up: the job switch, the server's states, the offer, then (the zone is already up) Play.
     /// </summary>
-    private void AddParticipant(ArenaMatch match, Player player)
+    private void AddParticipant(ArenaMatch match, Player player, int side = 0)
     {
-        match.Participants[player.Guid] = new ArenaParticipant(player);
+        match.Participants[player.Guid] = new ArenaParticipant(player) { Side = side };
         _playerMatches[player.Guid] = match;
+
+        // Off to a game: out of any queue.
+        LeaveQueues(player);
 
         var stage = match.Stage;
 
@@ -223,6 +336,12 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
             if (!match.Participants.TryGetValue(player.Guid, out var participant) || participant.Entered
                 || match.State is ArenaMatchState.Over or ArenaMatchState.Closed)
                 return true;
+
+            if (match.Started)
+            {
+                TurnAway(match, participant);
+                return true;
+            }
 
             participant.Entered = true;
             participant.ReturnZoneId = player.Zone.DefinitionId;
@@ -297,6 +416,13 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
             participant.InZone = true;
             participant.Left = false;
 
+            // In after the game started without them (it waited as long as it could).
+            if (match.Started && !match.HasPlace(player.Guid))
+            {
+                TurnAway(match, participant);
+                return;
+            }
+
             player.SendTunneled(GetDetails(match, isUpdate: true));
             player.SendTunneled(new EncounterPacketPlayerEnter { EncounterId = match.Id, ReplyId = BattleRules.ServerId });
 
@@ -360,6 +486,15 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
         var now = Environment.TickCount64;
         var deltaSeconds = Math.Clamp((now - Interlocked.Exchange(ref _lastUpdate, now)) / 1000f, 0f, 0.25f);
 
+        try
+        {
+            UpdateQueues(now);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "The matchmaking queues failed to update.");
+        }
+
         while (_departures.TryDequeue(out var departure))
         {
             lock (departure.Match)
@@ -382,6 +517,8 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
 
     private void Update(ArenaMatch match, long now, float deltaSeconds)
     {
+        UpdateInvitations(match, now);
+
         switch (match.State)
         {
             case ArenaMatchState.Offered:
@@ -391,6 +528,11 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
 
             case ArenaMatchState.Running:
                 match.Update(now, deltaSeconds);
+
+                if (match.Started)
+                    TurnAwayLatecomers(match);
+                else
+                    TellWaiting(match);
                 break;
 
             case ArenaMatchState.Over:
@@ -407,6 +549,87 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
         if (match.State is ArenaMatchState.Running or ArenaMatchState.Over
             && match.Participants.Values.All(participant => !participant.Entered || participant.Left))
             Close(match);
+    }
+
+    /// <summary>
+    /// Invitations lapse after a minute, or as their player logs off.
+    /// </summary>
+    private void UpdateInvitations(ArenaMatch match, long now)
+    {
+        if (match.Invited.Count == 0)
+            return;
+
+        foreach (var (guid, expiresAt) in match.Invited.ToList())
+        {
+            if (now >= expiresAt || !_zoneManager.TryGetPlayer(guid, out _))
+                Withdraw(match, guid);
+        }
+    }
+
+    private void Withdraw(ArenaMatch match, ulong guid)
+    {
+        match.Invited.Remove(guid);
+        _invitations.TryRemove(new KeyValuePair<ulong, ArenaMatch>(guid, match));
+
+        if (_zoneManager.TryGetPlayer(guid, out var player))
+            player.SendTunneled(new EncounterInvitationPacket { EncounterId = match.Id, ReplyId = BattleRules.ServerId, NameId = match.Stage.NameId });
+    }
+
+    /// <summary>
+    /// The first in hear, once, who the game is holding its start for.
+    /// </summary>
+    private void TellWaiting(ArenaMatch match)
+    {
+        if (match.ToldWaiting || !match.Playing.Any())
+            return;
+
+        var waiting = match.Expected
+            .Where(guid => !(match.Participants.TryGetValue(guid, out var participant) && participant.InZone))
+            .Select(guid => _zoneManager.TryGetPlayer(guid, out var player) ? player.Name.FullName : null)
+            .OfType<string>()
+            .ToList();
+
+        if (waiting.Count == 0)
+            return;
+
+        match.ToldWaiting = true;
+
+        foreach (var participant in match.Playing)
+            ChatHelper.SendSystemMessage(participant.Player, $"Waiting up to {ArenaMatch.JoinWaitMs / 1000} seconds for {string.Join(", ", waiting)}.");
+    }
+
+    /// <summary>
+    /// The game has started with those who were there: the invitations still out are withdrawn, and anyone left on
+    /// the start panel, or in the zone with no place, is told and goes.
+    /// </summary>
+    private void TurnAwayLatecomers(ArenaMatch match)
+    {
+        foreach (var guid in match.Invited.Keys.ToList())
+            Withdraw(match, guid);
+
+        foreach (var participant in match.Participants.Values.ToList())
+        {
+            if (!participant.Left && (!participant.Entered || participant.InZone) && !match.HasPlace(participant.Guid))
+                TurnAway(match, participant);
+        }
+    }
+
+    private void TurnAway(ArenaMatch match, ArenaParticipant participant)
+    {
+        var player = participant.Player;
+
+        ChatHelper.SendSystemMessage(player, "That game started without you.");
+
+        if (participant.Entered)
+        {
+            Leave(match, participant);
+            return;
+        }
+
+        match.Participants.Remove(player.Guid);
+        _playerMatches.TryRemove(new KeyValuePair<ulong, ArenaMatch>(player.Guid, match));
+
+        player.SendTunneled(new EncounterPacketEncounterShutdown { EncounterId = match.Id, ReplyId = BattleRules.ServerId });
     }
 
     /// <summary>
@@ -598,6 +821,9 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
         }
 
         match.Participants.Clear();
+
+        foreach (var guid in match.Invited.Keys.ToList())
+            Withdraw(match, guid);
 
         try
         {

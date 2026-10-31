@@ -30,7 +30,6 @@ public sealed class RaceMatch : ArenaMatch
 {
     public const int RaceCharacterState = 0x400;
 
-    private const int SetupWaitMs = 10_000;
     private const int PositionIntervalMs = 200;
 
     // Once the players are home the AI get this long to finish; a player still out this long after the winner is
@@ -50,17 +49,7 @@ public sealed class RaceMatch : ArenaMatch
     private readonly Random _random = new();
     private readonly RaceSimulation _simulation;
 
-    private readonly Dictionary<ulong, ulong> _registered = [];
-    private readonly HashSet<ulong> _acks = [];
-    private readonly HashSet<ulong> _echoes = [];
-
-    private int _gameState;
-    private long _gameStateAt;
-    private long _firstRegisteredAt;
-
-    private int _countdown = -1;
-    private long _countdownAt;
-    private long _countdownEchoedAt;
+    private readonly ArenaHandshake _handshake = new();
 
     private long _firstFinishAt;
     private long _playersHomeAt;
@@ -81,6 +70,8 @@ public sealed class RaceMatch : ArenaMatch
         _simulation = new RaceSimulation(new RaceTrack(definition), definition.Laps, _random)
         {
             Bumped = (kart, player, impulse) => SendToPlaying(new VehicleRacePacketVehicleHit { Guid = kart.Guid, OtherGuid = player.Guid, Impulse = impulse }),
+            PlayersBumped = (kart, other, impulse) =>
+                other.Participant?.Player.SendTunneled(new VehicleRacePacketVehicleHit { Guid = kart.Guid, OtherGuid = other.Guid, Impulse = impulse }),
             PickupTaken = OnPickupTaken,
             PickupSpawned = pickup => SendToPlaying(new VehicleRacePacketCreateProxiedVehicleRacePickup
             {
@@ -96,6 +87,13 @@ public sealed class RaceMatch : ArenaMatch
     }
 
     public override int CharacterStateBit => RaceCharacterState;
+
+    /// <summary>
+    /// A kart on every grid slot: the live player's, and the AI drivers' that other players take.
+    /// </summary>
+    public override int Capacity => _definition.Grid.Count;
+
+    public override bool HasPlace(ulong guid) => _handshake.IsSeated(guid);
 
     private static long Now => Environment.TickCount64;
 
@@ -113,18 +111,15 @@ public sealed class RaceMatch : ArenaMatch
         switch (BinaryPrimitives.ReadUInt16LittleEndian(data[2..]))
         {
             case VehicleRacePacketRegisterVehicleRacePlayer.OpCode when VehicleRacePacketRegisterVehicleRacePlayer.TryDeserialize(data, out var register):
-                if (_gameState == 0 && _registered.TryAdd(participant.Guid, register.Clock) && _firstRegisteredAt == 0)
-                    _firstRegisteredAt = now;
+                _handshake.Register(participant.Guid, register.Clock, now);
                 break;
 
             case VehicleRacePacketUpdateVehicleGamePlayerState.OpCode when VehicleRacePacketUpdateVehicleGamePlayerState.TryDeserialize(data, out var ack):
-                if (ack.State == _gameState)
-                    _acks.Add(participant.Guid);
+                _handshake.Acknowledge(participant.Guid, (int)ack.State);
                 break;
 
             case VehicleRacePacketVehicleRaceCountdownStatus.OpCode when VehicleRacePacketVehicleRaceCountdownStatus.TryDeserialize(data, out var echo):
-                if (echo.Count == _countdown && _echoes.Add(participant.Guid) && AllIn(_echoes))
-                    _countdownEchoedAt = now;
+                _handshake.Echo(participant.Guid, (int)echo.Count, now);
                 break;
 
             case VehicleRacePacketUpdateVehicleRaceServerData.OpCode when VehicleRacePacketUpdateVehicleRaceServerData.TryDeserialize(data, out var state):
@@ -138,12 +133,12 @@ public sealed class RaceMatch : ArenaMatch
 
             case VehicleRacePacketVehicleHit.OpCode when VehicleRacePacketVehicleHit.TryDeserialize(data, out var hit):
                 if (hit.Guid == participant.Guid && _simulation.TryGetKart(hit.Guid, out var bumper) && _simulation.TryGetKart(hit.OtherGuid, out var bumped))
-                    _simulation.OnReportedBump(bumper, bumped, now);
+                    _simulation.OnReportedBump(bumper, bumped, hit.Impulse, now);
                 break;
 
             // Asked every frame until answered; only a box in reach of the kart answers.
             case VehicleRacePacketPickupHitRequest.OpCode when VehicleRacePacketPickupHitRequest.TryDeserialize(data, out var pickupHit):
-                if (_gameState is 9 or 10 && _simulation.TryGetKart(participant.Guid, out var touching))
+                if (_handshake.GameState is 9 or 10 && _simulation.TryGetKart(participant.Guid, out var touching))
                     _simulation.TryTakePickup(touching, new Vector3(pickupHit.Position.X, pickupHit.Position.Y, pickupHit.Position.Z), PickupReach, now);
                 break;
 
@@ -179,16 +174,22 @@ public sealed class RaceMatch : ArenaMatch
         kart.Velocity = state.LinearVelocity;
         kart.Heading = ArenaRules.Heading(new Vector3(state.Transform.M31, 0f, state.Transform.M33));
 
-        SendToPlayingUnreliable(new VehicleRacePacketUpdateVehicleRaceClientData
-        {
-            Transform = state.Transform,
-            LinearVelocity = state.LinearVelocity,
-            AngularVelocity = state.AngularVelocity,
-            Steering = state.Steering,
-            Flags = (byte)((state.Flags & ~0x38) | (kart.Slot << 3)),
-            Clock = state.Clock
-        }, except: participant.Guid);
+        SendToPlayingUnreliable(Relay(state, kart.Slot), except: participant.Guid);
     }
+
+    /// <summary>
+    /// A player's kart state as the other players' clients take it: the same, addressed by the kart's grid slot
+    /// (bits 3-5 of the flags).
+    /// </summary>
+    public static VehicleRacePacketUpdateVehicleRaceClientData Relay(VehicleRacePacketUpdateVehicleRaceServerData state, int slot) => new()
+    {
+        Transform = state.Transform,
+        LinearVelocity = state.LinearVelocity,
+        AngularVelocity = state.AngularVelocity,
+        Steering = state.Steering,
+        Flags = (byte)((state.Flags & ~0x38) | ((slot & 7) << 3)),
+        Clock = state.Clock
+    };
 
     private void UseItem(ArenaParticipant participant, long now)
     {
@@ -207,15 +208,16 @@ public sealed class RaceMatch : ArenaMatch
 
     public override void Update(long now, float deltaSeconds)
     {
-        switch (_gameState)
+        switch (_handshake.GameState)
         {
+            // Everyone coming registers as their zone loads.
             case 0:
-                if (_registered.Count > 0 && (Playing.All(participant => _registered.ContainsKey(participant.Guid)) || now - _firstRegisteredAt > SetupWaitMs))
+                if (_handshake.ReadyToSetUp(Expected, now))
                     SetUp(now);
                 return;
 
             case 3:
-                if (Acknowledged(now))
+                if (_handshake.Acknowledged(now))
                 {
                     SpawnAiKarts(now);
                     SendToPlaying(new VehicleRacePacketUpdateNpcCount { Count = (uint)Karts.Count(kart => !kart.IsPlayer) });
@@ -226,12 +228,12 @@ public sealed class RaceMatch : ArenaMatch
             case 4:
             case 5:
             case 6:
-                if (Acknowledged(now))
-                    SetGameState(_gameState + 1, now);
+                if (_handshake.Acknowledged(now))
+                    SetGameState(_handshake.GameState + 1, now);
                 break;
 
             case 7:
-                if (Acknowledged(now))
+                if (_handshake.Acknowledged(now))
                 {
                     SetGameState(8, now);
                     SendCountdown(4, now);
@@ -265,6 +267,8 @@ public sealed class RaceMatch : ArenaMatch
     /// </summary>
     private void SetUp(long now)
     {
+        Started = true;
+
         SendToPlaying(new VehicleRacePacketSetRaceConfig
         {
             Laps = (uint)_definition.Laps,
@@ -279,7 +283,7 @@ public sealed class RaceMatch : ArenaMatch
         var slots = _definition.Grid.OrderBy(slot => slot.Slot == _definition.PlayerSlot ? 0 : 1).ThenBy(slot => slot.Slot).ToList();
         var index = 0;
 
-        foreach (var participant in Playing.Where(participant => _registered.ContainsKey(participant.Guid)).ToList())
+        foreach (var participant in Playing.Where(participant => _handshake.IsRegistered(participant.Guid)).ToList())
         {
             if (index >= slots.Count)
                 break;
@@ -291,8 +295,10 @@ public sealed class RaceMatch : ArenaMatch
             _simulation.Add(new RaceKart(participant.Guid, slot.Slot, vehicle, slot.Point, slot.Heading)
             {
                 Participant = participant,
-                RegisterClock = _registered[participant.Guid]
+                RegisterClock = _handshake.ClockOf(participant.Guid)
             });
+
+            _handshake.Seat(participant.Guid);
 
             // The server's idea of where they are, so the AI drivers spawn in their view.
             participant.Player.UpdatePosition(new Vector4(slot.Point, 1f), QuaternionExtensions.FromHeading(slot.Heading));
@@ -374,47 +380,33 @@ public sealed class RaceMatch : ArenaMatch
 
     private void SetGameState(int state, long now)
     {
-        _gameState = state;
-        _gameStateAt = now;
-        _acks.Clear();
+        _handshake.SetGameState(state, now);
 
         SendToPlaying(new VehicleRacePacketUpdateVehicleGameState { State = (uint)state });
     }
 
-    private bool Acknowledged(long now) => AllIn(_acks) || now - _gameStateAt > AckTimeoutMs;
-
-    private bool AllIn(HashSet<ulong> answered) =>
-        Playing.Where(participant => _simulation.TryGetKart(participant.Guid, out _)).All(participant => answered.Contains(participant.Guid));
-
     private void SendCountdown(int count, long now)
     {
-        _countdown = count;
-        _countdownAt = now;
-        _countdownEchoedAt = 0;
-        _echoes.Clear();
+        _handshake.StartCountdown(count, now);
 
         SendToPlaying(new VehicleRacePacketVehicleRaceCountdownStatus { Count = (uint)count });
     }
 
     /// <summary>
-    /// Each number goes a moment after the clients echoed the last (live never saw an echo of the 4).
+    /// Each number goes a moment after every client echoed the last.
     /// </summary>
     private void UpdateCountdown(long now)
     {
-        var due = _countdown == 4
-            ? now - _countdownAt >= 750
-            : (_countdownEchoedAt != 0 && now - _countdownEchoedAt >= 300) || now - _countdownAt >= 1500;
-
-        if (!due)
+        if (!_handshake.CountdownDue(now, firstMs: 750))
             return;
 
-        if (_countdown > 0)
+        if (_handshake.Countdown > 0)
         {
-            SendCountdown(_countdown - 1, now);
+            SendCountdown(_handshake.Countdown - 1, now);
             return;
         }
 
-        _countdown = -1;
+        _handshake.EndCountdown();
 
         SetGameState(9, now);
 
@@ -597,7 +589,7 @@ public sealed class RaceMatch : ArenaMatch
             return;
 
         _simulation.Remove(kart);
-        _registered.Remove(participant.Guid);
+        _handshake.Leave(participant.Guid, Now);
 
         // The others' race order shrinks.
         foreach (var other in Playing.Where(other => other.Guid != participant.Guid))

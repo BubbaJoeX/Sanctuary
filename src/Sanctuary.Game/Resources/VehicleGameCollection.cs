@@ -37,6 +37,8 @@ public sealed class VehicleGameCollection
 
     public IReadOnlyList<VehicleGameStageDefinition> Stages => _tables.Definition.Stages;
 
+    public IReadOnlyList<VehicleGameQueueDefinition> Queues => _tables.Definition.Queues;
+
     public bool TryGetStage(int stageId, [MaybeNullWhen(false)] out VehicleGameStageDefinition stage) =>
         _tables.Stages.TryGetValue(stageId, out stage);
 
@@ -138,6 +140,28 @@ public sealed class VehicleGameCollection
         if (tables.Stages.Count != definition.Stages.Count)
         {
             error = "a stage is listed twice";
+            return false;
+        }
+
+        foreach (var queue in definition.Queues)
+        {
+            if (queue.Params.Length != 7 || queue.MaxPlayers < 1 || queue.MinPlayers < 1)
+            {
+                error = $"queue {queue.Id} needs seven params and at least one player";
+                return false;
+            }
+
+            if (queue.StageIds.Count == 0
+                || queue.StageIds.Any(stageId => !tables.Stages.TryGetValue(stageId, out var stage) || stage.Kind == VehicleGameKind.Garage))
+            {
+                error = $"queue {queue.Id} needs games to start";
+                return false;
+            }
+        }
+
+        if (definition.Queues.Select(queue => queue.Id).Distinct().Count() != definition.Queues.Count)
+        {
+            error = "a queue is listed twice";
             return false;
         }
 

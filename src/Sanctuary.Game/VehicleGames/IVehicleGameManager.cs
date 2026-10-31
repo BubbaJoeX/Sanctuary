@@ -36,6 +36,17 @@ public interface IVehicleGameManager
     bool RequestExit(Player player);
 
     /// <summary>
+    /// A group member's answer to being asked along (the answer names no encounter): false when they weren't asked
+    /// to one of these games, for the battles to take.
+    /// </summary>
+    bool AnswerInvitation(Player player, bool accept);
+
+    /// <summary>
+    /// A matchmaking packet (opcode 141: the lobby's queues, queueing, a found match's answer), whole.
+    /// </summary>
+    void HandleMatchmakingPacket(Player player, ReadOnlySpan<byte> data);
+
+    /// <summary>
     /// A zone has loaded for a player (ClientIsReady): a game's zone switches the game on.
     /// </summary>
     void OnClientIsReady(Player player, WorldZone zone);

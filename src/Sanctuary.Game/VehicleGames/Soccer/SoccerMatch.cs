@@ -7,7 +7,6 @@ using System.Numerics;
 using Microsoft.Extensions.Logging;
 
 using Sanctuary.Core.Extensions;
-using Sanctuary.Core.IO;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
@@ -16,14 +15,18 @@ namespace Sanctuary.Game.VehicleGames.Soccer;
 
 /// <summary>
 /// A Sacred Grove soccer match (the live match's setup): the player and three AI team mates (the Sidekicks) against
-/// four AI players (the Snowspurs), two halves of three minutes. The client moves only the player and reports their
-/// position, stick and state; the server (<see cref="SoccerSimulation"/>) runs the ball, possession and tackles, the
-/// seven AI players (by their stick and buttons, as live), the power-ups, the score and the clock.
+/// four AI players (the Snowspurs), two halves of three minutes. Other players take AI players' places, up to four a
+/// side: a group plays on one team. Each client moves only its own player and reports their position, stick and
+/// state, which go on to the other clients; the server (<see cref="SoccerSimulation"/>) runs the ball, possession
+/// (whoever reaches it first) and tackles, the AI players (by their stick and buttons, as live), the power-ups, the
+/// score and the clock.
 /// <para>
-/// As the zone loads, character state 0x1000 switches the client's soccer processor on and the server sets the match
-/// up as live did: the config, the teams and the AI players, the kick-off formation, the colours and every player's
-/// tuning. The client says it's ready (RegisterPlayer with no guid): "Ready!", then the kick-off and play. A goal is
-/// celebrated and kicked off again; half time shows the half time board; level at the end, the next goal wins.
+/// As the zone loads, character state 0x1000 switches the client's soccer processor on and it waits for the other
+/// players (game state 2). Once everyone coming is in, the server sets the match up as live did: the config, the
+/// teams, the other players (registered as players, not AI) and the AI players, the kick-off formation, the colours
+/// and every player's tuning. Each client says it's ready (RegisterPlayer with no guid); with all of them, "Ready!",
+/// then the kick-off and play. A goal is celebrated and kicked off again; half time shows the half time board; level
+/// at the end, the next goal wins.
 /// </para>
 /// </summary>
 public sealed class SoccerMatch : ArenaMatch
@@ -57,8 +60,14 @@ public sealed class SoccerMatch : ArenaMatch
     private readonly Random _random = new();
     private readonly SoccerSimulation _simulation;
 
+    private readonly HashSet<ulong> _readied = [];
+    private readonly HashSet<ulong> _halftimeClosed = [];
+
     private bool _setUp;
-    private bool _ready;
+    private long _firstInAt;
+    private long _setUpAt;
+    private long _firstReadyAt;
+    private bool _playing;
     private int _state;
     private long _stateAt;
     private long _startedAt;
@@ -102,6 +111,18 @@ public sealed class SoccerMatch : ArenaMatch
 
     public override int CharacterStateBit => SoccerCharacterState;
 
+    /// <summary>
+    /// Four a side.
+    /// </summary>
+    public override int Capacity => 2 * SoccerRules.PlayersPerTeam;
+
+    public override bool HasPlace(ulong guid) => _simulation.TryGetPlayer(guid, out _);
+
+    /// <summary>
+    /// The players' footballers (the rest are AI).
+    /// </summary>
+    private IEnumerable<SoccerPlayer> Humans => _simulation.Players.Where(player => player.IsPlayer);
+
     private static long Now => Environment.TickCount64;
 
     #region Setting up
@@ -113,27 +134,43 @@ public sealed class SoccerMatch : ArenaMatch
         if (_setUp)
             return;
 
-        _setUp = true;
+        if (_firstInAt == 0)
+            _firstInAt = Now;
 
-        SetUp(participant);
+        // The live setup's first two states: "waiting for players", until everyone coming is in.
+        participant.Player.SendTunneled(GetGameState(1, unknown: 0));
+        participant.Player.SendTunneled(GetGameState(2, unknown: 0));
     }
 
     /// <summary>
-    /// The live setup, in its order: the game states counting up, the config, the teams, the AI players (each an NPC
-    /// registered as an AI player and put on its team), the kick-off formation, the colours and everyone's tuning.
+    /// The live setup, in its order after the first two states: the config, the teams, the players (each client's
+    /// own, then the others registered as players), the AI players in the places left (each an NPC registered as an
+    /// AI player and put on its team), the kick-off formation, the colours and everyone's tuning.
     /// </summary>
-    private void SetUp(ArenaParticipant participant)
+    private void SetUp(long now)
     {
-        var player = new SoccerPlayer(participant.Guid, 0, 0, Point(_pitch.PlayerKickOff))
+        Started = true;
+
+        _setUp = true;
+        _setUpAt = now;
+
+        var humans = Playing.ToList();
+        var lineup = SoccerRules.Lineup(humans.Select(human => human.Side).ToList());
+
+        for (var index = 0; index < humans.Count; index++)
         {
-            Participant = participant,
-            RunSpeed = 6.5f
-        };
+            if (lineup[index] is not { } place)
+                continue;
 
-        _simulation.Add(player);
+            var (team, position) = place;
+            var spot = _pitch.Players.FirstOrDefault(definition => definition.Team == team && definition.Position == position);
 
-        SendGameState(1, unknown: 0);
-        SendGameState(2, unknown: 0);
+            _simulation.Add(new SoccerPlayer(humans[index].Guid, team, position, Point(spot is null || (team, position) == (0, 0) ? _pitch.PlayerKickOff : spot.KickOff))
+            {
+                Participant = humans[index],
+                RunSpeed = 6.5f
+            });
+        }
 
         SendToPlaying(new SoccerPacketSetClientConfig
         {
@@ -154,10 +191,18 @@ public sealed class SoccerMatch : ArenaMatch
         SendGameState(3, unknown: 1);
         SendGameState(4, unknown: 1);
 
-        SendToPlaying(new SoccerPacketSetPlayerTeam { Guid = player.Guid, Team = 0, Position = 0 });
+        foreach (var human in Humans.ToList())
+        {
+            // A client has its own player already; the others are players to it, not AI.
+            SendToPlaying(new SoccerPacketRegisterPlayer { Guid = human.Guid }, except: human.Guid);
+            SendToPlaying(new SoccerPacketSetPlayerTeam { Guid = human.Guid, Team = (uint)human.Team, Position = (uint)human.Position });
+        }
 
         foreach (var definition in _pitch.Players)
         {
+            if (Humans.Any(human => human.Team == definition.Team && human.Position == definition.Position))
+                continue;
+
             if (!Manager.ResourceManager.Npcs.TryGetValue(definition.NpcId, out var npcDefinition)
                 || !Zone.TrySpawnArenaNpc(npcDefinition, new Vector4(Point(definition.KickOff), 1f), definition.Team == 0 ? -MathF.PI / 2f : MathF.PI / 2f,
                     SoccerCharacterState | 1, out var npc))
@@ -206,6 +251,8 @@ public sealed class SoccerMatch : ArenaMatch
         }
 
         SendGameState(6, unknown: 8);
+
+        Logger.LogInformation("Soccer {encounter:X}: set up with {players} player(s).", Id, Humans.Count());
     }
 
     #endregion
@@ -214,24 +261,26 @@ public sealed class SoccerMatch : ArenaMatch
 
     public override void OnPacket(ArenaParticipant participant, short opCode, ReadOnlySpan<byte> data)
     {
-        if (opCode != BaseSoccerPacket.OpCode || data.Length < 4 || !_simulation.TryGetPlayer(participant.Guid, out var player))
+        if (opCode != BaseSoccerPacket.OpCode || data.Length < 4)
             return;
 
         var now = Now;
+        var subOpCode = BinaryPrimitives.ReadUInt16LittleEndian(data[2..]);
 
-        switch (BinaryPrimitives.ReadUInt16LittleEndian(data[2..]))
+        // The client's "ready", with no guid: as its loading screen goes, which may be before the setup.
+        if (subOpCode == SoccerPacketRegisterPlayer.OpCode)
         {
-            // The client's "ready", with no guid.
-            case SoccerPacketRegisterPlayer.OpCode when SoccerPacketRegisterPlayer.TryDeserialize(data, out var register):
-                if (register.Guid == 0 && !_ready)
-                {
-                    _ready = true;
-                    _startedAt = now;
+            if (SoccerPacketRegisterPlayer.TryDeserialize(data, out var register) && register.Guid == 0 && _readied.Add(participant.Guid) && _firstReadyAt == 0)
+                _firstReadyAt = now;
 
-                    SetState(StartGame, now);
-                }
-                break;
+            return;
+        }
 
+        if (!_simulation.TryGetPlayer(participant.Guid, out var player))
+            return;
+
+        switch (subOpCode)
+        {
             case SoccerPacketUpdatePlayerPos.OpCode when SoccerPacketUpdatePlayerPos.TryDeserialize(data, out var position):
                 player.Location = new Vector3(position.Position.X, 0f, position.Position.Z);
                 SendToPlayingUnreliable(position, except: participant.Guid);
@@ -264,9 +313,10 @@ public sealed class SoccerMatch : ArenaMatch
                     _simulation.Release(player, new Vector3(impulse.Impulse.X, impulse.Impulse.Y, impulse.Impulse.Z));
                 break;
 
-            // The half time board was closed.
+            // The half time board was closed: the second half once every player has.
             case SoccerPacketUpdateGameState.OpCode when SoccerPacketUpdateGameState.TryDeserialize(data, out var closed):
-                if (closed.State == HalftimeClosed && _state == Halftime)
+                if (closed.State == HalftimeClosed && _state == Halftime && _halftimeClosed.Add(participant.Guid)
+                    && Humans.All(human => _halftimeClosed.Contains(human.Guid)))
                     SecondHalf(now);
                 break;
         }
@@ -278,8 +328,29 @@ public sealed class SoccerMatch : ArenaMatch
 
     public override void Update(long now, float deltaSeconds)
     {
-        if (!_ready)
+        if (!_setUp)
+        {
+            // Everyone coming is in (or the others have had long enough).
+            if (_firstInAt != 0 && Playing.Any()
+                && (Expected.All(guid => Participants.TryGetValue(guid, out var participant) && participant.InZone) || now - _firstInAt > JoinWaitMs))
+                SetUp(now);
+
             return;
+        }
+
+        if (!_playing)
+        {
+            // "Ready!" once every player's client is (or the slow ones have had long enough).
+            if (_firstReadyAt != 0 && (Humans.All(human => _readied.Contains(human.Guid)) || now - Math.Max(_firstReadyAt, _setUpAt) > AckTimeoutMs))
+            {
+                _playing = true;
+                _startedAt = now;
+
+                SetState(StartGame, now);
+            }
+
+            return;
+        }
 
         switch (_state)
         {
@@ -391,6 +462,8 @@ public sealed class SoccerMatch : ArenaMatch
     {
         if (_period == 0)
         {
+            _halftimeClosed.Clear();
+
             SetState(Halftime, now);
             return;
         }
@@ -456,11 +529,13 @@ public sealed class SoccerMatch : ArenaMatch
         SendGameState(state, unknown: 8, afterGoal: afterGoal || _simulation.Score.Sum() > 0);
     }
 
-    private void SendGameState(int state, int unknown, bool afterGoal = false)
+    private void SendGameState(int state, int unknown, bool afterGoal = false) => SendToPlaying(GetGameState(state, unknown, afterGoal));
+
+    private SoccerPacketUpdateGameState GetGameState(int state, int unknown, bool afterGoal = false)
     {
         var score = _simulation.Score;
 
-        SendToPlaying(new SoccerPacketUpdateGameState
+        return new SoccerPacketUpdateGameState
         {
             LeadingTeam = score[0] > score[1] ? 0 : score[1] > score[0] ? 1 : -1,
             Period = _period,
@@ -478,7 +553,7 @@ public sealed class SoccerMatch : ArenaMatch
             Unknown = unknown,
             Unknown3 = _kickedOff ? 1 : 0,
             Unknown4 = afterGoal ? 0 : -1
-        });
+        };
     }
 
     /// <summary>
@@ -624,15 +699,6 @@ public sealed class SoccerMatch : ArenaMatch
 
     #endregion
 
-    private void SendToPlaying(ISerializablePacket packet, ulong except)
-    {
-        foreach (var participant in Playing)
-        {
-            if (participant.Guid != except)
-                participant.Player.SendTunneled(packet);
-        }
-    }
-
     private static Vector3 Point(float[] values) => new(values[0], values[1], values[2]);
 
     public override void OnLeft(ArenaParticipant participant)
@@ -641,6 +707,8 @@ public sealed class SoccerMatch : ArenaMatch
             return;
 
         _simulation.Remove(player);
+        _readied.Remove(participant.Guid);
+        _halftimeClosed.Remove(participant.Guid);
 
         foreach (var other in Playing.Where(other => other.Guid != participant.Guid))
             other.Player.SendTunneled(new SoccerPacketRegisterPlayer { Guid = participant.Guid, Remove = true });
