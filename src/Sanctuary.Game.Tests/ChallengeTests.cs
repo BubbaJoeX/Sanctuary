@@ -47,7 +47,7 @@ public sealed class ChallengeTests
     {
         var challenges = new ChallengeDefinitionCollection(NullLogger.Instance);
         Assert.IsTrue(challenges.Load(Path.Combine(GetResourcesDirectory(), "Challenges.json")));
-        Assert.IsTrue(challenges.Count >= 25);
+        Assert.IsTrue(challenges.Count >= 60);
 
         var npcs = LoadById("Npcs.json");
         var profiles = LoadById("Profiles.json");
@@ -67,11 +67,24 @@ public sealed class ChallengeTests
             Assert.IsTrue(npcs.ContainsKey(challenge.GiverNpcId) && placed.Contains(challenge.GiverNpcId),
                 $"Challenge {challenge.Id}'s NPC {challenge.GiverNpcId} isn't in Fabled Realms.");
 
-            foreach (var recipient in challenge.RecipientNpcIds)
-                Assert.IsTrue(placed.Contains(recipient), $"Challenge {challenge.Id} delivers to {recipient}, who isn't in Fabled Realms.");
+            Assert.IsTrue(challenge.Count > 0 && challenge.TimeLimitSeconds > 0, $"Challenge {challenge.Id} asks for nothing, or gives no time.");
+            Assert.IsTrue(challenge.Stars > 0 && challenge.Coins > 0, $"Challenge {challenge.Id} pays nothing.");
 
-            if (challenge.Kind is ChallengeKind.Collect or ChallengeKind.Return or ChallengeKind.Catch)
+            foreach (var recipient in challenge.RecipientNpcIds)
+                Assert.IsTrue(npcs.ContainsKey(recipient) && placed.Contains(recipient), $"Challenge {challenge.Id} delivers to {recipient}, who isn't in Fabled Realms.");
+
+            if (challenge.Kind == ChallengeKind.Deliver)
+            {
+                Assert.AreEqual(challenge.Count, challenge.RecipientNpcIds.Count, $"Challenge {challenge.Id} names a different number of people than it delivers to.");
+                Assert.AreEqual(challenge.Count, challenge.RecipientNpcIds.Distinct().Count(), $"Challenge {challenge.Id} delivers to someone twice.");
+                Assert.IsFalse(challenge.RecipientNpcIds.Contains(challenge.GiverNpcId), $"Challenge {challenge.Id} delivers to whoever offers it.");
+            }
+
+            if (challenge.Kind is ChallengeKind.Collect or ChallengeKind.Return or ChallengeKind.Catch or ChallengeKind.Use)
                 Assert.IsTrue(models.Contains(challenge.ModelId), $"Challenge {challenge.Id}'s model {challenge.ModelId} isn't in Models.txt.");
+
+            if (challenge.Kind == ChallengeKind.Race)
+                Assert.IsTrue(challenge.RecordSeconds < challenge.TimeLimitSeconds, $"Challenge {challenge.Id}'s record can't be beaten in time.");
 
             if (challenge.ProfileId != 0)
                 Assert.IsTrue(profiles.ContainsKey(challenge.ProfileId), $"Challenge {challenge.Id} pays job {challenge.ProfileId}, which doesn't exist.");
@@ -96,6 +109,12 @@ public sealed class ChallengeTests
 
         var deliver = new ChallengeDefinition { Id = 1, NameId = 1, GiverNpcId = 1, Kind = ChallengeKind.Deliver, Count = 3, RecipientNpcIds = [5, 6] };
         Assert.IsFalse(ChallengeDefinitionCollection.IsValid(deliver, out _), "It names fewer people than it delivers to.");
+
+        var use = new ChallengeDefinition { Id = 1, NameId = 1, GiverNpcId = 1, Kind = ChallengeKind.Use, Count = 6 };
+        Assert.IsFalse(ChallengeDefinitionCollection.IsValid(use, out _), "Targets need a model.");
+
+        use.ModelId = 226;
+        Assert.IsTrue(ChallengeDefinitionCollection.IsValid(use, out _));
     }
 
     private static Func<Vector3, float, Vector3?> FlatSampler(int seed)
@@ -142,6 +161,19 @@ public sealed class ChallengeTests
         // Consecutive flags go round, not back and forth.
         var angles = flags.Take(7).Select(flag => MathF.Atan2(flag.X, flag.Z)).ToList();
         Assert.AreEqual(7, angles.Distinct().Count());
+    }
+
+    [TestMethod]
+    public void Reach_GoesOutToTheFarthestPerson()
+    {
+        var center = new Vector3(10f, 0f, 10f);
+
+        // Gorg's missive goes to Snorg and Sergeant Cargug, 151 m and 162 m away.
+        Assert.AreEqual(162f, ChallengeLayout.Reach(center, 40f, [center + new Vector3(151f, 0f, 0f), center + new Vector3(0f, 0f, -162f)]), 0.01f);
+
+        // Close by, or with nobody to go to, it's the challenge's radius.
+        Assert.AreEqual(40f, ChallengeLayout.Reach(center, 40f, [center + new Vector3(9f, 0f, 12f)]), 0.01f);
+        Assert.AreEqual(40f, ChallengeLayout.Reach(center, 40f, []), 0.01f);
     }
 
     [TestMethod]

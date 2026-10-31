@@ -29,19 +29,19 @@ public sealed class ChallengeDefinition
     public ChallengeKind Kind { get; set; }
 
     /// <summary>
-    /// How many things to collect, bring back or catch, flags to run through, or people to deliver to.
+    /// How many things to collect, bring back, catch or use, flags to run through, or people to deliver to.
     /// </summary>
     public int Count { get; set; } = 8;
 
     public int TimeLimitSeconds { get; set; } = 120;
 
     /// <summary>
-    /// How far from the giver its things are placed (or a race runs).
+    /// How far from the giver its things are placed (or a race runs). A delivery reaches as far as its farthest person.
     /// </summary>
     public float Radius { get; set; } = 40f;
 
     /// <summary>
-    /// The Models.txt model of what's collected or caught. Races use the green and red flags.
+    /// The Models.txt model of what's collected, caught or used. Races use the green and red flags.
     /// </summary>
     public int ModelId { get; set; }
 
@@ -89,5 +89,11 @@ public enum ChallengeKind
     /// <summary>
     /// Catch the animals (or the ninja) wandering about, by clicking them or running into them.
     /// </summary>
-    Catch
+    Catch,
+
+    /// <summary>
+    /// Click each of the things put out to use something on it: touch a target dummy, disarm a booby-trapped kart.
+    /// They stay where they are once they're done.
+    /// </summary>
+    Use
 }
