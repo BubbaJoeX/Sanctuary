@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Sanctuary.Core.IO;
+using Sanctuary.Game.VehicleGames;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
 
@@ -13,11 +14,14 @@ namespace Sanctuary.Gateway.Handlers;
 public static class BaseCommandPacketHandler
 {
     private static ILogger _logger = null!;
+    private static IVehicleGameManager _vehicleGameManager = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         _logger = loggerFactory.CreateLogger(nameof(BaseCommandPacketHandler));
+
+        _vehicleGameManager = serviceProvider.GetRequiredService<IVehicleGameManager>();
     }
 
     public static bool HandlePacket(GatewayConnection connection, PacketReader reader)
@@ -37,6 +41,9 @@ public static class BaseCommandPacketHandler
             CommandPacketInteractionStartWheel.OpCode => CommandPacketInteractionStartWheelHandler.HandlePacket(connection, reader.Span),
             CommandPacketInteractionSelect.OpCode => CommandPacketInteractionSelectHandler.HandlePacket(connection, reader.Span),
             CommandPacketSetProfile.OpCode => CommandPacketSetProfileHandler.HandlePacket(connection, reader.Span),
+
+            CommandPacketSetActiveVehicleGuid.OpCode => HandleSetActiveVehicle(connection, reader.Span),
+
             CommandPacketAddFriendRequest.OpCode => CommandPacketAddFriendRequestHandler.HandlePacket(connection, reader.Span),
             CommandPacketRemoveFriendRequest.OpCode => CommandPacketRemoveFriendRequestHandler.HandlePacket(connection, reader.Span),
             CommandPacketConfirmFriendResponse.OpCode => CommandPacketConfirmFriendResponseHandler.HandlePacket(connection, reader.Span),
@@ -55,5 +62,18 @@ public static class BaseCommandPacketHandler
             CommandPacketClearInteractionMerchantSetId.OpCode => true,
             _ => false
         };
+    }
+
+    /// <summary>
+    /// The kart or derby car the player drives (the client's SetActiveVehicleProfile).
+    /// </summary>
+    private static bool HandleSetActiveVehicle(GatewayConnection connection, ReadOnlySpan<byte> data)
+    {
+        if (!CommandPacketSetActiveVehicleGuid.TryDeserialize(data, out var vehicle))
+            return false;
+
+        _vehicleGameManager.SelectVehicle(connection.Player, (int)vehicle.VehicleType, (int)vehicle.VehicleId);
+
+        return true;
     }
 }

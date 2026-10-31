@@ -25,6 +25,7 @@ using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Trading;
+using Sanctuary.Game.VehicleGames.Garage;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Gateway.Handlers;
 using Sanctuary.Packet;
@@ -503,6 +504,9 @@ public class GatewayConnection : UdpConnection
 
         // After achievements, so the recipes already known count toward theirs.
         _serviceProvider.GetRequiredService<ICraftingManager>().Load(Player, dbCharacter.Recipes);
+
+        // The kart garage's loadouts (a new character gets the starter kart and derby car).
+        VehicleLoadoutStore.Load(Player, dbCharacter, _dbContextFactory);
 
         // End ClientPcData
 

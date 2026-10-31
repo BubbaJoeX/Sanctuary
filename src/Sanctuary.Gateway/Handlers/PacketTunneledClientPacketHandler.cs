@@ -81,6 +81,8 @@ public static class PacketTunneledClientPacketHandler
             BaseReportPacket.OpCode => BaseReportPacketHandler.HandlePacket(connection, reader),
             BugSubmissionPacketAddBug.OpCode => BugSubmissionPacketAddBugHandler.HandlePacket(connection, packetTunneledClientPacket.Payload),
             BaseRatingPacket.OpCode => BaseRatingPacketHandler.HandlePacket(connection, reader),
+            BaseVehicleRacePacket.OpCode or BaseVehicleDemolitionDerbyPacket.OpCode or BaseSoccerPacket.OpCode or BaseVehiclePartPacket.OpCode
+                => VehicleGamePacketHandler.HandlePacket(connection, opCode, packetTunneledClientPacket.Payload),
 
             // Notices that want no answer: quitting, closing an inspect, telemetry, the matchmaking poll.
             PacketClientLogout.OpCode => true,

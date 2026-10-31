@@ -72,6 +72,16 @@ namespace Sanctuary.Database.MySql.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<ulong>("Id"));
 
+                    b.Property<int>("ActiveDerbyLoadoutId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ActiveKartLoadoutId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<int>("ActiveProfileId")
                         .HasColumnType("int");
 
@@ -1068,6 +1078,26 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbVehicleLoadout", b =>
+                {
+                    b.Property<ulong>("CharacterId")
+                        .HasColumnType("bigint unsigned");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("Slots")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("CharacterId", "Id");
+
+                    b.ToTable("VehicleLoadouts");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbWorldEvent", b =>
                 {
                     b.Property<string>("Key")
@@ -1530,6 +1560,17 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Navigation("Character");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbVehicleLoadout", b =>
+                {
+                    b.HasOne("Sanctuary.Database.Entities.DbCharacter", "Character")
+                        .WithMany("VehicleLoadouts")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacter", b =>
                 {
                     b.Navigation("Achievements");
@@ -1553,6 +1594,8 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Navigation("Quests");
 
                     b.Navigation("Titles");
+
+                    b.Navigation("VehicleLoadouts");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterAchievement", b =>

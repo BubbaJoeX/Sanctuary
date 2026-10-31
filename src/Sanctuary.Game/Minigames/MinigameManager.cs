@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Battles;
+using Sanctuary.Game.VehicleGames;
 using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
@@ -43,6 +44,7 @@ public static class MinigameManager
     private static IRewardManager _rewardManager = null!;
     private static IResourceManager _resourceManager = null!;
     private static IBattleManager? _battleManager;
+    private static IVehicleGameManager? _vehicleGameManager;
     private static ICraftingManager? _craftingManager;
     private static IGroupManager? _groupManager;
 
@@ -72,6 +74,7 @@ public static class MinigameManager
         _rewardManager = serviceProvider.GetRequiredService<IRewardManager>();
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
         _battleManager = serviceProvider.GetService<IBattleManager>();
+        _vehicleGameManager = serviceProvider.GetService<IVehicleGameManager>();
         _craftingManager = serviceProvider.GetService<ICraftingManager>();
         _groupManager = serviceProvider.GetService<IGroupManager>();
 
@@ -129,9 +132,10 @@ public static class MinigameManager
             })
             .ToList();
 
-        // The fishing ponds have their own tile, and so does each battle (under Battles).
+        // The fishing ponds have their own tile, and so does each battle (under Battles) and 3D game (Karts, Soccer).
         activities.AddRange(FishingPond.GetActivities(_resourceManager));
         activities.AddRange(_battleManager?.GetActivities() ?? []);
+        activities.AddRange(_vehicleGameManager?.GetActivities() ?? []);
 
         player.SendTunneled(new ActivityPacketListOfActivities
         {
