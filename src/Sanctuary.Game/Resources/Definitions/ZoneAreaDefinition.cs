@@ -16,6 +16,13 @@ public class ZoneAreaDefinition
     public float? EnvironmentMaxX { get; set; }
     public List<int[]> Tiles { get; set; } = [];
 
+    /// <summary>
+    /// The client's combat area (EncounterOverworldCombatPacket): the wilds, where hostile NPCs are enemies to a
+    /// combat job. In one the job picker won't let a combat job go for another kind, so towns aren't, as live sent
+    /// it in Snowhill.
+    /// </summary>
+    public bool IsCombatArea { get; set; }
+
     public bool IsInEnvironmentXRange(float x)
     {
         return (EnvironmentMinX is null || x >= EnvironmentMinX) && (EnvironmentMaxX is null || x < EnvironmentMaxX);

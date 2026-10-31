@@ -74,6 +74,10 @@ public class AreaChatCommand : IChatCommand
             ChatHelper.SendSystemMessage(invoker, area is null
                 ? "  Not inside any area."
                 : $"  Area {area.Id} {GetAreaName(area)}, POI {area.PointOfInterestId}, chat area {area.ChatAreaNameId}");
+
+            ChatHelper.SendSystemMessage(invoker, worldZone.IsCombatArea(invoker.Position, invoker.PointOfInterestId)
+                ? "  Combat area: yes (enemies are red to combat jobs, and the job picker offers only combat jobs)"
+                : "  Combat area: no (any job can be picked)");
         }
 
         ChatHelper.SendSystemMessage(invoker, $"  Client state: POI {invoker.PointOfInterestId}, chat area {invoker.ChatAreaNameId}");
@@ -109,8 +113,11 @@ public class AreaChatCommand : IChatCommand
                     ? $"environments {string.Join(",", area.EnvironmentIds)}"
                     : area.Shape.ToString();
 
-            ChatHelper.SendSystemMessage(invoker, $"  {area.Id} {GetAreaName(area)} - {placement}, POI {area.PointOfInterestId}");
+            ChatHelper.SendSystemMessage(invoker, $"  {area.Id} {GetAreaName(area)} - {placement}, POI {area.PointOfInterestId}{(area.IsCombatArea ? ", combat area" : "")}");
         }
+
+        foreach (var combatArea in definition.CombatAreas)
+            ChatHelper.SendSystemMessage(invoker, $"  {(combatArea.IsCombatArea ? "Combat area" : "Not a combat area")}: {combatArea.Comment ?? combatArea.Shape.ToString()}");
 
         if (definition.EnabledClientAreaIds.Count > 0)
             ChatHelper.SendSystemMessage(invoker, $"  Client areas on by default: {string.Join(", ", definition.EnabledClientAreaIds)}");

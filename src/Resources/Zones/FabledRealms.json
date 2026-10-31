@@ -162,7 +162,8 @@
       "PointOfInterestId": 152,
       "EnvironmentIds": [
         83
-      ]
+      ],
+      "IsCombatArea": true
     },
     {
       "Comment": "North Sacred Grove",
@@ -174,7 +175,8 @@
       "EnvironmentIds": [
         3
       ],
-      "EnvironmentMinX": -1024
+      "EnvironmentMinX": -1024,
+      "IsCombatArea": true
     },
     {
       "Comment": "South Sacred Grove",
@@ -186,7 +188,8 @@
       "EnvironmentIds": [
         3
       ],
-      "EnvironmentMaxX": -1024
+      "EnvironmentMaxX": -1024,
+      "IsCombatArea": true
     },
     {
       "Comment": "Lavender Coast",
@@ -363,6 +366,37 @@
           -40
         ]
       ]
+    }
+  ],
+  "CombatAreas": [
+    {
+      "Comment": "Sanctuary's Eastern Bixie Fields: the bixies' spawns, and the 12 m they pick a fight from",
+      "Shape": "Circle",
+      "X1": -1476.0,
+      "Z1": 249.0,
+      "Radius": 55.0
+    },
+    {
+      "Comment": "Buzzuz and his pikemen, south of the bixie fields (Hero's Journal)",
+      "Shape": "Circle",
+      "X1": -1468.0,
+      "Z1": 149.0,
+      "Radius": 25.0
+    },
+    {
+      "Comment": "The cultist camp by the Den of Secrets, where Merryvale meets the wilds",
+      "Shape": "Circle",
+      "X1": -828.0,
+      "Z1": -708.0,
+      "Radius": 70.0
+    },
+    {
+      "Comment": "Wugachug's arrival point, on a Sacred Grove tile 6 m short of the village's own",
+      "Shape": "Circle",
+      "X1": -70.0,
+      "Z1": -445.0,
+      "Radius": 25.0,
+      "IsCombatArea": false
     }
   ],
   "Portals": [
