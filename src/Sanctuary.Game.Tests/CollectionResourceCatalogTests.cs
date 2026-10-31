@@ -23,6 +23,7 @@ public sealed class CollectionResourceCatalogTests
         var spawns = new CollectionNodeSpawnDefinitionCollection(NullLogger.Instance);
         var items = new ClientItemDefinitionCollection(NullLogger.Instance);
         var npcs = new NpcDefinitionCollection(NullLogger.Instance);
+        var recipes = new RecipeDefinitionCollection(NullLogger.Instance);
 
         Assert.IsTrue(collections.Load(Path.Combine(resources, "Collections.json")));
         Assert.IsTrue(coins.Load(Path.Combine(resources, "CollectionCoins.json")));
@@ -31,11 +32,18 @@ public sealed class CollectionResourceCatalogTests
         Assert.IsTrue(spawns.Load(Path.Combine(resources, "CollectionNodeSpawns")));
         Assert.IsTrue(items.Load(Path.Combine(resources, "ClientItemDefinitions.json")));
         Assert.IsTrue(npcs.Load(Path.Combine(resources, "Npcs.json")));
+        Assert.IsTrue(recipes.Load(Path.Combine(resources, "Recipes.json")));
 
         var collectionItemDefinitionIds = collections.Values
             .SelectMany(collection => collection.Entries)
             .Where(entry => entry.ItemDefinitionId > 0)
             .Select(entry => entry.ItemDefinitionId)
+            .ToHashSet();
+
+        // A gathering node (a mining vein, a harvesting bush) gives what a recipe is made from instead.
+        var ingredientItemDefinitionIds = recipes.Values
+            .SelectMany(recipe => recipe.Components)
+            .Select(component => component.ItemId)
             .ToHashSet();
 
         foreach (var collection in collections.Values)
@@ -49,8 +57,9 @@ public sealed class CollectionResourceCatalogTests
             Assert.IsTrue(types.ContainsKey(pool.NodeType), $"Pool {pool.Key} has an unknown node type.");
             Assert.IsFalse(pool.DropTable.Any(drop => !items.ContainsKey(drop.ItemDefinitionId)),
                 $"Pool {pool.Key} has an unknown drop item.");
-            Assert.IsFalse(pool.DropTable.Any(drop => !collectionItemDefinitionIds.Contains(drop.ItemDefinitionId)),
-                $"Pool {pool.Key} has a drop item that is not part of a collection.");
+            Assert.IsFalse(pool.DropTable.Any(drop => !collectionItemDefinitionIds.Contains(drop.ItemDefinitionId) &&
+                !ingredientItemDefinitionIds.Contains(drop.ItemDefinitionId)),
+                $"Pool {pool.Key} has a drop item that is neither part of a collection nor a recipe ingredient.");
         }
 
         foreach (var spawn in spawns.Values)

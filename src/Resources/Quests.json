@@ -1625,5 +1625,608 @@
         "Targets": [{ "NpcId": 2378 }]
       }
     ]
+  },
+  {
+    "Name": "Saving Farnum's Farm",
+    "QuestId": 2521,
+    "TitleId": 4420042,
+    "DescriptionId": 4420043,
+    "GiverDialogueId": 4420041,
+    "ObjectiveDescriptionId": 4420046,
+    "IconId": 43278,
+    "GiverNpcId": 3211,
+    "TargetNpcId": 3211,
+    "RewardCoins": 20,
+    "RewardExperience": 80,
+    "RewardItems": [],
+    "NextQuestId": 2522,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 4420047,
+        "RequiredCount": 1,
+        "CollectNodeType": "farnum-water-bucket"
+      },
+      {
+        "Type": 2,
+        "NameId": 5100043,
+        "RequiredCount": 5,
+        "CollectNodeType": "farnum-fire"
+      },
+      {
+        "Type": 0,
+        "NameId": 5100358,
+        "DialogueId": 4420044,
+        "Targets": [{ "NpcId": 3211 }]
+      }
+    ]
+  },
+  {
+    "Name": "Cooking 101",
+    "QuestId": 2522,
+    "TitleId": 4420050,
+    "DescriptionId": 4420051,
+    "GiverDialogueId": 4420049,
+    "ObjectiveDescriptionId": 4420054,
+    "IconId": 43278,
+    "GiverNpcId": 3211,
+    "TargetNpcId": 2538,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "AcceptItems": [55824, 2900, 2900, 2900, 2862, 2862, 2862],
+    "PrerequisiteQuestId": 2521,
+    "NextQuestId": 2523,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 4420055,
+        "DialogueId": 5100509,
+        "Targets": [{ "NpcId": 2538 }]
+      },
+      {
+        "Type": 2,
+        "NameId": 23285,
+        "RequiredCount": 3,
+        "CollectNodeType": "harvesting-practice-gummyfruit"
+      },
+      {
+        "Type": 2,
+        "NameId": 23294,
+        "RequiredCount": 3,
+        "CollectNodeType": "harvesting-practice-rainleaf"
+      },
+      {
+        "Type": 6,
+        "NameId": 5100039,
+        "RequiredCount": 1,
+        "RecipeIds": [70]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100041,
+        "DialogueId": 4420052,
+        "Targets": [{ "NpcId": 2538 }]
+      }
+    ]
+  },
+  {
+    "Name": "Gear Up!",
+    "QuestId": 2523,
+    "TitleId": 4420058,
+    "DescriptionId": 4420059,
+    "GiverDialogueId": 4420057,
+    "ObjectiveDescriptionId": 4420062,
+    "IconId": 43278,
+    "GiverNpcId": 2538,
+    "TargetNpcId": 3232,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "AcceptItems": [381, 879, 879, 879, 879, 879, 879, 879, 879, 879, 879, 879, 879, 879, 879, 879],
+    "PrerequisiteQuestId": 2522,
+    "NextQuestId": 2524,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 4420063,
+        "DialogueId": 5100508,
+        "Targets": [{ "NpcId": 3232 }]
+      },
+      {
+        "Type": 2,
+        "NameId": 5100117,
+        "RequiredCount": 5,
+        "CollectNodeType": "miner-training-node"
+      },
+      {
+        "Type": 6,
+        "NameId": 5100121,
+        "RequiredCount": 5,
+        "RecipeIds": [4]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100123,
+        "DialogueId": 4420060,
+        "Targets": [{ "NpcId": 3232 }]
+      }
+    ]
+  },
+  {
+    "Name": "Your First Weapon",
+    "QuestId": 2524,
+    "TitleId": 4420066,
+    "DescriptionId": 4420067,
+    "GiverDialogueId": 4420065,
+    "ObjectiveDescriptionId": 4420070,
+    "IconId": 43278,
+    "GiverNpcId": 3232,
+    "TargetNpcId": 3232,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "AcceptItems": [2506, 55, 55, 55, 55, 55, 56, 56, 56],
+    "PrerequisiteQuestId": 2523,
+    "NextQuestId": 2525,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 6,
+        "NameId": 4420071,
+        "RequiredCount": 1,
+        "RecipeIds": [11]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100133,
+        "DialogueId": 4420068,
+        "Targets": [{ "NpcId": 3232 }]
+      }
+    ]
+  },
+  {
+    "Name": "Fighting the Pack",
+    "QuestId": 2525,
+    "TitleId": 4420074,
+    "DescriptionId": 4420075,
+    "GiverDialogueId": 4420073,
+    "ObjectiveDescriptionId": 4420078,
+    "IconId": 43278,
+    "GiverNpcId": 3232,
+    "TargetNpcId": 3232,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2524,
+    "NextQuestId": 2526,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 7,
+        "NameId": 4420079,
+        "ItemDefinitionIds": [30280]
+      },
+      {
+        "Type": 3,
+        "NameId": 5100203,
+        "RequiredCount": 3,
+        "NpcNameIds": [5100200]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100209,
+        "DialogueId": 4420076,
+        "Targets": [{ "NpcId": 3232 }]
+      }
+    ]
+  },
+  {
+    "Name": "One More Gloam",
+    "QuestId": 2526,
+    "TitleId": 4420082,
+    "DescriptionId": 4420083,
+    "GiverDialogueId": 4420081,
+    "ObjectiveDescriptionId": 4420086,
+    "IconId": 43278,
+    "GiverNpcId": 3232,
+    "TargetNpcId": 3211,
+    "RewardCoins": 40,
+    "RewardExperience": 250,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2525,
+    "NextQuestId": 2527,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 4420087,
+        "Targets": [{ "NpcId": 3211 }]
+      },
+      {
+        "Type": 3,
+        "NameId": 5100268,
+        "RequiredCount": 1,
+        "NpcIds": [48011]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100270,
+        "DialogueId": 4420084,
+        "Targets": [{ "NpcId": 3211 }]
+      }
+    ]
+  },
+  {
+    "Name": "Where's the Help?",
+    "QuestId": 2527,
+    "TitleId": 4420090,
+    "DescriptionId": 4420091,
+    "GiverDialogueId": 4420089,
+    "ObjectiveDescriptionId": 4420094,
+    "IconId": 43278,
+    "GiverNpcId": 3211,
+    "TargetNpcId": 2087,
+    "RewardCoins": 20,
+    "RewardExperience": 80,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2526,
+    "NextQuestId": 2528,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 4420095,
+        "DialogueId": 4420092,
+        "Targets": [{ "NpcId": 2087 }]
+      }
+    ]
+  },
+  {
+    "Name": "Pull the Plug",
+    "QuestId": 2528,
+    "TitleId": 4420098,
+    "DescriptionId": 4420099,
+    "GiverDialogueId": 4420097,
+    "ObjectiveDescriptionId": 4420102,
+    "IconId": 43278,
+    "GiverNpcId": 2087,
+    "TargetNpcId": 2087,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2527,
+    "NextQuestId": 2529,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 5100332,
+        "RequiredCount": 4,
+        "CollectNodeType": "gloam-artifact"
+      },
+      {
+        "Type": 0,
+        "NameId": 5100286,
+        "DialogueId": 4420100,
+        "Targets": [{ "NpcId": 2087 }]
+      }
+    ]
+  },
+  {
+    "Name": "Cobblestone Showdown",
+    "QuestId": 2529,
+    "TitleId": 4420106,
+    "DescriptionId": 4420107,
+    "GiverDialogueId": 4420105,
+    "ObjectiveDescriptionId": 4420110,
+    "IconId": 43278,
+    "GiverNpcId": 2087,
+    "TargetNpcId": 2087,
+    "RewardCoins": 60,
+    "RewardExperience": 300,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2528,
+    "NextQuestId": 2530,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 4,
+        "NameId": 4420111,
+        "BattleId": 27
+      },
+      {
+        "Type": 0,
+        "NameId": 5100292,
+        "DialogueId": 4420108,
+        "Targets": [{ "NpcId": 2087 }]
+      }
+    ]
+  },
+  {
+    "Name": "Off to the Queen",
+    "QuestId": 2530,
+    "TitleId": 4420114,
+    "DescriptionId": 4420115,
+    "GiverDialogueId": 4420113,
+    "ObjectiveDescriptionId": 4420118,
+    "IconId": 43278,
+    "GiverNpcId": 2087,
+    "TargetNpcId": 31331,
+    "RewardCoins": 40,
+    "RewardExperience": 250,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2529,
+    "NextQuestId": 2566,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 1,
+        "NameId": 4420119,
+        "ReachPosition": [-1054.13, 4.63, 305.72],
+        "ReachRadius": 25
+      },
+      {
+        "Type": 0,
+        "NameId": 5100330,
+        "DialogueId": 4420116,
+        "Targets": [{ "NpcId": 31331 }]
+      }
+    ]
+  },
+  {
+    "Name": "Visiting the Job Center",
+    "QuestId": 2566,
+    "TitleId": 5100581,
+    "DescriptionId": 5100582,
+    "GiverDialogueId": 5100580,
+    "ObjectiveDescriptionId": 5100585,
+    "IconId": 43278,
+    "GiverNpcId": 31331,
+    "TargetNpcId": 2378,
+    "RewardCoins": 25,
+    "RewardExperience": 150,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2530,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 0,
+        "NameId": 5100586,
+        "DialogueId": 5100564,
+        "Targets": [{ "NpcId": 2385 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100588,
+        "DialogueId": 5100568,
+        "Targets": [{ "NpcId": 2338 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100590,
+        "DialogueId": 5100576,
+        "Targets": [{ "NpcId": 2351 }]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100592,
+        "DialogueId": 5100583,
+        "Targets": [{ "NpcId": 2378 }]
+      }
+    ],
+    "NextQuestId": 2538
+  },
+  {
+    "Name": "Second Helping of Strongarm Stew",
+    "QuestId": 2563,
+    "TitleId": 5100479,
+    "DescriptionId": 5100480,
+    "GiverDialogueId": 5100478,
+    "ObjectiveDescriptionId": 5100480,
+    "IconId": 43278,
+    "GiverNpcId": 2538,
+    "TargetNpcId": 2538,
+    "RewardCoins": 25,
+    "RewardExperience": 100,
+    "RewardItems": [],
+    "AcceptItems": [2900, 2900, 2900, 2862, 2862, 2862],
+    "PrerequisiteQuestId": 2522,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 23285,
+        "RequiredCount": 3,
+        "CollectNodeType": "harvesting-practice-gummyfruit"
+      },
+      {
+        "Type": 2,
+        "NameId": 23294,
+        "RequiredCount": 3,
+        "CollectNodeType": "harvesting-practice-rainleaf"
+      },
+      {
+        "Type": 6,
+        "NameId": 5100039,
+        "RequiredCount": 1,
+        "RecipeIds": [70]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100041,
+        "DialogueId": 5100481,
+        "Targets": [{ "NpcId": 2538 }]
+      }
+    ]
+  },
+  {
+    "Name": "Cleetus' Copper Collection",
+    "QuestId": 2564,
+    "TitleId": 5100483,
+    "DescriptionId": 5100484,
+    "GiverDialogueId": 5100482,
+    "ObjectiveDescriptionId": 5100491,
+    "IconId": 43286,
+    "GiverNpcId": 3232,
+    "TargetNpcId": 3232,
+    "RewardCoins": 25,
+    "RewardExperience": 100,
+    "RewardItems": [],
+    "PrerequisiteQuestId": 2523,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 2,
+        "NameId": 5100492,
+        "RequiredCount": 8,
+        "CollectNodeType": "miner-training-node"
+      },
+      {
+        "Type": 0,
+        "NameId": 5100494,
+        "DialogueId": 5100485,
+        "Targets": [{ "NpcId": 3232 }]
+      }
+    ]
+  },
+  {
+    "Name": "Forging for Reinforcements",
+    "QuestId": 2565,
+    "TitleId": 5100487,
+    "DescriptionId": 5100488,
+    "GiverDialogueId": 5100486,
+    "ObjectiveDescriptionId": 5100503,
+    "IconId": 43272,
+    "GiverNpcId": 3232,
+    "TargetNpcId": 3232,
+    "RewardCoins": 25,
+    "RewardExperience": 100,
+    "RewardItems": [],
+    "AcceptItems": [55, 55, 55, 55, 55, 56, 56, 56],
+    "PrerequisiteQuestId": 2524,
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 6,
+        "NameId": 5100504,
+        "RequiredCount": 1,
+        "RecipeIds": [11]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100506,
+        "DialogueId": 5100489,
+        "Targets": [{ "NpcId": 3232 }]
+      }
+    ]
+  },
+  {
+    "Name": "Fighting for Funds",
+    "QuestId": 2572,
+    "TitleId": 5100772,
+    "DescriptionId": 5100773,
+    "GiverDialogueId": 5100771,
+    "ObjectiveDescriptionId": 5100828,
+    "IconId": 43280,
+    "GiverNpcId": 3009,
+    "TargetNpcId": 3009,
+    "RewardCoins": 40,
+    "RewardExperience": 200,
+    "RewardItems": [],
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 5,
+        "NameId": 5100829,
+        "RequiredCount": 1,
+        "MinigameIds": [39]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100831,
+        "DialogueId": 5100774,
+        "Targets": [{ "NpcId": 3009 }]
+      }
+    ]
+  },
+  {
+    "Name": "Margin of Victory",
+    "QuestId": 2573,
+    "TitleId": 5100776,
+    "DescriptionId": 5100777,
+    "GiverDialogueId": 5100775,
+    "ObjectiveDescriptionId": 5100834,
+    "IconId": 43290,
+    "GiverNpcId": 3010,
+    "TargetNpcId": 3010,
+    "RewardCoins": 40,
+    "RewardExperience": 200,
+    "RewardItems": [],
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 5,
+        "NameId": 5100835,
+        "RequiredCount": 1,
+        "MinigameIds": [28]
+      },
+      {
+        "Type": 0,
+        "NameId": 5100837,
+        "DialogueId": 5100778,
+        "Targets": [{ "NpcId": 3010 }]
+      }
+    ]
+  },
+  {
+    "Name": "Sort of Urgent",
+    "QuestId": 2575,
+    "TitleId": 5100784,
+    "DescriptionId": 5100785,
+    "GiverDialogueId": 5100783,
+    "ObjectiveDescriptionId": 5100846,
+    "IconId": 43282,
+    "GiverNpcId": 2376,
+    "TargetNpcId": 2376,
+    "RewardCoins": 25,
+    "RewardExperience": 100,
+    "RewardItems": [],
+    "NotificationAvailable": 2,
+    "NotificationActive": 6,
+    "Goals": [
+      {
+        "Type": 5,
+        "NameId": 5100847,
+        "RequiredCount": 1,
+        "MinigameIds": [376],
+        "RequireWin": false
+      },
+      {
+        "Type": 0,
+        "NameId": 5100849,
+        "DialogueId": 5100786,
+        "Targets": [{ "NpcId": 2376 }]
+      }
+    ]
   }
 ]

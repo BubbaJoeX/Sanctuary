@@ -16,6 +16,7 @@ using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
 using Sanctuary.Game.Minigames;
+using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
@@ -669,6 +670,8 @@ public sealed partial class VehicleGameManager : IVehicleGameManager, IDisposabl
 
             if (participant.Won)
                 player.Achievements.Record(AchievementEvent.MinigameWin, match.Stage.Id);
+
+            player.Quests.Record(new MinigameFinishedEvent(match.Stage.Id, participant.Won));
 
             player.Zone?.FirePlayerEvent("minigameEnd", player, match.Stage.Id, participant.Won);
 

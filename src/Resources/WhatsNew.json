@@ -1,5 +1,12 @@
 [
   {
+    "Title": "Cobblestone Village",
+    "Text": "The Hero's Journal starts at the beginning now. Help Pappy Farnum put out the fires on his farm, cook Strong Arm Stew with Mae, then mine, smelt and forge your first hammer with Cleetus and chase off the Hooligan Wolves. Then free Cobblestone Village from Mac and his hooligans, bring the news to Queen Valerian and meet the Job Center's trainers before Captain Sunspark sends you into the Southern Wilds. Six stickers are in too: second helpings for the Farnums, a derby and a kart race against the Gloam at Wildwood Speedway, and Flitter's mail.",
+    "Action": "OpenHerosJournal",
+    "Icon": "journal",
+    "Button": "Hero's Journal"
+  },
+  {
     "Title": "Battles, patched up",
     "Text": "Enemies have red names again, in battles and out in the wilds, and a click picks one out for a fight. Battle Exits work: once the goal's done, go through one for the end screen and your rewards, or use the Exit beside where you come in to give up and head back at any time. Leaving a battle, or the end of any fight, takes you out of combat, and if a battle switched you into your combat job you get your own job back.",
     "Icon": "trophy"

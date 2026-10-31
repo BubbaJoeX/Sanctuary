@@ -1579,19 +1579,19 @@
     "MinigameId": 46,
     "Components": [
       {
-        "ItemId": 2860,
-        "Required": 3
-      },
-      {
-        "ItemId": 2890,
-        "Required": 3
-      },
-      {
-        "ItemId": 2899,
-        "Required": 3
-      },
-      {
         "ItemId": 2900,
+        "Required": 3
+      },
+      {
+        "ItemId": 2862,
+        "Required": 3
+      },
+      {
+        "ItemId": 2875,
+        "Required": 3
+      },
+      {
+        "ItemId": 2884,
         "Required": 3
       }
     ],
