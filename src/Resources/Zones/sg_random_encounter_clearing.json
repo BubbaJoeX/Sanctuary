@@ -1,6 +1,6 @@
 {
   "$type": "World",
-  "Id": 1100,
+  "Id": 1200,
   "Name": "sg_random_encounter_clearing",
   "Type": "World",
   "TileSize": 64,
