@@ -1,5 +1,10 @@
 [
   {
+    "Title": "Presents to open",
+    "Text": "Mystery gifts, grab bags, random clothes, tools and accessories, tournament winnings and bonus stars open now. A gift opens as soon as you get it, and any you already have get a Use button in your inventory. There are new emotes too: type !emote for the dances, poses and the rest.",
+    "Icon": "bag"
+  },
+  {
     "Title": "Achievements",
     "Text": "The Achievements window is open: 321 achievements from jobs, battles, quests, minigames, housing, pets and rides, with trophies, points and titles to earn. What you've already done counts, so your job ranks and rides are there the first time you look.",
     "Icon": "trophy"
