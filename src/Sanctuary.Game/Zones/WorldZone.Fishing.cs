@@ -38,6 +38,14 @@ public sealed partial class WorldZone
     {
         base.OnNpcCreated(npc, definition);
 
+        // A hostile NPC the zone spawns from its definition fights back, as one a referee places does. A battle's
+        // enemies are set up by the battle.
+        if (npc.Disposition == Npc.HostileDisposition && Battle is null)
+        {
+            npc.MobKey = definition.Mob;
+            SyncCombat(npc);
+        }
+
         // An NPC offering challenges or battles opens its menu when clicked (unless it already does something when clicked,
         // which its menu comes before anyway).
         if ((_challengeManager.IsGiver(definition.Id) || _battleManager.IsStarter(definition.Id)) && npc.InteractAction is null)
