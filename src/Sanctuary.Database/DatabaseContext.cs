@@ -34,6 +34,8 @@ public abstract class DatabaseContext : DbContext
     public DbSet<DbCharacterQuestProgress> CharacterQuestProgress => Set<DbCharacterQuestProgress>();
     public DbSet<DbCharacterAchievement> CharacterAchievements => Set<DbCharacterAchievement>();
     public DbSet<DbCharacterAchievementObjective> CharacterAchievementObjectives => Set<DbCharacterAchievementObjective>();
+    public DbSet<DbHouseRating> HouseRatings => Set<DbHouseRating>();
+    public DbSet<DbHouseVote> HouseVotes => Set<DbHouseVote>();
 
     public DatabaseContext()
     {

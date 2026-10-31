@@ -80,6 +80,7 @@ public static class PacketTunneledClientPacketHandler
             ClientPathBasePacket.OpCode => ClientPathBasePacketHandler.HandlePacket(connection, reader),
             BaseReportPacket.OpCode => BaseReportPacketHandler.HandlePacket(connection, reader),
             BugSubmissionPacketAddBug.OpCode => BugSubmissionPacketAddBugHandler.HandlePacket(connection, packetTunneledClientPacket.Payload),
+            BaseRatingPacket.OpCode => BaseRatingPacketHandler.HandlePacket(connection, reader),
 
             // Notices that want no answer: quitting, closing an inspect, telemetry, the matchmaking poll.
             PacketClientLogout.OpCode => true,

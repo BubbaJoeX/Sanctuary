@@ -591,6 +591,46 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.ToTable("HouseFixtures");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbHouseRating", b =>
+                {
+                    b.Property<ulong>("HouseId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(400)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Keywords")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Published")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("HouseId");
+
+                    b.ToTable("HouseRatings");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbHouseVote", b =>
+                {
+                    b.Property<ulong>("HouseId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("VoterCharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Stars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("Voted")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("HouseId", "VoterCharacterId");
+
+                    b.ToTable("HouseVotes");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbIgnore", b =>
                 {
                     b.Property<ulong>("IgnoreCharacterId")
@@ -1369,6 +1409,28 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.Navigation("House");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbHouseRating", b =>
+                {
+                    b.HasOne("Sanctuary.Database.Entities.DbHouse", "House")
+                        .WithOne()
+                        .HasForeignKey("Sanctuary.Database.Entities.DbHouseRating", "HouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("House");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbHouseVote", b =>
+                {
+                    b.HasOne("Sanctuary.Database.Entities.DbHouseRating", "Rating")
+                        .WithMany("Votes")
+                        .HasForeignKey("HouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rating");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbIgnore", b =>
                 {
                     b.HasOne("Sanctuary.Database.Entities.DbCharacter", "Character")
@@ -1492,6 +1554,11 @@ namespace Sanctuary.Database.Sqlite.Migrations
             modelBuilder.Entity("Sanctuary.Database.Entities.DbHouse", b =>
                 {
                     b.Navigation("Fixtures");
+                });
+
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbHouseRating", b =>
+                {
+                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbUser", b =>
