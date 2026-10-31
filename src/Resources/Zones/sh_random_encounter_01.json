@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1240,
+  "Name": "sh_random_encounter_01",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 6,
+  "EndLongitude": 6,
+  "Sky": "sky_snowhill24.xml",
+  "SpawnPosition": [
+    139.56,
+    0.65,
+    141.72
+  ],
+  "SpawnRotation": [
+    -0.0872,
+    0,
+    0.9962,
+    0
+  ]
+}

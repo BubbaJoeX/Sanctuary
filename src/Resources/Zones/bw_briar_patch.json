@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1219,
+  "Name": "bw_briar_patch",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -9,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_briarwood24.xml",
+  "SpawnPosition": [
+    212.6,
+    -6.92,
+    116.61
+  ],
+  "SpawnRotation": [
+    -0.2089,
+    0,
+    0.9779,
+    0
+  ]
+}

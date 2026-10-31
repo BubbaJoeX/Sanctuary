@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1226,
+  "Name": "sg_highroad_hijinx",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    221.05,
+    42.87,
+    95.8
+  ],
+  "SpawnRotation": [
+    -0.675,
+    0,
+    -0.7378,
+    0
+  ]
+}

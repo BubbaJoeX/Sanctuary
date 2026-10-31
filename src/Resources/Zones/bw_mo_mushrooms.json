@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1232,
+  "Name": "bw_mo_mushrooms",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 7,
+  "EndLongitude": 10,
+  "Sky": "sky_mo_mushrooms.xml",
+  "SpawnPosition": [
+    60.68,
+    30.62,
+    153.05
+  ],
+  "SpawnRotation": [
+    0.3151,
+    0,
+    -0.9491,
+    0
+  ]
+}

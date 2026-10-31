@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1237,
+  "Name": "bw_vale_of_thorns",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -9,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_briarwood24.xml",
+  "SpawnPosition": [
+    194.57,
+    -16.99,
+    217.56
+  ],
+  "SpawnRotation": [
+    -0.9849,
+    0,
+    0.1731,
+    0
+  ]
+}

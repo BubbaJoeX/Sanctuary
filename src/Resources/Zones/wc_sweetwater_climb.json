@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1230,
+  "Name": "wc_sweetwater_climb",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_wugachug24.xml",
+  "SpawnPosition": [
+    345.2,
+    18.07,
+    205.7
+  ],
+  "SpawnRotation": [
+    -0.99,
+    0,
+    0.1411,
+    0
+  ]
+}

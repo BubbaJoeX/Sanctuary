@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1224,
+  "Name": "bw_trail_of_betrayal",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_briarwood_trail_of_betrayal.xml",
+  "SpawnPosition": [
+    283.97,
+    28.19,
+    225.34
+  ],
+  "SpawnRotation": [
+    -0.1409,
+    0,
+    -0.99,
+    0
+  ]
+}
