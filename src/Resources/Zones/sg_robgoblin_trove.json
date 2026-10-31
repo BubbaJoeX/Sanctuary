@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1208,
+  "Name": "sg_robgoblin_trove",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 7,
+  "EndLongitude": 7,
+  "Sky": "sky_robgoblin_trove.xml",
+  "SpawnPosition": [
+    344.84,
+    39.33,
+    150.09
+  ],
+  "SpawnRotation": [
+    -1.0,
+    0,
+    0.0034,
+    0
+  ]
+}

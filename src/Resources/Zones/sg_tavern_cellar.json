@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1202,
+  "Name": "sg_tavern_cellar",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -1,
+  "EndLatitude": 5,
+  "EndLongitude": 5,
+  "Sky": "sky_tavern_cellar.xml",
+  "SpawnPosition": [
+    111.35,
+    18.77,
+    108.64
+  ],
+  "SpawnRotation": [
+    0.7931,
+    0,
+    -0.609,
+    0
+  ]
+}

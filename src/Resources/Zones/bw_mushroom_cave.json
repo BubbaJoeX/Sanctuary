@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1210,
+  "Name": "bw_mushroom_cave",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 7,
+  "EndLongitude": 10,
+  "Sky": "sky_mushroom_cave.xml",
+  "SpawnPosition": [
+    63.34,
+    30.56,
+    142.93
+  ],
+  "SpawnRotation": [
+    0.7926,
+    0,
+    0.6097,
+    0
+  ]
+}
