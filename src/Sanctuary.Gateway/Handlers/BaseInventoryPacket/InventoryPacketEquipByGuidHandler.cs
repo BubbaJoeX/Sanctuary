@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Database;
 using Sanctuary.Game;
 using Sanctuary.Game.Helpers;
+using Sanctuary.Game.Quests;
 using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
@@ -98,6 +99,8 @@ public static class InventoryPacketEquipByGuidHandler
 
         // A new rod casts further or less far.
         (connection.Player.Zone as WorldZone)?.Fishing?.OnGearChanged(connection.Player);
+
+        connection.Player.Quests.Record(new ItemEquippedEvent(clientItem.Definition));
 
         return true;
     }

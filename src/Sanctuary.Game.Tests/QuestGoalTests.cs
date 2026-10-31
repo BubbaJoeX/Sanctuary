@@ -97,6 +97,67 @@ public sealed class QuestGoalTests
     }
 
     [TestMethod]
+    public void DefeatGoal_CountsMobsByNameOrDefinitionUntilTheRequiredCount()
+    {
+        var goal = new DefeatGoal { NpcNameIds = [440716], RequiredCount = 2 };
+        var progress = goal.CreateProgress();
+
+        Assert.AreEqual(QuestGoalResult.None, goal.Progress(Quest, Defeat(npcId: 3460, nameId: 440711), progress));
+        Assert.AreEqual(QuestGoalResult.Progressed, goal.Progress(Quest, Defeat(npcId: 3460, nameId: 440716), progress));
+        Assert.AreEqual(QuestGoalResult.Completed, goal.Progress(Quest, Defeat(npcId: 3487, nameId: 440716), progress));
+
+        var boss = new DefeatGoal { NpcIds = [3528] };
+
+        Assert.AreEqual(QuestGoalResult.Completed, boss.Progress(Quest, Defeat(npcId: 3528, nameId: 441706), boss.CreateProgress()));
+    }
+
+    [TestMethod]
+    public void BattleGoal_CompletesOnlyForItsBattle()
+    {
+        var goal = new BattleGoal { BattleId = 4 };
+        var progress = goal.CreateProgress();
+
+        Assert.AreEqual(QuestGoalResult.None, goal.Progress(Quest, new BattleWonEvent(2), progress));
+        Assert.AreEqual(QuestGoalResult.Completed, goal.Progress(Quest, new BattleWonEvent(4), progress));
+    }
+
+    [TestMethod]
+    public void MinigameGoal_NeedsAWinUnlessToldOtherwise()
+    {
+        var mustWin = new MinigameGoal { MinigameIds = [356, 357] };
+        var anyResult = new MinigameGoal { MinigameIds = [356], RequireWin = false };
+
+        Assert.AreEqual(QuestGoalResult.None, mustWin.Progress(Quest, new MinigameFinishedEvent(356, Won: false), mustWin.CreateProgress()));
+        Assert.AreEqual(QuestGoalResult.Completed, mustWin.Progress(Quest, new MinigameFinishedEvent(357, Won: true), mustWin.CreateProgress()));
+        Assert.AreEqual(QuestGoalResult.Completed, anyResult.Progress(Quest, new MinigameFinishedEvent(356, Won: false), anyResult.CreateProgress()));
+        Assert.AreEqual(QuestGoalResult.None, anyResult.Progress(Quest, new MinigameFinishedEvent(358, Won: true), anyResult.CreateProgress()));
+    }
+
+    [TestMethod]
+    public void CraftGoal_MatchesTheRecipeOrTheItemItMakes()
+    {
+        var byRecipe = new CraftGoal { RecipeIds = [4], RequiredCount = 2 };
+        var progress = byRecipe.CreateProgress();
+
+        Assert.AreEqual(QuestGoalResult.Progressed, byRecipe.Progress(Quest, new ItemCraftedEvent(4, 21785), progress));
+        Assert.AreEqual(QuestGoalResult.Completed, byRecipe.Progress(Quest, new ItemCraftedEvent(4, 21785), progress));
+
+        var byItem = new CraftGoal { ItemDefinitionIds = [30280] };
+
+        Assert.AreEqual(QuestGoalResult.None, byItem.Progress(Quest, new ItemCraftedEvent(4, 21785), byItem.CreateProgress()));
+        Assert.AreEqual(QuestGoalResult.Completed, byItem.Progress(Quest, new ItemCraftedEvent(11, 30280), byItem.CreateProgress()));
+    }
+
+    [TestMethod]
+    public void EquipGoal_CompletesWhenOneOfItsItemsIsPutOn()
+    {
+        var goal = new EquipGoal { ItemDefinitionIds = [30280, 30281] };
+
+        Assert.AreEqual(QuestGoalResult.None, goal.Progress(Quest, new ItemEquippedEvent(7522), goal.CreateProgress()));
+        Assert.AreEqual(QuestGoalResult.Completed, goal.Progress(Quest, new ItemEquippedEvent(30281), goal.CreateProgress()));
+    }
+
+    [TestMethod]
     public void GoalsIgnoreEventsMeantForOtherGoalTypes()
     {
         var talk = new TalkToNpcGoal { Targets = [new TalkTarget { NpcId = 600 }] };
@@ -137,6 +198,8 @@ public sealed class QuestGoalTests
     }
 
     private static NpcTalkedEvent Talk(int npcId) => new(new Npc(null!) { DefinitionId = npcId });
+
+    private static MobDefeatedEvent Defeat(int npcId, int nameId) => new(new Npc(null!) { DefinitionId = npcId, NameId = nameId });
 
     private static PlayerMovedEvent Move(float x, float z, int zoneDefinitionId = ReachLocationGoal.FabledRealmsZoneDefinitionId)
         => new(new Vector4(x, 0f, z, 1f), zoneDefinitionId);

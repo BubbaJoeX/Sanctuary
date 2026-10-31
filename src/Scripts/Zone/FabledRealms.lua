@@ -5285,6 +5285,17 @@ local function spawnStaticNpcs(zone)
     zone:spawnNpc(36431, -410.36322, 38.700001, 154.676147, -3.525565)
     zone:spawnNpc(36431, -412.613403, 38.700001, 155.606384, -3.525565)
     zone:spawnNpc(36431, -410.993713, 38.700001, 156.24588, -3.525565)
+
+    -- Hero's Journal: Southern Wilds
+    zone:spawnNpcWithGuid(48001, 100000048001, -1716.0, -24.943, -472.0, 2.6)
+    zone:spawnNpcWithGuid(48002, 100000048002, -2018.0, -35.231, -232.0, -0.5)
+    zone:spawnNpcWithGuid(48003, 100000048003, -1534.5, -40.738, -539.5, 1.2)
+    zone:spawnNpcWithGuid(48004, 100000048004, -1468.0, -33.706, 148.0, 3.1)
+    zone:spawnNpcWithGuid(48005, 100000048005, -1459.71, -33.516, 151.5, 3.5416)
+    zone:spawnNpcWithGuid(48006, 100000048006, -1468.77, -33.823, 156.97, 4.7982)
+    zone:spawnNpcWithGuid(48007, 100000048007, -1476.77, -34.931, 150.04, 6.0548)
+    zone:spawnNpcWithGuid(48008, 100000048008, -1472.65, -34.098, 140.29, 7.3114)
+    zone:spawnNpcWithGuid(48009, 100000048009, -1462.11, -34.348, 141.2, 8.568)
 end
 
 registerCallback("start", function(zone)

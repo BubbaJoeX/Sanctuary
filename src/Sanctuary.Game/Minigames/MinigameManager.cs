@@ -15,6 +15,7 @@ using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
+using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Packet;
@@ -386,6 +387,8 @@ public static class MinigameManager
 
         if (won)
             player.Achievements.Record(AchievementEvent.MinigameWin, definition.Id);
+
+        player.Quests.Record(new MinigameFinishedEvent(definition.Id, won));
 
         var items = new List<string>();
         string? craftHint = null;

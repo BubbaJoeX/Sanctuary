@@ -1885,6 +1885,8 @@ public sealed class Player : ClientPcData, IEntity
         MarkInCombat();
 
         Achievements.RecordKill(mob);
+
+        Quests.Record(new MobDefeatedEvent(mob));
     }
 
     /// <summary>

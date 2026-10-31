@@ -216,6 +216,26 @@ public class QuestDefinitionCollection
                     if (collectGoal.RequiredCount <= 0)
                         _logger.LogWarning("Collect goal on quest {id} has no RequiredCount in \"{file}\"; it can never be completed.", quest.QuestId, filePath);
                     break;
+
+                case DefeatGoal defeatGoal when defeatGoal.NpcNameIds.Count == 0 && defeatGoal.NpcIds.Count == 0:
+                    _logger.LogWarning("Defeat goal on quest {id} names no mob in \"{file}\"; it can never be credited.", quest.QuestId, filePath);
+                    break;
+
+                case BattleGoal { BattleId: 0 }:
+                    _logger.LogWarning("Battle goal on quest {id} has no BattleId in \"{file}\"; it can never be credited.", quest.QuestId, filePath);
+                    break;
+
+                case MinigameGoal { MinigameIds.Count: 0 }:
+                    _logger.LogWarning("Minigame goal on quest {id} has no MinigameIds in \"{file}\"; it can never be credited.", quest.QuestId, filePath);
+                    break;
+
+                case CraftGoal craftGoal when craftGoal.RecipeIds.Count == 0 && craftGoal.ItemDefinitionIds.Count == 0:
+                    _logger.LogWarning("Craft goal on quest {id} names no recipe or item in \"{file}\"; it can never be credited.", quest.QuestId, filePath);
+                    break;
+
+                case EquipGoal { ItemDefinitionIds.Count: 0 }:
+                    _logger.LogWarning("Equip goal on quest {id} has no ItemDefinitionIds in \"{file}\"; it can never be credited.", quest.QuestId, filePath);
+                    break;
             }
         }
     }
