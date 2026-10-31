@@ -226,8 +226,8 @@ public static class PacketLoginHandler
         // TODO
         // AchievementObjectiveActivatedPacket - Part 1?
 
-        // Whether the player is in a combat area comes first, as live sent it (zoning in sends it again).
-        connection.Player.SendCombatArea();
+        // Whether the player is in a fight in the world comes first, as live sent it (zoning in sends it again).
+        connection.Player.SendInWorldCombat();
 
         connection.SendInitializationParameters();
         connection.SendZoneDetails();

@@ -33,8 +33,7 @@ public enum MobActionType
     Reset
 }
 
-/// <param name="Engaged">The target is new to this fight (the moment a player gets "attacked by" it).</param>
-public readonly record struct MobAction(MobActionType Type, ulong TargetGuid = 0, Vector3 Destination = default, bool Engaged = false);
+public readonly record struct MobAction(MobActionType Type, ulong TargetGuid = 0, Vector3 Destination = default);
 
 /// <param name="CanBeAttacked">Alive, not just revived, not a referee in god mode, and able to fight back.</param>
 public readonly record struct MobCandidate(ulong Guid, Vector3 Position, bool CanBeAttacked);
@@ -42,7 +41,8 @@ public readonly record struct MobCandidate(ulong Guid, Vector3 Position, bool Ca
 /// <summary>
 /// What a hostile mob decides to do each tick: aggro on players in range, chase and hit the one that has
 /// hurt it most, and give up at its leash. Knows nothing of packets, so it can be tested on its own;
-/// <see cref="NpcCombat"/> carries its decisions out.
+/// <see cref="NpcCombat"/> carries its decisions out, and tells the players on its <see cref="Threat"/> list
+/// they're in a fight.
 /// </summary>
 public sealed class MobBrain
 {
@@ -52,7 +52,6 @@ public sealed class MobBrain
     private const float MaxHeightDifference = 8f;
 
     private readonly Dictionary<ulong, int> _threat = [];
-    private readonly HashSet<ulong> _engaged = [];
 
     private long _nextAttackAt;
 
@@ -67,6 +66,9 @@ public sealed class MobBrain
 
     public ulong TargetGuid { get; private set; }
 
+    /// <summary>
+    /// Who it has aggro on, and how much each has hurt it. Everyone on it is in combat until it lets them go.
+    /// </summary>
     public IReadOnlyDictionary<ulong, int> Threat => _threat;
 
     /// <summary>
@@ -86,7 +88,6 @@ public sealed class MobBrain
         State = MobState.Dead;
         TargetGuid = 0;
         _threat.Clear();
-        _engaged.Clear();
     }
 
     public void Revive()
@@ -94,7 +95,6 @@ public sealed class MobBrain
         State = MobState.Idle;
         TargetGuid = 0;
         _threat.Clear();
-        _engaged.Clear();
         _nextAttackAt = 0;
     }
 
@@ -125,10 +125,12 @@ public sealed class MobBrain
         if (position.DistanceSquaredXZ(home) > Definition.LeashRadius * Definition.LeashRadius)
             return GiveUp(home);
 
-        // Forget anyone who died, logged off or left the zone.
+        // Forget anyone who died, logged off or left the zone, or got as far from it as its leash: it'd never
+        // catch them before giving up.
         foreach (var guid in _threat.Keys.ToArray())
         {
-            if (!candidates.Any(candidate => candidate.Guid == guid && candidate.CanBeAttacked))
+            if (!candidates.Any(candidate => candidate.Guid == guid && candidate.CanBeAttacked &&
+                    position.DistanceSquaredXZ(candidate.Position) <= Definition.LeashRadius * Definition.LeashRadius))
                 _threat.Remove(guid);
         }
 
@@ -150,26 +152,27 @@ public sealed class MobBrain
 
         TargetGuid = targetGuid;
 
-        var engaged = _engaged.Add(targetGuid);
         var target = candidates.First(candidate => candidate.Guid == targetGuid);
 
         if (!IsWithin(position, target.Position, Definition.AttackRange))
-            return new MobAction(MobActionType.Chase, targetGuid, target.Position, engaged);
+            return new MobAction(MobActionType.Chase, targetGuid, target.Position);
 
         if (nowMs < _nextAttackAt)
-            return new MobAction(MobActionType.None, targetGuid, Engaged: engaged);
+            return new MobAction(MobActionType.None, targetGuid);
 
         _nextAttackAt = nowMs + Definition.AttackIntervalMs;
 
-        return new MobAction(MobActionType.Attack, targetGuid, target.Position, engaged);
+        return new MobAction(MobActionType.Attack, targetGuid, target.Position);
     }
 
+    /// <summary>
+    /// Lets go of everyone and walks home (see <see cref="MobState.Returning"/>).
+    /// </summary>
     private MobAction GiveUp(Vector3 home)
     {
         State = MobState.Returning;
         TargetGuid = 0;
         _threat.Clear();
-        _engaged.Clear();
 
         return new MobAction(MobActionType.Return, Destination: home);
     }

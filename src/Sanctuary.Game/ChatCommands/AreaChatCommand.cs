@@ -21,7 +21,7 @@ public class AreaChatCommand : IChatCommand
 
     public string Usage => "here | list | goto <areaId> | client <areaId> on|off";
 
-    public string Description => "Shows which tile, environment and area you're in, lists the zone's areas, teleports to an area's point of interest, and toggles client areas for everyone in the zone.";
+    public string Description => "Shows which tile, environment and area you're in and which mobs have aggro on you, lists the zone's areas, teleports to an area's point of interest, and toggles client areas for everyone in the zone.";
 
     public ChatCommandRole RequiredRole => ChatCommandRole.Mod;
 
@@ -76,9 +76,17 @@ public class AreaChatCommand : IChatCommand
                 : $"  Area {area.Id} {GetAreaName(area)}, POI {area.PointOfInterestId}, chat area {area.ChatAreaNameId}");
 
             ChatHelper.SendSystemMessage(invoker, worldZone.IsCombatArea(invoker.Position, invoker.PointOfInterestId)
-                ? "  Combat area: yes (enemies are red to combat jobs, and the job picker offers only combat jobs)"
-                : "  Combat area: no (any job can be picked)");
+                ? "  Combat area: yes (enemies roam here)"
+                : "  Combat area: no");
         }
+
+        var aggro = invoker.GetAggro();
+
+        ChatHelper.SendSystemMessage(invoker, aggro.Count > 0
+            ? $"  In combat with {string.Join(", ", aggro.Select(mob => string.IsNullOrEmpty(mob.Name) ? mob.Guid.ToString("X") : mob.Name))} (no map or job change until they let you go)"
+            : invoker.IsInCombat
+                ? "  In combat (a scripted hit, for a few seconds)"
+                : "  Not in combat (the map and any job are free)");
 
         ChatHelper.SendSystemMessage(invoker, $"  Client state: POI {invoker.PointOfInterestId}, chat area {invoker.ChatAreaNameId}");
         return true;

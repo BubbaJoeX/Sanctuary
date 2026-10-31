@@ -73,6 +73,9 @@ public sealed class NpcCombat
     // Who hurt it this life, for kill rewards.
     private readonly HashSet<ulong> _attackers = [];
 
+    // The players told they're on its threat list (see Player.AddAggro), to tell again when it lets them go.
+    private readonly Dictionary<ulong, Player> _aggro = [];
+
     private long _nextThinkAt;
     private long _nextChaseAt;
     private Vector3 _chaseGoal;
@@ -151,6 +154,15 @@ public sealed class NpcCombat
 
     public ulong TargetGuid => _brain.TargetGuid;
 
+    /// <summary>
+    /// Has the player on its threat list, so they're in a fight with it.
+    /// </summary>
+    public bool HasAggroOn(ulong guid)
+    {
+        lock (_lock)
+            return _brain.Threat.ContainsKey(guid);
+    }
+
     public MobControl Control
     {
         get
@@ -206,13 +218,12 @@ public sealed class NpcCombat
             action = _brain.Think(now, _npc.Position.ToVector3(), _npc.SpawnPosition.ToVector3(), candidates);
         }
 
+        SyncAggro();
+
         Player? target = null;
 
         if (action.TargetGuid != 0)
             _npc.VisiblePlayers.TryGetValue(action.TargetGuid, out target);
-
-        if (action.Engaged)
-            target?.OnAttackedBy(_npc);
 
         switch (action.Type)
         {
@@ -261,7 +272,18 @@ public sealed class NpcCombat
         lock (_lock)
             _brain.AddThreat(player.Guid, 0);
 
-        player.OnAttackedBy(_npc);
+        SyncAggro();
+    }
+
+    /// <summary>
+    /// Lets go of everyone, as it goes away for good (its NPC removed).
+    /// </summary>
+    public void Release()
+    {
+        lock (_lock)
+            _brain.Kill();
+
+        SyncAggro();
     }
 
     /// <summary>
@@ -290,6 +312,9 @@ public sealed class NpcCombat
             if (killed)
                 Die();
         }
+
+        // The attacker is in the fight now; a dead mob lets everyone go.
+        SyncAggro();
 
         // Any hit wakes a sleeper, and a dead mob is let go of.
         if (killed || Control == MobControl.Sleep)
@@ -346,6 +371,8 @@ public sealed class NpcCombat
             _brain.AddThreat(source.Guid, 0);
         }
 
+        SyncAggro();
+
         EndControl();
 
         var tagId = effectId != 0 ? _npc.AddEffectTag(effectId) : 0;
@@ -390,6 +417,8 @@ public sealed class NpcCombat
             });
         }
 
+        SyncAggro();
+
         return true;
     }
 
@@ -407,6 +436,8 @@ public sealed class NpcCombat
             Hitpoints = MaxHitpoints;
         }
 
+        SyncAggro();
+
         _npc.StopMoving();
 
         if (IsDespawned)
@@ -420,6 +451,50 @@ public sealed class NpcCombat
         MaxHitpoints = MaxHitpoints,
         CurrentHitpoints = Hitpoints
     };
+
+    /// <summary>
+    /// Tells everyone on its threat list they're in a fight with it (again each think, which costs nothing for a
+    /// player who already knows), and those who came off it that it's let them go.
+    /// </summary>
+    private void SyncAggro()
+    {
+        List<Player>? aggro = null;
+        List<Player>? dropped = null;
+
+        lock (_lock)
+        {
+            if (_aggro.Count == 0 && _brain.Threat.Count == 0)
+                return;
+
+            foreach (var guid in _aggro.Keys.ToArray())
+            {
+                if (_brain.Threat.ContainsKey(guid))
+                    continue;
+
+                (dropped ??= []).Add(_aggro[guid]);
+                _aggro.Remove(guid);
+            }
+
+            foreach (var guid in _brain.Threat.Keys)
+            {
+                if (!_aggro.TryGetValue(guid, out var player))
+                {
+                    if (!_npc.VisiblePlayers.TryGetValue(guid, out player) && _npc.Zone?.TryGetPlayer(guid, out player) != true)
+                        continue;
+
+                    _aggro[guid] = player!;
+                }
+
+                (aggro ??= []).Add(player!);
+            }
+        }
+
+        foreach (var player in dropped ?? [])
+            player.DropAggro(_npc);
+
+        foreach (var player in aggro ?? [])
+            player.AddAggro(_npc);
+    }
 
     private void SendHitpoints() => SendToVisible(GetHitpointsPacket());
 

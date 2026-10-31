@@ -36,15 +36,29 @@ public enum ReviveFailure
 public static class CombatRules
 {
     /// <summary>
-    /// Seconds after the last hit given or taken before a player counts as out of combat (and regenerates).
+    /// Seconds a hit that came without a mob's aggro (a script's npc:attack) keeps a player in combat (and from
+    /// regenerating). A mob's fight lasts as long as its aggro.
     /// </summary>
     public const int OutOfCombatSeconds = 6;
 
     /// <summary>
-    /// Still in combat at <paramref name="nowMs"/>, the last hit given or taken at <paramref name="lastCombatAtMs"/>
+    /// Still in combat at <paramref name="nowMs"/>, the last such hit at <paramref name="lastCombatAtMs"/>
     /// (<see cref="long.MinValue"/> for never, which a subtraction from now would overflow into "just now").
     /// </summary>
     public static bool IsInCombat(long lastCombatAtMs, long nowMs) => nowMs < lastCombatAtMs + OutOfCombatSeconds * 1000L;
+
+    /// <summary>
+    /// The client's InWorldCombat (132): in a fight out in the world, or knocked out there, where it offers the
+    /// knocked out window's "Revive here". Never in a battle's or a 3D game's own zone, or a house. On its own it
+    /// keeps the job picker to combat jobs; with <see cref="IsFighting"/> it's the client's combat mode, which greys
+    /// out the map. So it follows aggro, not the area: the wilds' UI is free until a mob has the player.
+    /// </summary>
+    public static bool IsInWorldCombat(bool inOverworld, bool inCombat, bool knockedOut) => inOverworld && (inCombat || knockedOut);
+
+    /// <summary>
+    /// The client's IsFighting (133): in a fight in a combat job.
+    /// </summary>
+    public static bool IsFighting(bool inCombatJob, bool inCombat) => inCombatJob && inCombat;
 
     public const int PlayerRespawnSeconds = 8;
 
