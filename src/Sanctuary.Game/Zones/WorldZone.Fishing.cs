@@ -32,6 +32,8 @@ public sealed partial class WorldZone
         _challengeManager.OnPlayerLeft(player);
 
         _battleManager.OnPlayerLeft(player, this);
+
+        _vehicleGameManager?.OnPlayerLeft(player, this);
     }
 
     protected override void OnNpcCreated(Npc npc, NpcDefinition definition)

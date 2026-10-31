@@ -39,6 +39,7 @@ public interface IResourceManager
     FishingCollection Fishing { get; }
     ChallengeDefinitionCollection Challenges { get; }
     BattleDefinitionCollection Battles { get; }
+    VehicleGameCollection VehicleGames { get; }
     AchievementDefinitionCollection Achievements { get; }
     RecipeDefinitionCollection Recipes { get; }
     StationDefinitionCollection Stations { get; }

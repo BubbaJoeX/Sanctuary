@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1303,
+  "Name": "sg_racing_garage",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    256.0,
+    0.0,
+    256.0
+  ],
+  "SpawnRotation": [
+    0.0,
+    0,
+    1.0,
+    0
+  ]
+}

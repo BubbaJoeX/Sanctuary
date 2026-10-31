@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1300,
+  "Name": "sg_kt_track",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky.xml",
+  "SpawnPosition": [
+    719.61,
+    72.0,
+    421.5
+  ],
+  "SpawnRotation": [
+    0.0,
+    0,
+    1.0,
+    0
+  ]
+}

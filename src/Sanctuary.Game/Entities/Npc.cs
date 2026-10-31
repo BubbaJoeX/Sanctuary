@@ -375,6 +375,13 @@ public class Npc : IScriptableNpc, IEntity
     public const int FollowerPositionIntervalMs = 500;
 
     public int PositionSendIntervalMs { get; set; }
+
+    /// <summary>
+    /// The character state players are told when the NPC comes into view: 1 (idle), or with a 3D game's bit for
+    /// its drivers and soccer players, as live.
+    /// </summary>
+    public int CharacterState { get; set; } = 1;
+
     private long _nextPositionSendAllowedAt;
     private byte _lastSentPositionState;
 

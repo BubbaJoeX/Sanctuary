@@ -20,6 +20,7 @@ using Sanctuary.Game.Interactions;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Zones;
+using Sanctuary.Game.VehicleGames;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 
@@ -33,6 +34,7 @@ public sealed partial class WorldZone : BaseZone
     private readonly IRefereePickManager _refereePickManager;
     private readonly IChallengeManager _challengeManager;
     private readonly IBattleManager _battleManager;
+    private readonly IVehicleGameManager? _vehicleGameManager;
     private readonly ICraftingManager? _craftingManager;
 
     private readonly object _clientAreasLock = new();
@@ -93,6 +95,7 @@ public sealed partial class WorldZone : BaseZone
         _refereePickManager = serviceProvider.GetRequiredService<IRefereePickManager>();
         _challengeManager = serviceProvider.GetRequiredService<IChallengeManager>();
         _battleManager = serviceProvider.GetRequiredService<IBattleManager>();
+        _vehicleGameManager = serviceProvider.GetService<IVehicleGameManager>();
         _craftingManager = serviceProvider.GetService<ICraftingManager>();
 
         Fishing = _resourceManager.Fishing.TryGetPond(Name, out _) ? new FishingPond(this, serviceProvider) : null;
@@ -162,6 +165,9 @@ public sealed partial class WorldZone : BaseZone
 
             _questManager.RefreshQuestNotification(player, npc.Guid);
         }
+
+        // A 3D game's zone switches the game on in the client (and coming back from one switches it off).
+        _vehicleGameManager?.OnClientIsReady(player, this);
     }
 
     public override IReadOnlyList<NpcInteractionOption> GetInteractionOptions(Player player, Npc npc)
@@ -170,8 +176,11 @@ public sealed partial class WorldZone : BaseZone
         var challenges = _challengeManager.GetInteractionOptions(player, npc);
         var battles = _battleManager.GetInteractionOptions(player, npc);
         var fishing = Fishing?.GetInteractionOptions(player, npc) ?? [];
+        var games = _vehicleGameManager?.GetInteractionOptions(player, npc) ?? [];
 
-        return challenges.Count == 0 && battles.Count == 0 && fishing.Count == 0 ? quests : [.. quests, .. challenges, .. battles, .. fishing];
+        return challenges.Count == 0 && battles.Count == 0 && fishing.Count == 0 && games.Count == 0
+            ? quests
+            : [.. quests, .. challenges, .. battles, .. fishing, .. games];
     }
 
     public override NotificationInfo? GetQuestBadge(Player player, Npc npc)
@@ -188,6 +197,8 @@ public sealed partial class WorldZone : BaseZone
         Fishing?.OnPlayerArrived(player);
 
         _battleManager.OnArrived(player, this);
+
+        _vehicleGameManager?.OnArrived(player, this);
     }
 
     protected override void UpdateEverySecond()
