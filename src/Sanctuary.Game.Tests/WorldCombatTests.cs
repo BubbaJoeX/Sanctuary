@@ -391,16 +391,20 @@ public sealed class WorldCombatTests
     [TestMethod]
     public void HostileNpcs_GoOutRedAndClickable()
     {
-        // As live sent its Bandit Patrolmen: a red name and interactable, which is what makes a mob red and lets a
-        // click select it; anyone else keeps the client's own colour.
+        // As live sent its Bandit Patrolmen: a red name, interactable and with a profile, which together make a mob
+        // red and let a click select it; anyone else keeps the client's own colour.
         var mob = new Npc(null!) { Name = "Wolf", Disposition = Npc.HostileDisposition }.GetAddNpcPacket();
 
         Assert.AreEqual(unchecked((int)0xFFFF0000), mob.NameColor);
         Assert.IsTrue(mob.IsInteractable);
 
+        // The client only colours a name again for an AddNpc with a profile.
+        Assert.AreNotEqual(0, mob.ActiveProfile);
+
         var villager = new Npc(null!) { Name = "Pappy Farnum" }.GetAddNpcPacket();
 
         Assert.AreEqual(0, villager.NameColor);
+        Assert.AreEqual(0, villager.ActiveProfile);
         Assert.IsFalse(villager.IsInteractable);
     }
 

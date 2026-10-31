@@ -188,6 +188,10 @@ public class Npc : IScriptableNpc, IEntity
     // Live's hostile nameplate (ARGB), as Display.NameColorHostileNpc in the client's StringHashToValue.txt.
     private const int HostileNameColor = unchecked((int)0xFFFF0000);
 
+    // The profile a hostile NPC goes out with: Adventurer, one every client has (not the Referee's or Enforcer's,
+    // which the client marks names for).
+    private const int HostileProfileId = 1;
+
     private const byte MovingPositionState = 0;
     private const byte StoppedPositionState = 1;
     private const float GroundStepHeight = 3f;
@@ -604,7 +608,10 @@ public class Npc : IScriptableNpc, IEntity
 
             FlyByEffectId = default,
 
-            ActiveProfile = default,
+            // The client colours a name as the NPC is made, before it knows its disposition, and colours it again only
+            // when its AddNpc carries a profile (live sent one with nearly every NPC: 151 with the battle wolves, 2001
+            // with the Bandit Patrolmen). Without one a hostile NPC keeps the neutral blue.
+            ActiveProfile = Disposition == HostileDisposition ? HostileProfileId : default,
 
             NotificationImageSetId = default,
             Unknown68 = default,
