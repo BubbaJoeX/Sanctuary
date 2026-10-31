@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1239,
+  "Name": "sg_random_encounter_01",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 9,
+  "EndLongitude": 9,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    239.42,
+    3.31,
+    186.49
+  ],
+  "SpawnRotation": [
+    0.0087,
+    0,
+    1.0,
+    0
+  ]
+}

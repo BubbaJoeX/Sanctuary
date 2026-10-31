@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -194,6 +196,96 @@ public sealed class BattleTests
                     $"Battle {battle.Id} ({battle.Comment}): ({place[0]}, {place[1]}, {place[2]}) isn't on the ground.");
             }
         }
+    }
+
+    [TestMethod]
+    public void Battles_RunEveryLiveBattle()
+    {
+        var resources = FindSourceResources();
+        var battles = new BattleDefinitionCollection(NullLogger.Instance);
+
+        Assert.IsTrue(battles.Load(Path.Combine(resources, "Battles.json")));
+
+        var names = battles.Values.Select(battle => battle.NameId).ToHashSet();
+
+        // The live Activities list's 38 dungeons (each with a Games window tile) and its 62 random, wandering and hidden
+        // encounters, by name.
+        int[] dungeons =
+        [
+            2273, 4229, 21188, 4469, 6488, 5078, 4187, 162, 6456, 5133, 5172, 5493, 3269, 5697, 5698, 5699, 5701, 5702, 5703, 5704, 5705,
+            5706, 5707, 5708, 5710, 5711, 18143, 7697, 18219, 5700, 71694, 71769, 71770, 71771, 71772, 23555, 90478, 414849
+        ];
+        int[] encounters =
+        [
+            42169, 6564, 41569, 42062, 42055, 42056, 70112, 42053, 71695, 74374, 71698, 73711, 73712, 73713, 73977, 74377, 73989, 74637,
+            74754, 75449, 75450, 75451, 75452, 76624, 75999, 76748, 93132, 78089, 78143, 78144, 78145, 78146, 90148, 93260, 93261, 93262,
+            93264, 93265, 93268, 93269, 93271, 93272, 93274, 93276, 93277, 94365, 103031, 115822, 116053, 116054, 116055, 116058, 130341,
+            141037, 141038, 141039, 141040, 141043, 383185, 415192, 422969, 71697
+        ];
+
+        foreach (var nameId in dungeons.Concat(encounters))
+            Assert.IsTrue(names.Contains(nameId), $"No battle for the live battle named {nameId}.");
+
+        foreach (var nameId in dungeons)
+            Assert.IsNotNull(battles.Values.Single(battle => battle.NameId == nameId).Image, $"Dungeon {nameId} has no Games window tile.");
+    }
+
+    [TestMethod]
+    public void Battles_AreOfferedByDoorsAndCreaturesInTheWorld()
+    {
+        var resources = FindSourceResources();
+        var battles = new BattleDefinitionCollection(NullLogger.Instance);
+
+        Assert.IsTrue(battles.Load(Path.Combine(resources, "Battles.json")));
+
+        var npcs = JsonDocument.Parse(File.ReadAllText(Path.Combine(resources, "Npcs.json"))).RootElement.EnumerateArray()
+            .ToDictionary(npc => npc.GetProperty("Id").GetInt32());
+
+        // What the world's zone scripts stand in the world, and where.
+        var spawns = Directory.GetFiles(Path.Combine(resources, "..", "Scripts", "Zone"), "*.lua")
+            .SelectMany(path => Regex.Matches(File.ReadAllText(path), @"spawnNpc(?:WithGuid)?\((\d+), (?:\d+, )?(-?[\d.]+), (-?[\d.]+), (-?[\d.]+)"))
+            .Select(match => (Id: int.Parse(match.Groups[1].Value),
+                Position: new Vector2(float.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture), float.Parse(match.Groups[4].Value, CultureInfo.InvariantCulture))))
+            .ToList();
+        var spawned = spawns.Select(spawn => spawn.Id).ToHashSet();
+
+        foreach (var battle in battles.Values)
+        {
+            var starters = battle.StarterNpcIds.Where(spawned.Contains).ToList();
+
+            Assert.IsTrue(starters.Count > 0, $"Battle {battle.Id} ({battle.Comment}): nothing in the world offers it.");
+
+            // The crossed swords over its head say it starts a battle.
+            foreach (var starter in starters)
+            {
+                Assert.IsTrue(npcs[starter].TryGetProperty("Notifications", out var notifications)
+                    && notifications.EnumerateArray().Any(notification => notification.GetProperty("NotificationType").GetInt32() == 3
+                        && notification.GetProperty("IconId").GetInt32() == 7 && notification.GetProperty("IconState").GetInt32() == 24),
+                    $"Battle {battle.Id} ({battle.Comment}): its starter {starter} doesn't show the battle icon.");
+            }
+        }
+
+        // Each dungeon entrance on the atlas has its dungeon's door beside it.
+        var entrances = JsonDocument.Parse(File.ReadAllText(Path.Combine(resources, "PointOfInterests.json"))).RootElement.EnumerateArray()
+            .Where(poi => poi.TryGetProperty("NotificationType", out var type) && type.GetInt32() == 3);
+        var doors = 0;
+
+        foreach (var entrance in entrances)
+        {
+            var battle = battles.Values.FirstOrDefault(battle => battle.NameId == entrance.GetProperty("NameId").GetInt32());
+
+            if (battle is null)
+                continue;
+
+            var position = entrance.GetProperty("Position");
+            var at = new Vector2(position[0].GetSingle(), position[2].GetSingle());
+
+            Assert.IsTrue(spawns.Any(spawn => battle.StarterNpcIds.Contains(spawn.Id) && Vector2.Distance(spawn.Position, at) < 12f),
+                $"Battle {battle.Id} ({battle.Comment}): no door at its atlas entrance {at}.");
+            doors++;
+        }
+
+        Assert.IsTrue(doors >= 36, $"Only {doors} atlas entrances have their door.");
     }
 
     private static string FindSourceResources()
