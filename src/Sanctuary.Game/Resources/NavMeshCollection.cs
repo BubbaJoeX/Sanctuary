@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 
@@ -30,20 +31,25 @@ public class NavMeshCollection : ObservableConcurrentDictionary<string, DtNavMes
             return true;
         }
 
-        foreach (var filePath in Directory.GetFiles(directoryPath, "*.navmesh"))
-        {
-            var zoneName = Path.GetFileNameWithoutExtension(filePath);
+        var filePaths = Directory.GetFiles(directoryPath, "*.navmesh");
+        var navMeshes = new DtNavMesh?[filePaths.Length];
 
-            if (!NavMeshLoader.TryLoad(filePath, _logger, out var navMesh))
+        // As with terrain, the files load side by side.
+        Parallel.For(0, filePaths.Length, index =>
+        {
+            if (!NavMeshLoader.TryLoad(filePaths[index], _logger, out navMeshes[index]))
             {
                 _logger.LogWarning(
                     "Skipping navmesh file \"{Path}\" due to a load failure (see error above). " +
                     "Zone \"{ZoneName}\" will have no navmesh pathfinding available.",
-                    filePath, zoneName);
-                continue;
+                    filePaths[index], Path.GetFileNameWithoutExtension(filePaths[index]));
             }
+        });
 
-            this[zoneName] = navMesh!;
+        for (var index = 0; index < filePaths.Length; index++)
+        {
+            if (navMeshes[index] is { } navMesh)
+                this[Path.GetFileNameWithoutExtension(filePaths[index])] = navMesh;
         }
 
         _logger.LogInformation("Loaded {Count} navmesh(es) from \"{Path}\".", Count, directoryPath);
@@ -52,7 +58,8 @@ public class NavMeshCollection : ObservableConcurrentDictionary<string, DtNavMes
 
     /// <summary>
     /// Builds a navmesh for every zone with terrain but no navmesh, and saves it with the others so later starts
-    /// just load it. Delete a zone's .navmesh to rebuild it after its terrain changes.
+    /// just load it. That's the build's copy of Resources, so ship new ones in src/Resources/NavMeshes: the big zones
+    /// take a minute or more each fresh start otherwise. Delete a zone's .navmesh to rebuild it after its terrain changes.
     /// </summary>
     public void BuildMissing(TerrainCollection terrains, string directoryPath)
     {
