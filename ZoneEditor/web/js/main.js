@@ -116,6 +116,7 @@ const world = new WorldTool({
   live, toast, status,
   changed: () => { state.zoneDirty = true; updateDirty(); },
   redraw: () => redrawWorld(),
+  retint: () => retintTiles(),
   markers: () => markers,
   centre: () => centreHit(),
   ground: (x, z) => terrain.heightAt(x, z),
@@ -158,6 +159,9 @@ const state = {
   ecoTintPick: null,       // a tint the eyedropper took from the ground, painted instead of the eco's own colour
   // shape: how a cave model decides what ground is inside it (see cutTest): its mesh, under its mesh, or its box.
   exclude: { mode: "cut", target: null, onlyInside: true, shape: "mesh" },
+  // Moulding the ground to a model (see moldToTarget): its base or top, eased into the ground around it over
+  // blend metres, offset up or down, both ways or only raising or lowering.
+  mold: { target: null, surface: "base", blend: 8, offset: 0, direction: "both" },
   // New objects: one at a time or scattered under a brush, with a random turn and scale, stood on the slope,
   // raised by offset, and given a texture variant and tint where their actor has them.
   // live places into the running game when the editor is opened from the admin panel (see live.js).
@@ -166,6 +170,7 @@ const state = {
     material: "", tintOn: false, tint: "#ffffff", spacing: 6, set: [], live: true,
     onProps: true,  // a new object lands on top of a prop under the pointer, not only on the ground
     cut: false,     // and cuts the ground inside it (caves and tunnels; see cutTest)
+    mold: false,    // and moulds the ground to it (buildings and platforms; see moldToTarget)
     as: "model",    // live: a placed model, or an NPC built on a definition of its own (Npcs.json)
   },
   npcPick: null,    // an NPC definition picked to spawn ({ id, name, model }), from the content browser's NPCs
@@ -289,6 +294,7 @@ async function openZone(name, keepCamera = false) {
   state.zone = zone;
   state.houses = zone.houses ? structuredClone(zone.houses) : [];
   world.load(zone);
+  retintTiles();
   state.sky = undefined;
   state.customSky = null;
   state.settings = {};
@@ -428,6 +434,13 @@ function redrawWorld() {
   if (same) { selected = same; selection.clear(); selectionChanged(); } else if (selected?.userData.world) select(null);
 }
 
+// The tile overlay: environments in the Env tool, combat ground in the World tool's Combat mode (world.tileTint).
+function retintTiles() {
+  const tint = state.tool === "world" ? world.tileTint() : null;
+  terrain.setTileTint(tint);
+  terrain.uniforms.envOverlay.value = tint || state.tool === "environment" ? 1 : 0;
+}
+
 // A tile's environment id where (x, z) is, from its loaded chunk.
 function environmentAt(x, z) {
   const chunk = terrain.chunkAt(x, z);
@@ -541,7 +554,7 @@ function setTool(tool) {
   state.tool = tool;
   for (const button of document.querySelectorAll("#toolbar button")) button.classList.toggle("active", button.dataset.tool === tool);
   terrain.uniforms.ecoOverlay.value = tool === "eco" ? 1 : 0;
-  terrain.uniforms.envOverlay.value = tool === "environment" ? 1 : 0;
+  retintTiles();
   terrain.uniforms.brush.value.z = 0;
   if (ghost) { scene.remove(ghost); ghost = null; }
   if (tool === "props" && state.actor) makeGhost();
@@ -623,10 +636,9 @@ function insideTest(object) {
   return (x, y, z) => box.containsPoint(point.set(x, y, z).applyMatrix4(inverse));
 }
 
-// A test for ground inside a model's shape, from its triangles: the ground at (x, z) is inside when the model has
-// surface both above and below it there (a cave's roof and floor, a tunnel's ceiling and bed), so a hill over a
-// tunnel and the ground under an arch stay. With under, surface above is enough: everything beneath the model goes.
-function meshInsideTest(object, under = false) {
+// A model's surfaces from its triangles: surfaces(x, z) lists the heights where a vertical line through (x, z)
+// meets it (a roof and a floor, a hill's top), from a 2 m grid of the triangles over each spot.
+function modelSurfaces(object) {
   object.updateMatrixWorld(true);
   const CELL = 2;
   const cells = new Map();
@@ -662,13 +674,24 @@ function meshInsideTest(object, under = false) {
     const w = 1 - u - v;
     return u < -1e-6 || v < -1e-6 || w < -1e-6 ? null : u * ay + v * by + w * cy;
   };
-  return (x, y, z) => {
-    const list = cells.get(`${Math.floor(x / CELL)},${Math.floor(z / CELL)}`);
-    if (!list) return false;
-    let above = false, below = false;
-    for (const t of list) {
+  return (x, z) => {
+    const heights = [];
+    for (const t of cells.get(`${Math.floor(x / CELL)},${Math.floor(z / CELL)}`) ?? []) {
       const h = heightOn(tris[t], x, z);
-      if (h === null) continue;
+      if (h !== null) heights.push(h);
+    }
+    return heights;
+  };
+}
+
+// A test for ground inside a model's shape: the ground at (x, z) is inside when the model has surface both above
+// and below it there (a cave's roof and floor, a tunnel's ceiling and bed), so a hill over a tunnel and the ground
+// under an arch stay. With under, surface above is enough: everything beneath the model goes.
+function meshInsideTest(object, under = false) {
+  const surfaces = modelSurfaces(object);
+  return (x, y, z) => {
+    let above = false, below = false;
+    for (const h of surfaces(x, z)) {
       if (h > y) above = true; else below = true;
       if (above && (below || under)) return true;
     }
@@ -704,7 +727,7 @@ function cutInsideTarget(restore, target = excludeTarget(), shape = state.exclud
   const centre = box.getCenter(new THREE.Vector3());
   const radius = Math.hypot(box.max.x - box.min.x, box.max.z - box.min.z) / 2 + STEP;
   stroke = { snapshot: new Map() };
-  snapshotChunks(terrain.editableChunksNear(centre.x, centre.z, radius));
+  snapshotChunks(terrain.editableChunksNear(centre.x, centre.z, radius), { heights: true });
   const chunks = terrain.exclude(centre.x, centre.z, radius, restore, cutTest(target, shape));
   endStroke();
   updateDirty();
@@ -722,6 +745,59 @@ async function cutWhenLoaded(object, shape = state.exclude.shape) {
     return toast(`${targetName(object)} didn't load, so no ground was cut: ${error.message}`, "error");
   }
   if (object.parent) cutInsideTarget(false, object, shape);
+}
+
+const MOLD_SURFACES = {
+  base: ["Its base", "The ground meets the model's underside: buildings, platforms and rocks sit flush, dug in or built up."],
+  top: ["Its top", "The ground takes the model's upper surface: a hill, ramp or rock model stamped into the ground (delete the model after)."],
+};
+const MOLD_DIRECTIONS = { both: "Both ways", raise: "Only raise", lower: "Only lower" };
+
+function moldTarget() {
+  const target = state.mold.target;
+  return target?.parent ? target : null;
+}
+
+// Moulds the ground to a model (the mould target), as one undo step: under its footprint the ground takes its base
+// (the lowest surface over each spot) or its top (the highest), plus the offset, and within blend metres around it
+// eases back to the ground as it was.
+function moldToTarget(target = moldTarget(), mold = state.mold) {
+  if (!target) return toast("Pick a model to mould the ground to: right-click it, or select it and press Use the selected model.");
+  const box = new THREE.Box3().setFromObject(target);
+  if (box.isEmpty()) return toast(`${targetName(target)} hasn't loaded yet.`);
+  const surfaces = modelSurfaces(target);
+  const surface = (x, z) => {
+    const heights = surfaces(x, z);
+    return heights.length ? (mold.surface === "top" ? Math.max(...heights) : Math.min(...heights)) + mold.offset : null;
+  };
+  const centre = box.getCenter(new THREE.Vector3());
+  const radius = Math.hypot(box.max.x - box.min.x, box.max.z - box.min.z) / 2 + mold.blend + STEP;
+  stroke = { snapshot: new Map() };
+  snapshotChunks(terrain.editableChunksNear(centre.x, centre.z, radius), { heights: true });
+  const chunks = terrain.mold(surface, centre.x, centre.z, radius, mold);
+  endStroke();
+  updateDirty();
+  const locked = !terrain.editableChunksNear(centre.x, centre.z, radius).length;
+  toast(chunks ? `Moulded the ground to ${mold.surface === "top" ? "the top" : "the base"} of ${targetName(target)} (${chunks} chunk(s)); Ctrl+Z puts it back.`
+    : locked ? "The ground there is in stock chunks, which can't be sculpted: copy them into editable ones with the Chunks tool."
+    : "The ground already fits it.", chunks ? "ok" : "");
+}
+
+// Makes a model the mould target and moulds the ground to it.
+function moldFrom(object) {
+  state.mold.target = object;
+  moldToTarget(object);
+  if (state.tool === "sculpt") renderPanel();
+}
+
+// Moulds the ground to a model once its meshes have loaded (one just placed).
+async function moldWhenLoaded(object) {
+  try {
+    await object.userData.loaded;
+  } catch (error) {
+    return toast(`${targetName(object)} didn't load, so the ground wasn't moulded: ${error.message}`, "error");
+  }
+  if (object.parent) moldFrom(object);
 }
 
 // Cave and tunnel models (entrances, tunnels, cave pieces), for the Exclude tool's quick placing: the most used first.
@@ -779,6 +855,31 @@ function noZonePanel() {
   panel.innerHTML = `<h3>No zone open</h3><p class="hint">Type a zone name at the top (FabledRealms, a housing lot such as hsg_emptylot_castle_01, or one you made) and press Open, or make a new zone.</p>`;
 }
 
+// The Sculpt tool's section for moulding the ground to a model.
+function moldControls() {
+  const target = moldTarget();
+  const m = state.mold;
+  const pickable = selected && ["prop", "live"].includes(selected.userData.kind) && selected !== target;
+  return `<h4>Mould to a model</h4>
+    <p class="hint">${target ? `<b>${escape(targetName(target))}</b>` : "None: right-click a model and Mould the ground to it, or select one here."}</p>
+    <div class="row"><button id="mold-pick" ${pickable ? "" : "disabled"}>Use the selected model</button></div>
+    <div class="seg">${Object.entries(MOLD_SURFACES).map(([key, [label, hint]]) => `<button data-mold-surface="${key}" class="${m.surface === key ? "active" : ""}" title="${hint}">${label}</button>`).join("")}</div>
+    <p class="hint">${MOLD_SURFACES[m.surface][1]}</p>
+    <div class="seg">${Object.entries(MOLD_DIRECTIONS).map(([key, label]) => `<button data-mold-direction="${key}" class="${m.direction === key ? "active" : ""}">${label}</button>`).join("")}</div>
+    <div class="row"><label>Blend (m) <input id="mold-blend" type="number" min="0" step="1" value="${m.blend}"></label>
+      <label title="Negative sinks the ground under the model, so no gap shows at its edge">Offset (m) <input id="mold-offset" type="number" step="0.1" value="${m.offset}"></label></div>
+    <div class="row"><button id="mold-go" class="primary" ${target ? "" : "disabled"}>Mould the ground</button></div>`;
+}
+
+function bindMold() {
+  panel.querySelector("#mold-pick").addEventListener("click", () => { state.mold.target = selected; renderPanel(); });
+  for (const button of panel.querySelectorAll("[data-mold-surface]")) button.addEventListener("click", () => { state.mold.surface = button.dataset.moldSurface; renderPanel(); });
+  for (const button of panel.querySelectorAll("[data-mold-direction]")) button.addEventListener("click", () => { state.mold.direction = button.dataset.moldDirection; renderPanel(); });
+  panel.querySelector("#mold-blend").addEventListener("change", (e) => { state.mold.blend = Math.max(0, +e.target.value || 0); });
+  panel.querySelector("#mold-offset").addEventListener("change", (e) => { state.mold.offset = +e.target.value || 0; });
+  panel.querySelector("#mold-go").addEventListener("click", () => moldToTarget());
+}
+
 function renderPanel() {
   const zone = state.zone;
   if (!zone) return noZonePanel();
@@ -811,8 +912,10 @@ function renderPanel() {
       <label style="${mode === "level" ? "" : "display:none"}">Level height <input id="level-height" type="number" step="0.25" value="${state.brush.level ?? 0}"></label>
       <label style="${mode === "terrace" ? "" : "display:none"}">Step height <input id="terrace-step" type="number" min="0.5" step="0.5" value="${state.brush.step}"></label>
       <p class="hint"><b>${mode}</b>: ${SCULPT_HINTS[mode]}</p>
-      <p class="hint">Hold the left button to sculpt. Keys 1–0 pick a mode, Alt+click picks the ground's height, I picks height, eco and tint. Edges shared with chunks that aren't loaded stay pinned so the seams don't open.</p>`;
+      <p class="hint">Hold the left button to sculpt. Keys 1–0 pick a mode, Alt+click picks the ground's height, I picks height, eco and tint. Edges shared with chunks that aren't loaded stay pinned so the seams don't open.</p>
+      ${moldControls()}`;
     bindBrush();
+    bindMold();
     panel.querySelector("#level-height").addEventListener("input", (e) => { state.brush.level = +e.target.value; });
     panel.querySelector("#terrace-step").addEventListener("input", (e) => { state.brush.step = Math.max(0.5, +e.target.value); });
   } else if (state.tool === "exclude") {
@@ -941,7 +1044,8 @@ function renderPanel() {
       <label class="check"><input id="place-turn" type="checkbox" ${p.randomYaw ? "checked" : ""}> Random turn</label>
       <label class="check"><input id="place-align" type="checkbox" ${p.align ? "checked" : ""}> Stand on the slope</label>
       <label class="check" title="Off: new objects go through props to the ground"><input id="place-on-props" type="checkbox" ${p.onProps ? "checked" : ""}> Land on props (a crate on a table)</label>
-      ${scatter || (p.live && live.zone) ? "" : `<label class="check" title="Caves and tunnels: their mouth and bore open as they're placed (the Exclude tool's shape)"><input id="place-cut" type="checkbox" ${p.cut ? "checked" : ""}> Cut the ground inside it</label>`}
+      ${scatter || (p.live && live.zone) ? "" : `<label class="check" title="Caves and tunnels: their mouth and bore open as they're placed (the Exclude tool's shape)"><input id="place-cut" type="checkbox" ${p.cut ? "checked" : ""}> Cut the ground inside it</label>
+        <label class="check" title="Buildings and platforms: the ground meets their base as they're placed (the Sculpt tool's mould settings)"><input id="place-mold" type="checkbox" ${p.mold ? "checked" : ""}> Mould the ground to it</label>`}
       <div class="row"><label>Scale from <input id="place-scale-min" type="number" min="0.05" step="0.05" value="${p.scaleMin}"></label>
         <label>to <input id="place-scale-max" type="number" min="0.05" step="0.05" value="${p.scaleMax}"></label></div>
       <label>Height above the ground (negative sinks them) <input id="place-offset" type="number" step="0.1" value="${p.offset}"></label>
@@ -966,6 +1070,7 @@ function renderPanel() {
     panel.querySelector("#place-align").addEventListener("change", (e) => { p.align = e.target.checked; });
     panel.querySelector("#place-on-props").addEventListener("change", (e) => { p.onProps = e.target.checked; });
     panel.querySelector("#place-cut")?.addEventListener("change", (e) => { p.cut = e.target.checked; });
+    panel.querySelector("#place-mold")?.addEventListener("change", (e) => { p.mold = e.target.checked; });
     panel.querySelector("#place-scale-min").addEventListener("input", (e) => { p.scaleMin = Math.max(0.05, +e.target.value); });
     panel.querySelector("#place-scale-max").addEventListener("input", (e) => { p.scaleMax = Math.max(0.05, +e.target.value); });
     panel.querySelector("#place-offset").addEventListener("input", (e) => { p.offset = +e.target.value; });
@@ -2164,6 +2269,7 @@ function placeActor(name, hit, yaw = 0) {
   applyPlaceLook(object);
   content.placed(name);
   if (state.place.cut) cutWhenLoaded(object, state.exclude.shape === "box" ? "mesh" : state.exclude.shape);
+  if (state.place.mold) moldWhenLoaded(object);
 }
 
 // A cave or tunnel from the Exclude tool's list, to place with the Props tool, cutting the ground inside it.
@@ -2675,6 +2781,7 @@ function objectMenu(object) {
       ...(data.model ? [{ label: "Make it an NPC", action: () => makeNpc(object) },
         { label: "Bake into the zone", action: () => bakeLive(object) }] : []),
       { label: "Cut the ground inside it", disabled: !state.zone, action: () => cutFrom(object) },
+      { label: "Mould the ground to it", disabled: !state.zone, title: "Its base or top, as the Sculpt tool's mould is set", action: () => moldFrom(object) },
       { label: "Edit script…", action: () => scriptEditor.open(object) }, "-",
       { label: "Delete", key: "Del", danger: true, action: deleteSelected }];
   }
@@ -2699,7 +2806,8 @@ function objectMenu(object) {
       { label: "Replace with the content pick", disabled: !state.actor, action: replaceSelectedModel },
       { label: "Select all like this", action: selectSameModel },
       { label: "Hide this model", key: "H", action: hideSelectedModels },
-      { label: "Cut the ground inside it", title: "Caves and tunnels: the Exclude tool's shape", action: () => cutFrom(object) }] : []), "-",
+      { label: "Cut the ground inside it", title: "Caves and tunnels: the Exclude tool's shape", action: () => cutFrom(object) },
+      { label: "Mould the ground to it", title: "Its base or top, as the Sculpt tool's mould is set", action: () => moldFrom(object) }] : []), "-",
     { label: count > 1 ? `Delete ${count} objects` : "Delete", key: "Del", danger: true, action: deleteSelected }];
 }
 
@@ -3035,16 +3143,21 @@ function settleNudge() {
 
 // --- brush strokes and undo ----------------------------------------------------------------------------
 
-function snapshotChunks(chunks) {
+// What a stroke of a tool changes, for its undo snapshot.
+function strokeParts(tool = state.tool) {
+  return { heights: tool === "sculpt" || tool === "exclude", ecos: tool === "eco", colour: tool === "eco" || tool === "colour", tiles: tool === "environment" };
+}
+
+function snapshotChunks(chunks, parts = strokeParts()) {
   for (const chunk of chunks) {
     if (stroke.snapshot.has(chunk)) continue;
     stroke.snapshot.set(chunk, {
-      heights: state.tool === "sculpt" || state.tool === "exclude" ? chunk.heights.slice() : null,
+      heights: parts.heights ? chunk.heights.slice() : null,
       tileDirty: chunk.tileDirty.slice(),
-      ecos: state.tool === "eco" ? chunk.ecos.slice() : null,
-      weights: state.tool === "eco" ? chunk.weights.slice() : null,
-      colour: state.tool === "eco" || state.tool === "colour" ? chunk.colour.slice() : null,
-      tiles: state.tool === "environment" ? chunk.tiles.map((t) => t.environment) : null,
+      ecos: parts.ecos ? chunk.ecos.slice() : null,
+      weights: parts.ecos ? chunk.weights.slice() : null,
+      colour: parts.colour ? chunk.colour.slice() : null,
+      tiles: parts.tiles ? chunk.tiles.map((t) => t.environment) : null,
     });
   }
 }
