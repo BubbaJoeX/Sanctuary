@@ -226,12 +226,8 @@ public static class PacketLoginHandler
         // TODO
         // AchievementObjectiveActivatedPacket - Part 1?
 
-        var encounterOverworldCombatPacket = new EncounterOverworldCombatPacket
-        {
-            InWorldCombat = true
-        };
-
-        connection.SendTunneled(encounterOverworldCombatPacket);
+        // Whether the player is in a combat area comes first, as live sent it (zoning in sends it again).
+        connection.Player.SendCombatArea();
 
         connection.SendInitializationParameters();
         connection.SendZoneDetails();

@@ -73,6 +73,7 @@ public sealed class Player : ClientPcData, IEntity
 
     private ZoneAreaDefinition? _pendingZoneArea;
     private long _pendingZoneAreaSince;
+    private bool _isInCombatArea;
 
     public int ChatBubbleForegroundColor { get; set; }
     public int ChatBubbleBackgroundColor { get; set; }
@@ -563,6 +564,7 @@ public sealed class Player : ClientPcData, IEntity
         SnowballInteraction.Update(this);
         UpdatePortrait();
         UpdatePendingPointOfInterest();
+        UpdateCombatArea();
     }
 
     public void RelayPosition(PlayerUpdatePacketUpdatePosition playerUpdatePacketUpdatePosition)
@@ -965,6 +967,9 @@ public sealed class Player : ClientPcData, IEntity
         };
 
         SendTunneled(chatPacketEnterArea);
+
+        // Live sent the combat area with the area's name.
+        UpdateCombatArea();
     }
 
     public void SetMountMovementSpeed(float? mountMovementSpeed)
@@ -1871,11 +1876,22 @@ public sealed class Player : ClientPcData, IEntity
 
     /// <summary>
     /// The client only treats hostile NPCs as enemies (enemy nameplate, targetable) in its overworld combat
-    /// mode, which needs both packets. A combat job turns it on and any other job turns it off.
+    /// mode, which needs both packets: a combat area (see <see cref="SendCombatArea"/>) and a combat job. Any
+    /// other job turns it off.
     /// </summary>
     public void SendCombatMode()
     {
-        var inWorldCombat = Zone switch
+        SendCombatArea();
+        SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
+    }
+
+    /// <summary>
+    /// Whether the player is in a combat area, which live sent per area: the wilds are, towns aren't. In one the
+    /// client's job picker refuses every job but a combat job ("You cannot select this job while in a combat area.").
+    /// </summary>
+    public void SendCombatArea()
+    {
+        _isInCombatArea = Zone switch
         {
             // A 3D game's own zone isn't the overworld: its rules come with EncounterDataCommon instead.
             WorldZone { Arena: not null } => false,
@@ -1884,11 +1900,23 @@ public sealed class Player : ClientPcData, IEntity
             // player, whose window then offers only the respawn an instance has.
             WorldZone { Battle: not null } => !IsDead,
 
-            _ => true
+            // The wilds and the hostile spots in towns. Zones without combat areas, like a fishing pond, have none.
+            WorldZone worldZone => worldZone.IsCombatArea(Position, PointOfInterestId),
+
+            // A house.
+            _ => false
         };
 
-        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = inWorldCombat });
-        SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
+        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = _isInCombatArea });
+    }
+
+    /// <summary>
+    /// Walking into or out of a combat area says so (battles and 3D games send theirs as they change).
+    /// </summary>
+    private void UpdateCombatArea()
+    {
+        if (Zone is WorldZone { Arena: null, Battle: null } worldZone && worldZone.IsCombatArea(Position, PointOfInterestId) != _isInCombatArea)
+            SendCombatArea();
     }
 
     public void OnKilled(Npc mob)

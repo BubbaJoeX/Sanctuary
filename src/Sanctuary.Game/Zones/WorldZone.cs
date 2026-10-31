@@ -41,9 +41,7 @@ public sealed partial class WorldZone : BaseZone
     private readonly HashSet<SeasonalClientAreaDefinition> _activeSeasonalClientAreas = [];
     private readonly HashSet<int> _scriptEnabledClientAreaIds = [];
 
-    private readonly Dictionary<(int Longitude, int Latitude), ZoneAreaDefinition> _tileZoneAreas = [];
-    private readonly List<ZoneAreaDefinition> _shapeZoneAreas = [];
-    private readonly Dictionary<int, List<ZoneAreaDefinition>> _environmentZoneAreas = [];
+    private readonly ZoneAreaMap _zoneAreaMap;
 
     private const int ClientAreaRefreshSeconds = 3;
     private int _secondsSinceClientAreaRefresh;
@@ -52,34 +50,7 @@ public sealed partial class WorldZone : BaseZone
         : base(zoneDefinition, serviceProvider)
     {
         _zoneDefinition = zoneDefinition;
-
-        foreach (var areaDefinition in _zoneDefinition.AreaDefinitions)
-        {
-            if (areaDefinition.Tiles.Count > 0)
-            {
-                foreach (var tile in areaDefinition.Tiles)
-                    _tileZoneAreas[(tile[0], tile[1])] = areaDefinition;
-
-                continue;
-            }
-
-            if (areaDefinition.EnvironmentIds.Count == 0)
-            {
-                _shapeZoneAreas.Add(areaDefinition);
-                continue;
-            }
-
-            foreach (var environmentId in areaDefinition.EnvironmentIds)
-            {
-                if (!_environmentZoneAreas.TryGetValue(environmentId, out var environmentZoneAreas))
-                {
-                    environmentZoneAreas = [];
-                    _environmentZoneAreas[environmentId] = environmentZoneAreas;
-                }
-
-                environmentZoneAreas.Add(areaDefinition);
-            }
-        }
+        _zoneAreaMap = new ZoneAreaMap(zoneDefinition);
 
         foreach (var seasonalClientArea in _zoneDefinition.SeasonalClientAreas)
         {
@@ -301,28 +272,7 @@ public sealed partial class WorldZone : BaseZone
 
     public ZoneAreaDefinition? GetZoneArea(Vector4 position, ZoneTile zoneTile)
     {
-        if (_tileZoneAreas.TryGetValue((zoneTile.Longitude, zoneTile.Latitude), out var tileZoneArea))
-            return tileZoneArea;
-
-        foreach (var areaDefinition in _shapeZoneAreas)
-        {
-            var isInArea = areaDefinition.Shape switch
-            {
-                ZoneAreaShape.Circle => position.IsInCircle(new Vector3(areaDefinition.X1, 0, areaDefinition.Z1), areaDefinition.Radius),
-                ZoneAreaShape.Rectangle => position.IsInRectangle(new Vector3(areaDefinition.X1, 0, areaDefinition.Z1),
-                    new Vector3(areaDefinition.X2, 0, areaDefinition.Z2)),
-                ZoneAreaShape.Polygon => position.IsInPolygon(areaDefinition.Points),
-                _ => throw new NotImplementedException(nameof(areaDefinition.Shape))
-            };
-
-            if (isInArea)
-                return areaDefinition;
-        }
-
-        if (!_environmentZoneAreas.TryGetValue(zoneTile.EnvironmentId, out var environmentZoneAreas))
-            return null;
-
-        return environmentZoneAreas.FirstOrDefault(x => x.IsInEnvironmentXRange(position.X));
+        return _zoneAreaMap.GetZoneArea(position, zoneTile);
     }
 
     public ZoneAreaDefinition? GetNearestZoneArea(Vector4 position)
@@ -350,6 +300,19 @@ public sealed partial class WorldZone : BaseZone
         }
 
         return nearestZoneArea;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="position"/> is a combat area (see <see cref="Player.SendCombatArea"/>). Off every
+    /// area, as at sea, it's the area the player was last in (<paramref name="zoneAreaId"/>), or else the nearest.
+    /// </summary>
+    public bool IsCombatArea(Vector4 position, int zoneAreaId = 0)
+    {
+        var area = GetZoneArea(position)
+            ?? _zoneDefinition.AreaDefinitions.FirstOrDefault(x => x.Id == zoneAreaId)
+            ?? GetNearestZoneArea(position);
+
+        return _zoneAreaMap.IsCombatArea(position, area);
     }
 
     private void SendPointOfInterests(Player player)
