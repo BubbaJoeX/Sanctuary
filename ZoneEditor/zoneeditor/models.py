@@ -56,14 +56,15 @@ class MaterialLibrary:
                 self.names.setdefault(definition, node.attrib.get("Name", ""))
 
     def alpha(self, definition_hash: int) -> str | None:
-        """How a material uses alpha: "test" (cutout leaves and fences), "blend" (glass), "water" (the client's
-        water shader, whose textures are wave normal maps) or None."""
+        """How a material uses alpha: "test" (cutout leaves and fences), "blend" (glass, and light beams, which add
+        light), "water" (the client's water shader, whose textures are wave normal maps) or None."""
         name = self.names.get(definition_hash, "").lower()
         if "alphatest" in name:
             return "test"
         if "water" in name:
             return "water"
-        if any(word in name for word in ("alphablend", "alphascreen", "glass", "ghost", "hologram", "dualtexturerigidalpha")):
+        if any(word in name for word in ("alphablend", "alphascreen", "glass", "ghost", "hologram", "dualtexturerigidalpha",
+                                         "lightbeam", "bubble")):
             return "blend"
         return None
 
@@ -283,14 +284,16 @@ def actor_group_members(blob: bytes) -> list:
 TEXTURE_ROLES = {jenkins("Diffuse"): "diffuse", jenkins("Diffuse2"): "overlay", jenkins("TintMask"): "mask"}
 # The other maps and the constants the game's shaders draw with (their effects in Client/Shaders): glow and specular
 # masks, water's three wave normal maps and a waterfall's two scrolling layers and masks; the material's own tint
-# (TintSemantic), glow and specular strength, UV scrolling, double-sidedness, and water and waterfall settings.
+# (TintSemantic), glow and specular strength, UV scrolling, double-sidedness, water and waterfall settings, and a
+# light beam's strength (Intensity, times its texture's alpha times Density) and edge fade (FallOff).
 MAP_PARAMS = {jenkins(name): name for name in (
     "GlowMap", "SpecularMap", "BumpMap1", "BumpMap2", "BumpMap3", "Texture1", "Texture2", "Mask1", "Mask2")}
 VALUE_PARAMS = {jenkins(name): name for name in (
     "TintSemantic", "Glow", "Spec", "ScrollU", "ScrollV", "DoubleSided", "DoubleSidedDefaultFalse",
     "TexScale1", "TexScale2", "TexScale3", "TexScrollX1", "TexScrollZ1", "TexScrollX2", "TexScrollZ2",
     "TexScrollX3", "TexScrollZ3", "Bumpiness1", "Bumpiness2", "Bumpiness3", "Fresnel", "Density",
-    "TexScroll1", "TexScroll2", "MaskScale1", "MaskScale2", "MaskScroll1", "MaskScroll2", "Divergence")}
+    "TexScroll1", "TexScroll2", "MaskScale1", "MaskScale2", "MaskScroll1", "MaskScroll2", "Divergence",
+    "Intensity", "FallOff")}
 
 
 def _parameter_value(parameter_class: int, parameter_type: int, payload: bytes):

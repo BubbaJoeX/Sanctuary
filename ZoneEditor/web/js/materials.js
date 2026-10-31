@@ -2,9 +2,9 @@
 // into three's Lambert and Phong materials: the cut-off of *AlphaTest shaders, glow (light of the surface's own
 // colour, masked by the texture's alpha or a GlowMap), specular masked the same way, the material's own tint
 // (TintSemantic; TintMask and DualTexture materials tint only where their mask says), scrolling UVs, the Diffuse2
-// layer of DualTexture materials on the second UV set, water's three drifting wave maps and a waterfall's two
-// scrolling layers and masks. A mesh's base (models.py: texture, alpha, shader, params, maps, overlay, mask) says
-// which; see the README's "How it works" for where the numbers come from.
+// layer of DualTexture materials on the second UV set, water's three drifting wave maps, a waterfall's two
+// scrolling layers and masks, and light beams. A mesh's base (models.py: texture, alpha, shader, params, maps,
+// overlay, mask) says which; see the README's "How it works" for where the numbers come from.
 import * as THREE from "three";
 import { loadTexture } from "./textures.js";
 
@@ -50,6 +50,7 @@ export function forgelightMaterial(base, texture = base.texture, tint = null) {
   const shader = (base.shader || "").toLowerCase();
   if (shader.startsWith("waterfall") && base.maps?.Texture1) return waterfallMaterial(base);
   if (base.alpha === "water") return waterMaterial(base);
+  if (shader.startsWith("lightbeam")) return lightBeamMaterial(base, texture, tint);
 
   const params = base.params || {};
   const maps = base.maps || {};
@@ -99,9 +100,9 @@ export function forgelightMaterial(base, texture = base.texture, tint = null) {
     for (const [name, value] of Object.entries(textures)) program.uniforms[name] = { value };
     program.vertexShader = patchShader(program.vertexShader,
       `uniform float flTime;\nuniform vec2 flScroll;\n${overlay ? "attribute vec2 uvOverlay;\nvarying vec2 vOverlayUv;" : ""}`, [
-        // The game adds frac(time * scroll) to the UVs; the DDS textures here are flipped, so V goes the other way.
-        ...(scrolls ? [["uv_vertex", "#ifdef USE_MAP\n\tvMapUv += vec2(fract(flTime * flScroll.x), -fract(flTime * flScroll.y));\n#endif"]] : []),
-        ...(overlay ? [["uv_vertex", "\tvOverlayUv = vec2(uvOverlay.x, -uvOverlay.y);"]] : []),
+        // The game adds frac(time * scroll) to the UVs.
+        ...(scrolls ? [["uv_vertex", "#ifdef USE_MAP\n\tvMapUv += fract(flTime * flScroll);\n#endif"]] : []),
+        ...(overlay ? [["uv_vertex", "\tvOverlayUv = uvOverlay;"]] : []),
       ]);
     program.fragmentShader = patchShader(program.fragmentShader,
       ["uniform float flGlow;", "uniform float flSpec;", "uniform vec3 flTint;", ...Object.keys(textures).map((t) => `uniform sampler2D ${t};`),
@@ -115,6 +116,34 @@ export function forgelightMaterial(base, texture = base.texture, tint = null) {
         ...(glowMask ? [["emissivemap_fragment", `\ttotalEmissiveRadiance += diffuseColor.rgb * flGlow * ${sample(glowMask)};`]] : []),
         ...(specMask ? [["specularmap_fragment", `\tfloat specularStrength = flSpec * ${sample(specMask)};`, true]] : []),
       ]);
+  });
+}
+
+// A light beam (a stage light's cone) is light, not a surface: LightBeamSkin_3 multiplies the client's light buffer,
+// which holds exp(-light), by exp(-beam), adding the beam to the light the screen is tone-mapped from (about one for
+// one near black). The beam is its texture times its tint and Intensity, times the texture's alpha and Density,
+// fading toward the cone's outline as (N.V)^FallOff, in stored (gamma) colours; only the inside of the cone is drawn
+// (it culls front faces). Here it's added to the screen's colours as they are.
+function lightBeamMaterial(base, texture, tint) {
+  const params = base.params || {};
+  const material = new THREE.MeshLambertMaterial({
+    color: srgb(tint ?? params.TintSemantic ?? [1, 1, 1]), map: texture ? loadTexture(texture) : null, side: THREE.BackSide,
+    transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending,
+  });
+  const uniforms = {
+    flStrength: { value: param(params, "Intensity", 1) * param(params, "Density", 1) },
+    flFallOff: { value: param(params, "FallOff", 1) },
+  };
+  return patch(material, "fl-beam", (program) => {
+    Object.assign(program.uniforms, uniforms);
+    program.fragmentShader = patchShader(program.fragmentShader, "uniform float flStrength;\nuniform float flFallOff;", [
+      ["opaque_fragment", [
+        "\tfloat flEdge = pow(clamp(abs(dot(normal, normalize(vViewPosition))), 0.0, 1.0), flFallOff);",
+        // Worked out in gamma and handed back as linear, which the output encoding turns into gamma again.
+        "\tvec3 flBeam = pow(diffuseColor.rgb, vec3(1.0 / 2.2)) * diffuseColor.a * flStrength * flEdge;",
+        "\tgl_FragColor = vec4(pow(flBeam, vec3(2.2)), 1.0);",
+      ].join("\n"), true],
+    ]);
   });
 }
 
@@ -187,10 +216,9 @@ function waterfallMaterial(base) {
       "uniform float flTime;", "uniform float flGlow;", "uniform float flDivergence;", "uniform vec2 flScale;", "uniform vec2 flScroll;",
       "uniform vec2 flMaskScale;", "uniform vec2 flMaskScroll;", "uniform sampler2D flLayer2;", "uniform sampler2D flMask1;",
       "uniform sampler2D flMask2;", "varying vec2 vFlUv;",
-      // Each layer: u scaled and pushed sideways (the second the other way), v scaled and slid; flipped for the DDS.
+      // Each layer: u scaled and pushed sideways (the second the other way), v scaled and slid.
       "vec2 flSlide(float scale, float scroll, float side) {",
-      "\tvec2 uv = vec2(vFlUv.x * scale + side * flTime * scroll * flDivergence, vFlUv.y * scale + flTime * scroll);",
-      "\treturn vec2(uv.x, -uv.y);",
+      "\treturn vec2(vFlUv.x * scale + side * flTime * scroll * flDivergence, vFlUv.y * scale + flTime * scroll);",
       "}",
     ].join("\n"), [
       ["map_fragment", [

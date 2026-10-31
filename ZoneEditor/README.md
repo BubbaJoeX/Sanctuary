@@ -111,7 +111,8 @@ thumbnails. It opens on what zones place (counted across every zone's chunks the
 most placed first), with groups for what the loaded chunks use, ★ favourites, recently placed, all actors and
 name prefixes (bw_ Briarwood, sh_ Snowhill, hsg_ housing, ...), and filters by kind (trees, rocks, plants,
 buildings, ...) and name. Characters and gear stay hidden unless asked for. Thumbnails are rendered in the
-browser and kept in `ZoneEditor/.cache/thumbs`.
+browser and kept in `ZoneEditor/.cache/thumbs2` (an older `thumbs` folder there is from before textures were drawn
+the right way up, and can be deleted).
 
 Fly with the right mouse button and WASD/QE (Shift for speed, the wheel changes speed; in brush tools the
 wheel or `[` `]` sizes the brush and Ctrl+wheel or Shift+`[` `]` sets strength; every brush has a falloff:
@@ -179,10 +180,13 @@ paste there, add a light, move the selection there, or send a selected player th
 ## The viewport
 
 It draws the world as the client does, with its coordinates as they are. The ground is each eco's detail
-texture, blended by the eco weights (up to 4 per chunk), times the colour map doubled, in gamma space, as the
-client's terrain shaders (`runtimeterrain_*_def.fxo`) do. Every texture is uploaded as it's stored (the PNG
-fallback for formats the DDS loader can't read too) with its v negated back, so a mask, glow or specular map or
-second layer lines up with its colour texture whichever way each loaded. Props use their own normals and
+texture, blended by the eco weights (a chunk's 8 heaviest ecos; a tile has up to 5, a whole chunk up to 10 in
+FabledRealms), times the colour map doubled, in gamma space, as the client's terrain shaders
+(`runtimeterrain_*_def.fxo`) do. Every texture is uploaded as it's stored, top row first (the PNG fallback for
+formats the DDS loader can't read too), and mesh UVs read it as they are, as the client's vertex shaders pass them
+on: v runs down from the top row and wraps (most meshes store it negated, some, like `sh_corkboard_01`, not), so
+texture sheets (house trim, the TCG arena's floor) show the right parts and a mask, glow or specular map or second
+layer lines up with its colour texture. Props use their own normals and
 diffuse textures, uploaded as the client's DDS files with their mipmaps, and their materials are drawn with the
 game's shader math (`web/js/materials.js`, from the client's compiled effects):
 - cutout foliage and fences drop pixels below the game's 0.78 alpha, and are two-sided where the material says;
@@ -193,7 +197,9 @@ game's shader math (`web/js/materials.js`, from the client's compiled effects):
 - UVs scroll where the material scrolls them, and a DualTexture sign or decal lays its second layer on its second
   UV set;
 - water is lit through its three drifting wave maps and gets more opaque at a glancing angle;
-- waterfalls slide two layers of their texture and two masks down at their own speeds.
+- waterfalls slide two layers of their texture and two masks down at their own speeds;
+- light beams (a stage's spotlight cones, LightBeam materials) are added light, not surfaces: their gradient
+  texture times Intensity and Density, fading toward the cone's outline, which in daylight is a faint glow.
 
 **Animation.** Animated props (birds circling, flags and banners, windmills, string lights, balloons) and the
 live layer's NPCs and players play their `loc_stand` clip, as they do standing about in game. Lighting comes from the sky file in use, by time of day (View → Time of day):
