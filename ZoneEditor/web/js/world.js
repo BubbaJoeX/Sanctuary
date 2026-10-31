@@ -5,8 +5,8 @@
 //   its own in Npcs.json.
 // - Areas: the zone's named areas (its Sanctuary definition's AreaDefinitions), whose name shows as players walk in.
 // - Portals: circles that send a player on to a spot, in this zone or another (Portals).
-// - Combat: where the client counts a player as in a combat area (whole areas' IsCombatArea, and CombatAreas:
-//   stretches that are a combat area, or aren't one, whatever area they're in). The ground shows it by tile.
+// - Combat: the combat areas, where hostile NPCs roam (whole areas' IsCombatArea, and CombatAreas: stretches that are
+//   a combat area, or aren't one, whatever area they're in). The ground shows it by tile.
 // - Barriers: the zone file's invisible walls, posts the client won't let players walk between.
 // - Seasons: seasonal holidays (src/Resources/Seasons.json), event keys that are on between two days of the year.
 // Names are locale strings: new ones are Sanctuary's own (api/names). All of it but seasons saves with the zone.
@@ -439,7 +439,7 @@ export class WorldTool {
       <p class="hint">Area #${area.Id} · ${escape(area.Shape || "tiles and environments")}</p>
       <label>Name <input data-area-name value="${escape(this.name(area.NameId))}"></label>
       ${area.Shape === "Circle" ? `<label>Radius (m) <input type="number" min="1" step="1" data-area-radius value="${area.Radius}"></label>` : ""}
-      <label class="check" title="The wilds, where hostile NPCs are enemies to a combat job; there the job picker keeps combat jobs to combat jobs"><input type="checkbox" data-area-combat ${area.IsCombatArea ? "checked" : ""}> A combat area</label>
+      <label class="check" title="Where hostile NPCs roam: the wilds, not towns"><input type="checkbox" data-area-combat ${area.IsCombatArea ? "checked" : ""}> A combat area</label>
       <label>Its place <select data-area-poi><option value="0">none</option>${this.pois.filter((p) => p.Id).map((p) => `<option value="${p.Id}" ${p.Id === area.PointOfInterestId ? "selected" : ""}>${escape(this.name(p.NameId) || `#${p.Id}`)}</option>`).join("")}</select></label>
       <div class="row"><button data-area-delete class="danger">Delete</button></div>`;
     target.querySelector("[data-area-name]").addEventListener("change", async (e) => {
@@ -475,14 +475,15 @@ export class WorldTool {
 
   // Combat ----------------------------------------------------------------------------------------------------
 
-  // In a combat area the client counts a player as in the wilds: hostile NPCs are enemies to a combat job, and
-  // the job picker won't let a combat job go for another kind. Sanctuary decides it as ZoneAreaMap does: a stretch
-  // holding the spot (the first), else the area the spot is in.
+  // Combat areas are where hostile NPCs roam: the wilds, not towns (players are in combat only while a mob has
+  // aggro on them). Sanctuary decides it as ZoneAreaMap does: a stretch holding the spot (the first), else the area
+  // the spot is in.
   combatPanel() {
     const areas = this.areas.map((area, i) => ({ area, i })).sort((a, b) => (b.area.IsCombatArea === true) - (a.area.IsCombatArea === true)
       || this.areaLabel(a.area).localeCompare(this.areaLabel(b.area)));
-    return `<p class="hint">Where combat jobs fight: the ground is red where it's a combat area, blue where it's an area that isn't, by tile.
+    return `<p class="hint">Where hostile NPCs roam, the wilds and not towns: the ground is red where it's a combat area, blue where it's an area that isn't, by tile.
         A whole area is one when it's ticked; stretches override whatever area they're in (red: combat, white: not), the first that holds a spot deciding.
+        Players are in combat only while a mob has aggro on them, and the server's tests keep every hostile NPC a zone script places in a combat area.
         They load when the Gateway starts (Test in game with + servers); !area here says what the server makes of a spot.</p>
       <h4>Areas</h4>
       <div class="list">${areas.map(({ area, i }) => `<label class="check" data-combat-area="${i}"><input type="checkbox" ${area.IsCombatArea ? "checked" : ""}>

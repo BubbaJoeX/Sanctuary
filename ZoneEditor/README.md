@@ -223,13 +223,13 @@ spawn, and all of it but seasons saves with the zone (Save).
 - **Areas.** The zone's named areas (its Sanctuary definition's `AreaDefinitions`): their name shows as players walk
   in. Round and square ones are drawn green and drag by their markers; areas by tile or environment keep their ground
   and are renamed here. Each can name its place, for the map, and be a combat area.
-- **Combat.** Where the client counts a player as in a combat area: the wilds, where hostile NPCs are enemies to a
-  combat job and the job picker keeps combat jobs to combat jobs. The ground is tinted by tile: red where it's a
-  combat area, blue where it's an area that isn't, grey in no area, found as the server finds a spot's area (its own
-  tiles, then shapes, then the tile's environment). Tick a whole area (`IsCombatArea`), or add stretches
-  (`CombatAreas`): circles, squares or outlines (drag their corners; add or delete corners in the inspector) that are
-  a combat area, red, or aren't one, white, whatever area they're in, such as the spots in a town where hostile NPCs
-  stand. The first stretch that holds a spot decides, so a new safe one goes first; *Earlier* and *Later* reorder them.
+- **Combat.** The combat areas, where hostile NPCs roam: the wilds, not towns (players are in combat only while a
+  mob has aggro on them, and the server's tests keep every hostile NPC a zone script places in one). The ground is
+  tinted by tile: red where it's a combat area, blue where it's an area that isn't, grey in no area, found as the
+  server finds a spot's area (its own tiles, then shapes, then the tile's environment). Tick a whole area
+  (`IsCombatArea`), or add stretches (`CombatAreas`): circles, squares or outlines (drag their corners; add or delete
+  corners in the inspector) that are a combat area, red, or aren't one, white, whatever area they're in, such as the
+  spots in a town where hostile NPCs stand. The first stretch that holds a spot decides, so a new safe one goes first; *Earlier* and *Later* reorder them.
 - **Portals.** Circles (purple) that send a player on: to the orange marker in this zone, or to a spot in another.
 - **Barriers.** The zone file's invisible walls (drawn red), posts the client won't let players pass between. Pick
   one to drag its posts, add a post at the view, set its height or delete it; *Add a barrier* puts two posts across
