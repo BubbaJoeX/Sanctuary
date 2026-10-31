@@ -11229,21 +11229,30 @@
     "NameId": 5100200,
     "Name": "Hooligan Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3157,
     "NameId": 5100200,
     "Name": "Hooligan Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3158,
     "NameId": 5100200,
     "Name": "Hooligan Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 3159,
@@ -17123,21 +17132,30 @@
     "NameId": 5100200,
     "Name": "Hooligan Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4165,
     "NameId": 5100200,
     "Name": "Hooligan Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4166,
     "NameId": 5100200,
     "Name": "Hooligan Wolf",
     "ModelId": 3284,
-    "ModelFileName": "wolf_generic.adr"
+    "ModelFileName": "wolf_generic.adr",
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
   },
   {
     "Id": 4167,
@@ -75946,6 +75964,44 @@
     "ModelId": 220,
     "ModelFileName": "bixie_m_warrior.adr",
     "Scale": 1,
+    "Disposition": 0,
+    "HasCursor": true,
+    "CursorId": 11
+  },
+  {
+    "Id": 48010,
+    "NameId": 36164,
+    "Name": "Anvil",
+    "ModelId": 273,
+    "ModelFileName": "sg_anvil_stump_01.adr",
+    "Scale": 1,
+    "TerrainObjectId": 1360103621,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 22,
+    "RelevanceUnknown2": false,
+    "Notifications": [
+      {
+        "IsCompact": false,
+        "NotificationType": 6,
+        "IconId": 47,
+        "IconState": 60,
+        "Unknown": 0,
+        "NameId": 36164,
+        "ReferenceId": 0,
+        "Unknown3": false,
+        "Unknown2": 0,
+        "Enabled": true
+      }
+    ]
+  },
+  {
+    "Id": 48011,
+    "NameId": 5100374,
+    "Name": "Gloamling",
+    "ModelId": 4201,
+    "ModelFileName": "gloamling_m_default.adr",
+    "Scale": 1.3,
     "Disposition": 0,
     "HasCursor": true,
     "CursorId": 11

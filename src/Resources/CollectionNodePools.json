@@ -8175,5 +8175,66 @@
     "NodeType": "mysterious-artifact",
     "MaxActiveNodes": 4,
     "RespawnSeconds": 30
+  },
+  {
+    "Key": "farnum-water-bucket",
+    "ZoneDefinitionId": 1,
+    "NodeType": "farnum-water-bucket",
+    "MaxActiveNodes": 1,
+    "RespawnSeconds": 5
+  },
+  {
+    "Key": "farnum-fires",
+    "ZoneDefinitionId": 1,
+    "NodeType": "farnum-fire",
+    "MaxActiveNodes": 7,
+    "RespawnSeconds": 20
+  },
+  {
+    "Key": "farnum-harvesting-practice-gummyfruit",
+    "ZoneDefinitionId": 1,
+    "NodeType": "harvesting-practice-gummyfruit",
+    "MaxActiveNodes": 4,
+    "RespawnSeconds": 15,
+    "DropTable": [
+      {
+        "ItemDefinitionId": 2875,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Key": "farnum-harvesting-practice-rainleaf",
+    "ZoneDefinitionId": 1,
+    "NodeType": "harvesting-practice-rainleaf",
+    "MaxActiveNodes": 4,
+    "RespawnSeconds": 15,
+    "DropTable": [
+      {
+        "ItemDefinitionId": 2884,
+        "Weight": 1
+      }
+    ]
+  },
+  {
+    "Key": "farnum-miner-training-nodes",
+    "ZoneDefinitionId": 1,
+    "NodeType": "miner-training-node",
+    "MaxActiveNodes": 6,
+    "RespawnSeconds": 15,
+    "DropTable": [
+      {
+        "ItemDefinitionId": 2739,
+        "Weight": 1,
+        "Quantity": 5
+      }
+    ]
+  },
+  {
+    "Key": "cobblestone-gloam-artifacts",
+    "ZoneDefinitionId": 1,
+    "NodeType": "gloam-artifact",
+    "MaxActiveNodes": 5,
+    "RespawnSeconds": 30
   }
 ]
