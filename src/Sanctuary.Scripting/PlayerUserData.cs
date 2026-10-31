@@ -129,9 +129,22 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
     private static readonly LuaFunction EmoteFunction = new("emote", static (context, cancellationToken) =>
     {
         var self = context.GetArgument<PlayerUserData>(0);
-        var animationId = context.GetArgument<int>(1);
+        var emote = context.Arguments[1];
 
-        self._player.Emote(animationId);
+        // A name (as !emote takes), or an animation id.
+        if (emote.TryRead<string>(out var name))
+            return new ValueTask<int>(context.Return(self._player.PlayEmote(name)));
+
+        self._player.Emote(context.GetArgument<int>(1));
+
+        return new ValueTask<int>(context.Return(true));
+    });
+
+    private static readonly LuaFunction StopEmoteFunction = new("stopEmote", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+
+        self._player.StopEmote();
 
         return new ValueTask<int>(context.Return());
     });
@@ -227,6 +240,38 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
             throw new LuaRuntimeException(context.State, $"giveStars amount must be between 1 and {MaxGiveStars}.");
 
         return new ValueTask<int>(context.Return(self._player.GiveStars(amount)));
+    });
+
+    private static readonly LuaFunction StartBattleFunction = new("startBattle", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var battleId = context.GetArgument<int>(1);
+
+        return new ValueTask<int>(context.Return(self._player.StartBattle(battleId)));
+    });
+
+    private static readonly LuaFunction HasAchievementFunction = new("hasAchievement", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var achievementId = context.GetArgument<int>(1);
+
+        return new ValueTask<int>(context.Return(self._player.HasAchievement(achievementId)));
+    });
+
+    private static readonly LuaFunction KnowsRecipeFunction = new("knowsRecipe", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var recipeId = context.GetArgument<int>(1);
+
+        return new ValueTask<int>(context.Return(self._player.KnowsRecipe(recipeId)));
+    });
+
+    private static readonly LuaFunction LearnRecipeFunction = new("learnRecipe", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<PlayerUserData>(0);
+        var recipeId = context.GetArgument<int>(1);
+
+        return new ValueTask<int>(context.Return(self._player.LearnRecipe(recipeId)));
     });
 
     private static readonly LuaFunction StartMinigameFunction = new("startMinigame", static (context, cancellationToken) =>
@@ -354,6 +399,15 @@ internal sealed class PlayerUserData(IScriptablePlayer player) : ILuaUserData
                 "giveStars" => GiveStarsFunction,
                 "warp" => WarpFunction,
                 "startMinigame" => StartMinigameFunction,
+                "inMinigame" => new LuaValue(self._player.IsInMinigame),
+                "battleId" => new LuaValue(self._player.BattleId),
+                "inBattle" => new LuaValue(self._player.BattleId != 0),
+                "startBattle" => StartBattleFunction,
+                "isFishing" => new LuaValue(self._player.IsFishing),
+                "hasAchievement" => HasAchievementFunction,
+                "knowsRecipe" => KnowsRecipeFunction,
+                "learnRecipe" => LearnRecipeFunction,
+                "stopEmote" => StopEmoteFunction,
                 "revive" => ReviveFunction,
                 _ => LuaValue.Nil
             };

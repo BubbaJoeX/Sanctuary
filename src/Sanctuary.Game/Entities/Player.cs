@@ -2012,6 +2012,8 @@ public sealed class Player : ClientPcData, IEntity
 
         // The knocked out window, and a battle's count of knock outs.
         (Zone as WorldZone)?.OnPlayerKnockedOut(this);
+
+        Zone?.FirePlayerEvent("playerKnockedOut", this);
     }
 
     private void UpdateRespawn()
@@ -2256,6 +2258,7 @@ public sealed class Player : ClientPcData, IEntity
             return;
 
         Achievements.Record(AchievementEvent.JobRank, profile.Id, profile.Rank);
+        Zone?.FirePlayerEvent("jobRankUp", this, profile.Id, profile.Rank);
 
         SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect
         {

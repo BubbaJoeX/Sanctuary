@@ -1696,6 +1696,20 @@ public abstract class BaseZone : IZone, IDisposable
 
     public int PlayerCount => _players.Count;
 
+    public float GameHour => GameClock.Hour;
+
+    public virtual int BattleId => 0;
+
+    public virtual ulong HouseOwnerGuid => 0;
+
+    public void FirePlayerEvent(string eventName, Player player, params object?[] arguments)
+    {
+        var scriptContext = GetOrCreateScriptContext();
+
+        if (scriptContext.HasCallbacks(eventName))
+            scriptContext.FireEvent(eventName, NpcContent.WrapPlayer(player), arguments);
+    }
+
     public IReadOnlyList<IScriptablePlayer> GetPlayers() => [.. Players.Select(NpcContent.WrapPlayer)];
 
     public IScriptablePlayer? GetPlayer(ulong guid, string? name)

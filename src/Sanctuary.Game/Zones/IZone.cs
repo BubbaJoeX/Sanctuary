@@ -46,6 +46,12 @@ public interface IZone : IScriptableZone, IDisposable
     /// </summary>
     Conversations.INpcContentManager NpcContent { get; }
 
+    /// <summary>
+    /// Runs the zone scripts' callbacks for something a player did here (a battle won, a fish caught...) with the
+    /// zone, the player and these values, if any are registered for it.
+    /// </summary>
+    void FirePlayerEvent(string eventName, Player player, params object?[] arguments);
+
     bool TryGetNpc(ulong guid, [MaybeNullWhen(false)] out Npc npc);
     bool TryGetPlayer(ulong guid, [MaybeNullWhen(false)] out Player player);
     bool TryGetEntity(ulong guid, [MaybeNullWhen(false)] out IEntity entity);

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -28,14 +29,16 @@ public class NpcContentManager : INpcContentManager
     private readonly IRewardManager _rewardManager;
     private readonly IQuestManager _questManager;
     private readonly IResourceManager _resourceManager;
+    private readonly IServiceProvider _serviceProvider;
 
     public NpcContentManager(ILogger<NpcContentManager> logger, IRewardManager rewardManager, IQuestManager questManager,
-        IResourceManager resourceManager)
+        IResourceManager resourceManager, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _rewardManager = rewardManager;
         _questManager = questManager;
         _resourceManager = resourceManager;
+        _serviceProvider = serviceProvider;
     }
 
     #region Scripts
@@ -72,7 +75,7 @@ public class NpcContentManager : INpcContentManager
             return "This has no script.";
 
         return await sandbox.CallAsync("onSpawn")
-            ?? await sandbox.CallAsync("onInteract", new ScriptPlayer(player, _rewardManager, _questManager, _resourceManager));
+            ?? await sandbox.CallAsync("onInteract", WrapPlayer(player));
     }
 
     private void FireHook(Npc npc, string hook, Player? player = null, string? argument = null)
@@ -103,6 +106,22 @@ public class NpcContentManager : INpcContentManager
 
     public void OnMobRespawned(Npc npc) => FireHook(npc, "onRespawn");
 
+    public void OnChallengeEnd(Npc giver, Player player, int challengeId, bool won)
+    {
+        if (giver.GmScript is not { } sandbox || !sandbox.HasHook("onChallengeEnd"))
+            return;
+
+        _ = RunChallengeEndHookAsync(giver, sandbox, player, challengeId, won);
+    }
+
+    private async Task RunChallengeEndHookAsync(Npc giver, ScriptSandbox sandbox, Player player, int challengeId, bool won)
+    {
+        var error = await sandbox.CallAsync("onChallengeEnd", WrapPlayer(player), challengeId, won);
+
+        if (error is not null)
+            _logger.LogWarning("Script on NPC {NpcGuid} failed in {Hook}: {Error}", giver.Guid, "onChallengeEnd", error);
+    }
+
     private async Task RunHurtHookAsync(Npc npc, ScriptSandbox sandbox, Player attacker, int damage)
     {
         var error = await sandbox.CallAsync("onHurt", WrapPlayer(attacker), damage);
@@ -113,7 +132,7 @@ public class NpcContentManager : INpcContentManager
 
     private async Task RunHookAsync(Npc npc, ScriptSandbox sandbox, string hook, Player? player, string? argument)
     {
-        var scriptPlayer = player is null ? null : new ScriptPlayer(player, _rewardManager, _questManager, _resourceManager);
+        var scriptPlayer = player is null ? null : WrapPlayer(player);
 
         var error = await sandbox.CallAsync(hook, scriptPlayer, argument);
 
@@ -129,7 +148,7 @@ public class NpcContentManager : INpcContentManager
             _logger.LogWarning("Script on NPC {NpcGuid} failed in onSecond: {Error}", npc.Guid, error);
     }
 
-    public IScriptablePlayer WrapPlayer(Player player) => new ScriptPlayer(player, _rewardManager, _questManager, _resourceManager);
+    public IScriptablePlayer WrapPlayer(Player player) => new ScriptPlayer(player, _rewardManager, _questManager, _resourceManager, _serviceProvider);
 
     #endregion
 

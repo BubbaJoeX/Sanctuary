@@ -70,4 +70,10 @@ internal class MockScriptZone(ILogger _logger) : IScriptableZone
     public HashSet<string> ActiveEvents { get; } = [];
 
     public bool IsEventActive(string eventKey) => ActiveEvents.Contains(eventKey);
+
+    public float GameHour { get; set; } = 18.5f;
+
+    public int BattleId { get; set; }
+
+    public ulong HouseOwnerGuid { get; set; }
 }

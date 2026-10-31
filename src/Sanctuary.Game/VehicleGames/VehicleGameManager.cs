@@ -670,6 +670,8 @@ public sealed partial class VehicleGameManager : IVehicleGameManager, IDisposabl
             if (participant.Won)
                 player.Achievements.Record(AchievementEvent.MinigameWin, match.Stage.Id);
 
+            player.Zone?.FirePlayerEvent("minigameEnd", player, match.Stage.Id, participant.Won);
+
             _logger.LogInformation("{player} finished {name} ({encounter:X}) in place {place}: {stars} stars, {coins} coins.",
                 player.Name.FullName, match.Stage.Comment, match.Id, participant.Place + 1, boostedStars, boostedCoins);
         }

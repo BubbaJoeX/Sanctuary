@@ -318,6 +318,15 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
         return new ValueTask<int>(context.Return(self._npc.Attack(player.Player, damage)));
     });
 
+    private static readonly LuaFunction OfferChallengeFunction = new("offerChallenge", static (context, cancellationToken) =>
+    {
+        var self = context.GetArgument<NpcUserData>(0);
+        var player = context.GetArgument<PlayerUserData>(1);
+        var challengeId = context.GetArgument<int>(2);
+
+        return new ValueTask<int>(context.Return(self._npc.OfferChallenge(player.Player, challengeId)));
+    });
+
     #endregion
 
     private static LuaTable ToPositionTable((float x, float y, float z) position) => new()
@@ -390,6 +399,7 @@ internal sealed class NpcUserData(IScriptableNpc npc) : ILuaUserData
                 "target" => self._npc.TargetGuid == 0 ? LuaValue.Nil : new LuaValue(self._npc.TargetGuid.ToString(CultureInfo.InvariantCulture)),
                 "hurt" => HurtFunction,
                 "attack" => AttackFunction,
+                "offerChallenge" => OfferChallengeFunction,
                 _ => LuaValue.Nil
             };
 
