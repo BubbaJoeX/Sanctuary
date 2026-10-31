@@ -89,6 +89,49 @@ public sealed class BattleTests
     }
 
     [TestMethod]
+    public void Dungeons_PostTheirGuardsAndSaveTheBossForLast()
+    {
+        var resources = FindSourceResources();
+        var battles = new BattleDefinitionCollection(NullLogger.Instance);
+
+        Assert.IsTrue(battles.Load(Path.Combine(resources, "Battles.json")));
+
+        var mobs = JsonDocument.Parse(File.ReadAllText(Path.Combine(resources, "Mobs.json"))).RootElement.EnumerateArray()
+            .ToDictionary(mob => mob.GetProperty("Key").GetString()!, mob => mob);
+
+        // A dungeon's guards stand at their posts from the start.
+        var dungeons = battles.Values.Where(battle => battle.Waves.Any(wave => wave.AtStart)).ToList();
+
+        Assert.IsTrue(dungeons.Count > 0);
+
+        foreach (var dungeon in dungeons)
+        {
+            var bosses = dungeon.Waves.SelectMany(wave => wave.Spawns).Where(spawn => spawn.Boss).ToList();
+
+            Assert.AreEqual(1, bosses.Count, $"Battle {dungeon.Id} ({dungeon.Comment}): a dungeon has one boss.");
+            Assert.IsNotNull(dungeon.Exit, $"Battle {dungeon.Id} ({dungeon.Comment}): its Exit goes up in the boss's room.");
+
+            // The boss comes once every guard is beaten.
+            var last = dungeon.Waves[^1];
+
+            Assert.IsFalse(last.AtStart, $"Battle {dungeon.Id} ({dungeon.Comment}): the boss's wave comes last.");
+            Assert.IsTrue(last.Spawns.Contains(bosses[0]), $"Battle {dungeon.Id} ({dungeon.Comment}): the boss comes with the last wave.");
+            Assert.IsTrue(dungeon.Waves.SkipLast(1).All(wave => wave.AtStart), $"Battle {dungeon.Id} ({dungeon.Comment}): every wave but the boss's is posted.");
+
+            var bossHealth = mobs[bosses[0].Mob!].GetProperty("MaxHitpoints").GetInt32();
+
+            foreach (var guard in dungeon.Waves.Where(wave => wave.AtStart).SelectMany(wave => wave.Spawns))
+            {
+                var mob = mobs[guard.Mob!];
+
+                // Guards only come for players near their post, not across the dungeon at the entry.
+                Assert.IsTrue(mob.GetProperty("AggroRadius").GetSingle() <= 20f, $"Battle {dungeon.Id} ({dungeon.Comment}): {guard.Mob} would leave its post.");
+                Assert.IsTrue(mob.GetProperty("MaxHitpoints").GetInt32() < bossHealth, $"Battle {dungeon.Id} ({dungeon.Comment}): its boss is tougher than its guards.");
+            }
+        }
+    }
+
+    [TestMethod]
     public void BattleZones_LetEveryEnemyReachTheEntry()
     {
         var resources = FindSourceResources();
@@ -101,11 +144,11 @@ public sealed class BattleTests
             .Where(zone => zone.TryGetProperty("Id", out _))
             .ToDictionary(zone => zone.GetProperty("Id").GetInt32(), zone => zone.GetProperty("Name").GetString()!);
 
-        var pathfinders = new Dictionary<int, NavMeshPathfinder>();
+        var zones = new Dictionary<int, (TerrainMesh Terrain, NavMeshPathfinder Pathfinder)>();
 
         foreach (var battle in battles.Values)
         {
-            if (!pathfinders.TryGetValue(battle.ZoneId, out var pathfinder))
+            if (!zones.TryGetValue(battle.ZoneId, out var zone))
             {
                 var terrainPath = Path.Combine(resources, "Terrain", zoneNames[battle.ZoneId] + ".terrain");
 
@@ -116,8 +159,10 @@ public sealed class BattleTests
 
                 Assert.IsNotNull(navMesh, $"Battle {battle.Id} ({battle.Comment}): nothing walkable in its zone.");
 
-                pathfinder = pathfinders[battle.ZoneId] = new NavMeshPathfinder(navMesh);
+                zone = zones[battle.ZoneId] = (terrain!, new NavMeshPathfinder(navMesh));
             }
+
+            var pathfinder = zone.Pathfinder;
 
             var entry = new Vector3(battle.Entry[0], battle.Entry[1], battle.Entry[2]);
             var places = battle.Waves.SelectMany(wave => wave.Spawns).Select(spawn => spawn.Position).ToList();
@@ -136,6 +181,17 @@ public sealed class BattleTests
 
                 Assert.IsTrue(Vector2.Distance(new Vector2(end.X, end.Z), new Vector2(goal.X, goal.Z)) < 2.5f,
                     $"Battle {battle.Id} ({battle.Comment}): {goal} can't be reached from the entry (the way ends at {end}).");
+            }
+
+            // A dungeon's players, enemies and Exit stand on the ground: not over it, not in it. (A random encounter's
+            // enemies keep the spots the live servers sent.)
+            if (!battle.Waves.Any(wave => wave.AtStart))
+                continue;
+
+            foreach (var place in places.Prepend(battle.Entry))
+            {
+                Assert.IsTrue(zone.Terrain.TryGetGroundHeight(place[0], place[2], place[1] + 1f, 2f, out var ground) && MathF.Abs(ground - place[1]) < 0.75f,
+                    $"Battle {battle.Id} ({battle.Comment}): ({place[0]}, {place[1]}, {place[2]}) isn't on the ground.");
             }
         }
     }

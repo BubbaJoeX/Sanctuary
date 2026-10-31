@@ -427,5 +427,4837 @@
     ],
     "Stars": 100,
     "Coins": 15
+  },
+  {
+    "Id": 2,
+    "Comment": "Bandit Hideout (the live dungeon: thugawug bandits along the tunnels, Muggenstomp under her banner in the hall at the far end)",
+    "ZoneId": 1201,
+    "NameId": 5172,
+    "DescriptionId": 6995,
+    "IconId": 660,
+    "Difficulty": 1,
+    "StarterNpcIds": [],
+    "Image": "bandit_hideout",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      276.42,
+      7.26,
+      83.45
+    ],
+    "EntryHeading": -1.7791,
+    "Exit": [
+      51.09,
+      19.15,
+      210.27
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 101373,
+    "BossObjectiveNameId": 6997,
+    "BossObjectiveDescriptionId": 416936,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3460,
+            "Position": [
+              247.96,
+              11.29,
+              93.97
+            ],
+            "Heading": 2.771,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3491,
+            "Position": [
+              248.21,
+              10.52,
+              91.09
+            ],
+            "Heading": 2.683,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3460,
+            "Position": [
+              246.66,
+              12.64,
+              98.24
+            ],
+            "Heading": 2.791,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3491,
+            "Position": [
+              232.51,
+              17.61,
+              124.22
+            ],
+            "Heading": 1.536,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3460,
+            "Position": [
+              229.79,
+              16.97,
+              121.98
+            ],
+            "Heading": 1.358,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3491,
+            "Position": [
+              235.52,
+              18.38,
+              127.91
+            ],
+            "Heading": 2.074,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3460,
+            "Position": [
+              202.51,
+              16.3,
+              101.42
+            ],
+            "Heading": 0.965,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3491,
+            "Position": [
+              206.17,
+              15.83,
+              101.85
+            ],
+            "Heading": 0.103,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3460,
+            "Position": [
+              200.07,
+              16.51,
+              99.77
+            ],
+            "Heading": 0.97,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3491,
+            "Position": [
+              157.84,
+              19.99,
+              115.47
+            ],
+            "Heading": -3.023,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3460,
+            "Position": [
+              160.49,
+              20.0,
+              115.03
+            ],
+            "Heading": -2.816,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3491,
+            "Position": [
+              155.29,
+              19.98,
+              116.45
+            ],
+            "Heading": 3.068,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3460,
+            "Position": [
+              143.11,
+              22.04,
+              153.82
+            ],
+            "Heading": 2.868,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3491,
+            "Position": [
+              141.82,
+              22.07,
+              157.52
+            ],
+            "Heading": 2.849,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3460,
+            "Position": [
+              143.91,
+              21.94,
+              150.51
+            ],
+            "Heading": 2.845,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3491,
+            "Position": [
+              122.11,
+              18.74,
+              204.92
+            ],
+            "Heading": -3.087,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3460,
+            "Position": [
+              119.78,
+              18.6,
+              203.66
+            ],
+            "Heading": 2.966,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3491,
+            "Position": [
+              121.18,
+              19.38,
+              200.65
+            ],
+            "Heading": 3.093,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46001,
+            "Position": [
+              48.55,
+              19.05,
+              213.82
+            ],
+            "Heading": 2.066,
+            "Boss": true,
+            "Mob": "dungeon-boss-1"
+          },
+          {
+            "NpcId": 3491,
+            "Position": [
+              44.83,
+              19.05,
+              214.85
+            ],
+            "Heading": 2.018,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3460,
+            "Position": [
+              46.65,
+              19.05,
+              218.01
+            ],
+            "Heading": 2.22,
+            "Mob": "dungeon-1"
+          }
+        ]
+      }
+    ],
+    "Stars": 100,
+    "Coins": 15
+  },
+  {
+    "Id": 3,
+    "Comment": "Tavern Cellar (the live dungeon: hooligans down the cellar's passages, Cal in their hangout at the bottom)",
+    "ZoneId": 1202,
+    "NameId": 5493,
+    "DescriptionId": 7066,
+    "IconId": 679,
+    "Difficulty": 1,
+    "StarterNpcIds": [],
+    "Image": "tavern_cellar",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      111.35,
+      18.77,
+      108.64
+    ],
+    "EntryHeading": 2.2256,
+    "Exit": [
+      176.75,
+      7.44,
+      -28.26
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 75441,
+    "BossObjectiveNameId": 5495,
+    "BossObjectiveDescriptionId": 5500,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46002,
+            "Position": [
+              125.75,
+              19.4,
+              79.74
+            ],
+            "Heading": 0.205,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46003,
+            "Position": [
+              127.63,
+              19.66,
+              82.49
+            ],
+            "Heading": 0.046,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46002,
+            "Position": [
+              122.41,
+              19.4,
+              79.83
+            ],
+            "Heading": 0.481,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46003,
+            "Position": [
+              130.15,
+              20.23,
+              45.3
+            ],
+            "Heading": 0.326,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46002,
+            "Position": [
+              133.33,
+              20.15,
+              46.26
+            ],
+            "Heading": -0.326,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46003,
+            "Position": [
+              130.93,
+              19.72,
+              48.24
+            ],
+            "Heading": 0.406,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46002,
+            "Position": [
+              139.55,
+              17.41,
+              19.84
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46003,
+            "Position": [
+              142.42,
+              18.1,
+              20.93
+            ],
+            "Heading": -1.934,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46002,
+            "Position": [
+              136.02,
+              16.44,
+              21.44
+            ],
+            "Heading": 1.995,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46003,
+            "Position": [
+              156.65,
+              15.67,
+              0.99
+            ],
+            "Heading": 0.236,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46002,
+            "Position": [
+              154.89,
+              16.87,
+              4.28
+            ],
+            "Heading": 0.511,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46003,
+            "Position": [
+              156.57,
+              14.33,
+              -3.26
+            ],
+            "Heading": 0.177,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46004,
+            "Position": [
+              161.98,
+              8.73,
+              -26.75
+            ],
+            "Heading": -0.333,
+            "Boss": true,
+            "Mob": "dungeon-boss-1"
+          },
+          {
+            "NpcId": 46002,
+            "Position": [
+              163.05,
+              8.73,
+              -30.69
+            ],
+            "Heading": -0.315,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46003,
+            "Position": [
+              166.45,
+              8.67,
+              -26.79
+            ],
+            "Heading": -0.649,
+            "Mob": "dungeon-1"
+          }
+        ]
+      }
+    ],
+    "Stars": 100,
+    "Coins": 15
+  },
+  {
+    "Id": 4,
+    "Comment": "Bixie Hive (the live dungeon: Drone Fauzz's bixie soldiers and battlemages through the honey tunnels, Fauzz by the hive door)",
+    "ZoneId": 1203,
+    "NameId": 5702,
+    "DescriptionId": 16784,
+    "IconId": 662,
+    "Difficulty": 1,
+    "StarterNpcIds": [],
+    "Image": "bixie_hive",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      358.94,
+      84.69,
+      233.94
+    ],
+    "EntryHeading": -0.4375,
+    "Exit": [
+      134.42,
+      79.34,
+      418.06
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76505,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 33094,
+            "Position": [
+              331.9,
+              80.09,
+              253.75
+            ],
+            "Heading": 1.902,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33091,
+            "Position": [
+              334.86,
+              80.1,
+              254.76
+            ],
+            "Heading": 2.057,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33094,
+            "Position": [
+              329.58,
+              80.03,
+              251.56
+            ],
+            "Heading": 1.729,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 33091,
+            "Position": [
+              293.89,
+              83.88,
+              261.18
+            ],
+            "Heading": 1.396,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33094,
+            "Position": [
+              291.32,
+              83.57,
+              259.07
+            ],
+            "Heading": 1.295,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33091,
+            "Position": [
+              296.57,
+              83.86,
+              262.33
+            ],
+            "Heading": 1.46,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 33094,
+            "Position": [
+              257.42,
+              79.97,
+              293.36
+            ],
+            "Heading": 3.014,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33091,
+            "Position": [
+              258.15,
+              79.98,
+              290.47
+            ],
+            "Heading": 3.06,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33094,
+            "Position": [
+              254.12,
+              79.92,
+              292.28
+            ],
+            "Heading": 2.685,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 33091,
+            "Position": [
+              242.65,
+              81.37,
+              322.29
+            ],
+            "Heading": -2.972,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33094,
+            "Position": [
+              245.08,
+              81.51,
+              321.26
+            ],
+            "Heading": -2.751,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33091,
+            "Position": [
+              244.59,
+              81.46,
+              324.68
+            ],
+            "Heading": -2.869,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 33094,
+            "Position": [
+              214.07,
+              80.0,
+              347.31
+            ],
+            "Heading": 1.126,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33091,
+            "Position": [
+              210.43,
+              80.02,
+              346.95
+            ],
+            "Heading": 1.245,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33094,
+            "Position": [
+              217.11,
+              80.03,
+              348.19
+            ],
+            "Heading": 0.994,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 33091,
+            "Position": [
+              179.75,
+              79.67,
+              374.71
+            ],
+            "Heading": 0.069,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33094,
+            "Position": [
+              182.04,
+              79.79,
+              376.03
+            ],
+            "Heading": -1.931,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33091,
+            "Position": [
+              175.89,
+              79.54,
+              375.81
+            ],
+            "Heading": 1.731,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46005,
+            "Position": [
+              143.9,
+              79.76,
+              423.08
+            ],
+            "Heading": 0.626,
+            "Boss": true,
+            "Mob": "dungeon-boss-1"
+          },
+          {
+            "NpcId": 33094,
+            "Position": [
+              146.33,
+              79.86,
+              425.19
+            ],
+            "Heading": 0.376,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 33091,
+            "Position": [
+              140.83,
+              80.03,
+              425.66
+            ],
+            "Heading": 1.234,
+            "Mob": "dungeon-1"
+          }
+        ]
+      }
+    ],
+    "Stars": 100,
+    "Coins": 15
+  },
+  {
+    "Id": 5,
+    "Comment": "Cracked Claw Caverns (the live dungeon: swamp cray up the cavern, Cracked Claw among the bones at the top)",
+    "ZoneId": 1204,
+    "NameId": 71771,
+    "DescriptionId": 76413,
+    "IconId": 310,
+    "Difficulty": 1,
+    "StarterNpcIds": [],
+    "Image": "cracked_claw_cavern",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      115.99,
+      41.24,
+      229.02
+    ],
+    "EntryHeading": 1.151,
+    "Exit": [
+      160.72,
+      42.27,
+      328.43
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76116,
+    "BossObjectiveNameId": 76424,
+    "BossObjectiveDescriptionId": 76425,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46006,
+            "Position": [
+              139.87,
+              40.34,
+              243.23
+            ],
+            "Heading": -2.159,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46007,
+            "Position": [
+              136.95,
+              40.0,
+              244.4
+            ],
+            "Heading": -2.438,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46006,
+            "Position": [
+              134.65,
+              40.06,
+              242.13
+            ],
+            "Heading": -2.484,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46007,
+            "Position": [
+              158.33,
+              40.0,
+              263.11
+            ],
+            "Heading": -0.627,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46006,
+            "Position": [
+              157.54,
+              40.0,
+              266.16
+            ],
+            "Heading": 2.96,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46007,
+            "Position": [
+              153.85,
+              40.0,
+              264.86
+            ],
+            "Heading": 1.879,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46006,
+            "Position": [
+              144.61,
+              40.35,
+              297.73
+            ],
+            "Heading": -3.121,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46007,
+            "Position": [
+              143.91,
+              40.04,
+              293.92
+            ],
+            "Heading": 3.121,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46006,
+            "Position": [
+              141.9,
+              40.38,
+              296.48
+            ],
+            "Heading": 3.013,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46008,
+            "Position": [
+              160.24,
+              40.5,
+              319.11
+            ],
+            "Heading": -2.468,
+            "Boss": true,
+            "Mob": "dungeon-boss-1"
+          },
+          {
+            "NpcId": 46007,
+            "Position": [
+              157.87,
+              40.18,
+              317.11
+            ],
+            "Heading": -2.51,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46006,
+            "Position": [
+              164.17,
+              39.89,
+              316.42
+            ],
+            "Heading": -2.208,
+            "Mob": "dungeon-1"
+          }
+        ]
+      }
+    ],
+    "Stars": 100,
+    "Coins": 15
+  },
+  {
+    "Id": 6,
+    "Comment": "Den of Secrets (the live dungeon: fairy cultists past the prisoners' cages, Illusionist Liana at the mana pools)",
+    "ZoneId": 1205,
+    "NameId": 71770,
+    "DescriptionId": 74906,
+    "IconId": 310,
+    "Difficulty": 1,
+    "StarterNpcIds": [],
+    "Image": "den_of_secrets",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      264.39,
+      14.49,
+      302.11
+    ],
+    "EntryHeading": 2.7447,
+    "Exit": [
+      302.39,
+      2.77,
+      121.49
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76355,
+    "BossObjectiveNameId": 74907,
+    "BossObjectiveDescriptionId": 74908,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3241,
+            "Position": [
+              265.65,
+              7.56,
+              272.93
+            ],
+            "Heading": 0.14,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3264,
+            "Position": [
+              267.69,
+              7.64,
+              270.83
+            ],
+            "Heading": -0.038,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3241,
+            "Position": [
+              263.13,
+              7.91,
+              269.65
+            ],
+            "Heading": 0.278,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3264,
+            "Position": [
+              308.57,
+              12.16,
+              223.9
+            ],
+            "Heading": -1.083,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3241,
+            "Position": [
+              304.99,
+              12.0,
+              223.79
+            ],
+            "Heading": -0.966,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3264,
+            "Position": [
+              304.06,
+              11.76,
+              226.61
+            ],
+            "Heading": -1.105,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3241,
+            "Position": [
+              354.01,
+              9.12,
+              249.09
+            ],
+            "Heading": -2.187,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3264,
+            "Position": [
+              352.67,
+              9.63,
+              244.79
+            ],
+            "Heading": -1.946,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3241,
+            "Position": [
+              355.64,
+              9.97,
+              245.09
+            ],
+            "Heading": -1.889,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3264,
+            "Position": [
+              352.79,
+              17.49,
+              205.39
+            ],
+            "Heading": 0.061,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3241,
+            "Position": [
+              350.36,
+              17.62,
+              206.93
+            ],
+            "Heading": 0.511,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3264,
+            "Position": [
+              350.07,
+              17.79,
+              203.89
+            ],
+            "Heading": 0.368,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3241,
+            "Position": [
+              289.9,
+              16.53,
+              196.36
+            ],
+            "Heading": 2.219,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3264,
+            "Position": [
+              293.93,
+              17.09,
+              195.63
+            ],
+            "Heading": 2.593,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3241,
+            "Position": [
+              294.15,
+              17.01,
+              199.38
+            ],
+            "Heading": 2.849,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 3264,
+            "Position": [
+              265.42,
+              10.89,
+              151.71
+            ],
+            "Heading": -0.699,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3241,
+            "Position": [
+              269.5,
+              11.58,
+              151.78
+            ],
+            "Heading": -0.909,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3264,
+            "Position": [
+              264.86,
+              10.9,
+              155.07
+            ],
+            "Heading": -0.883,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46009,
+            "Position": [
+              310.29,
+              2.3,
+              112.39
+            ],
+            "Heading": -2.284,
+            "Boss": true,
+            "Mob": "dungeon-boss-1"
+          },
+          {
+            "NpcId": 3264,
+            "Position": [
+              310.61,
+              2.3,
+              115.79
+            ],
+            "Heading": -2.439,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 3241,
+            "Position": [
+              307.33,
+              2.35,
+              113.7
+            ],
+            "Heading": -2.537,
+            "Mob": "dungeon-1"
+          }
+        ]
+      }
+    ],
+    "Stars": 100,
+    "Coins": 15
+  },
+  {
+    "Id": 7,
+    "Comment": "Hot Springs Haven (the live dungeon: yetis lounging through the resort, Umari in the far lounge)",
+    "ZoneId": 1206,
+    "NameId": 3269,
+    "DescriptionId": 204,
+    "IconId": 316,
+    "Difficulty": 1,
+    "StarterNpcIds": [],
+    "Image": "hot_spring_haven",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      250.82,
+      88.77,
+      209.76
+    ],
+    "EntryHeading": -1.551,
+    "Exit": [
+      124.22,
+      79.87,
+      436.41
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 116825,
+    "BossObjectiveNameId": 6851,
+    "BossObjectiveDescriptionId": 6852,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46010,
+            "Position": [
+              223.97,
+              89.28,
+              221.01
+            ],
+            "Heading": 2.212,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46011,
+            "Position": [
+              221.37,
+              88.97,
+              221.43
+            ],
+            "Heading": 2.128,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46012,
+            "Position": [
+              226.73,
+              89.54,
+              219.6
+            ],
+            "Heading": 2.268,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46011,
+            "Position": [
+              249.52,
+              81.15,
+              242.14
+            ],
+            "Heading": -2.702,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46012,
+            "Position": [
+              253.07,
+              81.68,
+              242.62
+            ],
+            "Heading": -2.432,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46010,
+            "Position": [
+              250.83,
+              82.03,
+              245.78
+            ],
+            "Heading": -2.731,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46012,
+            "Position": [
+              269.89,
+              80.07,
+              261.33
+            ],
+            "Heading": -2.164,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46010,
+            "Position": [
+              271.17,
+              80.01,
+              264.46
+            ],
+            "Heading": -2.328,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46011,
+            "Position": [
+              270.19,
+              80.04,
+              267.04
+            ],
+            "Heading": -2.529,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46010,
+            "Position": [
+              239.42,
+              80.7,
+              297.06
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46011,
+            "Position": [
+              236.36,
+              80.66,
+              296.07
+            ],
+            "Heading": 1.257,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46012,
+            "Position": [
+              237.48,
+              80.86,
+              300.34
+            ],
+            "Heading": 2.605,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46011,
+            "Position": [
+              192.82,
+              81.78,
+              323.06
+            ],
+            "Heading": -2.981,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46012,
+            "Position": [
+              195.62,
+              81.55,
+              323.49
+            ],
+            "Heading": -2.768,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46010,
+            "Position": [
+              195.32,
+              81.4,
+              319.04
+            ],
+            "Heading": -2.612,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46012,
+            "Position": [
+              171.92,
+              79.65,
+              379.41
+            ],
+            "Heading": 1.871,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46010,
+            "Position": [
+              170.42,
+              79.8,
+              383.31
+            ],
+            "Heading": 2.083,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46011,
+            "Position": [
+              175.44,
+              79.56,
+              379.88
+            ],
+            "Heading": 2.027,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46010,
+            "Position": [
+              157.8,
+              80.05,
+              430.8
+            ],
+            "Heading": 2.108,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46011,
+            "Position": [
+              154.15,
+              80.04,
+              428.75
+            ],
+            "Heading": 1.608,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46012,
+            "Position": [
+              161.72,
+              79.79,
+              428.46
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-1"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46013,
+            "Position": [
+              131.3,
+              79.72,
+              425.94
+            ],
+            "Heading": 1.334,
+            "Boss": true,
+            "Mob": "dungeon-boss-1"
+          },
+          {
+            "NpcId": 46012,
+            "Position": [
+              128.82,
+              79.77,
+              429.05
+            ],
+            "Heading": 1.583,
+            "Mob": "dungeon-1"
+          },
+          {
+            "NpcId": 46011,
+            "Position": [
+              131.51,
+              79.8,
+              430.79
+            ],
+            "Heading": 1.731,
+            "Mob": "dungeon-1"
+          }
+        ]
+      }
+    ],
+    "Stars": 100,
+    "Coins": 15
+  },
+  {
+    "Id": 8,
+    "Comment": "The Bat Cave! (the live dungeon: bats from the miners' platforms down through the mine, Echolyss in the bone den at the bottom)",
+    "ZoneId": 1207,
+    "NameId": 6456,
+    "DescriptionId": 6457,
+    "IconId": 661,
+    "Difficulty": 2,
+    "StarterNpcIds": [],
+    "Image": "bat_caves",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      453.29,
+      88.18,
+      431.36
+    ],
+    "EntryHeading": -1.6172,
+    "Exit": [
+      414.92,
+      80.0,
+      196.4
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76355,
+    "BossObjectiveNameId": 6467,
+    "BossObjectiveDescriptionId": 6458,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46014,
+            "Position": [
+              423.73,
+              85.52,
+              411.29
+            ],
+            "Heading": 0.712,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46015,
+            "Position": [
+              425.36,
+              85.1,
+              408.8
+            ],
+            "Heading": 0.474,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46016,
+            "Position": [
+              424.87,
+              85.96,
+              414.05
+            ],
+            "Heading": 0.828,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46015,
+            "Position": [
+              421.87,
+              80.8,
+              366.33
+            ],
+            "Heading": 0.181,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46016,
+            "Position": [
+              419.38,
+              80.77,
+              367.72
+            ],
+            "Heading": 0.434,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46014,
+            "Position": [
+              421.43,
+              80.88,
+              369.74
+            ],
+            "Heading": 0.31,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46016,
+            "Position": [
+              439.58,
+              82.19,
+              330.12
+            ],
+            "Heading": -0.877,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46014,
+            "Position": [
+              441.64,
+              82.59,
+              332.08
+            ],
+            "Heading": -1.096,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46015,
+            "Position": [
+              437.0,
+              82.64,
+              332.74
+            ],
+            "Heading": -0.918,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46014,
+            "Position": [
+              431.26,
+              81.03,
+              294.51
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46015,
+            "Position": [
+              429.27,
+              81.44,
+              292.73
+            ],
+            "Heading": 0.84,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46016,
+            "Position": [
+              433.16,
+              80.94,
+              291.96
+            ],
+            "Heading": -0.641,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46015,
+            "Position": [
+              428.35,
+              80.0,
+              256.53
+            ],
+            "Heading": 1.444,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46016,
+            "Position": [
+              425.17,
+              80.01,
+              255.47
+            ],
+            "Heading": 1.403,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46014,
+            "Position": [
+              428.3,
+              79.95,
+              259.82
+            ],
+            "Heading": 1.711,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46016,
+            "Position": [
+              410.86,
+              81.64,
+              232.11
+            ],
+            "Heading": 0.234,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46014,
+            "Position": [
+              413.31,
+              81.34,
+              234.4
+            ],
+            "Heading": -0.001,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46015,
+            "Position": [
+              410.43,
+              81.24,
+              236.12
+            ],
+            "Heading": 0.43,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46017,
+            "Position": [
+              418.91,
+              80.0,
+              196.81
+            ],
+            "Heading": -0.279,
+            "Boss": true,
+            "Mob": "dungeon-boss-2"
+          },
+          {
+            "NpcId": 46016,
+            "Position": [
+              421.79,
+              80.0,
+              195.01
+            ],
+            "Heading": -0.357,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46015,
+            "Position": [
+              417.64,
+              80.0,
+              193.07
+            ],
+            "Heading": -0.205,
+            "Mob": "dungeon-2"
+          }
+        ]
+      }
+    ],
+    "Stars": 140,
+    "Coins": 30
+  },
+  {
+    "Id": 9,
+    "Comment": "Robgoblin Treasure Trove (the live dungeon: robgoblin bruisers and wiz-ords through the trove, Wizard Hildegarde at the treasure chests)",
+    "ZoneId": 1208,
+    "NameId": 5697,
+    "DescriptionId": 7067,
+    "IconId": 677,
+    "Difficulty": 2,
+    "StarterNpcIds": [],
+    "Image": "robgoblin_treasure_trove",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      344.84,
+      39.33,
+      150.09
+    ],
+    "EntryHeading": -1.5674,
+    "Exit": [
+      85.0,
+      30.0,
+      159.46
+    ],
+    "ObjectiveNameId": 42066,
+    "ObjectiveDescriptionId": 42068,
+    "BossObjectiveNameId": 7012,
+    "BossObjectiveDescriptionId": 7013,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46018,
+            "Position": [
+              312.68,
+              38.71,
+              142.23
+            ],
+            "Heading": 1.067,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46019,
+            "Position": [
+              313.61,
+              38.43,
+              144.93
+            ],
+            "Heading": 1.201,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46018,
+            "Position": [
+              308.09,
+              38.46,
+              145.5
+            ],
+            "Heading": 1.331,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46019,
+            "Position": [
+              271.16,
+              31.16,
+              125.85
+            ],
+            "Heading": 1.718,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46018,
+            "Position": [
+              273.82,
+              32.83,
+              122.49
+            ],
+            "Heading": 1.528,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46019,
+            "Position": [
+              274.76,
+              32.21,
+              125.12
+            ],
+            "Heading": 1.705,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46018,
+            "Position": [
+              249.55,
+              30.0,
+              152.7
+            ],
+            "Heading": 2.464,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46019,
+            "Position": [
+              245.69,
+              30.0,
+              152.66
+            ],
+            "Heading": 2.237,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46018,
+            "Position": [
+              247.66,
+              30.0,
+              155.31
+            ],
+            "Heading": 2.476,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46019,
+            "Position": [
+              246.32,
+              31.51,
+              192.21
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46018,
+            "Position": [
+              244.3,
+              32.67,
+              194.9
+            ],
+            "Heading": 2.496,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46019,
+            "Position": [
+              250.12,
+              31.01,
+              190.33
+            ],
+            "Heading": -1.112,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46018,
+            "Position": [
+              192.53,
+              30.4,
+              189.41
+            ],
+            "Heading": 1.815,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46019,
+            "Position": [
+              192.98,
+              30.13,
+              184.18
+            ],
+            "Heading": 1.376,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46018,
+            "Position": [
+              194.83,
+              30.54,
+              192.48
+            ],
+            "Heading": 2.131,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46019,
+            "Position": [
+              149.54,
+              30.03,
+              184.2
+            ],
+            "Heading": 0.801,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46018,
+            "Position": [
+              153.0,
+              29.94,
+              183.65
+            ],
+            "Heading": 0.517,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46019,
+            "Position": [
+              145.58,
+              30.05,
+              182.32
+            ],
+            "Heading": 0.89,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46020,
+            "Position": [
+              92.19,
+              30.0,
+              164.45
+            ],
+            "Heading": -0.142,
+            "Boss": true,
+            "Mob": "dungeon-boss-2"
+          },
+          {
+            "NpcId": 46019,
+            "Position": [
+              91.64,
+              30.0,
+              168.3
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46018,
+            "Position": [
+              89.01,
+              30.13,
+              162.8
+            ],
+            "Heading": 0.448,
+            "Mob": "dungeon-2"
+          }
+        ]
+      }
+    ],
+    "Stars": 140,
+    "Coins": 30
+  },
+  {
+    "Id": 10,
+    "Comment": "Cray Caves (the live dungeon: cray from the beached boats up through the caves, Tideweaver Oceana and Kelp Knight Oseidon at the top)",
+    "ZoneId": 1209,
+    "NameId": 71694,
+    "DescriptionId": 76456,
+    "IconId": 9555,
+    "Difficulty": 2,
+    "StarterNpcIds": [],
+    "Image": "cray_caves",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      387.7,
+      84.9,
+      122.57
+    ],
+    "EntryHeading": -0.8415,
+    "Exit": [
+      419.48,
+      79.18,
+      358.99
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76355,
+    "BossObjectiveNameId": 76857,
+    "BossObjectiveDescriptionId": 76858,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 4194,
+            "Position": [
+              355.26,
+              79.53,
+              118.33
+            ],
+            "Heading": 0.407,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46021,
+            "Position": [
+              352.08,
+              79.49,
+              117.31
+            ],
+            "Heading": 0.54,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 4194,
+            "Position": [
+              357.66,
+              79.71,
+              120.82
+            ],
+            "Heading": 0.316,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46021,
+            "Position": [
+              357.42,
+              71.24,
+              151.57
+            ],
+            "Heading": 2.75,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 4194,
+            "Position": [
+              358.83,
+              71.14,
+              148.91
+            ],
+            "Heading": 2.768,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46021,
+            "Position": [
+              358.16,
+              71.42,
+              155.98
+            ],
+            "Heading": 2.852,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 4194,
+            "Position": [
+              381.42,
+              69.94,
+              178.25
+            ],
+            "Heading": -2.225,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46021,
+            "Position": [
+              383.74,
+              69.83,
+              181.01
+            ],
+            "Heading": -2.26,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 4194,
+            "Position": [
+              377.81,
+              69.99,
+              180.39
+            ],
+            "Heading": -2.452,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46021,
+            "Position": [
+              407.64,
+              70.02,
+              203.43
+            ],
+            "Heading": -1.756,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 4194,
+            "Position": [
+              404.98,
+              69.99,
+              202.84
+            ],
+            "Heading": 1.257,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46021,
+            "Position": [
+              403.32,
+              70.08,
+              206.82
+            ],
+            "Heading": 2.595,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 4194,
+            "Position": [
+              385.85,
+              72.95,
+              261.22
+            ],
+            "Heading": -2.629,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46021,
+            "Position": [
+              384.92,
+              72.8,
+              257.34
+            ],
+            "Heading": 0.16,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 4194,
+            "Position": [
+              382.59,
+              72.77,
+              261.68
+            ],
+            "Heading": 1.981,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46021,
+            "Position": [
+              370.32,
+              73.32,
+              311.5
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 4194,
+            "Position": [
+              371.35,
+              72.98,
+              308.08
+            ],
+            "Heading": -0.293,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46021,
+            "Position": [
+              373.88,
+              73.04,
+              310.81
+            ],
+            "Heading": -1.379,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46022,
+            "Position": [
+              412.87,
+              79.54,
+              358.53
+            ],
+            "Heading": -2.04,
+            "Boss": true,
+            "Mob": "dungeon-boss-2"
+          },
+          {
+            "NpcId": 46023,
+            "Position": [
+              409.82,
+              79.36,
+              357.26
+            ],
+            "Heading": -2.06,
+            "Mob": "dungeon-boss-2"
+          },
+          {
+            "NpcId": 4194,
+            "Position": [
+              416.21,
+              79.24,
+              359.35
+            ],
+            "Heading": -2.0,
+            "Mob": "dungeon-2"
+          }
+        ]
+      }
+    ],
+    "Stars": 140,
+    "Coins": 30
+  },
+  {
+    "Id": 11,
+    "Comment": "Mushroom Cavern (the live dungeon: fungal beasts and bats across the caverns, Marasmius in the high cave at the east end)",
+    "ZoneId": 1210,
+    "NameId": 4187,
+    "DescriptionId": 103198,
+    "IconId": 676,
+    "Difficulty": 3,
+    "StarterNpcIds": [],
+    "Image": "mushroom_caverns",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      63.34,
+      30.56,
+      142.93
+    ],
+    "EntryHeading": 0.9151,
+    "Exit": [
+      345.15,
+      39.2,
+      152.59
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76355,
+    "BossObjectiveNameId": 5095,
+    "BossObjectiveDescriptionId": 5488,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46024,
+            "Position": [
+              90.74,
+              30.08,
+              163.18
+            ],
+            "Heading": -2.321,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46025,
+            "Position": [
+              92.26,
+              30.0,
+              165.32
+            ],
+            "Heading": -2.349,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46026,
+            "Position": [
+              88.61,
+              30.07,
+              165.11
+            ],
+            "Heading": -2.499,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46025,
+            "Position": [
+              124.15,
+              29.98,
+              184.0
+            ],
+            "Heading": -2.68,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46026,
+            "Position": [
+              121.85,
+              29.93,
+              185.24
+            ],
+            "Heading": -2.847,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46024,
+            "Position": [
+              118.91,
+              29.94,
+              184.73
+            ],
+            "Heading": -3.032,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46026,
+            "Position": [
+              155.77,
+              30.0,
+              189.33
+            ],
+            "Heading": 3.06,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46024,
+            "Position": [
+              161.36,
+              30.07,
+              193.69
+            ],
+            "Heading": -2.614,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46025,
+            "Position": [
+              155.2,
+              29.85,
+              193.33
+            ],
+            "Heading": 3.032,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46024,
+            "Position": [
+              211.89,
+              32.17,
+              188.24
+            ],
+            "Heading": -1.26,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46025,
+            "Position": [
+              210.08,
+              32.27,
+              185.76
+            ],
+            "Heading": -0.707,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46026,
+            "Position": [
+              207.19,
+              31.55,
+              187.81
+            ],
+            "Heading": -0.314,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46025,
+            "Position": [
+              266.62,
+              30.0,
+              181.51
+            ],
+            "Heading": -0.904,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46026,
+            "Position": [
+              264.63,
+              29.96,
+              178.59
+            ],
+            "Heading": -0.68,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46024,
+            "Position": [
+              268.94,
+              30.0,
+              178.24
+            ],
+            "Heading": -0.844,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46026,
+            "Position": [
+              294.84,
+              33.72,
+              183.13
+            ],
+            "Heading": -2.38,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46024,
+            "Position": [
+              298.33,
+              34.11,
+              183.4
+            ],
+            "Heading": -2.22,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46025,
+            "Position": [
+              295.03,
+              33.12,
+              179.9
+            ],
+            "Heading": -2.14,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46024,
+            "Position": [
+              326.34,
+              34.73,
+              178.23
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46025,
+            "Position": [
+              323.38,
+              34.69,
+              178.16
+            ],
+            "Heading": 1.547,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46026,
+            "Position": [
+              326.69,
+              35.39,
+              174.79
+            ],
+            "Heading": -0.1,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46027,
+            "Position": [
+              339.04,
+              38.46,
+              156.73
+            ],
+            "Heading": -0.216,
+            "Boss": true,
+            "Mob": "dungeon-boss-3"
+          },
+          {
+            "NpcId": 46024,
+            "Position": [
+              338.91,
+              38.7,
+              153.07
+            ],
+            "Heading": -0.14,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46026,
+            "Position": [
+              341.22,
+              38.45,
+              160.59
+            ],
+            "Heading": -0.741,
+            "Mob": "dungeon-3"
+          }
+        ]
+      }
+    ],
+    "Stars": 180,
+    "Coins": 45
+  },
+  {
+    "Id": 12,
+    "Comment": "Deep Mines (the live dungeon: robgoblins and rock crawlers round the mine's loop, Tuga at the campfire at the end of the west drift)",
+    "ZoneId": 1211,
+    "NameId": 5699,
+    "DescriptionId": 7450,
+    "IconId": 667,
+    "Difficulty": 3,
+    "StarterNpcIds": [],
+    "Image": "deep_mines",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      151.24,
+      11.72,
+      117.88
+    ],
+    "EntryHeading": 0.9273,
+    "Exit": [
+      -9.61,
+      10.05,
+      139.18
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 7449,
+    "BossObjectiveNameId": 417530,
+    "BossObjectiveDescriptionId": 417529,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46028,
+            "Position": [
+              145.81,
+              8.27,
+              151.66
+            ],
+            "Heading": 2.908,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              148.59,
+              5.36,
+              158.43
+            ],
+            "Heading": 3.126,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              145.2,
+              9.0,
+              147.2
+            ],
+            "Heading": 2.731,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46029,
+            "Position": [
+              169.75,
+              4.55,
+              180.1
+            ],
+            "Heading": -3.041,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              166.8,
+              4.2,
+              178.87
+            ],
+            "Heading": 2.938,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46028,
+            "Position": [
+              170.21,
+              5.2,
+              183.24
+            ],
+            "Heading": -3.03,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46030,
+            "Position": [
+              131.78,
+              15.5,
+              210.86
+            ],
+            "Heading": 1.646,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46028,
+            "Position": [
+              128.88,
+              15.55,
+              210.54
+            ],
+            "Heading": 1.619,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              131.39,
+              15.46,
+              206.17
+            ],
+            "Heading": 1.381,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46028,
+            "Position": [
+              120.35,
+              9.76,
+              173.18
+            ],
+            "Heading": 0.631,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              119.84,
+              9.9,
+              176.59
+            ],
+            "Heading": 0.873,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              117.72,
+              9.47,
+              172.34
+            ],
+            "Heading": 0.743,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46029,
+            "Position": [
+              75.6,
+              10.98,
+              171.0
+            ],
+            "Heading": 1.511,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              72.66,
+              10.94,
+              172.3
+            ],
+            "Heading": 1.625,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46028,
+            "Position": [
+              75.44,
+              10.97,
+              167.74
+            ],
+            "Heading": 1.207,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46030,
+            "Position": [
+              59.92,
+              10.28,
+              142.96
+            ],
+            "Heading": -0.294,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46028,
+            "Position": [
+              62.79,
+              9.52,
+              140.36
+            ],
+            "Heading": -0.442,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              60.12,
+              9.51,
+              139.27
+            ],
+            "Heading": -0.23,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46028,
+            "Position": [
+              21.44,
+              10.09,
+              136.74
+            ],
+            "Heading": 1.463,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              24.42,
+              10.14,
+              137.98
+            ],
+            "Heading": 1.597,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              18.73,
+              9.94,
+              135.46
+            ],
+            "Heading": 1.385,
+            "Mob": "dungeon-3"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46031,
+            "Position": [
+              -7.69,
+              10.11,
+              135.23
+            ],
+            "Heading": 1.595,
+            "Boss": true,
+            "Mob": "dungeon-boss-3"
+          },
+          {
+            "NpcId": 46028,
+            "Position": [
+              -8.84,
+              10.05,
+              132.17
+            ],
+            "Heading": 1.472,
+            "Mob": "dungeon-3"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              -12.3,
+              10.05,
+              133.04
+            ],
+            "Heading": 1.515,
+            "Mob": "dungeon-3"
+          }
+        ]
+      }
+    ],
+    "Stars": 180,
+    "Coins": 45
+  },
+  {
+    "Id": 13,
+    "Comment": "Frostfang Caverns (the live dungeon: wolves and rock crawlers from the fenced ledge to the north cave, Chillblaine among the bones there; its cave mouth in Snowhill starts it)",
+    "ZoneId": 1212,
+    "NameId": 5698,
+    "DescriptionId": 7071,
+    "IconId": 670,
+    "Difficulty": 4,
+    "StarterNpcIds": [
+      33823
+    ],
+    "Image": "frostfang_caverns",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      257.99,
+      88.71,
+      218.7
+    ],
+    "EntryHeading": -2.6229,
+    "Exit": [
+      289.45,
+      88.25,
+      436.16
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 92660,
+    "BossObjectiveNameId": 20653,
+    "BossObjectiveDescriptionId": 418492,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46032,
+            "Position": [
+              223.83,
+              89.29,
+              219.26
+            ],
+            "Heading": 2.191,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              228.81,
+              89.88,
+              216.24
+            ],
+            "Heading": 2.246,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              220.15,
+              88.84,
+              221.28
+            ],
+            "Heading": 2.163,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              227.08,
+              89.66,
+              218.47
+            ],
+            "Heading": 2.307,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46029,
+            "Position": [
+              257.03,
+              83.53,
+              250.46
+            ],
+            "Heading": -2.311,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              259.07,
+              83.5,
+              248.84
+            ],
+            "Heading": -1.848,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              254.81,
+              82.77,
+              247.05
+            ],
+            "Heading": -1.407,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              252.42,
+              82.84,
+              248.74
+            ],
+            "Heading": 2.495,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46030,
+            "Position": [
+              276.93,
+              80.29,
+              269.36
+            ],
+            "Heading": -3.014,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              278.53,
+              80.51,
+              266.62
+            ],
+            "Heading": -2.794,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              272.3,
+              80.08,
+              272.34
+            ],
+            "Heading": 2.917,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              274.8,
+              80.2,
+              270.89
+            ],
+            "Heading": 3.085,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46032,
+            "Position": [
+              257.18,
+              79.94,
+              292.0
+            ],
+            "Heading": 2.785,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              257.85,
+              79.97,
+              294.7
+            ],
+            "Heading": 2.902,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              256.88,
+              80.12,
+              297.17
+            ],
+            "Heading": 2.88,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              255.9,
+              79.96,
+              288.98
+            ],
+            "Heading": 2.53,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46029,
+            "Position": [
+              257.48,
+              80.16,
+              350.46
+            ],
+            "Heading": -2.793,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              260.78,
+              80.1,
+              348.84
+            ],
+            "Heading": -2.592,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              258.17,
+              80.2,
+              354.04
+            ],
+            "Heading": -2.819,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              261.03,
+              80.04,
+              351.86
+            ],
+            "Heading": -2.657,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46030,
+            "Position": [
+              264.8,
+              82.82,
+              411.44
+            ],
+            "Heading": 3.041,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              262.56,
+              82.6,
+              409.7
+            ],
+            "Heading": 2.88,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              265.68,
+              82.27,
+              408.54
+            ],
+            "Heading": 3.085,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              269.42,
+              82.17,
+              408.61
+            ],
+            "Heading": -2.921,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46032,
+            "Position": [
+              282.95,
+              88.25,
+              447.9
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46029,
+            "Position": [
+              286.08,
+              88.2,
+              449.45
+            ],
+            "Heading": -2.031,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46030,
+            "Position": [
+              285.84,
+              88.22,
+              445.87
+            ],
+            "Heading": -0.957,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              279.61,
+              88.29,
+              451.23
+            ],
+            "Heading": 2.355,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46033,
+            "Position": [
+              299.56,
+              88.23,
+              428.56
+            ],
+            "Heading": -0.2,
+            "Boss": true,
+            "Mob": "dungeon-boss-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              300.11,
+              88.29,
+              425.56
+            ],
+            "Heading": -0.197,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46032,
+            "Position": [
+              302.55,
+              88.46,
+              428.28
+            ],
+            "Heading": -0.353,
+            "Mob": "dungeon-4"
+          }
+        ]
+      }
+    ],
+    "Stars": 220,
+    "Coins": 60
+  },
+  {
+    "Id": 14,
+    "Comment": "Darvon's Descent (the live dungeon: Darvon's changelings across the root caverns, Darvon at the wing shrine at the west end)",
+    "ZoneId": 1213,
+    "NameId": 7697,
+    "DescriptionId": 94598,
+    "IconId": 888,
+    "Difficulty": 4,
+    "StarterNpcIds": [],
+    "Image": "darvons_descent",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      509.26,
+      29.14,
+      336.81
+    ],
+    "EntryHeading": 0.1472,
+    "Exit": [
+      233.28,
+      20.56,
+      332.55
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76355,
+    "BossObjectiveNameId": 17033,
+    "BossObjectiveDescriptionId": 17034,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46034,
+            "Position": [
+              491.22,
+              24.47,
+              377.22
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              489.61,
+              24.49,
+              374.4
+            ],
+            "Heading": 0.516,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46036,
+            "Position": [
+              493.09,
+              24.54,
+              380.36
+            ],
+            "Heading": -2.603,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              488.9,
+              24.33,
+              379.35
+            ],
+            "Heading": 2.313,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46035,
+            "Position": [
+              459.24,
+              19.5,
+              360.72
+            ],
+            "Heading": 0.579,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46036,
+            "Position": [
+              461.63,
+              20.26,
+              358.08
+            ],
+            "Heading": 0.264,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              458.8,
+              20.13,
+              364.98
+            ],
+            "Heading": 0.98,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              455.38,
+              19.98,
+              362.66
+            ],
+            "Heading": 0.978,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46036,
+            "Position": [
+              410.85,
+              23.79,
+              384.42
+            ],
+            "Heading": 1.811,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              413.21,
+              23.3,
+              386.63
+            ],
+            "Heading": 2.504,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              405.35,
+              24.81,
+              384.96
+            ],
+            "Heading": 1.736,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46036,
+            "Position": [
+              414.52,
+              22.17,
+              382.31
+            ],
+            "Heading": 0.925,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46034,
+            "Position": [
+              374.94,
+              21.37,
+              376.62
+            ],
+            "Heading": 1.313,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              373.35,
+              21.17,
+              379.03
+            ],
+            "Heading": 1.662,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46036,
+            "Position": [
+              377.64,
+              21.62,
+              374.92
+            ],
+            "Heading": 0.825,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              370.9,
+              20.93,
+              374.86
+            ],
+            "Heading": 1.251,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46035,
+            "Position": [
+              329.94,
+              19.82,
+              374.34
+            ],
+            "Heading": 1.671,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46036,
+            "Position": [
+              333.15,
+              20.4,
+              377.16
+            ],
+            "Heading": 1.902,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              325.97,
+              20.0,
+              376.57
+            ],
+            "Heading": 1.76,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              324.96,
+              19.97,
+              374.14
+            ],
+            "Heading": 1.638,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46036,
+            "Position": [
+              295.67,
+              20.07,
+              363.99
+            ],
+            "Heading": 1.08,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              292.61,
+              20.25,
+              363.07
+            ],
+            "Heading": 1.14,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              293.01,
+              20.15,
+              365.87
+            ],
+            "Heading": 1.397,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46036,
+            "Position": [
+              299.69,
+              20.28,
+              361.43
+            ],
+            "Heading": 0.392,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46034,
+            "Position": [
+              253.56,
+              20.21,
+              353.08
+            ],
+            "Heading": 1.042,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              255.5,
+              20.09,
+              355.36
+            ],
+            "Heading": 1.201,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46036,
+            "Position": [
+              258.05,
+              20.12,
+              351.62
+            ],
+            "Heading": 0.501,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              252.16,
+              20.12,
+              350.23
+            ],
+            "Heading": 0.893,
+            "Mob": "dungeon-4"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46037,
+            "Position": [
+              230.19,
+              20.56,
+              338.22
+            ],
+            "Heading": 1.731,
+            "Boss": true,
+            "Mob": "dungeon-boss-4"
+          },
+          {
+            "NpcId": 46035,
+            "Position": [
+              233.97,
+              20.6,
+              340.64
+            ],
+            "Heading": 2.235,
+            "Mob": "dungeon-4"
+          },
+          {
+            "NpcId": 46034,
+            "Position": [
+              227.94,
+              20.71,
+              341.26
+            ],
+            "Heading": 1.957,
+            "Mob": "dungeon-4"
+          }
+        ]
+      }
+    ],
+    "Stars": 220,
+    "Coins": 60
+  },
+  {
+    "Id": 15,
+    "Comment": "Haunted Mines (the live dungeon: ghost miners and shamblers down the shafts, Foreman Ironfist at the end of the west gallery)",
+    "ZoneId": 1214,
+    "NameId": 5700,
+    "DescriptionId": 71726,
+    "IconId": 892,
+    "Difficulty": 5,
+    "StarterNpcIds": [],
+    "Image": "haunted_mines",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      146.21,
+      17.61,
+      150.23
+    ],
+    "EntryHeading": 2.5956,
+    "Exit": [
+      33.14,
+      10.36,
+      77.65
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76355,
+    "BossObjectiveNameId": 76349,
+    "BossObjectiveDescriptionId": 18717,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46038,
+            "Position": [
+              159.16,
+              19.6,
+              115.97
+            ],
+            "Heading": -0.04,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46039,
+            "Position": [
+              156.31,
+              20.0,
+              119.65
+            ],
+            "Heading": 0.236,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              162.1,
+              19.72,
+              116.93
+            ],
+            "Heading": -0.276,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              160.47,
+              20.0,
+              119.86
+            ],
+            "Heading": -0.195,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46039,
+            "Position": [
+              163.91,
+              18.06,
+              68.09
+            ],
+            "Heading": 0.198,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              165.49,
+              19.58,
+              71.19
+            ],
+            "Heading": 0.052,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              161.84,
+              16.78,
+              65.03
+            ],
+            "Heading": 0.307,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46039,
+            "Position": [
+              157.78,
+              16.57,
+              64.32
+            ],
+            "Heading": 0.545,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46040,
+            "Position": [
+              146.99,
+              16.07,
+              28.2
+            ],
+            "Heading": -0.183,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              146.63,
+              16.0,
+              30.85
+            ],
+            "Heading": -0.241,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46039,
+            "Position": [
+              144.28,
+              16.23,
+              32.52
+            ],
+            "Heading": 1.349,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              150.21,
+              15.78,
+              27.06
+            ],
+            "Heading": -0.608,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46038,
+            "Position": [
+              91.15,
+              19.91,
+              29.71
+            ],
+            "Heading": 2.506,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46039,
+            "Position": [
+              87.45,
+              20.11,
+              28.87
+            ],
+            "Heading": 2.016,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              88.27,
+              19.6,
+              33.64
+            ],
+            "Heading": 2.507,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              89.03,
+              21.36,
+              26.07
+            ],
+            "Heading": 1.646,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46039,
+            "Position": [
+              54.12,
+              15.72,
+              34.54
+            ],
+            "Heading": 1.967,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              55.84,
+              15.71,
+              37.2
+            ],
+            "Heading": 2.618,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              56.79,
+              15.74,
+              33.62
+            ],
+            "Heading": 2.065,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46039,
+            "Position": [
+              50.03,
+              15.61,
+              35.44
+            ],
+            "Heading": 1.882,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46040,
+            "Position": [
+              60.52,
+              18.36,
+              77.19
+            ],
+            "Heading": -1.553,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              62.8,
+              18.36,
+              79.17
+            ],
+            "Heading": -1.676,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46039,
+            "Position": [
+              56.29,
+              18.19,
+              75.3
+            ],
+            "Heading": -1.358,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              53.58,
+              18.11,
+              76.32
+            ],
+            "Heading": -1.416,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46038,
+            "Position": [
+              42.6,
+              10.84,
+              103.03
+            ],
+            "Heading": 0.502,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46039,
+            "Position": [
+              39.53,
+              10.52,
+              102.23
+            ],
+            "Heading": 1.064,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              43.07,
+              10.36,
+              99.75
+            ],
+            "Heading": 0.055,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              40.32,
+              10.36,
+              99.62
+            ],
+            "Heading": 0.566,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46041,
+            "Position": [
+              29.52,
+              10.36,
+              79.44
+            ],
+            "Heading": 0.744,
+            "Boss": true,
+            "Mob": "dungeon-boss-5"
+          },
+          {
+            "NpcId": 46040,
+            "Position": [
+              29.64,
+              10.36,
+              83.87
+            ],
+            "Heading": 0.902,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46038,
+            "Position": [
+              29.62,
+              10.36,
+              75.27
+            ],
+            "Heading": 0.627,
+            "Mob": "dungeon-5"
+          }
+        ]
+      }
+    ],
+    "Stars": 260,
+    "Coins": 75
+  },
+  {
+    "Id": 16,
+    "Comment": "Briarheart Caverns (the live dungeon: Hailstorm's changelings from the shrine through the caverns, Geomancer Hailstorm in the brazier hall)",
+    "ZoneId": 1215,
+    "NameId": 5707,
+    "DescriptionId": 92504,
+    "IconId": 663,
+    "Difficulty": 5,
+    "StarterNpcIds": [],
+    "Image": "briarheart_caverns",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      -222.32,
+      10.36,
+      -165.2
+    ],
+    "EntryHeading": 1.069,
+    "Exit": [
+      -39.04,
+      7.79,
+      -203.64
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 139400,
+    "BossObjectiveNameId": 16044,
+    "BossObjectiveDescriptionId": 16045,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46042,
+            "Position": [
+              -198.09,
+              11.92,
+              -146.95
+            ],
+            "Heading": -1.598,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46043,
+            "Position": [
+              -194.75,
+              12.38,
+              -145.85
+            ],
+            "Heading": -1.679,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46044,
+            "Position": [
+              -202.4,
+              11.29,
+              -146.15
+            ],
+            "Heading": -1.786,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46042,
+            "Position": [
+              -191.36,
+              13.03,
+              -147.52
+            ],
+            "Heading": -1.55,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46043,
+            "Position": [
+              -202.25,
+              17.06,
+              -187.25
+            ],
+            "Heading": 0.102,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46044,
+            "Position": [
+              -199.27,
+              16.77,
+              -189.05
+            ],
+            "Heading": -0.123,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46042,
+            "Position": [
+              -204.22,
+              16.4,
+              -191.21
+            ],
+            "Heading": 0.196,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46043,
+            "Position": [
+              -206.29,
+              16.86,
+              -188.19
+            ],
+            "Heading": 0.381,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46044,
+            "Position": [
+              -179.81,
+              18.09,
+              -212.19
+            ],
+            "Heading": -1.883,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46042,
+            "Position": [
+              -181.97,
+              17.8,
+              -214.03
+            ],
+            "Heading": -1.775,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46043,
+            "Position": [
+              -179.6,
+              18.26,
+              -216.24
+            ],
+            "Heading": -1.555,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46044,
+            "Position": [
+              -176.62,
+              18.95,
+              -216.08
+            ],
+            "Heading": -1.569,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46042,
+            "Position": [
+              -126.8,
+              17.67,
+              -226.85
+            ],
+            "Heading": -1.265,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46043,
+            "Position": [
+              -125.52,
+              17.15,
+              -224.57
+            ],
+            "Heading": -1.455,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46044,
+            "Position": [
+              -130.16,
+              18.87,
+              -226.28
+            ],
+            "Heading": -1.216,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46042,
+            "Position": [
+              -127.1,
+              17.73,
+              -229.62
+            ],
+            "Heading": -1.063,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46043,
+            "Position": [
+              -96.45,
+              15.43,
+              -204.6
+            ],
+            "Heading": -2.632,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46044,
+            "Position": [
+              -94.76,
+              15.29,
+              -206.65
+            ],
+            "Heading": -2.06,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46042,
+            "Position": [
+              -97.84,
+              15.64,
+              -199.97
+            ],
+            "Heading": -3.033,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46043,
+            "Position": [
+              -98.8,
+              15.29,
+              -208.8
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-5"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46045,
+            "Position": [
+              -46.4,
+              7.52,
+              -218.15
+            ],
+            "Heading": 3.142,
+            "Boss": true,
+            "Mob": "dungeon-boss-5"
+          },
+          {
+            "NpcId": 46043,
+            "Position": [
+              -47.15,
+              7.64,
+              -222.05
+            ],
+            "Heading": 2.884,
+            "Mob": "dungeon-5"
+          },
+          {
+            "NpcId": 46044,
+            "Position": [
+              -49.54,
+              8.04,
+              -216.78
+            ],
+            "Heading": 2.772,
+            "Mob": "dungeon-5"
+          }
+        ]
+      }
+    ],
+    "Stars": 260,
+    "Coins": 75
+  },
+  {
+    "Id": 17,
+    "Comment": "Arachnia's Lair (the live dungeon: spiders along the webbed trail from the gate up to the plateau, Queen Arachnia among the cocoons at its west end)",
+    "ZoneId": 1216,
+    "NameId": 2273,
+    "DescriptionId": 70161,
+    "IconId": 903,
+    "Difficulty": 2,
+    "StarterNpcIds": [],
+    "Image": "arachnias_lair",
+    "TimeLimitSeconds": 1800,
+    "Entry": [
+      460.13,
+      -5.28,
+      50.24
+    ],
+    "EntryHeading": -0.5258,
+    "Exit": [
+      81.05,
+      -32.38,
+      409.23
+    ],
+    "ObjectiveNameId": 76355,
+    "ObjectiveDescriptionId": 76355,
+    "BossObjectiveNameId": 2288,
+    "BossObjectiveDescriptionId": 16243,
+    "Waves": [
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 2723,
+            "Position": [
+              430.72,
+              -4.3,
+              77.45
+            ],
+            "Heading": 1.721,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              433.63,
+              -3.57,
+              80.3
+            ],
+            "Heading": 1.948,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46047,
+            "Position": [
+              435.45,
+              -3.87,
+              77.99
+            ],
+            "Heading": 1.824,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46046,
+            "Position": [
+              353.95,
+              -1.72,
+              101.59
+            ],
+            "Heading": 2.179,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46047,
+            "Position": [
+              355.1,
+              -1.28,
+              99.11
+            ],
+            "Heading": 2.034,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 2723,
+            "Position": [
+              353.62,
+              -2.76,
+              105.01
+            ],
+            "Heading": 2.364,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46047,
+            "Position": [
+              277.41,
+              -4.36,
+              96.32
+            ],
+            "Heading": 1.228,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 2723,
+            "Position": [
+              279.99,
+              -2.82,
+              93.44
+            ],
+            "Heading": 0.856,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              271.92,
+              -3.85,
+              96.26
+            ],
+            "Heading": 1.34,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 2723,
+            "Position": [
+              220.45,
+              -3.34,
+              109.81
+            ],
+            "Heading": 2.597,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              217.36,
+              -4.47,
+              110.17
+            ],
+            "Heading": 2.273,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46047,
+            "Position": [
+              216.1,
+              -4.96,
+              105.5
+            ],
+            "Heading": 1.615,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46046,
+            "Position": [
+              186.95,
+              -14.79,
+              179.59
+            ],
+            "Heading": 2.341,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46047,
+            "Position": [
+              186.16,
+              -14.64,
+              182.26
+            ],
+            "Heading": 2.46,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 2723,
+            "Position": [
+              190.32,
+              -14.59,
+              179.47
+            ],
+            "Heading": 2.674,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46047,
+            "Position": [
+              212.98,
+              -15.67,
+              242.81
+            ],
+            "Heading": -1.171,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 2723,
+            "Position": [
+              215.19,
+              -15.67,
+              244.84
+            ],
+            "Heading": -1.595,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              217.73,
+              -14.83,
+              243.13
+            ],
+            "Heading": -1.403,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 2723,
+            "Position": [
+              267.62,
+              -14.31,
+              287.67
+            ],
+            "Heading": -2.99,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              266.95,
+              -12.72,
+              283.29
+            ],
+            "Heading": -2.992,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46047,
+            "Position": [
+              269.41,
+              -12.76,
+              285.21
+            ],
+            "Heading": -2.718,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46046,
+            "Position": [
+              271.35,
+              -15.91,
+              364.89
+            ],
+            "Heading": 2.644,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46047,
+            "Position": [
+              271.74,
+              -16.5,
+              361.63
+            ],
+            "Heading": 2.509,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 2723,
+            "Position": [
+              274.8,
+              -14.74,
+              364.36
+            ],
+            "Heading": 2.92,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 46047,
+            "Position": [
+              196.25,
+              -32.73,
+              395.74
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 2723,
+            "Position": [
+              195.08,
+              -32.18,
+              393.3
+            ],
+            "Heading": 0.446,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              199.29,
+              -32.12,
+              394.58
+            ],
+            "Heading": -1.207,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "AtStart": true,
+        "Spawns": [
+          {
+            "NpcId": 2723,
+            "Position": [
+              121.01,
+              -34.79,
+              401.95
+            ],
+            "Heading": 0.0,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              123.81,
+              -35.02,
+              402.15
+            ],
+            "Heading": -1.644,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46047,
+            "Position": [
+              122.35,
+              -35.04,
+              399.05
+            ],
+            "Heading": -0.433,
+            "Mob": "dungeon-2"
+          }
+        ]
+      },
+      {
+        "DelayMs": 1500,
+        "Spawns": [
+          {
+            "NpcId": 46048,
+            "Position": [
+              93.14,
+              -33.1,
+              406.39
+            ],
+            "Heading": 1.288,
+            "Boss": true,
+            "Mob": "dungeon-boss-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              89.69,
+              -33.01,
+              407.78
+            ],
+            "Heading": 1.455,
+            "Mob": "dungeon-2"
+          },
+          {
+            "NpcId": 46046,
+            "Position": [
+              96.79,
+              -32.42,
+              405.56
+            ],
+            "Heading": 1.05,
+            "Mob": "dungeon-2"
+          }
+        ]
+      }
+    ],
+    "Stars": 140,
+    "Coins": 30
   }
 ]
