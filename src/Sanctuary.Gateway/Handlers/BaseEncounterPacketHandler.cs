@@ -14,7 +14,7 @@ namespace Sanctuary.Gateway.Handlers;
 /// <summary>
 /// Battle requests, for <see cref="IBattleManager"/>: Play and Cancel on the start panel, leaving, the knocked out
 /// window and group battle invitations. The 3D games (<see cref="IVehicleGameManager"/>) get first look at Play,
-/// Cancel and leaving. Anything else is logged in full.
+/// Cancel, leaving and invitation answers. Anything else is logged in full.
 /// </summary>
 [PacketHandler]
 public static class BaseEncounterPacketHandler
@@ -67,8 +67,10 @@ public static class BaseEncounterPacketHandler
                 _battleManager.Resume(player, resume.Paid);
                 return true;
 
+            // The answer names no encounter: whichever asked the player along takes it.
             case EncounterInvitationResponsePacket.OpCode when EncounterInvitationResponsePacket.TryDeserialize(data, out var answer):
-                _battleManager.AnswerInvitation(player, answer.Accept);
+                if (!_vehicleGameManager.AnswerInvitation(player, answer.Accept))
+                    _battleManager.AnswerInvitation(player, answer.Accept);
                 return true;
         }
 

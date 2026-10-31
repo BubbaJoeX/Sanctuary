@@ -28,7 +28,6 @@ public sealed class DerbyMatch : ArenaMatch
 {
     public const int DerbyCharacterState = 0x800;
 
-    private const int SetupWaitMs = 10_000;
     private const int StateRefreshMs = 1000;
     private const int PositionIntervalMs = 250;
     private const int ResultsWaitMs = 5000;
@@ -37,17 +36,7 @@ public sealed class DerbyMatch : ArenaMatch
     private readonly Random _random = new();
     private readonly DerbySimulation _simulation;
 
-    private readonly Dictionary<ulong, ulong> _registered = [];
-    private readonly HashSet<ulong> _acks = [];
-    private readonly HashSet<ulong> _echoes = [];
-
-    private int _gameState;
-    private long _gameStateAt;
-    private long _firstRegisteredAt;
-
-    private int _countdown = -1;
-    private long _countdownAt;
-    private long _countdownEchoedAt;
+    private readonly ArenaHandshake _handshake = new();
 
     private long _endsAt;
 
@@ -74,6 +63,13 @@ public sealed class DerbyMatch : ArenaMatch
 
     public override int CharacterStateBit => DerbyCharacterState;
 
+    /// <summary>
+    /// The live player's spot and the AI cars' spots, which other players take.
+    /// </summary>
+    public override int Capacity => 1 + _arena.Drivers.Count;
+
+    public override bool HasPlace(ulong guid) => _handshake.IsSeated(guid);
+
     private static long Now => Environment.TickCount64;
 
     private IReadOnlyList<DerbyCar> Cars => _simulation.Cars;
@@ -89,20 +85,17 @@ public sealed class DerbyMatch : ArenaMatch
         {
             case VehicleDemolitionDerbyPacketRegisterVehicleDemolitionDerbyPlayer.OpCode
                 when VehicleDemolitionDerbyPacketRegisterVehicleDemolitionDerbyPlayer.TryDeserialize(data, out var register):
-                if (_gameState == 0 && _registered.TryAdd(participant.Guid, register.Clock) && _firstRegisteredAt == 0)
-                    _firstRegisteredAt = Now;
+                _handshake.Register(participant.Guid, register.Clock, Now);
                 break;
 
             case VehicleDemolitionDerbyPacketUpdateVehicleGamePlayerState.OpCode
                 when VehicleDemolitionDerbyPacketUpdateVehicleGamePlayerState.TryDeserialize(data, out var ack):
-                if (ack.State == _gameState)
-                    _acks.Add(participant.Guid);
+                _handshake.Acknowledge(participant.Guid, (int)ack.State);
                 break;
 
             case VehicleDemolitionDerbyPacketVehicleDemolitionDerbyCountdownStatus.OpCode
                 when VehicleDemolitionDerbyPacketVehicleDemolitionDerbyCountdownStatus.TryDeserialize(data, out var echo):
-                if (echo.Count == _countdown && _echoes.Add(participant.Guid) && AllIn(_echoes))
-                    _countdownEchoedAt = Now;
+                _handshake.Echo(participant.Guid, echo.Count, Now);
                 break;
 
             case VehicleDemolitionDerbyPacketUpdateVehicleDemolitionDerbyData.OpCode
@@ -110,9 +103,10 @@ public sealed class DerbyMatch : ArenaMatch
                 OnCarState(participant, state);
                 break;
 
-            // The player's client felt its car touch another: a crash, if they were closing fast enough.
+            // The player's client felt its car touch another: a crash, if they were closing fast enough. Both players'
+            // clients report a crash between them; the simulation counts a pair once.
             case VehicleDemolitionDerbyPacketVehicleHit.OpCode when VehicleDemolitionDerbyPacketVehicleHit.TryDeserialize(data, out var hit):
-                if (_gameState == 9 && hit.Guid == participant.Guid
+                if (_handshake.GameState == 9 && hit.Guid == participant.Guid
                     && _simulation.TryGetCar(hit.Guid, out var car) && _simulation.TryGetCar(hit.OtherGuid, out var other))
                     _simulation.TryCrash(car, other, Now);
                 break;
@@ -120,7 +114,7 @@ public sealed class DerbyMatch : ArenaMatch
             // Asked every frame until answered; only a box in reach of the car answers.
             case VehicleDemolitionDerbyPacketPickupHitRequest.OpCode
                 when VehicleDemolitionDerbyPacketPickupHitRequest.TryDeserialize(data, out var pickupHit):
-                if (_gameState == 9 && _simulation.TryGetCar(participant.Guid, out var touching))
+                if (_handshake.GameState == 9 && _simulation.TryGetCar(participant.Guid, out var touching))
                     _simulation.TryTakePickup(touching, new Vector3(pickupHit.Position.X, pickupHit.Position.Y, pickupHit.Position.Z), 4f, Now);
                 break;
         }
@@ -152,15 +146,16 @@ public sealed class DerbyMatch : ArenaMatch
 
     public override void Update(long now, float deltaSeconds)
     {
-        switch (_gameState)
+        switch (_handshake.GameState)
         {
+            // Everyone coming registers as their zone loads.
             case 0:
-                if (_registered.Count > 0 && (Playing.All(participant => _registered.ContainsKey(participant.Guid)) || now - _firstRegisteredAt > SetupWaitMs))
+                if (_handshake.ReadyToSetUp(Expected, now))
                     SetUp(now);
                 return;
 
             case 3:
-                if (Acknowledged(now))
+                if (_handshake.Acknowledged(now))
                 {
                     SpawnAiCars(now);
                     SendToPlaying(new VehicleDemolitionDerbyPacketUpdateNpcCount { Count = (uint)Cars.Count(car => !car.IsPlayer) });
@@ -171,12 +166,12 @@ public sealed class DerbyMatch : ArenaMatch
             case 4:
             case 5:
             case 6:
-                if (Acknowledged(now))
-                    SetGameState(_gameState + 1, now);
+                if (_handshake.Acknowledged(now))
+                    SetGameState(_handshake.GameState + 1, now);
                 break;
 
             case 7:
-                if (Acknowledged(now))
+                if (_handshake.Acknowledged(now))
                 {
                     SetGameState(8, now);
                     SendCountdown(4, now);
@@ -198,7 +193,7 @@ public sealed class DerbyMatch : ArenaMatch
             case 10:
                 SendAiStates(now);
 
-                if (Acknowledged(now, ResultsWaitMs))
+                if (_handshake.Acknowledged(now, ResultsWaitMs))
                 {
                     Finish();
                     SetGameState(11, now);
@@ -214,6 +209,8 @@ public sealed class DerbyMatch : ArenaMatch
     /// </summary>
     private void SetUp(long now)
     {
+        Started = true;
+
         SendToPlaying(new VehicleDemolitionDerbyPacketSetDerbyConfig { TimeLimitSeconds = _arena.TimeLimitSeconds, CrownModelId = (uint)_arena.CrownModelId });
 
         // The first player takes the live player's spot; any others take AI cars' spots.
@@ -222,7 +219,7 @@ public sealed class DerbyMatch : ArenaMatch
 
         var index = 0;
 
-        foreach (var participant in Playing.Where(participant => _registered.ContainsKey(participant.Guid)).ToList())
+        foreach (var participant in Playing.Where(participant => _handshake.IsRegistered(participant.Guid)).ToList())
         {
             if (index >= spawns.Count)
                 break;
@@ -232,6 +229,7 @@ public sealed class DerbyMatch : ArenaMatch
             var vehicle = Manager.PlayerVehicle(participant.Player, Garage.VehicleLoadouts.DemolitionDerby);
 
             _simulation.Add(new DerbyCar(participant.Guid, vehicle, spawn.Point, spawn.Heading) { Participant = participant });
+            _handshake.Seat(participant.Guid);
 
             // The server's idea of where they are, so the AI drivers spawn in their view.
             participant.Player.UpdatePosition(new Vector4(spawn.Point, 1f), QuaternionExtensions.FromHeading(spawn.Heading));
@@ -295,7 +293,7 @@ public sealed class DerbyMatch : ArenaMatch
             });
 
             // Its state at the spawn: a player's own car carries its client's clock, the rest the server's.
-            var clock = car.Participant is { } owner && _registered.TryGetValue(owner.Guid, out var registered) ? registered : (ulong)now;
+            var clock = car.Participant is { } owner ? _handshake.ClockOf(owner.Guid) : (ulong)now;
 
             participant.Player.SendTunneled(GetCarState(car, clock));
             participant.Player.SendTunneled(car.GetStateData());
@@ -307,50 +305,33 @@ public sealed class DerbyMatch : ArenaMatch
 
     private void SetGameState(int state, long now)
     {
-        _gameState = state;
-        _gameStateAt = now;
-        _acks.Clear();
+        _handshake.SetGameState(state, now);
 
         SendToPlaying(new VehicleDemolitionDerbyPacketUpdateVehicleGameState { State = (uint)state });
     }
 
-    /// <summary>
-    /// Every player with a car has acknowledged the game state (or it's been too long).
-    /// </summary>
-    private bool Acknowledged(long now, int timeoutMs = AckTimeoutMs) => AllIn(_acks) || now - _gameStateAt > timeoutMs;
-
-    private bool AllIn(HashSet<ulong> answered) =>
-        Playing.Where(participant => _simulation.TryGetCar(participant.Guid, out _)).All(participant => answered.Contains(participant.Guid));
-
     private void SendCountdown(int count, long now)
     {
-        _countdown = count;
-        _countdownAt = now;
-        _countdownEchoedAt = 0;
-        _echoes.Clear();
+        _handshake.StartCountdown(count, now);
 
         SendToPlaying(new VehicleDemolitionDerbyPacketVehicleDemolitionDerbyCountdownStatus { Count = count });
     }
 
     /// <summary>
-    /// Each number goes a moment after the clients echoed the last (live never saw an echo of the 4).
+    /// Each number goes a moment after every client echoed the last.
     /// </summary>
     private void UpdateCountdown(long now)
     {
-        var due = _countdown == 4
-            ? now - _countdownAt >= 350
-            : (_countdownEchoedAt != 0 && now - _countdownEchoedAt >= 300) || now - _countdownAt >= 1500;
-
-        if (!due)
+        if (!_handshake.CountdownDue(now, firstMs: 350))
             return;
 
-        if (_countdown > 0)
+        if (_handshake.Countdown > 0)
         {
-            SendCountdown(_countdown - 1, now);
+            SendCountdown(_handshake.Countdown - 1, now);
             return;
         }
 
-        _countdown = -1;
+        _handshake.EndCountdown();
         _endsAt = now + (long)(_arena.TimeLimitSeconds * 1000f);
 
         SetGameState(9, now);
@@ -391,9 +372,9 @@ public sealed class DerbyMatch : ArenaMatch
 
     private void OnCrashed(DerbyCar a, DerbyCar b, float impact)
     {
-        // The client plays the impact on both cars. A player's client feels its own crashes already.
-        if (!a.IsPlayer && !b.IsPlayer)
-            SendToPlaying(new VehicleDemolitionDerbyPacketVehicleHit { Guid = a.Guid, OtherGuid = b.Guid, Impulse = impact * 400f });
+        // The client plays the impact on both cars. A player's client feels its own crashes already; the others see it.
+        SendToPlaying(new VehicleDemolitionDerbyPacketVehicleHit { Guid = a.Guid, OtherGuid = b.Guid, Impulse = impact * 400f },
+            except: a.IsPlayer ? a.Guid : 0, except2: b.IsPlayer ? b.Guid : 0);
     }
 
     private void OnWrecked(DerbyCar victim, DerbyCar? attacker)
@@ -458,7 +439,7 @@ public sealed class DerbyMatch : ArenaMatch
 
     private void SendStateData(long now)
     {
-        if (_gameState < 3)
+        if (_handshake.GameState < 3)
             return;
 
         foreach (var car in Cars)
@@ -494,7 +475,7 @@ public sealed class DerbyMatch : ArenaMatch
             return;
 
         _simulation.Remove(car);
-        _registered.Remove(participant.Guid);
+        _handshake.Leave(participant.Guid, Now);
 
         // The others' race order shrinks.
         foreach (var other in Playing.Where(other => other.Guid != participant.Guid))

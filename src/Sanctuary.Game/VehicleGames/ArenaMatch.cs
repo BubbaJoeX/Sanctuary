@@ -52,6 +52,12 @@ public sealed class ArenaParticipant(Player player)
     public bool Left { get; set; }
 
     /// <summary>
+    /// The side they'd rather play on, where a game has sides (soccer's teams): a group plays together, queued
+    /// players are spread out.
+    /// </summary>
+    public int Side { get; init; }
+
+    /// <summary>
     /// Where they were when they went in, to go back to.
     /// </summary>
     public int ReturnZoneId { get; set; }
@@ -83,6 +89,12 @@ public abstract class ArenaMatch
     /// </summary>
     public const int AckTimeoutMs = 30_000;
 
+    /// <summary>
+    /// How long a game holds its start, after the first player is in, for the others who are coming (group members
+    /// still deciding, on the start panel or loading). After that it starts with those who are there.
+    /// </summary>
+    public const int JoinWaitMs = 45_000;
+
     protected ArenaMatch(int id, VehicleGameStageDefinition stage, WorldZone zone, VehicleGameManager manager, ILogger logger)
     {
         Id = id;
@@ -109,6 +121,33 @@ public abstract class ArenaMatch
 
     public Dictionary<ulong, ArenaParticipant> Participants { get; } = [];
 
+    /// <summary>
+    /// Group members asked along who haven't answered yet, and when their invitation lapses.
+    /// </summary>
+    public Dictionary<ulong, long> Invited { get; } = [];
+
+    /// <summary>
+    /// Everyone the game waits for before it starts: the players who took the offer and haven't left, and those
+    /// still deciding.
+    /// </summary>
+    public IEnumerable<ulong> Expected =>
+        Participants.Values.Where(participant => !participant.Left).Select(participant => participant.Guid).Concat(Invited.Keys);
+
+    /// <summary>
+    /// The game was set up with the players who were there: nobody else can join it now.
+    /// </summary>
+    public bool Started { get; protected set; }
+
+    /// <summary>
+    /// The players told who the game is waiting for.
+    /// </summary>
+    public bool ToldWaiting { get; set; }
+
+    /// <summary>
+    /// How many players the game has places for (the rest are AI).
+    /// </summary>
+    public virtual int Capacity => 1;
+
     public long OfferedAt { get; set; }
     public long StartedAt { get; set; }
     public long OverAt { get; set; }
@@ -122,6 +161,12 @@ public abstract class ArenaMatch
     /// The players in the zone, whose clients run the game.
     /// </summary>
     public IEnumerable<ArenaParticipant> Playing => Participants.Values.Where(participant => participant.InZone && !participant.Left);
+
+    /// <summary>
+    /// The player has a place in the game (a car, a kart, a footballer). Before it starts nobody has; once it has,
+    /// anyone without one is too late.
+    /// </summary>
+    public virtual bool HasPlace(ulong guid) => true;
 
     /// <summary>
     /// The game's zone has loaded for a player: the encounter's packets are sent, then this.
@@ -180,6 +225,15 @@ public abstract class ArenaMatch
     {
         foreach (var participant in Playing)
             participant.Player.SendTunneled(packet);
+    }
+
+    protected void SendToPlaying(ISerializablePacket packet, ulong except, ulong except2 = 0)
+    {
+        foreach (var participant in Playing)
+        {
+            if (participant.Guid != except && participant.Guid != except2)
+                participant.Player.SendTunneled(packet);
+        }
     }
 
     protected void SendToPlayingUnreliable(ISerializablePacket packet, ulong except = 0)

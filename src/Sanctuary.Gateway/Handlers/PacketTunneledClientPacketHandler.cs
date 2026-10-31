@@ -84,12 +84,13 @@ public static class PacketTunneledClientPacketHandler
             BaseVehicleRacePacket.OpCode or BaseVehicleDemolitionDerbyPacket.OpCode or BaseSoccerPacket.OpCode or BaseVehiclePartPacket.OpCode
                 => VehicleGamePacketHandler.HandlePacket(connection, opCode, packetTunneledClientPacket.Payload),
 
-            // Notices that want no answer: quitting, closing an inspect, telemetry, the matchmaking poll.
+            BaseMatchmakingPacket.OpCode => BaseMatchmakingPacketHandler.HandlePacket(connection, packetTunneledClientPacket.Payload),
+
+            // Notices that want no answer: quitting, closing an inspect, telemetry.
             PacketClientLogout.OpCode => true,
             BaseInspectPacket.OpCode => true,
             NudgeBasePacket.OpCode => true,
             PacketClientLuaMetrics.OpCode => true,
-            BaseMatchmakingPacket.OpCode => true,
             _ => false
         };
 

@@ -29,6 +29,7 @@ public sealed class RaceSimulation
     private readonly List<RaceKart> _karts = [];
     private readonly Dictionary<ulong, RaceKart> _kartsByGuid = [];
     private readonly List<RacePickup> _pickups;
+    private readonly Dictionary<(ulong, ulong), long> _lastPlayerBump = [];
 
     private int _finished;
 
@@ -58,6 +59,12 @@ public sealed class RaceSimulation
     /// An AI kart bumped a player's: (the AI kart, the player's, the push).
     /// </summary>
     public Action<RaceKart, RaceKart, float>? Bumped { get; set; }
+
+    /// <summary>
+    /// A player's kart bumped another player's: (the one reported first, the other, the push), for the other's
+    /// client.
+    /// </summary>
+    public Action<RaceKart, RaceKart, float>? PlayersBumped { get; set; }
 
     /// <summary>
     /// A kart took an item box: (the kart, the box, the item a player's got).
@@ -257,11 +264,29 @@ public sealed class RaceSimulation
     }
 
     /// <summary>
-    /// A player's client says its kart ran into another: an AI kart is knocked back a little.
+    /// A player's client says its kart ran into another: an AI kart is knocked back a little; another player's kart
+    /// is pushed by the other player's client (<see cref="PlayersBumped"/>). Both players' clients report a bump
+    /// between them, so a pair counts once.
     /// </summary>
-    public void OnReportedBump(RaceKart kart, RaceKart other, long now)
+    public void OnReportedBump(RaceKart kart, RaceKart other, float impulse, long now)
     {
-        if (other.IsPlayer || now - kart.LastBumpAt < 300)
+        if (kart == other)
+            return;
+
+        if (other.IsPlayer)
+        {
+            var key = kart.Guid < other.Guid ? (kart.Guid, other.Guid) : (other.Guid, kart.Guid);
+
+            if (_lastPlayerBump.TryGetValue(key, out var last) && now - last < BumpCooldownMs)
+                return;
+
+            _lastPlayerBump[key] = now;
+
+            PlayersBumped?.Invoke(kart, other, impulse);
+            return;
+        }
+
+        if (now - kart.LastBumpAt < 300)
             return;
 
         kart.LastBumpAt = now;

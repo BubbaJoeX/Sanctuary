@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Sanctuary.Game.VehicleGames.Soccer;
@@ -33,6 +34,40 @@ public static class SoccerRules
     public const float PickupHeight = 1.4f;
 
     public const float PeriodSeconds = 180f;
+
+    /// <summary>
+    /// Three in the field (places 0-2) and the goalie (3).
+    /// </summary>
+    public const int PlayersPerTeam = 4;
+
+    /// <summary>
+    /// Where the human players go, in the order they came in: each on the side they'd rather (a group together), or
+    /// the other once that's full; the field places first, the goal last. The first on team 0 takes the live
+    /// player's place (0, 0); the AI fill the places left. Null for anyone past the eighth.
+    /// </summary>
+    public static List<(int Team, int Position)?> Lineup(IReadOnlyList<int> sides)
+    {
+        var next = new int[2];
+        var lineup = new List<(int Team, int Position)?>(sides.Count);
+
+        foreach (var side in sides)
+        {
+            var team = Math.Clamp(side, 0, 1);
+
+            if (next[team] >= PlayersPerTeam)
+                team = 1 - team;
+
+            if (next[team] >= PlayersPerTeam)
+            {
+                lineup.Add(null);
+                continue;
+            }
+
+            lineup.Add((team, next[team]++));
+        }
+
+        return lineup;
+    }
 
     /// <summary>
     /// One step of a loose ball: gravity, drag, the ground, and the pitch's sides (not the goal mouths).
