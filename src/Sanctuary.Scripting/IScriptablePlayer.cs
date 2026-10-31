@@ -133,7 +133,42 @@ public interface IScriptablePlayer
     bool Warp(int zoneId, (float x, float y, float z)? position, float? heading);
 
     /// <summary>
-    /// Opens a minigame's start screen (a Resources/Minigames id). False if the server doesn't run it.
+    /// Opens a minigame's start screen (a Resources/Minigames id, or a kart race, derby or soccer stage). False if the
+    /// server doesn't run it.
     /// </summary>
     bool StartMinigame(int minigameId);
+
+    /// <summary>
+    /// The Battles.json id of the battle the player is in, or 0.
+    /// </summary>
+    int BattleId { get; }
+
+    bool IsFishing { get; }
+
+    /// <summary>
+    /// Playing a minigame or a 3D game (karts, derby, soccer), or on its start screen.
+    /// </summary>
+    bool IsInMinigame { get; }
+
+    /// <summary>
+    /// Opens a battle's start panel (a Battles.json id) and asks the player's group along. False if there's no such
+    /// battle or the player can't start one now.
+    /// </summary>
+    bool StartBattle(int battleId);
+
+    bool HasAchievement(int achievementId);
+
+    bool KnowsRecipe(int recipeId);
+
+    /// <summary>
+    /// Teaches a Recipes.json recipe, as its recipe card does. False if there's no such recipe or they know it.
+    /// </summary>
+    bool LearnRecipe(int recipeId);
+
+    /// <summary>
+    /// Plays a named emote, as !emote does; dances loop until the player walks away. False for a name it doesn't know.
+    /// </summary>
+    bool PlayEmote(string name);
+
+    void StopEmote();
 }

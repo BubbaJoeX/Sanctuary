@@ -86,4 +86,9 @@ public interface INpcContentManager
     /// A mob came back after its respawn time: its script's onRespawn().
     /// </summary>
     void OnMobRespawned(Npc npc);
+
+    /// <summary>
+    /// A challenge the NPC gave ran to its end (not cancelled): its script's onChallengeEnd(player, challengeId, won).
+    /// </summary>
+    void OnChallengeEnd(Npc giver, Player player, int challengeId, bool won);
 }

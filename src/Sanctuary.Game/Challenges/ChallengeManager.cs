@@ -88,26 +88,30 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
 
     #region Offer and start
 
+    public bool Offer(Player player, int challengeId, Npc giver) =>
+        _resourceManager.Challenges.TryGetValue(challengeId, out var challenge) && Offer(player, challenge, giver);
+
     /// <summary>
     /// Opens the challenge's start screen: its name, description, prize and goal.
     /// </summary>
-    private void Offer(Player player, ChallengeDefinition challenge, Npc giver)
+    private bool Offer(Player player, ChallengeDefinition challenge, Npc giver)
     {
         if (_sessions.TryGetValue(player.Guid, out var current) && current.Running)
         {
             ChatHelper.SendSystemMessage(player, "Finish the challenge you're on first.");
-            return;
+            return false;
         }
 
         if (MinigameManager.GetSession(player) is not null)
         {
             ChatHelper.SendSystemMessage(player, "Finish the game you're playing first.");
-            return;
+            return false;
         }
 
         _sessions[player.Guid] = new ChallengeSession(player, challenge, giver);
 
         player.SendTunneled(GetInfo(challenge, won: null));
+        return true;
     }
 
     private static MiniGameInfoPacket GetInfo(ChallengeDefinition challenge, bool? won)
@@ -628,6 +632,12 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
 
         _logger.LogInformation("{player} {outcome} challenge {id} ({name}): {done}/{total}, {coins} coins, {stars} stars.",
             player.Name.FullName, outcome, challenge.Id, challenge.Comment, session.Done, session.Total, coins, stars);
+
+        if (outcome == ChallengeOutcome.Cancelled)
+            return;
+
+        player.Zone?.FirePlayerEvent("challengeEnd", player, challenge.Id, won);
+        session.Giver.Zone?.NpcContent.OnChallengeEnd(session.Giver, player, challenge.Id, won);
     }
 
     #endregion

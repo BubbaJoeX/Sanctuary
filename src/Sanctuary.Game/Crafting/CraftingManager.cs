@@ -146,8 +146,11 @@ public class CraftingManager : ICraftingManager
         if (!TryTakeIngredients(player, recipe))
             return;
 
-        if (_rewardManager.TryGrantItem(player, recipe.ResultItemId, 0))
-            ChatHelper.SendSystemMessage(player, $"You made {ItemName(recipe.ResultItemId)}.");
+        if (!_rewardManager.TryGrantItem(player, recipe.ResultItemId, 0))
+            return;
+
+        ChatHelper.SendSystemMessage(player, $"You made {ItemName(recipe.ResultItemId)}.");
+        player.Zone?.FirePlayerEvent("itemCrafted", player, recipe.Id, recipe.ResultItemId);
     }
 
     public bool WillMakeItem(Player player, int minigameId) =>
@@ -178,6 +181,23 @@ public class CraftingManager : ICraftingManager
         _logger.LogInformation("{player} crafted recipe {id} ({comment}).", player.Name.FullName, recipe.Id, recipe.Comment);
 
         player.Quests.Record(new ItemCraftedEvent(recipe.Id, recipe.ResultItemId));
+        player.Zone?.FirePlayerEvent("itemCrafted", player, recipe.Id, recipe.ResultItemId);
+        return true;
+    }
+
+    public bool Learn(Player player, int recipeId)
+    {
+        if (!_resourceManager.Recipes.TryGetValue(recipeId, out var recipe))
+            return false;
+
+        lock (player.KnownRecipes)
+        {
+            if (!player.KnownRecipes.Add(recipe.Id))
+                return false;
+        }
+
+        Save(player);
+        OnLearned(player, recipe, announce: true);
         return true;
     }
 
@@ -209,15 +229,25 @@ public class CraftingManager : ICraftingManager
         Save(player);
 
         foreach (var recipe in learned)
-        {
-            _logger.LogInformation("{player} learned recipe {id} ({comment}).", player.Name.FullName, recipe.Id, recipe.Comment);
+            OnLearned(player, recipe, announce);
+    }
 
-            // The client prints '"X" recipe learned' itself.
-            if (announce && TryBuild(player, recipe, out var data))
-                player.SendTunneled(new RecipeAddPacket { Recipe = data });
+    /// <summary>
+    /// Counts a newly learned recipe. Announced (not at login), it's added to the recipe window and the zone's scripts
+    /// are told.
+    /// </summary>
+    private void OnLearned(Player player, RecipeDefinition recipe, bool announce)
+    {
+        _logger.LogInformation("{player} learned recipe {id} ({comment}).", player.Name.FullName, recipe.Id, recipe.Comment);
 
-            player.Achievements.Record(AchievementEvent.Recipe, recipe.Id);
-        }
+        // The client prints '"X" recipe learned' itself.
+        if (announce && TryBuild(player, recipe, out var data))
+            player.SendTunneled(new RecipeAddPacket { Recipe = data });
+
+        player.Achievements.Record(AchievementEvent.Recipe, recipe.Id);
+
+        if (announce)
+            player.Zone?.FirePlayerEvent("recipeLearned", player, recipe.Id);
     }
 
     private bool TryTakeIngredients(Player player, RecipeDefinition recipe)

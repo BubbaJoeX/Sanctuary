@@ -81,6 +81,8 @@ public sealed partial class HousingZone : BaseZone
     public ulong HouseGuid => OwnerId ?? 0;
     public ulong OwnerGuid => GuidHelper.GetPlayerGuid(_house.CharacterId);
 
+    public override ulong HouseOwnerGuid => OwnerGuid;
+
     public HousingZone(HousingZoneDefinition zoneDefinition, IServiceProvider serviceProvider)
         : base(zoneDefinition, serviceProvider)
     {

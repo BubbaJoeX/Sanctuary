@@ -61,6 +61,7 @@ public sealed class ScriptTemplateTests
         public ulong TargetGuid => 0;
         public int Hurt(IScriptablePlayer attacker, int damage) => 0;
         public int Attack(IScriptablePlayer player, int damage) => 0;
+        public bool OfferChallenge(IScriptablePlayer player, int challengeId) => false;
     }
 
     private sealed class StubZone : IScriptableZone
@@ -89,6 +90,9 @@ public sealed class ScriptTemplateTests
         public int PlayerCount => 0;
         public IReadOnlyList<IScriptablePlayer> GetPlayers() => [];
         public IScriptablePlayer? GetPlayer(ulong guid, string? name) => null;
+        public float GameHour => 12f;
+        public int BattleId => 0;
+        public ulong HouseOwnerGuid => 0;
     }
 
     private sealed class StubPlayer : IScriptablePlayer
@@ -152,6 +156,16 @@ public sealed class ScriptTemplateTests
             StartedMinigames.Add(minigameId);
             return RunsMinigames;
         }
+
+        public int BattleId => 0;
+        public bool IsFishing => false;
+        public bool IsInMinigame => false;
+        public bool StartBattle(int battleId) => false;
+        public bool HasAchievement(int achievementId) => false;
+        public bool KnowsRecipe(int recipeId) => false;
+        public bool LearnRecipe(int recipeId) => false;
+        public bool PlayEmote(string name) => false;
+        public void StopEmote() { }
     }
 
     private const string Sample = """
@@ -305,6 +319,12 @@ public sealed class ScriptTemplateTests
 
                 var tickError = await sandbox.TickAsync();
                 Assert.IsNull(tickError, $"{template.Name} tick {second}: {tickError}");
+            }
+
+            foreach (var won in new[] { true, false })
+            {
+                var challengeError = await sandbox.CallAsync("onChallengeEnd", player, 25, won);
+                Assert.IsNull(challengeError, $"{template.Name} onChallengeEnd: {challengeError}");
             }
         }
     }

@@ -9,7 +9,7 @@ namespace Sanctuary.Scripting.Tests;
 [TestClass]
 public class ScriptSandboxTests
 {
-    private sealed class MockScriptPlayer : IScriptablePlayer
+    internal sealed class MockScriptPlayer : IScriptablePlayer
     {
         public ulong Guid => 42;
         public string Name => "Tester";
@@ -46,7 +46,9 @@ public class ScriptSandboxTests
 
         public void PlayEffect(int compositeEffectId) => Effects.Add(compositeEffectId);
 
-        public void Emote(int animationId) { }
+        public int? LastEmote { get; private set; }
+
+        public void Emote(int animationId) => LastEmote = animationId;
 
         public (int Model, int Seconds)? Transformed { get; private set; }
 
@@ -127,6 +129,35 @@ public class ScriptSandboxTests
             StartedMinigame = minigameId;
             return minigameId == 91;
         }
+
+        public int BattleId { get; set; }
+        public bool IsFishing { get; set; }
+        public bool IsInMinigame { get; set; }
+
+        public int? StartedBattle { get; private set; }
+
+        public bool StartBattle(int battleId)
+        {
+            StartedBattle = battleId;
+            return battleId == 12;
+        }
+
+        public HashSet<int> Achievements { get; } = [];
+        public bool HasAchievement(int achievementId) => Achievements.Contains(achievementId);
+
+        public HashSet<int> Recipes { get; } = [];
+        public bool KnowsRecipe(int recipeId) => Recipes.Contains(recipeId);
+        public bool LearnRecipe(int recipeId) => Recipes.Add(recipeId);
+
+        public List<string> Emotes { get; } = [];
+
+        public bool PlayEmote(string name)
+        {
+            Emotes.Add(name);
+            return name == "griddy";
+        }
+
+        public void StopEmote() => Emotes.Add("stop");
     }
 
     private static MockScriptNpc CreateNpc() => new(new MockScriptZone(NullLogger.Instance));
@@ -278,6 +309,73 @@ public class ScriptSandboxTests
         Assert.IsNull(await sandbox.CallAsync("onSpawn"));
 
         CollectionAssert.AreEqual(new[] { "1 Tester Tester", "halloween is on", "missing is nil" }, player.Messages);
+    }
+
+    [TestMethod]
+    public async Task GamesApi_CoversBattlesMinigamesRecipesAndEmotes()
+    {
+        var zone = new MockScriptZone(NullLogger.Instance) { BattleId = 3, HouseOwnerGuid = 77 };
+        var npc = new MockScriptNpc(zone);
+        var player = new MockScriptPlayer { BattleId = 3, IsFishing = true };
+        player.Achievements.Add(9);
+        player.Recipes.Add(4);
+
+        var (sandbox, error) = await ScriptSandbox.CompileAsync(npc, """
+            function onInteract(player)
+                player:message(player.battleId .. " " .. tostring(player.inBattle) .. " " .. tostring(player.isFishing) .. " " .. tostring(player.inMinigame))
+                player:message(tostring(player:startBattle(12)) .. " " .. tostring(player:startBattle(13)))
+                player:message(tostring(player:hasAchievement(9)) .. " " .. tostring(player:hasAchievement(10)))
+                player:message(tostring(player:knowsRecipe(4)) .. " " .. tostring(player:learnRecipe(6)) .. " " .. tostring(player:learnRecipe(6)) .. " " .. tostring(player:knowsRecipe(6)))
+                player:message(tostring(player:emote("griddy")) .. " " .. tostring(player:emote("nope")) .. " " .. tostring(player:emote(3306)))
+                player:stopEmote()
+                player:message(tostring(npc:offerChallenge(player, 5)) .. " " .. tostring(npc:offerChallenge(player, 6)))
+                local zone = npc.zone
+                player:message(zone.gameHour .. " " .. zone.battleId .. " " .. tostring(zone.isHouse) .. " " .. zone.owner)
+            end
+
+            function onChallengeEnd(player, challengeId, won)
+                player:message("challenge " .. challengeId .. " " .. tostring(won))
+            end
+            """, "games");
+
+        Assert.IsNull(error);
+        Assert.IsNotNull(sandbox);
+        Assert.IsNull(await sandbox.CallAsync("onInteract", player));
+        Assert.IsNull(await sandbox.CallAsync("onChallengeEnd", player, 5, true));
+
+        CollectionAssert.AreEqual(new[]
+        {
+            "3 true true false",
+            "true false",
+            "true false",
+            "true true false true",
+            "true false true",
+            "true false",
+            "18.5 3 true 77",
+            "challenge 5 true"
+        }, player.Messages);
+        CollectionAssert.AreEqual(new[] { "griddy", "nope", "stop" }, player.Emotes);
+        Assert.AreEqual(3306, player.LastEmote);
+        CollectionAssert.AreEqual(new[] { (42UL, 5), (42UL, 6) }, npc.OfferedChallenges);
+    }
+
+    [TestMethod]
+    public async Task ZoneApi_OwnerIsNilOutsideHouses()
+    {
+        var npc = CreateNpc();
+        var player = new MockScriptPlayer();
+
+        var (sandbox, error) = await ScriptSandbox.CompileAsync(npc, """
+            function onInteract(player)
+                player:message(tostring(npc.zone.isHouse) .. " " .. tostring(npc.zone.owner) .. " " .. tostring(player.inBattle))
+            end
+            """, "house");
+
+        Assert.IsNull(error);
+        Assert.IsNotNull(sandbox);
+        Assert.IsNull(await sandbox.CallAsync("onInteract", player));
+
+        CollectionAssert.AreEqual(new[] { "false nil false" }, player.Messages);
     }
 
     [TestMethod]

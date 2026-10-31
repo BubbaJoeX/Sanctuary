@@ -183,6 +183,19 @@ public sealed class ScriptSandbox
         return await InvokeAsync(function, [new LuaValue(new PlayerUserData(player)), number]);
     }
 
+    /// <summary>
+    /// Calls a hook that takes a player, a number and a flag, like onChallengeEnd(player, challengeId, won).
+    /// </summary>
+    public async ValueTask<string?> CallAsync(string hook, IScriptablePlayer player, double number, bool flag)
+    {
+        var function = _environment[hook];
+
+        if (function.Type != LuaValueType.Function)
+            return null;
+
+        return await InvokeAsync(function, [new LuaValue(new PlayerUserData(player)), number, flag]);
+    }
+
     private async ValueTask<string?> InvokeAsync(LuaValue function, LuaValue[] args)
     {
         try
