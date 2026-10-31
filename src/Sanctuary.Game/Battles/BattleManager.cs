@@ -129,7 +129,7 @@ public sealed class BattleManager : IBattleManager, IDisposable
             return false;
         }
 
-        if (MinigameManager.GetSession(player) is not null)
+        if (MinigameManager.GetSession(player) is not null || player.Zone is WorldZone { Arena: not null })
         {
             ChatHelper.SendSystemMessage(player, "Finish the game you're playing first.");
             return false;
@@ -314,8 +314,10 @@ public sealed class BattleManager : IBattleManager, IDisposable
     {
         if (zone.Battle is not { } battle)
         {
-            // Out of any battle the client's combat rules are the overworld's again.
-            player.SendTunneled(EncounterDataCommonPacket.Default);
+            // Out of any battle the client's combat rules are the overworld's again (a 3D game's zone has its own).
+            if (zone.Arena is null)
+                player.SendTunneled(EncounterDataCommonPacket.Default);
+
             return;
         }
 

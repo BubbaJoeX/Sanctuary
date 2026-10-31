@@ -384,7 +384,10 @@ public class ClientPcData
 
     public Dictionary<CharacterStatId, CharacterStat> Stats = new();
 
-    // public VehicleStruct VehicleStruct = new();
+    /// <summary>
+    /// The kart garage's loadouts (the karts and derby cars as kitted out).
+    /// </summary>
+    public VehicleStruct VehicleStruct = new();
 
     public List<PlayerTitleData> Titles = new();
 
@@ -569,9 +572,7 @@ public class ClientPcData
 
         writer.Write(Stats);
 
-        // TODO VehicleStruct
-        writer.Write(0);
-        writer.Write(0);
+        VehicleStruct.Serialize(writer);
 
         writer.Write(Titles);
 

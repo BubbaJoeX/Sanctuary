@@ -21,9 +21,9 @@ public sealed partial class WorldZone
 
     /// <summary>
     /// A battle's copy stays up while its battle runs, even with nobody in it (the start panel is up, or everyone's
-    /// between respawns and teleports); the battle closes it.
+    /// between respawns and teleports); the battle closes it. So does a 3D game's (see <see cref="Arena"/>).
     /// </summary>
-    public override bool IsEmpty => base.IsEmpty && Battle is null;
+    public override bool IsEmpty => base.IsEmpty && Battle is null && Arena is null;
 
     /// <summary>
     /// An enemy that fights as <paramref name="mobKey"/> (Mobs.json) and stays down once beaten.

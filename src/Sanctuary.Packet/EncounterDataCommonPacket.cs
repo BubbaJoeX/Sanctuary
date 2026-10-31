@@ -5,7 +5,8 @@ namespace Sanctuary.Packet;
 /// <summary>
 /// The combat rules of the zone the player just entered: combat stance, damage, abilities, the HP bar, the party
 /// frames and the combat camera, and the end screen's score values. Live sent it on every zone load:
-/// <see cref="Battle"/> in a battle's instance, <see cref="Default"/> everywhere else.
+/// <see cref="Battle"/> in a battle's instance, <see cref="Minigame"/> in a kart race's, demolition derby's or soccer
+/// match's, <see cref="Default"/> everywhere else.
 /// </summary>
 public class EncounterDataCommonPacket : ISerializablePacket
 {
@@ -61,6 +62,18 @@ public class EncounterDataCommonPacket : ISerializablePacket
         NpcKOValue = 300,
         KnockoutRewardValue = 25000,
         KnockoutPenalty = 5000
+    };
+
+    /// <summary>
+    /// The 3D games' rules: nothing of combat, and the minigame end screen's score values.
+    /// </summary>
+    public static EncounterDataCommonPacket Minigame => new()
+    {
+        QuickCompletionTime = 1,
+        QuickCompletionLoss = 100,
+        NpcKOValue = 3000,
+        KnockoutRewardValue = 250000,
+        KnockoutPenalty = 50000
     };
 
     public byte[] Serialize()

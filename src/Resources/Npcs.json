@@ -75266,5 +75266,198 @@
         "Enabled": true
       }
     ]
+  },
+  {
+    "Id": 47001,
+    "NameId": 17958,
+    "Name": "Wildwood Kart Racing",
+    "ModelId": 69,
+    "ModelFileName": "widget_01.adr",
+    "Scale": 0.75,
+    "TerrainObjectId": 1254772288,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 17,
+    "Comment": "The speedway's kart racing kiosk"
+  },
+  {
+    "Id": 47002,
+    "NameId": 37938,
+    "Name": "Wildwood Demo Derby",
+    "ModelId": 271,
+    "ModelFileName": "invisible_cube.adr",
+    "TerrainObjectId": 1254772289,
+    "ReplaceTerrainObject": false,
+    "HasCursor": true,
+    "CursorId": 17,
+    "Comment": "The speedway's demo derby kiosk"
+  },
+  {
+    "Id": 47003,
+    "NameId": 19365,
+    "Name": "Tucker Thunderjolt",
+    "ModelId": 1331,
+    "ModelFileName": "human_m_samuel_bunker_incar.agr",
+    "Comment": "Demo derby driver"
+  },
+  {
+    "Id": 47004,
+    "NameId": 19366,
+    "Name": "Willow Slamdash",
+    "ModelId": 1297,
+    "ModelFileName": "fairy_f_willow_slamdash_incar.agr",
+    "Comment": "Demo derby driver"
+  },
+  {
+    "Id": 47005,
+    "NameId": 19367,
+    "Name": "Mikko Ragerunner",
+    "ModelId": 870,
+    "ModelFileName": "human_f_amber_violet_incar.agr",
+    "Comment": "Demo derby driver"
+  },
+  {
+    "Id": 47006,
+    "NameId": 19369,
+    "Name": "Morgan Slipdrifter",
+    "ModelId": 888,
+    "ModelFileName": "fairy_f_mustang_alli_incar.agr",
+    "Comment": "Demo derby driver"
+  },
+  {
+    "Id": 47007,
+    "NameId": 19370,
+    "Name": "Nina the Wrecker",
+    "ModelId": 870,
+    "ModelFileName": "human_f_amber_violet_incar.agr",
+    "Comment": "Demo derby driver"
+  },
+  {
+    "Id": 47008,
+    "NameId": 19368,
+    "Name": "Jet Madedge",
+    "ModelId": 891,
+    "ModelFileName": "human_m_racer_johnny_thunder_incar.agr",
+    "Comment": "Demo derby driver"
+  },
+  {
+    "Id": 47009,
+    "NameId": 19371,
+    "Name": "Carly Collision",
+    "ModelId": 870,
+    "ModelFileName": "human_f_amber_violet_incar.agr",
+    "Comment": "Demo derby driver"
+  },
+  {
+    "Id": 47010,
+    "NameId": 19358,
+    "Name": "Lily Leadfoot",
+    "ModelId": 871,
+    "ModelFileName": "fairy_m_sparks_blitzwing_incar.agr",
+    "Comment": "Kart racer"
+  },
+  {
+    "Id": 47011,
+    "NameId": 19359,
+    "Name": "Zoomer Rex",
+    "ModelId": 872,
+    "ModelFileName": "human_m_antonio_taurino_incar.agr",
+    "Comment": "Kart racer"
+  },
+  {
+    "Id": 47012,
+    "NameId": 19363,
+    "Name": "Jet Swiftpass",
+    "ModelId": 891,
+    "ModelFileName": "human_m_racer_johnny_thunder_incar.agr",
+    "Comment": "Kart racer"
+  },
+  {
+    "Id": 47013,
+    "NameId": 19361,
+    "Name": "Layla Octane",
+    "ModelId": 888,
+    "ModelFileName": "fairy_f_mustang_alli_incar.agr",
+    "Comment": "Kart racer"
+  },
+  {
+    "Id": 47014,
+    "NameId": 19362,
+    "Name": "Mai Redline",
+    "ModelId": 888,
+    "ModelFileName": "fairy_f_mustang_alli_incar.agr",
+    "Comment": "Kart racer"
+  },
+  {
+    "Id": 47015,
+    "NameId": 19364,
+    "Name": "Connor Rush",
+    "ModelId": 869,
+    "ModelFileName": "human_m_verve_mcnichols_incar.agr",
+    "Comment": "Kart racer"
+  },
+  {
+    "Id": 47016,
+    "NameId": 19344,
+    "Name": "Screamin' Steven",
+    "ModelId": 891,
+    "ModelFileName": "human_m_racer_johnny_thunder_incar.agr",
+    "Comment": "Kart racer"
+  },
+  {
+    "Id": 47017,
+    "NameId": 401726,
+    "Name": "Bobo Flamefoot",
+    "ModelId": 1415,
+    "ModelFileName": "fairy_m_bobo_flamingfoot_soccer.agr",
+    "Comment": "Soccer player"
+  },
+  {
+    "Id": 47018,
+    "NameId": 401725,
+    "Name": "Bigs McKicker",
+    "ModelId": 1428,
+    "ModelFileName": "human_m_bigs_mckicker_soccer.agr",
+    "Comment": "Soccer player"
+  },
+  {
+    "Id": 47019,
+    "NameId": 401728,
+    "Name": "Goalster Deedee",
+    "ModelId": 1592,
+    "ModelFileName": "human_f_goalster_deedee_soccer.agr",
+    "Comment": "Soccer player"
+  },
+  {
+    "Id": 47020,
+    "NameId": 401707,
+    "Name": "\"Iron Foot\" Ronnie",
+    "ModelId": 1434,
+    "ModelFileName": "human_m_ironfoot_ronnie.agr",
+    "Comment": "Soccer player"
+  },
+  {
+    "Id": 47021,
+    "NameId": 401712,
+    "Name": "Snowspurs Leftwing",
+    "ModelId": 1426,
+    "ModelFileName": "human_f_snowspurs_teammate01.agr",
+    "Comment": "Soccer player"
+  },
+  {
+    "Id": 47022,
+    "NameId": 401713,
+    "Name": "Snowspurs Rightwing",
+    "ModelId": 1412,
+    "ModelFileName": "fairy_f_snowspurs_teammate02.agr",
+    "Comment": "Soccer player"
+  },
+  {
+    "Id": 47023,
+    "NameId": 401711,
+    "Name": "Snowhill Goalie",
+    "ModelId": 1436,
+    "ModelFileName": "human_m_snowspurs_goalie.agr",
+    "Comment": "Soccer player"
   }
 ]

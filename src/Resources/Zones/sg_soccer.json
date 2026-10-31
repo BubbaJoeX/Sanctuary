@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1302,
+  "Name": "sg_soccer",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 7,
+  "EndLongitude": 13,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    230.645,
+    0.0,
+    210.2193
+  ],
+  "SpawnRotation": [
+    -1.0,
+    0,
+    -0.0,
+    0
+  ]
+}

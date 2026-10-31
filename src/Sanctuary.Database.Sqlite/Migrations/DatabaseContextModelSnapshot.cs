@@ -65,6 +65,16 @@ namespace Sanctuary.Database.Sqlite.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("ActiveDerbyLoadoutId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ActiveKartLoadoutId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
                     b.Property<int>("ActiveProfileId")
                         .HasColumnType("INTEGER");
 
@@ -1047,6 +1057,26 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbVehicleLoadout", b =>
+                {
+                    b.Property<ulong>("CharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.PrimitiveCollection<string>("Slots")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("CharacterId", "Id");
+
+                    b.ToTable("VehicleLoadouts");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbWorldEvent", b =>
                 {
                     b.Property<string>("Key")
@@ -1505,6 +1535,17 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.Navigation("Character");
                 });
 
+            modelBuilder.Entity("Sanctuary.Database.Entities.DbVehicleLoadout", b =>
+                {
+                    b.HasOne("Sanctuary.Database.Entities.DbCharacter", "Character")
+                        .WithMany("VehicleLoadouts")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+                });
+
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacter", b =>
                 {
                     b.Navigation("Achievements");
@@ -1528,6 +1569,8 @@ namespace Sanctuary.Database.Sqlite.Migrations
                     b.Navigation("Quests");
 
                     b.Navigation("Titles");
+
+                    b.Navigation("VehicleLoadouts");
                 });
 
             modelBuilder.Entity("Sanctuary.Database.Entities.DbCharacterAchievement", b =>
