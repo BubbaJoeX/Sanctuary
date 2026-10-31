@@ -51,4 +51,9 @@ public interface IVehicleGameManager
     /// A packet of the games' families (33 kart racing, 34 demolition derby, 76 soccer, 139 vehicle parts), whole.
     /// </summary>
     void HandlePacket(Player player, short opCode, ReadOnlySpan<byte> data);
+
+    /// <summary>
+    /// The player picks the loadout they drive in games of a type (1 kart racing, 2 demolition derby).
+    /// </summary>
+    bool SelectVehicle(Player player, int vehicleType, int loadoutId);
 }

@@ -79,6 +79,13 @@ public class DbCharacter
     // The tracked quest, or null when none is.
     public int? ActiveQuestId { get; set; }
 
+    /// <summary>
+    /// The kart and the derby car (<see cref="VehicleLoadouts"/> ids) the character races and derbies in; 0 for
+    /// none picked.
+    /// </summary>
+    public int ActiveKartLoadoutId { get; set; }
+    public int ActiveDerbyLoadoutId { get; set; }
+
     public ICollection<DbItem> Items { get; set; } = new HashSet<DbItem>();
     public ICollection<DbCollectionEntry> CollectionEntries { get; set; } = new HashSet<DbCollectionEntry>();
     public ICollection<DbTitle> Titles { get; set; } = new HashSet<DbTitle>();
@@ -90,6 +97,7 @@ public class DbCharacter
     public ICollection<DbProfile> Profiles { get; set; } = new HashSet<DbProfile>();
     public ICollection<DbCharacterQuest> Quests { get; set; } = new HashSet<DbCharacterQuest>();
     public ICollection<DbCharacterAchievement> Achievements { get; set; } = new HashSet<DbCharacterAchievement>();
+    public ICollection<DbVehicleLoadout> VehicleLoadouts { get; set; } = new HashSet<DbVehicleLoadout>();
 
     public ulong UserId { get; set; }
     public DbUser User { get; set; } = null!;

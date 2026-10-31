@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 using Sanctuary.Core.IO;
 
-namespace Sanctuary.Packet;
+namespace Sanctuary.Packet.Common;
 
 /// <summary>
 /// One vehicle as the player has kitted it out: an item in each of its 16 slots (0 chassis, 1 engine, 2 turbo,

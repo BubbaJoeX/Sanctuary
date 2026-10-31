@@ -34,7 +34,6 @@ public sealed class DerbyMatch : ArenaMatch
     private const int ResultsWaitMs = 5000;
 
     private readonly DerbyArenaDefinition _arena;
-    private readonly VehicleConfig _playerVehicle;
     private readonly Random _random = new();
     private readonly DerbySimulation _simulation;
 
@@ -57,10 +56,9 @@ public sealed class DerbyMatch : ArenaMatch
     {
         _arena = manager.ResourceManager.VehicleGames.Definition.Derby;
 
-        if (!manager.ResourceManager.VehicleGames.TryGetVehicle(_arena.PlayerVehicle, out var playerVehicle))
+        if (!manager.ResourceManager.VehicleGames.TryGetVehicle(_arena.PlayerVehicle, out _))
             throw new InvalidOperationException($"No vehicle {_arena.PlayerVehicle} for the derby.");
 
-        _playerVehicle = playerVehicle;
 
         _simulation = new DerbySimulation(_arena, zone.TryGetGroundHeight, _random)
         {
@@ -231,7 +229,9 @@ public sealed class DerbyMatch : ArenaMatch
 
             var spawn = spawns[index++];
 
-            _simulation.Add(new DerbyCar(participant.Guid, _playerVehicle, spawn.Point, spawn.Heading) { Participant = participant });
+            var vehicle = Manager.PlayerVehicle(participant.Player, Garage.VehicleLoadouts.DemolitionDerby);
+
+            _simulation.Add(new DerbyCar(participant.Guid, vehicle, spawn.Point, spawn.Heading) { Participant = participant });
 
             // The server's idea of where they are, so the AI drivers spawn in their view.
             participant.Player.UpdatePosition(new Vector4(spawn.Point, 1f), QuaternionExtensions.FromHeading(spawn.Heading));

@@ -5,9 +5,11 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using Sanctuary.Core.Extensions;
+using Sanctuary.Database;
 using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Battles;
 using Sanctuary.Game.Entities;
@@ -18,6 +20,7 @@ using Sanctuary.Game.Resources;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Game.VehicleGames.Derby;
+using Sanctuary.Game.VehicleGames.Garage;
 using Sanctuary.Game.VehicleGames.Race;
 using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
@@ -53,6 +56,7 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
     private readonly IResourceManager _resourceManager;
     private readonly IRewardManager _rewardManager;
     private readonly IZoneManager _zoneManager;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
 
     private readonly ConcurrentDictionary<int, ArenaMatch> _matches = new();
     private readonly ConcurrentDictionary<ulong, ArenaMatch> _playerMatches = new();
@@ -66,13 +70,15 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
     private int _instance;
     private long _lastUpdate = Environment.TickCount64;
 
-    public VehicleGameManager(ILoggerFactory loggerFactory, IResourceManager resourceManager, IRewardManager rewardManager, IZoneManager zoneManager)
+    public VehicleGameManager(ILoggerFactory loggerFactory, IResourceManager resourceManager, IRewardManager rewardManager, IZoneManager zoneManager,
+        IDbContextFactory<DatabaseContext> dbContextFactory)
     {
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<VehicleGameManager>();
         _resourceManager = resourceManager;
         _rewardManager = rewardManager;
         _zoneManager = zoneManager;
+        _dbContextFactory = dbContextFactory;
 
         _timer = new Timer(_ => Update(), null, TickMs, TickMs);
     }
@@ -80,6 +86,8 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
     public void Dispose() => _timer.Dispose();
 
     internal IResourceManager ResourceManager => _resourceManager;
+
+    internal IDbContextFactory<DatabaseContext> DbContextFactory => _dbContextFactory;
 
     public IReadOnlyList<NpcInteractionOption> GetInteractionOptions(Player player, Npc npc) =>
         _resourceManager.VehicleGames.OfferedBy(npc.DefinitionId).Select(stage => new NpcInteractionOption
@@ -161,6 +169,7 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
             {
                 VehicleGameKind.Derby => new DerbyMatch(id, stage, worldZone, this, logger),
                 VehicleGameKind.Race => new RaceMatch(id, stage, worldZone, this, logger),
+                VehicleGameKind.Garage => new GarageVisit(id, stage, worldZone, this, logger),
                 _ => throw new NotSupportedException($"{stage.Kind} isn't run yet.")
             };
         }
@@ -327,7 +336,13 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
     public void HandlePacket(Player player, short opCode, ReadOnlySpan<byte> data)
     {
         if (!_playerMatches.TryGetValue(player.Guid, out var match))
+        {
+            // A game's start screen picks the vehicle without the garage.
+            if (opCode == BaseVehiclePartPacket.OpCode && VehiclePartPacketRequestSelectVehicle.TryDeserialize(data, out var select))
+                SelectVehicle(player, (int)select.VehicleType, (int)select.VehicleId);
+
             return;
+        }
 
         lock (match)
         {
@@ -434,6 +449,35 @@ public sealed class VehicleGameManager : IVehicleGameManager, IDisposable
             _logger.LogInformation("{player} finished {name} ({encounter:X}) in place {place}: {stars} stars, {coins} coins.",
                 player.Name.FullName, match.Stage.Comment, match.Id, participant.Place + 1, boostedStars, boostedCoins);
         }
+    }
+
+    #endregion
+
+    #region Vehicles
+
+    /// <summary>
+    /// The vehicle the player drives in a game of <paramref name="vehicleType"/> (1 kart racing, 2 demolition
+    /// derby): their active loadout's.
+    /// </summary>
+    internal VehicleConfig PlayerVehicle(Player player, int vehicleType)
+    {
+        var slots = VehicleLoadoutStore.Active(player, vehicleType)?.Slots.Select(slot => (int)slot).ToList() ?? [];
+
+        return VehicleLoadouts.Compose(_resourceManager.VehicleGames, _resourceManager.ClientItemDefinitions, vehicleType, slots);
+    }
+
+    /// <summary>
+    /// The player picks the loadout they drive in games of a type (in the garage, or on a game's start screen).
+    /// </summary>
+    public bool SelectVehicle(Player player, int vehicleType, int loadoutId)
+    {
+        if (vehicleType is not (VehicleLoadouts.KartRace or VehicleLoadouts.DemolitionDerby)
+            || !player.VehicleStruct.Loadouts.Any(loadout => loadout.Id == loadoutId && loadout.Unknown == vehicleType))
+            return false;
+
+        VehicleLoadoutStore.SetActive(player, vehicleType, loadoutId, _dbContextFactory);
+
+        return true;
     }
 
     #endregion

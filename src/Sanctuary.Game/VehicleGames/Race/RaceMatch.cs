@@ -47,7 +47,6 @@ public sealed class RaceMatch : ArenaMatch
     };
 
     private readonly RaceTrackDefinition _definition;
-    private readonly VehicleConfig _playerVehicle;
     private readonly Random _random = new();
     private readonly RaceSimulation _simulation;
 
@@ -74,11 +73,10 @@ public sealed class RaceMatch : ArenaMatch
         if (stage.Track is null || !games.TryGetTrack(stage.Track, out var definition))
             throw new InvalidOperationException($"No track for stage {stage.Id}.");
 
-        if (!games.TryGetVehicle(definition.PlayerVehicle, out var playerVehicle))
+        if (!games.TryGetVehicle(definition.PlayerVehicle, out _))
             throw new InvalidOperationException($"No vehicle {definition.PlayerVehicle} for the race.");
 
         _definition = definition;
-        _playerVehicle = playerVehicle;
 
         _simulation = new RaceSimulation(new RaceTrack(definition), definition.Laps, _random)
         {
@@ -288,7 +286,9 @@ public sealed class RaceMatch : ArenaMatch
 
             var slot = slots[index++];
 
-            _simulation.Add(new RaceKart(participant.Guid, slot.Slot, _playerVehicle, slot.Point, slot.Heading)
+            var vehicle = Manager.PlayerVehicle(participant.Player, Garage.VehicleLoadouts.KartRace);
+
+            _simulation.Add(new RaceKart(participant.Guid, slot.Slot, vehicle, slot.Point, slot.Heading)
             {
                 Participant = participant,
                 RegisterClock = _registered[participant.Guid]

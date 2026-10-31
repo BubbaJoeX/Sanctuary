@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 using Sanctuary.Core.IO;
 
-namespace Sanctuary.Packet;
+namespace Sanctuary.Packet.Common;
 
 /// <summary>
 /// All of a player's vehicle loadouts, as ClientPcData and VehicleRefreshConfigs carry them.

@@ -10,9 +10,9 @@
   "EndLongitude": 9,
   "Sky": "sky_wilds24.xml",
   "SpawnPosition": [
-    256.0,
-    0.0,
-    256.0
+    248.0,
+    8.0,
+    249.0
   ],
   "SpawnRotation": [
     0.0,
