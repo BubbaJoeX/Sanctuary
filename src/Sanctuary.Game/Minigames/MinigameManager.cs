@@ -12,10 +12,12 @@ using Sanctuary.Game.Battles;
 using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
+using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Packet;
+using Sanctuary.Packet.Common;
 
 namespace Sanctuary.Game.Minigames;
 
@@ -42,6 +44,7 @@ public static class MinigameManager
     private static IResourceManager _resourceManager = null!;
     private static IBattleManager? _battleManager;
     private static ICraftingManager? _craftingManager;
+    private static IGroupManager? _groupManager;
 
     private static readonly Dictionary<string, Func<FlashMinigame>> Games = new(StringComparer.OrdinalIgnoreCase);
 
@@ -70,6 +73,7 @@ public static class MinigameManager
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
         _battleManager = serviceProvider.GetService<IBattleManager>();
         _craftingManager = serviceProvider.GetService<ICraftingManager>();
+        _groupManager = serviceProvider.GetService<IGroupManager>();
 
         foreach (var type in typeof(FlashMinigame).Assembly.GetTypes())
         {
@@ -160,11 +164,48 @@ public static class MinigameManager
             IconId = definition.IconId,
             DescriptionId = definition.DescriptionId,
             Difficulty = definition.Difficulty,
+            RewardPreview = GetPrizes(player, definition),
             // The movies cover the screen, so the world behind them isn't drawn or run, as it always has been.
             HideWorld = true
         });
 
         return true;
+    }
+
+    /// <summary>
+    /// The start screen's prizes: the coins and stars a win pays, and the items it makes (the start screen shows four).
+    /// </summary>
+    private static RewardBundleBase GetPrizes(Player player, MinigameDefinition definition)
+    {
+        var prizes = new RewardBundleBase
+        {
+            Success = false,
+            Coins = definition.Coins,
+            Experience = definition.Stars,
+            Unknown3 = 0,
+            IconId = -1,
+            NameId = -1
+        };
+
+        if (_craftingManager?.WillMakeItem(player, definition.Id) == false)
+            return prizes;
+
+        foreach (var item in definition.Items.Take(4))
+        {
+            if (!_resourceManager.ClientItemDefinitions.TryGetValue(item.ItemId, out var itemDefinition))
+                continue;
+
+            prizes.Entries.Add(new RewardBundleEntryItem
+            {
+                IconId = itemDefinition.Icon.Id,
+                TintId = itemDefinition.Icon.TintId,
+                NameId = itemDefinition.NameId,
+                Quantity = item.Quantity,
+                DefinitionId = item.ItemId
+            });
+        }
+
+        return prizes;
     }
 
     /// <summary>
@@ -189,6 +230,8 @@ public static class MinigameManager
         Sessions[player.Guid] = game;
 
         _logger.LogInformation("{player} started minigame {id} ({name}).", player.Name.FullName, definition.Id, definition.Comment);
+
+        SendInMinigame(player, true);
 
         player.SendTunneled(new CommandPacketStartFlashGame
         {
@@ -390,6 +433,15 @@ public static class MinigameManager
     /// Closes the player's game: the movie's window and the client's minigame state. Nothing is paid that the game
     /// hadn't paid already.
     /// </summary>
+    /// <summary>
+    /// Shows the player's group whether they're in a minigame.
+    /// </summary>
+    private static void SendInMinigame(Player player, bool inMinigame)
+    {
+        if (player.Group is not null)
+            _groupManager?.SendToGroup(player, new GroupPacketInMinigame { MemberGuid = player.Guid, InMinigame = inMinigame });
+    }
+
     public static void Close(Player player, bool notifyClient = true)
     {
         Picked.TryRemove(player.Guid, out _);
@@ -398,6 +450,8 @@ public static class MinigameManager
             return;
 
         Run(game, game.OnClose);
+
+        SendInMinigame(player, false);
 
         if (!notifyClient)
             return;

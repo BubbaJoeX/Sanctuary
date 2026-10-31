@@ -1,3 +1,4 @@
+using Sanctuary.Core.IO;
 using Sanctuary.Game.Entities;
 
 namespace Sanctuary.Game.Groups;
@@ -33,4 +34,10 @@ public interface IGroupManager
     /// Logging out leaves the group and drops any open invitations.
     /// </summary>
     void OnLogout(Player player);
+
+    /// <summary>
+    /// Sends a packet to every online member of <paramref name="player"/>'s group, them included, or to them alone
+    /// when they have no group.
+    /// </summary>
+    void SendToGroup(Player player, ISerializablePacket packet);
 }

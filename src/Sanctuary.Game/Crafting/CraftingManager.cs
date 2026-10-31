@@ -149,6 +149,10 @@ public class CraftingManager : ICraftingManager
             ChatHelper.SendSystemMessage(player, $"You made {ItemName(recipe.ResultItemId)}.");
     }
 
+    public bool WillMakeItem(Player player, int minigameId) =>
+        !_resourceManager.Recipes.TryGetByMinigame(minigameId, out var recipe) ||
+        _pending.TryGetValue(player.Guid, out var pending) && pending.Id == recipe.Id;
+
     public bool TryCompleteCraft(Player player, int minigameId, out string? hint)
     {
         hint = null;

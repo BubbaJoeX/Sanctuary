@@ -34,4 +34,10 @@ public interface ICraftingManager
     /// ingredients. True if the game should pay what it makes; otherwise <paramref name="hint"/> says why not.
     /// </summary>
     bool TryCompleteCraft(Player player, int minigameId, out string? hint);
+
+    /// <summary>
+    /// Whether winning this minigame would make its item: always for a game that isn't a recipe's, and for a
+    /// recipe's game only when it was started from the recipe.
+    /// </summary>
+    bool WillMakeItem(Player player, int minigameId);
 }
