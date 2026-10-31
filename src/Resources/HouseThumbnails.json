@@ -1,0 +1,117 @@
+[
+  {
+    "HouseDefinitionId": 1,
+    "Comment": "hsg_emptylot_blackspore_01",
+    "Thumbnail": "blackspore_lot"
+  },
+  {
+    "HouseDefinitionId": 2,
+    "Comment": "hsg_emptylot_boat_01",
+    "Thumbnail": "yacht_lot"
+  },
+  {
+    "HouseDefinitionId": 3,
+    "Comment": "hsg_emptylot_bog_shore_01",
+    "Thumbnail": "bogshore_lot"
+  },
+  {
+    "HouseDefinitionId": 4,
+    "Comment": "hsg_emptylot_briarfalls_01",
+    "Thumbnail": "briarfalls_lot"
+  },
+  {
+    "HouseDefinitionId": 5,
+    "Comment": "hsg_emptylot_briarwood_01",
+    "Thumbnail": "briarwood_lot"
+  },
+  {
+    "HouseDefinitionId": 6,
+    "Comment": "hsg_emptylot_bw_towers_01",
+    "Thumbnail": "briarwoodtowers_lot"
+  },
+  {
+    "HouseDefinitionId": 8,
+    "Comment": "hsg_emptylot_gl_staircase_01",
+    "Thumbnail": "shroudedgladestairs_lot"
+  },
+  {
+    "HouseDefinitionId": 9,
+    "Comment": "hsg_emptylot_gl_valley_01",
+    "Thumbnail": "shroudedglade_lot"
+  },
+  {
+    "HouseDefinitionId": 10,
+    "Comment": "hsg_emptylot_island_01",
+    "Thumbnail": "lonelyisland_lot"
+  },
+  {
+    "HouseDefinitionId": 14,
+    "Comment": "hsg_emptylot_seaside_cliffs_01",
+    "Thumbnail": "seaside_lot"
+  },
+  {
+    "HouseDefinitionId": 15,
+    "Comment": "hsg_emptylot_sh_batcave_01",
+    "Thumbnail": "snowhillbatcave_lot"
+  },
+  {
+    "HouseDefinitionId": 16,
+    "Comment": "hsg_emptylot_sh_crystalmines_01",
+    "Thumbnail": "crystalmines_lot"
+  },
+  {
+    "HouseDefinitionId": 17,
+    "Comment": "hsg_emptylot_shrouded_gloam_01",
+    "Thumbnail": "shroudedgloam_lot"
+  },
+  {
+    "HouseDefinitionId": 19,
+    "Comment": "hsg_emptylot_snowhill_01",
+    "Thumbnail": "snowhill_lot"
+  },
+  {
+    "HouseDefinitionId": 20,
+    "Comment": "hsg_emptylot_vale_steam_01",
+    "Thumbnail": "valestream_lot"
+  },
+  {
+    "HouseDefinitionId": 21,
+    "Comment": "hsg_emptylot_wugachug_01",
+    "Thumbnail": "wugachug_lot"
+  },
+  {
+    "HouseDefinitionId": 22,
+    "Comment": "hsg_hum_blackspore_01",
+    "Thumbnail": "blacksporeswamphouse_lot"
+  },
+  {
+    "HouseDefinitionId": 24,
+    "Comment": "hsg_hum_condo",
+    "Thumbnail": "condo_lot"
+  },
+  {
+    "HouseDefinitionId": 25,
+    "Comment": "hsg_hum_condo_w_lot",
+    "Thumbnail": "condo_lot"
+  },
+  {
+    "HouseDefinitionId": 27,
+    "Comment": "hsg_hum_economy_01",
+    "Thumbnail": "apartment_home"
+  },
+  {
+    "HouseDefinitionId": 28,
+    "Comment": "hsg_hum_sg_night_club_01",
+    "Thumbnail": "vipclub_lot"
+  },
+  {
+    "HouseDefinitionId": 29,
+    "Comment": "hsg_hum_snowhill_01",
+    "Thumbnail": "snowhilllodge_lot"
+  },
+  {
+    "HouseDefinitionId": 32,
+    "Comment": "ssv_dwarf_dam_01",
+    "Thumbnail": "dwarfdam_lot"
+  }
+]

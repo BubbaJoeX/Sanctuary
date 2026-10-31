@@ -4,6 +4,7 @@ using System.Linq;
 
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Core.IO;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
@@ -248,6 +249,18 @@ public sealed class GroupManager : IGroupManager
         }
 
         return roster;
+    }
+
+    public void SendToGroup(Player player, ISerializablePacket packet)
+    {
+        if (player.Group is not { } group)
+        {
+            player.SendTunneled(packet);
+            return;
+        }
+
+        foreach (var member in GetOnlineMembers(group))
+            member.SendTunneled(packet);
     }
 
     // Leader first, as the roster's order is what makes the leader.

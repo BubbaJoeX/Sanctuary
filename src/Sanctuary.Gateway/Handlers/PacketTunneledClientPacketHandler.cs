@@ -78,6 +78,16 @@ public static class PacketTunneledClientPacketHandler
             BaseQuestPacket.OpCode => BaseQuestPacketHandler.HandlePacket(connection, reader),
             BaseUiPacket.OpCode => BaseUiPacketHandler.HandlePacket(connection, reader),
             ClientPathBasePacket.OpCode => ClientPathBasePacketHandler.HandlePacket(connection, reader),
+            BaseReportPacket.OpCode => BaseReportPacketHandler.HandlePacket(connection, reader),
+            BugSubmissionPacketAddBug.OpCode => BugSubmissionPacketAddBugHandler.HandlePacket(connection, packetTunneledClientPacket.Payload),
+            BaseRatingPacket.OpCode => BaseRatingPacketHandler.HandlePacket(connection, reader),
+
+            // Notices that want no answer: quitting, closing an inspect, telemetry, the matchmaking poll.
+            PacketClientLogout.OpCode => true,
+            BaseInspectPacket.OpCode => true,
+            NudgeBasePacket.OpCode => true,
+            PacketClientLuaMetrics.OpCode => true,
+            BaseMatchmakingPacket.OpCode => true,
             _ => false
         };
 

@@ -1,5 +1,30 @@
 [
   {
+    "Title": "Achievements",
+    "Text": "The Achievements window is open: 321 achievements from jobs, battles, quests, minigames, housing, pets and rides, with trophies, points and titles to earn. What you've already done counts, so your job ranks and rides are there the first time you look.",
+    "Icon": "trophy"
+  },
+  {
+    "Title": "Recipes and crafting",
+    "Text": "Hold a recipe card to learn its recipe, then make it at a cooking table or an anvil (anvils smelt bars too). Make It plays the recipe's game, and a win turns your ingredients into the dish, bar or weapon. Cooking tables, game tables, harvest fields, mining veins and postboxes across the world all work now.",
+    "Icon": "journal"
+  },
+  {
+    "Title": "The Housing Directory",
+    "Text": "Proud of your house? Submit it to the Housing Directory from its side panel. Visit the most popular, the newest and your friends' houses, search by name, and vote one to five stars on the houses you visit.",
+    "Icon": "house"
+  },
+  {
+    "Title": "Shops all over",
+    "Text": "Every job's gear vendor has stock now, and so do the stylists, pet suppliers, potion sellers, Dress Up! and the ride dealers Dusti Rodez and Charlie.",
+    "Icon": "bag"
+  },
+  {
+    "Title": "Map pings for groups",
+    "Text": "Click the minimap to ping a spot for your whole group, and see at a glance who in your group is choosing a job or playing a game.",
+    "Icon": "friends"
+  },
+  {
     "Title": "Three new homes",
     "Text": "Move up to Skyhaven Isle, a meadow floating high above the clouds; down to Pearlshade Reef, a sunlit lagoon on the sea floor; or into Blossomfall Terrace, a cherry-blossom garden at golden hour. Their deeds are in the Shop with the lots, and so is a set of matching furniture for each.",
     "Icon": "house"

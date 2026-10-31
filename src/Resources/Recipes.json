@@ -1,0 +1,1972 @@
+[
+  {
+    "Id": 4,
+    "Comment": "Copper Bar",
+    "ResultItemId": 21785,
+    "FilterType": 9,
+    "ProfileId": 14,
+    "MinProfileRank": 1,
+    "MinigameId": 77,
+    "Components": [
+      {
+        "ItemId": 879,
+        "Required": 3
+      },
+      {
+        "ItemId": 2739,
+        "Required": 5
+      }
+    ]
+  },
+  {
+    "Id": 5,
+    "Comment": "Tin Bar",
+    "ResultItemId": 21786,
+    "FilterType": 9,
+    "ProfileId": 14,
+    "MinProfileRank": 1,
+    "MinigameId": 134,
+    "Components": [
+      {
+        "ItemId": 880,
+        "Required": 3
+      },
+      {
+        "ItemId": 2740,
+        "Required": 5
+      }
+    ]
+  },
+  {
+    "Id": 6,
+    "Comment": "Iron Bar",
+    "ResultItemId": 21787,
+    "FilterType": 9,
+    "ProfileId": 14,
+    "MinProfileRank": 1,
+    "MinigameId": 135,
+    "Components": [
+      {
+        "ItemId": 881,
+        "Required": 3
+      },
+      {
+        "ItemId": 2741,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 7,
+    "Comment": "Silver Bar",
+    "ResultItemId": 21788,
+    "FilterType": 9,
+    "ProfileId": 14,
+    "MinProfileRank": 1,
+    "MinigameId": 136,
+    "Components": [
+      {
+        "ItemId": 882,
+        "Required": 3
+      },
+      {
+        "ItemId": 2742,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 8,
+    "Comment": "Gold Bar",
+    "ResultItemId": 21789,
+    "FilterType": 9,
+    "ProfileId": 14,
+    "MinProfileRank": 1,
+    "MinigameId": 137,
+    "Components": [
+      {
+        "ItemId": 883,
+        "Required": 3
+      },
+      {
+        "ItemId": 2743,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 10,
+    "Comment": "Quick Shot Bow",
+    "ResultItemId": 30250,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 138,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 3
+      },
+      {
+        "ItemId": 55,
+        "Required": 5
+      },
+      {
+        "ItemId": 21785,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 11,
+    "Comment": "Spunky Scrapper Hammer",
+    "ResultItemId": 30280,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 139,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 5
+      },
+      {
+        "ItemId": 56,
+        "Required": 3
+      },
+      {
+        "ItemId": 21785,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 12,
+    "Comment": "First Aid Scalpel",
+    "ResultItemId": 30270,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 140,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 5
+      },
+      {
+        "ItemId": 56,
+        "Required": 3
+      },
+      {
+        "ItemId": 21785,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 13,
+    "Comment": "Dancing Monkey Bokken",
+    "ResultItemId": 30290,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 141,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 3
+      },
+      {
+        "ItemId": 55,
+        "Required": 5
+      },
+      {
+        "ItemId": 21785,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 14,
+    "Comment": "Power Charmed Wand",
+    "ResultItemId": 30301,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 142,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 5
+      },
+      {
+        "ItemId": 57,
+        "Required": 3
+      },
+      {
+        "ItemId": 2752,
+        "Required": 2
+      },
+      {
+        "ItemId": 21785,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 15,
+    "Comment": "Fast Blast Bow",
+    "ResultItemId": 30310,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 143,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 4
+      },
+      {
+        "ItemId": 55,
+        "Required": 6
+      },
+      {
+        "ItemId": 21786,
+        "Required": 7
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 16,
+    "Comment": "Rowdy Rumbler",
+    "ResultItemId": 30340,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 144,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 6
+      },
+      {
+        "ItemId": 56,
+        "Required": 4
+      },
+      {
+        "ItemId": 21786,
+        "Required": 7
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 17,
+    "Comment": "Field Support Hammer",
+    "ResultItemId": 30330,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 145,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 6
+      },
+      {
+        "ItemId": 56,
+        "Required": 4
+      },
+      {
+        "ItemId": 21786,
+        "Required": 7
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 18,
+    "Comment": "Biting Mongoose Blade",
+    "ResultItemId": 30350,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 146,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 4
+      },
+      {
+        "ItemId": 54,
+        "Required": 6
+      },
+      {
+        "ItemId": 21786,
+        "Required": 7
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 19,
+    "Comment": "Lunar Enchanted Wand",
+    "ResultItemId": 7186,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 5,
+    "MinigameId": 147,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 6
+      },
+      {
+        "ItemId": 57,
+        "Required": 4
+      },
+      {
+        "ItemId": 2747,
+        "Required": 3
+      },
+      {
+        "ItemId": 21786,
+        "Required": 7
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 20,
+    "Comment": "Alley Fighter Hammer",
+    "ResultItemId": 30400,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 148,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 7
+      },
+      {
+        "ItemId": 56,
+        "Required": 5
+      },
+      {
+        "ItemId": 2751,
+        "Required": 4
+      },
+      {
+        "ItemId": 21787,
+        "Required": 9
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 21,
+    "Comment": "Anguish Aid Bonesaw",
+    "ResultItemId": 30390,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 149,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 7
+      },
+      {
+        "ItemId": 56,
+        "Required": 5
+      },
+      {
+        "ItemId": 2751,
+        "Required": 4
+      },
+      {
+        "ItemId": 21787,
+        "Required": 9
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 22,
+    "Comment": "Diving Hawk Scythe",
+    "ResultItemId": 30410,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 162,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 5
+      },
+      {
+        "ItemId": 54,
+        "Required": 7
+      },
+      {
+        "ItemId": 2751,
+        "Required": 4
+      },
+      {
+        "ItemId": 21787,
+        "Required": 9
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 23,
+    "Comment": "Chivalrous Guardian Hammer",
+    "ResultItemId": 30380,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 163,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 5
+      },
+      {
+        "ItemId": 55,
+        "Required": 7
+      },
+      {
+        "ItemId": 2751,
+        "Required": 4
+      },
+      {
+        "ItemId": 21787,
+        "Required": 9
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 24,
+    "Comment": "Strong Scrapper Hammer",
+    "ResultItemId": 30460,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 15,
+    "MinigameId": 164,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 8
+      },
+      {
+        "ItemId": 56,
+        "Required": 6
+      },
+      {
+        "ItemId": 2748,
+        "Required": 5
+      },
+      {
+        "ItemId": 21788,
+        "Required": 12
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 25,
+    "Comment": "Pain Relief Bonesaw",
+    "ResultItemId": 30450,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 165,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 8
+      },
+      {
+        "ItemId": 56,
+        "Required": 6
+      },
+      {
+        "ItemId": 2748,
+        "Required": 5
+      },
+      {
+        "ItemId": 21788,
+        "Required": 11
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 26,
+    "Comment": "Stalking Panther Scythe",
+    "ResultItemId": 30470,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 166,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 6
+      },
+      {
+        "ItemId": 54,
+        "Required": 8
+      },
+      {
+        "ItemId": 2748,
+        "Required": 5
+      },
+      {
+        "ItemId": 21788,
+        "Required": 11
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 27,
+    "Comment": "Stalwart Protector Hammer",
+    "ResultItemId": 30440,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 167,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 6
+      },
+      {
+        "ItemId": 55,
+        "Required": 8
+      },
+      {
+        "ItemId": 2748,
+        "Required": 5
+      },
+      {
+        "ItemId": 21788,
+        "Required": 11
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 28,
+    "Comment": "Frenzy Fighter Hammer",
+    "ResultItemId": 30520,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 20,
+    "MinigameId": 168,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 10
+      },
+      {
+        "ItemId": 56,
+        "Required": 8
+      },
+      {
+        "ItemId": 2750,
+        "Required": 7
+      },
+      {
+        "ItemId": 21789,
+        "Required": 15
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 29,
+    "Comment": "Trauma Support Shockrod",
+    "ResultItemId": 30510,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 169,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 9
+      },
+      {
+        "ItemId": 56,
+        "Required": 7
+      },
+      {
+        "ItemId": 2750,
+        "Required": 6
+      },
+      {
+        "ItemId": 21789,
+        "Required": 13
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 30,
+    "Comment": "Striking Serpent Sword",
+    "ResultItemId": 30530,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 20,
+    "MinigameId": 170,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 8
+      },
+      {
+        "ItemId": 54,
+        "Required": 10
+      },
+      {
+        "ItemId": 2750,
+        "Required": 7
+      },
+      {
+        "ItemId": 21789,
+        "Required": 15
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 31,
+    "Comment": "Intrepid Protector Axe",
+    "ResultItemId": 30500,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 171,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 7
+      },
+      {
+        "ItemId": 55,
+        "Required": 9
+      },
+      {
+        "ItemId": 2750,
+        "Required": 6
+      },
+      {
+        "ItemId": 21789,
+        "Required": 13
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 33,
+    "Comment": "Spiralmint Steak",
+    "ResultItemId": 21807,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 173,
+    "Components": [
+      {
+        "ItemId": 2862,
+        "Required": 3
+      },
+      {
+        "ItemId": 2877,
+        "Required": 3
+      },
+      {
+        "ItemId": 2889,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      }
+    ]
+  },
+  {
+    "Id": 34,
+    "Comment": "Savory Spiralmint Soup",
+    "ResultItemId": 21834,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 174,
+    "Components": [
+      {
+        "ItemId": 2875,
+        "Required": 3
+      },
+      {
+        "ItemId": 2877,
+        "Required": 3
+      },
+      {
+        "ItemId": 2889,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      }
+    ]
+  },
+  {
+    "Id": 35,
+    "Comment": "Gummyfruit Gumbo",
+    "ResultItemId": 21809,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 175,
+    "Components": [
+      {
+        "ItemId": 2861,
+        "Required": 3
+      },
+      {
+        "ItemId": 2875,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 36,
+    "Comment": "Three Leaf Omelette",
+    "ResultItemId": 21810,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 176,
+    "Components": [
+      {
+        "ItemId": 2871,
+        "Required": 3
+      },
+      {
+        "ItemId": 2880,
+        "Required": 3
+      },
+      {
+        "ItemId": 2884,
+        "Required": 3
+      },
+      {
+        "ItemId": 2897,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 37,
+    "Comment": "Tangy Tumtumnip Mishmash",
+    "ResultItemId": 21811,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 177,
+    "Components": [
+      {
+        "ItemId": 2879,
+        "Required": 3
+      },
+      {
+        "ItemId": 2885,
+        "Required": 3
+      },
+      {
+        "ItemId": 2890,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 38,
+    "Comment": "Burnetta's Curious Creation",
+    "ResultItemId": 21812,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 178,
+    "Components": [
+      {
+        "ItemId": 2863,
+        "Required": 3
+      },
+      {
+        "ItemId": 2889,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 39,
+    "Comment": "Crispy Choychoy Delight",
+    "ResultItemId": 21813,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 5,
+    "MinigameId": 179,
+    "Components": [
+      {
+        "ItemId": 2862,
+        "Required": 3
+      },
+      {
+        "ItemId": 2873,
+        "Required": 3
+      },
+      {
+        "ItemId": 2879,
+        "Required": 3
+      },
+      {
+        "ItemId": 2905,
+        "Required": 4
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 40,
+    "Comment": "Punkin Pot Roast",
+    "ResultItemId": 21814,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 180,
+    "Components": [
+      {
+        "ItemId": 2859,
+        "Required": 3
+      },
+      {
+        "ItemId": 2874,
+        "Required": 3
+      },
+      {
+        "ItemId": 2882,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 41,
+    "Comment": "Slugmud Surprise",
+    "ResultItemId": 21815,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 5,
+    "MinigameId": 181,
+    "Components": [
+      {
+        "ItemId": 2861,
+        "Required": 3
+      },
+      {
+        "ItemId": 2892,
+        "Required": 3
+      },
+      {
+        "ItemId": 2893,
+        "Required": 4
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 42,
+    "Comment": "Glerga's Gourmet Goulash",
+    "ResultItemId": 21816,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 15,
+    "MinigameId": 182,
+    "Components": [
+      {
+        "ItemId": 2860,
+        "Required": 3
+      },
+      {
+        "ItemId": 2888,
+        "Required": 3
+      },
+      {
+        "ItemId": 2891,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 5
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 43,
+    "Comment": "Gummyfruit Topped Sundae",
+    "ResultItemId": 21817,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 183,
+    "Components": [
+      {
+        "ItemId": 2875,
+        "Required": 4
+      },
+      {
+        "ItemId": 2886,
+        "Required": 3
+      },
+      {
+        "ItemId": 2895,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 4
+      }
+    ]
+  },
+  {
+    "Id": 44,
+    "Comment": "Sizzling Snowberry Saute",
+    "ResultItemId": 21818,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 10,
+    "MinigameId": 184,
+    "Components": [
+      {
+        "ItemId": 2860,
+        "Required": 3
+      },
+      {
+        "ItemId": 2873,
+        "Required": 3
+      },
+      {
+        "ItemId": 2874,
+        "Required": 3
+      },
+      {
+        "ItemId": 2876,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 9
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 45,
+    "Comment": "Fried Starnut Stick",
+    "ResultItemId": 21819,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 185,
+    "Components": [
+      {
+        "ItemId": 2864,
+        "Required": 3
+      },
+      {
+        "ItemId": 2878,
+        "Required": 3
+      },
+      {
+        "ItemId": 2886,
+        "Required": 3
+      },
+      {
+        "ItemId": 2905,
+        "Required": 7
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 46,
+    "Comment": "Starnut Sundae",
+    "ResultItemId": 21820,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 186,
+    "Components": [
+      {
+        "ItemId": 2886,
+        "Required": 3
+      },
+      {
+        "ItemId": 2887,
+        "Required": 3
+      },
+      {
+        "ItemId": 2896,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 6
+      }
+    ]
+  },
+  {
+    "Id": 47,
+    "Comment": "Stainberry Chocolate Gumdrop",
+    "ResultItemId": 21821,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 10,
+    "MinigameId": 187,
+    "Components": [
+      {
+        "ItemId": 2875,
+        "Required": 3
+      },
+      {
+        "ItemId": 2887,
+        "Required": 3
+      },
+      {
+        "ItemId": 2896,
+        "Required": 3
+      },
+      {
+        "ItemId": 2898,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 8
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 48,
+    "Comment": "Rainleaf Wrapped Dumpling",
+    "ResultItemId": 21822,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 188,
+    "Components": [
+      {
+        "ItemId": 2884,
+        "Required": 3
+      },
+      {
+        "ItemId": 2890,
+        "Required": 3
+      },
+      {
+        "ItemId": 2903,
+        "Required": 7
+      },
+      {
+        "ItemId": 68065,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 49,
+    "Comment": "Merri's Marinated Mystery Meat",
+    "ResultItemId": 21823,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 15,
+    "MinigameId": 189,
+    "Components": [
+      {
+        "ItemId": 2859,
+        "Required": 3
+      },
+      {
+        "ItemId": 2872,
+        "Required": 3
+      },
+      {
+        "ItemId": 2891,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 9
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 50,
+    "Comment": "Royal Stew Du Jour",
+    "ResultItemId": 21824,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 190,
+    "Components": [
+      {
+        "ItemId": 2860,
+        "Required": 3
+      },
+      {
+        "ItemId": 2862,
+        "Required": 3
+      },
+      {
+        "ItemId": 2875,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 7
+      }
+    ]
+  },
+  {
+    "Id": 51,
+    "Comment": "Seared Stainberry",
+    "ResultItemId": 21825,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 191,
+    "Components": [
+      {
+        "ItemId": 2880,
+        "Required": 3
+      },
+      {
+        "ItemId": 2884,
+        "Required": 3
+      },
+      {
+        "ItemId": 2887,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 7
+      }
+    ]
+  },
+  {
+    "Id": 52,
+    "Comment": "Spicy Vegetable Stirfry",
+    "ResultItemId": 21826,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 192,
+    "Components": [
+      {
+        "ItemId": 2874,
+        "Required": 3
+      },
+      {
+        "ItemId": 2879,
+        "Required": 3
+      },
+      {
+        "ItemId": 2892,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 7
+      },
+      {
+        "ItemId": 65829,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 53,
+    "Comment": "Oddly Colored Omelette",
+    "ResultItemId": 21827,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 15,
+    "MinigameId": 193,
+    "Components": [
+      {
+        "ItemId": 2872,
+        "Required": 3
+      },
+      {
+        "ItemId": 2888,
+        "Required": 3
+      },
+      {
+        "ItemId": 2891,
+        "Required": 3
+      },
+      {
+        "ItemId": 2897,
+        "Required": 9
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 54,
+    "Comment": "De'Flor Family Fried Dumplings",
+    "ResultItemId": 21828,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 194,
+    "Components": [
+      {
+        "ItemId": 2863,
+        "Required": 3
+      },
+      {
+        "ItemId": 2871,
+        "Required": 3
+      },
+      {
+        "ItemId": 2873,
+        "Required": 3
+      },
+      {
+        "ItemId": 2882,
+        "Required": 3
+      },
+      {
+        "ItemId": 2903,
+        "Required": 7
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 55,
+    "Comment": "Honey Roasted Moonbean",
+    "ResultItemId": 21829,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 20,
+    "MinigameId": 195,
+    "Components": [
+      {
+        "ItemId": 2861,
+        "Required": 3
+      },
+      {
+        "ItemId": 2878,
+        "Required": 3
+      },
+      {
+        "ItemId": 2881,
+        "Required": 3
+      },
+      {
+        "ItemId": 2891,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 10
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 56,
+    "Comment": "Moonbean Sundae Sweettreat",
+    "ResultItemId": 21830,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 196,
+    "Components": [
+      {
+        "ItemId": 2878,
+        "Required": 3
+      },
+      {
+        "ItemId": 2887,
+        "Required": 3
+      },
+      {
+        "ItemId": 2895,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 8
+      }
+    ]
+  },
+  {
+    "Id": 57,
+    "Comment": "Candied Briarmelon",
+    "ResultItemId": 21831,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 20,
+    "MinigameId": 197,
+    "Components": [
+      {
+        "ItemId": 2877,
+        "Required": 3
+      },
+      {
+        "ItemId": 2881,
+        "Required": 3
+      },
+      {
+        "ItemId": 2883,
+        "Required": 3
+      },
+      {
+        "ItemId": 2885,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 10
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 58,
+    "Comment": "Sweetwater Float",
+    "ResultItemId": 21832,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 198,
+    "Components": [
+      {
+        "ItemId": 2862,
+        "Required": 3
+      },
+      {
+        "ItemId": 2874,
+        "Required": 3
+      },
+      {
+        "ItemId": 2883,
+        "Required": 3
+      },
+      {
+        "ItemId": 2888,
+        "Required": 3
+      },
+      {
+        "ItemId": 2894,
+        "Required": 8
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 59,
+    "Comment": "Moonbean Mousse",
+    "ResultItemId": 21833,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 199,
+    "Components": [
+      {
+        "ItemId": 2878,
+        "Required": 3
+      },
+      {
+        "ItemId": 2887,
+        "Required": 3
+      },
+      {
+        "ItemId": 2896,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 8
+      }
+    ]
+  },
+  {
+    "Id": 64,
+    "Comment": "Eclipse Infused Wand",
+    "ResultItemId": 30420,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 10,
+    "MinigameId": 365,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 7
+      },
+      {
+        "ItemId": 57,
+        "Required": 5
+      },
+      {
+        "ItemId": 2751,
+        "Required": 4
+      },
+      {
+        "ItemId": 21787,
+        "Required": 10
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 65,
+    "Comment": "Savage Sting Bow",
+    "ResultItemId": 30430,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 15,
+    "MinigameId": 366,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 6
+      },
+      {
+        "ItemId": 55,
+        "Required": 8
+      },
+      {
+        "ItemId": 2748,
+        "Required": 5
+      },
+      {
+        "ItemId": 21788,
+        "Required": 12
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 67,
+    "Comment": "Brutal Blast Bow",
+    "ResultItemId": 30490,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 20,
+    "MinigameId": 368,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 8
+      },
+      {
+        "ItemId": 55,
+        "Required": 10
+      },
+      {
+        "ItemId": 2750,
+        "Required": 7
+      },
+      {
+        "ItemId": 21789,
+        "Required": 15
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 68,
+    "Comment": "Void Woven Wand",
+    "ResultItemId": 30541,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 20,
+    "MinigameId": 369,
+    "Components": [
+      {
+        "ItemId": 55,
+        "Required": 10
+      },
+      {
+        "ItemId": 57,
+        "Required": 8
+      },
+      {
+        "ItemId": 2750,
+        "Required": 7
+      },
+      {
+        "ItemId": 21789,
+        "Required": 15
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 70,
+    "Comment": "Strong Arm Stew",
+    "ResultItemId": 35,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 46,
+    "Components": [
+      {
+        "ItemId": 2860,
+        "Required": 3
+      },
+      {
+        "ItemId": 2890,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 71,
+    "Comment": "Honey Milk Sundae",
+    "ResultItemId": 65833,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 662,
+    "Components": [
+      {
+        "ItemId": 2881,
+        "Required": 3
+      },
+      {
+        "ItemId": 2895,
+        "Required": 3
+      },
+      {
+        "ItemId": 2904,
+        "Required": 3
+      },
+      {
+        "ItemId": 2906,
+        "Required": 4
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 72,
+    "Comment": "Spaghetti with Meatballs",
+    "ResultItemId": 65831,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 665,
+    "Components": [
+      {
+        "ItemId": 60971,
+        "Required": 3
+      },
+      {
+        "ItemId": 65827,
+        "Required": 3
+      },
+      {
+        "ItemId": 65828,
+        "Required": 3
+      },
+      {
+        "ItemId": 65829,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 73,
+    "Comment": "Purple-Nosed Sharkfin Soup",
+    "ResultItemId": 2754,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 675,
+    "Components": [
+      {
+        "ItemId": 2872,
+        "Required": 3
+      },
+      {
+        "ItemId": 2874,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      },
+      {
+        "ItemId": 68075,
+        "Required": 2
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 74,
+    "Comment": "Flutterfish Medley",
+    "ResultItemId": 2755,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 676,
+    "Components": [
+      {
+        "ItemId": 2868,
+        "Required": 3
+      },
+      {
+        "ItemId": 2878,
+        "Required": 3
+      },
+      {
+        "ItemId": 2890,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 75,
+    "Comment": "Butter Flyfish Flambe",
+    "ResultItemId": 2756,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 677,
+    "Components": [
+      {
+        "ItemId": 2882,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      },
+      {
+        "ItemId": 2902,
+        "Required": 3
+      },
+      {
+        "ItemId": 68053,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 76,
+    "Comment": "Toothy Tetra Vitamins",
+    "ResultItemId": 2757,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 678,
+    "Components": [
+      {
+        "ItemId": 2876,
+        "Required": 3
+      },
+      {
+        "ItemId": 2880,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      },
+      {
+        "ItemId": 68065,
+        "Required": 3
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 77,
+    "Comment": "Baconfish Bits",
+    "ResultItemId": 2758,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 679,
+    "Components": [
+      {
+        "ItemId": 2891,
+        "Required": 3
+      },
+      {
+        "ItemId": 2900,
+        "Required": 3
+      },
+      {
+        "ItemId": 2905,
+        "Required": 3
+      },
+      {
+        "ItemId": 68069,
+        "Required": 1
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 78,
+    "Comment": "Feral Catfish Oil",
+    "ResultItemId": 2759,
+    "FilterType": 10,
+    "ProfileId": 45,
+    "MinProfileRank": 1,
+    "MinigameId": 680,
+    "Components": [
+      {
+        "ItemId": 2892,
+        "Required": 3
+      },
+      {
+        "ItemId": 2899,
+        "Required": 3
+      },
+      {
+        "ItemId": 2905,
+        "Required": 3
+      },
+      {
+        "ItemId": 68056,
+        "Required": 1
+      }
+    ],
+    "Authored": true
+  },
+  {
+    "Id": 110,
+    "Comment": "Assistant Chef Edward's Shopping List",
+    "ResultItemId": 77962,
+    "FilterType": 0,
+    "Group": 1,
+    "MinProfileRank": 1,
+    "Components": [
+      {
+        "ItemId": 38753,
+        "Required": 25
+      },
+      {
+        "ItemId": 38754,
+        "Required": 25
+      }
+    ]
+  },
+  {
+    "Id": 111,
+    "Comment": "Auguste Frydaze's Shopping List",
+    "ResultItemId": 77963,
+    "FilterType": 0,
+    "Group": 1,
+    "MinProfileRank": 1,
+    "Components": [
+      {
+        "ItemId": 38754,
+        "Required": 25
+      },
+      {
+        "ItemId": 38755,
+        "Required": 25
+      }
+    ]
+  },
+  {
+    "Id": 112,
+    "Comment": "Belches's Shopping List",
+    "ResultItemId": 77964,
+    "FilterType": 0,
+    "Group": 1,
+    "MinProfileRank": 1,
+    "Components": [
+      {
+        "ItemId": 38754,
+        "Required": 25
+      },
+      {
+        "ItemId": 38756,
+        "Required": 25
+      }
+    ]
+  },
+  {
+    "Id": 130,
+    "Comment": "Simone's Shopping List",
+    "ResultItemId": 77979,
+    "FilterType": 0,
+    "Group": 2,
+    "MinProfileRank": 1,
+    "Components": [
+      {
+        "ItemId": 14263,
+        "Required": 25
+      },
+      {
+        "ItemId": 38755,
+        "Required": 25
+      }
+    ]
+  },
+  {
+    "Id": 132,
+    "Comment": "Cook Yumtumlot's Shopping List",
+    "ResultItemId": 77971,
+    "FilterType": 0,
+    "Group": 2,
+    "MinProfileRank": 1,
+    "Components": [
+      {
+        "ItemId": 38753,
+        "Required": 25
+      },
+      {
+        "ItemId": 38754,
+        "Required": 25
+      }
+    ]
+  },
+  {
+    "Id": 155,
+    "Comment": "Dust Storm Flair Shard",
+    "ResultItemId": 38829,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 1,
+    "MinigameId": 1048,
+    "Components": [
+      {
+        "ItemId": 53,
+        "Required": 5
+      },
+      {
+        "ItemId": 54,
+        "Required": 3
+      },
+      {
+        "ItemId": 13016,
+        "Required": 10
+      },
+      {
+        "ItemId": 21785,
+        "Required": 5
+      }
+    ]
+  },
+  {
+    "Id": 165,
+    "Comment": "Manguana Statue",
+    "ResultItemId": 38864,
+    "FilterType": 12,
+    "ProfileId": 16,
+    "MinProfileRank": 4,
+    "MinigameId": 1052,
+    "Components": [
+      {
+        "ItemId": 54,
+        "Required": 12
+      },
+      {
+        "ItemId": 55,
+        "Required": 6
+      },
+      {
+        "ItemId": 13016,
+        "Required": 15
+      },
+      {
+        "ItemId": 18172,
+        "Required": 10
+      },
+      {
+        "ItemId": 21786,
+        "Required": 12
+      }
+    ]
+  }
+]

@@ -47,6 +47,12 @@ public static class BaseCommandPacketHandler
             CommandPacketChatChannelOn.OpCode => CommandPacketChatChannelOnHandler.HandlePacket(connection, reader.Span),
             CommandPacketChatChannelOff.OpCode => CommandPacketChatChannelOffHandler.HandlePacket(connection, reader.Span),
             CommandPacketQuestAbandon.OpCode => CommandPacketQuestAbandonHandler.HandlePacket(connection, reader.Span),
+            CommandPacketRecipeStart.OpCode => CommandPacketRecipeStartHandler.HandlePacket(connection, reader.Span),
+
+            // Notices that want no answer.
+            CommandPacketRequestRewardPreviewUpdate.OpCode => true,
+            CommandPacketClosedMinigameEndScreen.OpCode => true,
+            CommandPacketClearInteractionMerchantSetId.OpCode => true,
             _ => false
         };
     }

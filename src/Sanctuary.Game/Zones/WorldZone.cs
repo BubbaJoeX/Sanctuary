@@ -12,6 +12,7 @@ using Sanctuary.Core.IO;
 using Sanctuary.Database;
 using Sanctuary.Game.Battles;
 using Sanctuary.Game.Challenges;
+using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
 using Sanctuary.Game.Helpers;
@@ -32,6 +33,7 @@ public sealed partial class WorldZone : BaseZone
     private readonly IRefereePickManager _refereePickManager;
     private readonly IChallengeManager _challengeManager;
     private readonly IBattleManager _battleManager;
+    private readonly ICraftingManager? _craftingManager;
 
     private readonly object _clientAreasLock = new();
     private readonly HashSet<SeasonalClientAreaDefinition> _activeSeasonalClientAreas = [];
@@ -91,6 +93,7 @@ public sealed partial class WorldZone : BaseZone
         _refereePickManager = serviceProvider.GetRequiredService<IRefereePickManager>();
         _challengeManager = serviceProvider.GetRequiredService<IChallengeManager>();
         _battleManager = serviceProvider.GetRequiredService<IBattleManager>();
+        _craftingManager = serviceProvider.GetService<ICraftingManager>();
 
         Fishing = _resourceManager.Fishing.TryGetPond(Name, out _) ? new FishingPond(this, serviceProvider) : null;
     }

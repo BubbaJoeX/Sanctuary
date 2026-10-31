@@ -7,6 +7,7 @@ using System.Numerics;
 
 using Sanctuary.Core.Extensions;
 using Sanctuary.Database.Entities;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Pathfinding;
 using Sanctuary.Game.Resources.Definitions;
@@ -1378,6 +1379,7 @@ public sealed class PlayerPet
         }
 
         StartPetAction(npc);
+        _player.Achievements.Record(AchievementEvent.PetTrick);
         _player.SendTunneledToVisible(new PlayerUpdatePacketSetLookAt { Guid = npc.Guid }, true);
         _player.SendTunneled(new PetTrickNotifyPacket
         {

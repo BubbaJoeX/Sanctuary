@@ -9,6 +9,7 @@ using Sanctuary.Core.Helpers;
 using Sanctuary.Core.IO;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions.Rewards;
@@ -156,6 +157,9 @@ public class RewardManager : IRewardManager
         player.Coins = dbCharacter.Coins;
 
         player.SendTunneled(new ClientUpdatePacketCoinCount { Coins = player.Coins });
+
+        if (currencyType == CurrencyType.Coins)
+            player.Achievements.Record(AchievementEvent.RewardCoins, 0, amount);
 
         return true;
     }

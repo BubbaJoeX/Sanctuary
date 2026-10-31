@@ -367,6 +367,9 @@ public abstract class BaseZone : IZone, IDisposable
 
         SendActivities(player);
 
+        // The client replaces its whole achievements list with this one, so it goes out on every zone load.
+        player.Achievements.SendList();
+
         var playerUpdatePacketEffectTagCompositeEffectsEnable = new PlayerUpdatePacketEffectTagCompositeEffectsEnable
         {
             Enabled = true

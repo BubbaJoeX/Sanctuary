@@ -56,6 +56,14 @@ public static class PacketTunneledClientWorldPacketHandler
             PacketAddClientPortraitCrc.OpCode => PacketAddClientPortraitCrcHandler.HandlePacket(connection, packetTunneledClientWorldPacket.Payload),
             BaseFotomatPacket.OpCode => BaseFotomatPacketHandler.HandlePacket(connection, reader),
             WallOfDataBasePacket.OpCode => WallOfDataBasePacketHandler.HandlePacket(connection, reader),
+            BaseRatingPacket.OpCode => BaseRatingPacketHandler.HandlePacket(connection, reader),
+
+            // Notices that want no answer: quitting, closing an inspect, telemetry, the matchmaking poll.
+            PacketClientLogout.OpCode => true,
+            BaseInspectPacket.OpCode => true,
+            NudgeBasePacket.OpCode => true,
+            PacketClientLuaMetrics.OpCode => true,
+            BaseMatchmakingPacket.OpCode => true,
             _ => false
         };
 

@@ -11,6 +11,7 @@ using Sanctuary.Core.IO;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
@@ -449,6 +450,8 @@ public static class CoinStoreSellToClientRequestPacketHandler
         foreach (var dbPet in pets)
             PetHelper.AddPet(connection.Player, _resourceManager, dbPet, clientItemDefinition, modelDefinition);
 
+        connection.Player.Achievements.Record(AchievementEvent.PetAcquired);
+
         connection.Player.Coins = dbCharacter.Coins;
         connection.Player.PlayerPet.SendPetList();
         connection.SendTunneled(new ClientUpdatePacketCoinCount { Coins = dbCharacter.Coins });
@@ -526,6 +529,8 @@ public static class CoinStoreSellToClientRequestPacketHandler
 
         connection.SendTunneled(new PacketMountList { Mounts = connection.Player.Mounts });
         ItemDefinitionHelper.SendItemDefinition(connection.Player, _resourceManager, clientItemDefinition);
+
+        connection.Player.Achievements.Record(AchievementEvent.MountAcquired, mountDefinition.Id);
 
         connection.Player.Coins = dbCharacter.Coins;
         connection.SendTunneled(new ClientUpdatePacketCoinCount { Coins = dbCharacter.Coins });

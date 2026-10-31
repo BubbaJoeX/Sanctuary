@@ -336,12 +336,26 @@ public class ClientPcData
     public int Gender;
 
     public ClientQuestData QuestData = new();
-    // public ClientAchievementData Achievements = new();
     public int NonMemberQuestLimit = 30;
     public int MemberQuestLimit = 30;
 
+    /// <summary>
+    /// The achievements this character has started or finished (live sent only those here; the full list follows
+    /// in AchievementInitialize).
+    /// </summary>
+    public List<ClientAchievement> ClientAchievements = new();
+
+    /// <summary>
+    /// The trophy points of the finished achievements.
+    /// </summary>
+    public int AchievementPoints;
+
     // public List<Acquaintance> Acquaintances = new();
-    // public List<RecipeData> Recipes = new();
+
+    /// <summary>
+    /// The recipes this character knows, with the stacks their ingredients are counted from.
+    /// </summary>
+    public List<RecipeData> ClientRecipes = new();
 
     public List<PetClientInfo> Pets = new();
 
@@ -526,13 +540,12 @@ public class ClientPcData
         writer.Write(NonMemberQuestLimit);
         writer.Write(MemberQuestLimit);
 
-        // TODO Achievements
-        writer.Write(0);
-        writer.Write(0);
+        writer.Write(ClientAchievements);
+        writer.Write(AchievementPoints);
 
         writer.Write(0); // TODO Acquaintances
 
-        writer.Write(0); // TODO Recipes
+        writer.Write(ClientRecipes);
 
         writer.Write(Pets.Count);
 

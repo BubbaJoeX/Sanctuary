@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.Extensions;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Authoring;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Helpers;
@@ -295,6 +296,9 @@ public sealed class QuestManager : IQuestManager
         SendJournalQuestStates(player);
 
         GrantReward(player, quest);
+
+        player.Achievements.Record(AchievementEvent.Quest, questId);
+        player.Achievements.Record(AchievementEvent.QuestCount, 0, player.Quests.CompletedCount);
 
         RefreshQuestNotifications(player, quest);
 

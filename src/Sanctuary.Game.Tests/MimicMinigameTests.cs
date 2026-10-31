@@ -169,7 +169,7 @@ public sealed class MimicMinigameTests
                     break;
 
                 case "Smelting":
-                    Assert.AreEqual(16, definition.ProfileId, "Smelting trains the Blacksmith.");
+                    Assert.AreEqual(14, definition.ProfileId, "Smelting trains the Miner.");
                     Assert.AreEqual(21, definition.Category);
                     Assert.AreEqual(1, definition.Items.Count, $"{definition.Comment} smelts its bar.");
                     break;

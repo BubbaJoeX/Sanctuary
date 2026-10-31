@@ -7,13 +7,17 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Game.Achievements;
 using Sanctuary.Game.Battles;
+using Sanctuary.Game.Crafting;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Fishing;
+using Sanctuary.Game.Groups;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Game.Resources.Definitions.Rewards;
 using Sanctuary.Packet;
+using Sanctuary.Packet.Common;
 
 namespace Sanctuary.Game.Minigames;
 
@@ -39,6 +43,8 @@ public static class MinigameManager
     private static IRewardManager _rewardManager = null!;
     private static IResourceManager _resourceManager = null!;
     private static IBattleManager? _battleManager;
+    private static ICraftingManager? _craftingManager;
+    private static IGroupManager? _groupManager;
 
     private static readonly Dictionary<string, Func<FlashMinigame>> Games = new(StringComparer.OrdinalIgnoreCase);
 
@@ -66,6 +72,8 @@ public static class MinigameManager
         _rewardManager = serviceProvider.GetRequiredService<IRewardManager>();
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
         _battleManager = serviceProvider.GetService<IBattleManager>();
+        _craftingManager = serviceProvider.GetService<ICraftingManager>();
+        _groupManager = serviceProvider.GetService<IGroupManager>();
 
         foreach (var type in typeof(FlashMinigame).Assembly.GetTypes())
         {
@@ -156,11 +164,48 @@ public static class MinigameManager
             IconId = definition.IconId,
             DescriptionId = definition.DescriptionId,
             Difficulty = definition.Difficulty,
+            RewardPreview = GetPrizes(player, definition),
             // The movies cover the screen, so the world behind them isn't drawn or run, as it always has been.
             HideWorld = true
         });
 
         return true;
+    }
+
+    /// <summary>
+    /// The start screen's prizes: the coins and stars a win pays, and the items it makes (the start screen shows four).
+    /// </summary>
+    private static RewardBundleBase GetPrizes(Player player, MinigameDefinition definition)
+    {
+        var prizes = new RewardBundleBase
+        {
+            Success = false,
+            Coins = definition.Coins,
+            Experience = definition.Stars,
+            Unknown3 = 0,
+            IconId = -1,
+            NameId = -1
+        };
+
+        if (_craftingManager?.WillMakeItem(player, definition.Id) == false)
+            return prizes;
+
+        foreach (var item in definition.Items.Take(4))
+        {
+            if (!_resourceManager.ClientItemDefinitions.TryGetValue(item.ItemId, out var itemDefinition))
+                continue;
+
+            prizes.Entries.Add(new RewardBundleEntryItem
+            {
+                IconId = itemDefinition.Icon.Id,
+                TintId = itemDefinition.Icon.TintId,
+                NameId = itemDefinition.NameId,
+                Quantity = item.Quantity,
+                DefinitionId = item.ItemId
+            });
+        }
+
+        return prizes;
     }
 
     /// <summary>
@@ -185,6 +230,8 @@ public static class MinigameManager
         Sessions[player.Guid] = game;
 
         _logger.LogInformation("{player} started minigame {id} ({name}).", player.Name.FullName, definition.Id, definition.Comment);
+
+        SendInMinigame(player, true);
 
         player.SendTunneled(new CommandPacketStartFlashGame
         {
@@ -331,11 +378,21 @@ public static class MinigameManager
         if (stars > 0)
             _rewardManager.TryGrantExperience(player, stars, definition.ProfileId);
 
+        player.Achievements.Record(AchievementEvent.Minigame, definition.Id);
+
+        if (won)
+            player.Achievements.Record(AchievementEvent.MinigameWin, definition.Id);
+
         var items = new List<string>();
+        string? craftHint = null;
+
+        // A recipe's game (smelting, cooking, forging) makes its item only when started from the recipe, with the
+        // ingredients: winning takes them.
+        var makesItems = won && (_craftingManager?.TryCompleteCraft(player, definition.Id, out craftHint) ?? true);
 
         if (won)
         {
-            foreach (var item in definition.Items)
+            foreach (var item in makesItems ? definition.Items : [])
             {
                 if (_rewardManager.TryGrantItem(player, item.ItemId, 0, item.Quantity))
                     items.Add(item.Quantity > 1 ? $"{item.Quantity} {ItemName(item.ItemId)}" : ItemName(item.ItemId));
@@ -367,12 +424,24 @@ public static class MinigameManager
         ChatHelper.SendSystemMessage(player, earned.Count > 0
             ? $"{title}: {(won ? "you won" : "better luck next time")}! You earned {string.Join(", ", earned)}."
             : $"{title}: {(won ? "you won" : "better luck next time")}!");
+
+        if (craftHint is not null)
+            ChatHelper.SendSystemMessage(player, craftHint);
     }
 
     /// <summary>
     /// Closes the player's game: the movie's window and the client's minigame state. Nothing is paid that the game
     /// hadn't paid already.
     /// </summary>
+    /// <summary>
+    /// Shows the player's group whether they're in a minigame.
+    /// </summary>
+    private static void SendInMinigame(Player player, bool inMinigame)
+    {
+        if (player.Group is not null)
+            _groupManager?.SendToGroup(player, new GroupPacketInMinigame { MemberGuid = player.Guid, InMinigame = inMinigame });
+    }
+
     public static void Close(Player player, bool notifyClient = true)
     {
         Picked.TryRemove(player.Guid, out _);
@@ -381,6 +450,8 @@ public static class MinigameManager
             return;
 
         Run(game, game.OnClose);
+
+        SendInMinigame(player, false);
 
         if (!notifyClient)
             return;

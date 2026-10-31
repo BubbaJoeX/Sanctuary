@@ -34,6 +34,8 @@ public static class BaseGroupPacketHandler
             GroupPacketGroupLeave.OpCode => GroupPacketGroupLeaveHandler.HandlePacket(connection, reader.Span),
             GroupPacketGroupAccept.OpCode => GroupPacketGroupAcceptHandler.HandlePacket(connection, reader.Span),
             GroupPacketGroupKick.OpCode => GroupPacketGroupKickHandler.HandlePacket(connection, reader.Span),
+            GroupPacketMapPing.OpCode => GroupPacketMapPingHandler.HandlePacket(connection, reader.Span),
+            GroupPacketChangingJob.OpCode => GroupPacketChangingJobHandler.HandlePacket(connection, reader.Span),
             _ => false
         };
     }

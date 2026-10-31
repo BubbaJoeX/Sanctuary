@@ -1,0 +1,875 @@
+[
+  {
+    "NpcId": 1404,
+    "Comment": "Checkers & Chess (Shrouded Glade)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 1426,
+    "Comment": "Shrouded Glade Postboxes (Shrouded Glade)",
+    "MinigameIds": [
+      380
+    ]
+  },
+  {
+    "NpcId": 1432,
+    "Comment": "Checkers & Chess (Shrouded Glade)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 1438,
+    "Comment": "Hard Garden Defense (Shrouded Glade)",
+    "MinigameIds": [
+      156,
+      157,
+      158
+    ]
+  },
+  {
+    "NpcId": 1469,
+    "Comment": "Ramirez's Dig Site (Blackspore)",
+    "MinigameIds": [
+      57
+    ]
+  },
+  {
+    "NpcId": 1525,
+    "Comment": "Cooking Table (Blackspore)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 1529,
+    "Comment": "Checkers & Chess (Blackspore)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 1588,
+    "Comment": "Tyrone's Dig Site (Blackspore)",
+    "MinigameIds": [
+      682
+    ]
+  },
+  {
+    "NpcId": 1667,
+    "Comment": "Feeling the Beat! (Wugachug)",
+    "MinigameIds": [
+      78
+    ]
+  },
+  {
+    "NpcId": 1757,
+    "Comment": "Checkers & Chess (Seaside)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 1812,
+    "Comment": "Feeling the Beat! (Seaside)",
+    "MinigameIds": [
+      78
+    ]
+  },
+  {
+    "NpcId": 1881,
+    "Comment": "Seaside Postboxes (Seaside)",
+    "MinigameIds": [
+      377
+    ]
+  },
+  {
+    "NpcId": 1959,
+    "Comment": "Penguin Defense (Seaside)",
+    "MinigameIds": [
+      350,
+      351,
+      352
+    ]
+  },
+  {
+    "NpcId": 2007,
+    "Comment": "Checkers & Chess (Seaside)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 2190,
+    "Comment": "Checkers & Chess (Merry Vale)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 2216,
+    "Comment": "Cooking Table (Merry Vale)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 2297,
+    "Comment": "Merry Vale Postboxes (Merry Vale)",
+    "MinigameIds": [
+      381
+    ]
+  },
+  {
+    "NpcId": 2344,
+    "Comment": "Checkers & Chess (Sanctuary)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 2349,
+    "Comment": "Checkers & Chess (Sanctuary)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 2375,
+    "Comment": "mailbox (Sanctuary)",
+    "MinigameIds": [
+      376
+    ]
+  },
+  {
+    "NpcId": 2417,
+    "Comment": "Cooking Table (Sanctuary)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 2537,
+    "Comment": "Cooking Table (Cobblestone Village)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 2732,
+    "Comment": "Wellington's Dig Site (Bristlewood)",
+    "MinigameIds": [
+      683
+    ]
+  },
+  {
+    "NpcId": 2779,
+    "Comment": "Briarwood Defense (Bristlewood)",
+    "MinigameIds": [
+      353,
+      354,
+      355
+    ]
+  },
+  {
+    "NpcId": 2783,
+    "Comment": "Easy Briarwood Defense (Bristlewood)",
+    "MinigameIds": [
+      353,
+      354,
+      355
+    ]
+  },
+  {
+    "NpcId": 2788,
+    "Comment": "Medium Briarwood Defense (Bristlewood)",
+    "MinigameIds": [
+      253,
+      254,
+      255
+    ]
+  },
+  {
+    "NpcId": 2793,
+    "Comment": "Hard Briarwood Defense (Bristlewood)",
+    "MinigameIds": [
+      153,
+      154,
+      155
+    ]
+  },
+  {
+    "NpcId": 2821,
+    "Comment": "Checkers & Chess (Bristlewood)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 2858,
+    "Comment": "Checkers & Chess (Briarheart)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 3219,
+    "Comment": "Checkers & Chess (Cobblestone Village)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 3225,
+    "Comment": "Garden Defense (Cobblestone Village)",
+    "MinigameIds": [
+      356,
+      357,
+      358
+    ]
+  },
+  {
+    "NpcId": 3227,
+    "Comment": "Easy Garden Defense (Cobblestone Village)",
+    "MinigameIds": [
+      356,
+      357,
+      358
+    ]
+  },
+  {
+    "NpcId": 3236,
+    "Comment": "Hard Garden Defense (Cobblestone Village)",
+    "MinigameIds": [
+      156,
+      157,
+      158
+    ]
+  },
+  {
+    "NpcId": 3237,
+    "Comment": "Medium Garden Defense (Cobblestone Village)",
+    "MinigameIds": [
+      256,
+      257,
+      258
+    ]
+  },
+  {
+    "NpcId": 3349,
+    "Comment": "Checkers & Chess (Wugachug)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 3472,
+    "Comment": "Cooking Table (Lavender Coast Pass)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 3495,
+    "Comment": "Ambrose's Dig Site (Greenwood Forest)",
+    "MinigameIds": [
+      681
+    ]
+  },
+  {
+    "NpcId": 3562,
+    "Comment": "Checkers & Chess (Sanctuary)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 3570,
+    "Comment": "Feeling the Beat! (Snowhill)",
+    "MinigameIds": [
+      78
+    ]
+  },
+  {
+    "NpcId": 3600,
+    "Comment": "Anvil (Snowhill)",
+    "RecipeFilters": [
+      12,
+      9
+    ]
+  },
+  {
+    "NpcId": 3853,
+    "Comment": "Spectrum Anvil (Rumble Ridge)",
+    "RecipeFilters": [
+      12,
+      9
+    ]
+  },
+  {
+    "NpcId": 4054,
+    "Comment": "Checkers & Chess (Lakeshore)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 4062,
+    "Comment": "Cooking Table (Lakeshore)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 4094,
+    "Comment": "Easy Bixie Defense (Highroad Junction)",
+    "MinigameIds": [
+      359,
+      360,
+      361
+    ]
+  },
+  {
+    "NpcId": 4609,
+    "Comment": "Spot the Difference (Merry Vale)",
+    "MinigameIds": [
+      1040,
+      1042,
+      1044
+    ]
+  },
+  {
+    "NpcId": 4610,
+    "Comment": "Spot the Difference (Seaside)",
+    "MinigameIds": [
+      1040,
+      1042,
+      1044
+    ]
+  },
+  {
+    "NpcId": 4627,
+    "Comment": "Tower Defense (Greenwood Forest)",
+    "MinigameIds": [
+      350,
+      353,
+      356,
+      359
+    ]
+  },
+  {
+    "NpcId": 6391,
+    "Comment": "Cooking Table (Blackspore)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 33213,
+    "Comment": "Queensfields Harvesting (Sanctuary)",
+    "MinigameIds": [
+      109
+    ]
+  },
+  {
+    "NpcId": 33332,
+    "Comment": "Spot the Difference (Sanctuary)",
+    "MinigameIds": [
+      1040,
+      1042,
+      1044
+    ]
+  },
+  {
+    "NpcId": 33337,
+    "Comment": "Goo'd Candy (Sanctuary)",
+    "MinigameIds": [
+      712
+    ]
+  },
+  {
+    "NpcId": 33351,
+    "Comment": "Checkers & Chess (Sanctuary)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 33379,
+    "Comment": "Hard Bixie Defense (Sanctuary)",
+    "MinigameIds": [
+      159,
+      160,
+      161
+    ]
+  },
+  {
+    "NpcId": 33383,
+    "Comment": "Easy Bixie Defense (Sanctuary)",
+    "MinigameIds": [
+      359,
+      360,
+      361
+    ]
+  },
+  {
+    "NpcId": 33384,
+    "Comment": "Bixie Defense (Sanctuary)",
+    "MinigameIds": [
+      359,
+      360,
+      361
+    ]
+  },
+  {
+    "NpcId": 33388,
+    "Comment": "Medium Bixie Defense (Sanctuary)",
+    "MinigameIds": [
+      259,
+      260,
+      261
+    ]
+  },
+  {
+    "NpcId": 33389,
+    "Comment": "Sanctuary Postboxes (Sanctuary)",
+    "MinigameIds": [
+      376
+    ]
+  },
+  {
+    "NpcId": 33458,
+    "Comment": "Silver Vein (Lakeshore)",
+    "MinigameIds": [
+      97
+    ]
+  },
+  {
+    "NpcId": 33464,
+    "Comment": "Checkers & Chess (Lakeshore)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 33474,
+    "Comment": "Silver Vein (Lakeshore)",
+    "MinigameIds": [
+      97
+    ]
+  },
+  {
+    "NpcId": 33481,
+    "Comment": "Anvil (Lakeshore)",
+    "RecipeFilters": [
+      12,
+      9
+    ]
+  },
+  {
+    "NpcId": 33482,
+    "Comment": "Cooking Table (Lakeshore)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 33484,
+    "Comment": "Lakesfield Harvesting (Lakeshore)",
+    "MinigameIds": [
+      117
+    ]
+  },
+  {
+    "NpcId": 33507,
+    "Comment": "Lakesfield Harvesting (Lakeshore)",
+    "MinigameIds": [
+      117
+    ]
+  },
+  {
+    "NpcId": 33525,
+    "Comment": "Lakesfield Harvesting (Lakeshore)",
+    "MinigameIds": [
+      117
+    ]
+  },
+  {
+    "NpcId": 33551,
+    "Comment": "Lakesfield Harvesting (Lakeshore)",
+    "MinigameIds": [
+      117
+    ]
+  },
+  {
+    "NpcId": 33552,
+    "Comment": "Lakesfield Harvesting (Lakeshore)",
+    "MinigameIds": [
+      117
+    ]
+  },
+  {
+    "NpcId": 33559,
+    "Comment": "Lakesfield Harvesting (Lakeshore)",
+    "MinigameIds": [
+      117
+    ]
+  },
+  {
+    "NpcId": 33562,
+    "Comment": "Silver Vein (Lakeshore)",
+    "MinigameIds": [
+      97
+    ]
+  },
+  {
+    "NpcId": 33585,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33587,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33608,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33616,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33629,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33636,
+    "Comment": "Cooking Table (Snowhill)",
+    "RecipeFilters": [
+      10
+    ]
+  },
+  {
+    "NpcId": 33695,
+    "Comment": "Snowhill Postboxes (Snowhill)",
+    "MinigameIds": [
+      379
+    ]
+  },
+  {
+    "NpcId": 33706,
+    "Comment": "Penguin Defense (Snowhill)",
+    "MinigameIds": [
+      350,
+      351,
+      352
+    ]
+  },
+  {
+    "NpcId": 33707,
+    "Comment": "Medium Penguin Defense (Snowhill)",
+    "MinigameIds": [
+      250,
+      251,
+      252
+    ]
+  },
+  {
+    "NpcId": 33710,
+    "Comment": "Easy Penguin Defense (Snowhill)",
+    "MinigameIds": [
+      350,
+      351,
+      352
+    ]
+  },
+  {
+    "NpcId": 33719,
+    "Comment": "Hard Penguin Defense (Snowhill)",
+    "MinigameIds": [
+      150,
+      151,
+      152
+    ]
+  },
+  {
+    "NpcId": 33738,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33771,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33774,
+    "Comment": "Checkers & Chess (Snowhill)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 33820,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33821,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33837,
+    "Comment": "Checkers & Chess (Snowhill)",
+    "MinigameIds": [
+      20,
+      21
+    ]
+  },
+  {
+    "NpcId": 33851,
+    "Comment": "Perry's Pastures Harvesting (Snowhill)",
+    "MinigameIds": [
+      115
+    ]
+  },
+  {
+    "NpcId": 33860,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33883,
+    "Comment": "Perry's Pastures Harvesting (Snowhill)",
+    "MinigameIds": [
+      115
+    ]
+  },
+  {
+    "NpcId": 33907,
+    "Comment": "Perry's Pastures Harvesting (Snowhill)",
+    "MinigameIds": [
+      115
+    ]
+  },
+  {
+    "NpcId": 33918,
+    "Comment": "Perry's Pastures Harvesting (Snowhill)",
+    "MinigameIds": [
+      115
+    ]
+  },
+  {
+    "NpcId": 33927,
+    "Comment": "Perry's Pastures Harvesting (Snowhill)",
+    "MinigameIds": [
+      115
+    ]
+  },
+  {
+    "NpcId": 33939,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33940,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 33941,
+    "Comment": "Perry's Pastures Harvesting (Snowhill)",
+    "MinigameIds": [
+      115
+    ]
+  },
+  {
+    "NpcId": 33999,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 34010,
+    "Comment": "Copper Vein (Highroad Junction)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 34012,
+    "Comment": "Copper Vein (Highroad Junction)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 36116,
+    "Comment": "Copper Vein (Highroad Junction)",
+    "MinigameIds": [
+      91
+    ]
+  },
+  {
+    "NpcId": 36119,
+    "Comment": "Sunstone Silver Vein (Sunstone Valley)",
+    "MinigameIds": [
+      341
+    ]
+  },
+  {
+    "NpcId": 36120,
+    "Comment": "Sunstone Iron Vein (Sunstone Valley)",
+    "MinigameIds": [
+      339
+    ]
+  },
+  {
+    "NpcId": 36127,
+    "Comment": "Sunstone Silver Vein (Sunstone Valley)",
+    "MinigameIds": [
+      341
+    ]
+  },
+  {
+    "NpcId": 36131,
+    "Comment": "Sunstone Iron Vein (Sunstone Valley)",
+    "MinigameIds": [
+      339
+    ]
+  },
+  {
+    "NpcId": 36134,
+    "Comment": "Sunstone Iron Vein (Sunstone Valley)",
+    "MinigameIds": [
+      339
+    ]
+  },
+  {
+    "NpcId": 36136,
+    "Comment": "Sunstone Silver Vein (Sunstone Valley)",
+    "MinigameIds": [
+      341
+    ]
+  },
+  {
+    "NpcId": 36138,
+    "Comment": "Sunstone Iron Vein (Sunstone Valley)",
+    "MinigameIds": [
+      339
+    ]
+  },
+  {
+    "NpcId": 36157,
+    "Comment": "Sunstone Iron Vein (Sunstone Valley)",
+    "MinigameIds": [
+      339
+    ]
+  },
+  {
+    "NpcId": 36164,
+    "Comment": "Sunstone Iron Vein (Sunstone Valley)",
+    "MinigameIds": [
+      339
+    ]
+  },
+  {
+    "NpcId": 36165,
+    "Comment": "Sunstone Silver Vein (Sunstone Valley)",
+    "MinigameIds": [
+      341
+    ]
+  },
+  {
+    "NpcId": 36181,
+    "Comment": "Sunstone Silver Vein (Sunstone Valley)",
+    "MinigameIds": [
+      341
+    ]
+  },
+  {
+    "NpcId": 36185,
+    "Comment": "Sunstone Silver Vein (Sunstone Valley)",
+    "MinigameIds": [
+      341
+    ]
+  },
+  {
+    "NpcId": 36217,
+    "Comment": "Sunstone Gold Vein (Sunstone Valley)",
+    "MinigameIds": [
+      343
+    ]
+  },
+  {
+    "NpcId": 36218,
+    "Comment": "Sunstone Gold Vein (Sunstone Valley)",
+    "MinigameIds": [
+      343
+    ]
+  },
+  {
+    "NpcId": 36262,
+    "Comment": "Sunstone Gold Vein (Sunstone Valley)",
+    "MinigameIds": [
+      343
+    ]
+  },
+  {
+    "NpcId": 36303,
+    "Comment": "Copper Vein (Snowhill)",
+    "MinigameIds": [
+      91
+    ]
+  }
+]
