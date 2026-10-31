@@ -223,13 +223,13 @@ spawn, and all of it but seasons saves with the zone (Save).
 - **Areas.** The zone's named areas (its Sanctuary definition's `AreaDefinitions`): their name shows as players walk
   in. Round and square ones are drawn green and drag by their markers; areas by tile or environment keep their ground
   and are renamed here. Each can name its place, for the map, and be a combat area.
-- **Combat.** Where the client counts a player as in a combat area: the wilds, where hostile NPCs are enemies to a
-  combat job and the job picker keeps combat jobs to combat jobs. The ground is tinted by tile: red where it's a
-  combat area, blue where it's an area that isn't, grey in no area, found as the server finds a spot's area (its own
-  tiles, then shapes, then the tile's environment). Tick a whole area (`IsCombatArea`), or add stretches
-  (`CombatAreas`): circles, squares or outlines (drag their corners; add or delete corners in the inspector) that are
-  a combat area, red, or aren't one, white, whatever area they're in, such as the spots in a town where hostile NPCs
-  stand. The first stretch that holds a spot decides, so a new safe one goes first; *Earlier* and *Later* reorder them.
+- **Combat.** The combat areas, where hostile NPCs roam: the wilds, not towns (players are in combat only while a
+  mob has aggro on them, and the server's tests keep every hostile NPC a zone script places in one). The ground is
+  tinted by tile: red where it's a combat area, blue where it's an area that isn't, grey in no area, found as the
+  server finds a spot's area (its own tiles, then shapes, then the tile's environment). Tick a whole area
+  (`IsCombatArea`), or add stretches (`CombatAreas`): circles, squares or outlines (drag their corners; add or delete
+  corners in the inspector) that are a combat area, red, or aren't one, white, whatever area they're in, such as the
+  spots in a town where hostile NPCs stand. The first stretch that holds a spot decides, so a new safe one goes first; *Earlier* and *Later* reorder them.
 - **Portals.** Circles (purple) that send a player on: to the orange marker in this zone, or to a spot in another.
 - **Barriers.** The zone file's invisible walls (drawn red), posts the client won't let players pass between. Pick
   one to drag its posts, add a post at the view, set its height or delete it; *Add a barrier* puts two posts across
@@ -308,6 +308,18 @@ reach and the switch stays hidden. The Gateway needs its admin API on (`AdminApi
   running servers' copies; the panel then has the Gateway reload them. A definition can carry a `Conversation`
   (`Start` and `Nodes`, as the game checks them): every NPC spawned from it says that when clicked, unless it has
   its own, and a reload changes what they say from their next click.
+- **The admin panel's jobs, abilities, battles and titles.** Each saves every file it spans at once, checked first
+  as the servers check them: `GET /api/jobs`, `/api/jobs/entry`, `POST /api/jobs/save|delete` (a job's
+  `Profiles.json` entry, its `CombatJobs.json` kit and the `CombatAbilities.json` abilities it fights with; new
+  abilities are named by negative stand-in ids until the save gives them theirs, and no kit can be left naming an
+  ability that doesn't exist, which would stop the Gateway starting); `GET /api/abilities`, `POST
+  /api/abilities/save|delete`; `GET /api/battles`, `/api/battles/options`, `/api/battles/entry`, `POST
+  /api/battles/save|delete` (`Battles.json` with the `Mobs.json` mobs its waves fight as); and `GET /api/titles`,
+  `POST /api/titles/save|delete` (`PlayerTitles.json`). Names travel as text: text a string already says keeps its
+  id, and new text becomes a Sanctuary string with the locale patch rebuilt once per save. `GET /api/icons` and
+  `/api/client-ids?kind=animation|effect|imageset` search the client's images, animations, composite effects and
+  image sets by name. Saves keep each file's layout, PowerShell's included (`CombatAbilities.json`), and go to the
+  Login server's copy of the resources too.
 - **The admin panel's Coin Store and icons.** The panel's Store page changes the coin store's files through the
   editor too: `GET /api/store/categories` (what the client calls each category), `POST /api/store/save|remove`
   for `src/Resources/CoinStoreItems.json` and prices (`Cost`, `MemberDiscount`, `ResellValue`) in

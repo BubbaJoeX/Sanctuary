@@ -70,6 +70,20 @@ class Icons:
             raise KeyError(f"icon set {set_id}")
         return found
 
+    def search(self, text: str, limit: int = 60) -> list[dict]:
+        """Images whose file name has every word of text (icon_abil_archer, title, job...): [{id, name}], ids first
+        when text is a number. For picking an ability's, a title's or a job's icon (an image id)."""
+        _, files = self._load()
+        words = text.lower().replace(".dds", "").split()
+        if not words:
+            return []
+        if len(words) == 1 and words[0].isdigit():
+            found = [(words[0], files[words[0]])] if words[0] in files else []
+        else:
+            found = [(image_id, name) for image_id, name in files.items() if all(word in name.lower() for word in words)]
+            found.sort(key=lambda x: (not x[1].lower().startswith("icon_"), len(x[1]), x[1]))
+        return [{"id": int(image_id), "name": name} for image_id, name in found[:limit]]
+
     def _notifications(self) -> dict:
         """notification id -> [(layer order, image id, width share, height share)]"""
         path = self.ws.client_dir / "Resources" / "NotificationImages.txt"

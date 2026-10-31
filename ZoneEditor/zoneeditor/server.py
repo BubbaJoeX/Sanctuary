@@ -17,10 +17,14 @@ from urllib.parse import parse_qs, urlparse
 
 import numpy as np
 
+from .battles import Battles
+from .combat import Combat
+from .gamedata import ClientIds
 from .npcs import NpcDefinitions
 from .icons import Icons
 from .rewards import RewardTables
 from .store import Store
+from .titles import Titles
 from .workspace import Workspace
 from .zone_scripts import ZoneScripts
 
@@ -55,6 +59,10 @@ class Handler(BaseHTTPRequestHandler):
     zone_scripts: ZoneScripts = None
     icons: Icons = None
     store: Store = None
+    combat: Combat = None
+    titles: Titles = None
+    battles: Battles = None
+    client_ids: ClientIds = None
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
@@ -266,6 +274,74 @@ class Handler(BaseHTTPRequestHandler):
     def post_rewards_delete(self, query, body):
         self.send_json(self.rewards.delete(json.loads(body)["key"]))
 
+    # --- jobs and combat abilities (Profiles.json, CombatJobs.json, CombatAbilities.json), for the GameData editor ---
+
+    def get_jobs(self, query, body):
+        """Every job: its profile, texts and combat kit."""
+        self.send_json(self.combat.jobs())
+
+    def get_jobs_entry(self, query, body):
+        """One job with its kit and the abilities it fights with."""
+        self.send_json(self.combat.job(int(query["id"])))
+
+    def post_jobs_save(self, query, body):
+        """{profile, texts, kit, abilities: [{ability, texts}]}: a job and everything it fights with, in one save."""
+        self.send_json(self.combat.save_job(json.loads(body)))
+
+    def post_jobs_delete(self, query, body):
+        self.send_json(self.combat.delete_job(int(json.loads(body)["id"])))
+
+    def get_abilities(self, query, body):
+        """Every combat ability, with its texts and the jobs that fight with it."""
+        self.send_json(self.combat.abilities())
+
+    def post_abilities_save(self, query, body):
+        """{ability (Id null: a new one), texts}"""
+        data = json.loads(body)
+        self.send_json(self.combat.save_ability(data["ability"], data.get("texts")))
+
+    def post_abilities_delete(self, query, body):
+        self.send_json(self.combat.delete_ability(int(json.loads(body)["id"])))
+
+    # --- player titles (PlayerTitles.json) and battles (Battles.json, Mobs.json), for the GameData editor -------
+
+    def get_titles(self, query, body):
+        self.send_json(self.titles.overview())
+
+    def post_titles_save(self, query, body):
+        """{title (Id null: a new one), texts}"""
+        data = json.loads(body)
+        self.send_json(self.titles.save(data["title"], data.get("texts")))
+
+    def post_titles_delete(self, query, body):
+        self.send_json(self.titles.delete(int(json.loads(body)["id"])))
+
+    def get_battles(self, query, body):
+        self.send_json(self.battles.overview())
+
+    def get_battles_options(self, query, body):
+        """World zones, mobs and reward tables a battle can name."""
+        self.send_json(self.battles.options())
+
+    def get_battles_entry(self, query, body):
+        self.send_json(self.battles.entry(int(query["id"])))
+
+    def post_battles_save(self, query, body):
+        """{battle (Id null: a new one), texts, mobs: changed Mobs.json entries}"""
+        data = json.loads(body)
+        self.send_json(self.battles.save(data["battle"], data.get("texts"), data.get("mobs")))
+
+    def post_battles_delete(self, query, body):
+        self.send_json(self.battles.delete(int(json.loads(body)["id"])))
+
+    def get_client_ids(self, query, body):
+        """The client's animations, composite effects or image sets (kind) by name or id (q): [{id, name}]; with ids
+        (1,2,3) instead, {id: name} for those."""
+        if query.get("ids") is not None:
+            self.send_json(self.client_ids.names(query.get("kind", ""), [i for i in query["ids"].split(",") if i.isdigit()]))
+        else:
+            self.send_json(self.client_ids.search(query.get("kind", ""), query.get("q", ""), min(200, int(query.get("limit", 60)))))
+
     # --- the coin store (CoinStoreItems.json, prices, CoinStoreBundles.json), for the admin panel ---------------
 
     def get_store_categories(self, query, body):
@@ -300,6 +376,10 @@ class Handler(BaseHTTPRequestHandler):
         else:
             png = self.icons.png(query.get("set"), query.get("image"), int(query.get("size", 64)), int(query.get("tint", 0) or 0))
         self.send(200, png, "image/png", cache=True)
+
+    def get_icons(self, query, body):
+        """Images by file name or id (q), for picking an icon by image id: [{id, name}]."""
+        self.send_json(self.icons.search(query.get("q", ""), min(200, int(query.get("limit", 60)))))
 
     # --- the zone's own NPCs (its Lua scripts' spawn lines) ------------------------------------------------------
 
@@ -403,6 +483,10 @@ def serve(workspace: Workspace, host: str, port: int) -> ThreadingHTTPServer:
     Handler.zone_scripts = ZoneScripts(workspace)
     Handler.icons = Icons(workspace)
     Handler.store = Store(workspace)
+    Handler.combat = Combat(workspace)
+    Handler.titles = Titles(workspace)
+    Handler.battles = Battles(workspace)
+    Handler.client_ids = ClientIds(workspace)
     server = ThreadingHTTPServer((host, port), Handler)
     server.daemon_threads = True
     return server

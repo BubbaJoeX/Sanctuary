@@ -23,7 +23,7 @@ MAX_DROPS = 64
 MAX_TINTS = 32
 CURRENCIES = ("Coins",)
 # Where the game names a reward table: resource files (their "RewardTable"/"RewardTableKey" fields) and code.
-USAGE_FILES = ("Mobs.json", "Consumables.json", "ItemAbilities.json")
+USAGE_FILES = ("Mobs.json", "Consumables.json", "ItemAbilities.json", "Battles.json")
 CODE_SUFFIXES = (".cs", ".lua")
 # Not walked for code: build output, resources (data, not code) and tests.
 SKIP_FOLDERS = {"bin", "obj", "Resources", "node_modules", ".git"}

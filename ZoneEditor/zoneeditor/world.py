@@ -46,6 +46,14 @@ class World:
             written = self.names.build_patch()
         return {"id": string_id, "text": self.names.text(string_id), "mirrored": self.ws.mirror(written)}
 
+    def add_names(self, texts: list) -> tuple[list, list]:
+        """Sanctuary strings for several texts at once, the locale patch rebuilt once: their ids, and the copies
+        mirrored to the servers."""
+        with self.lock:
+            ids = [self.names.add(text) for text in texts]
+            written = self.names.build_patch() if ids else []
+        return ids, self.ws.mirror(written)
+
     def set_name(self, string_id: int, text: str) -> dict:
         with self.lock:
             self.names.set(string_id, text)

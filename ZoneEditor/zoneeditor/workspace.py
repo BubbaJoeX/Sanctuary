@@ -24,7 +24,7 @@ import struct
 import threading
 import time
 import zlib
-from collections import OrderedDict
+from collections import Counter, OrderedDict
 from pathlib import Path
 
 import numpy as np
@@ -161,6 +161,61 @@ def _patch_items(text: str, old: list, new: list) -> str | None:
     return _patch_list(text, old, new, 2)
 
 
+def _ps_render(value, column: int = 0) -> str:
+    """value as Windows PowerShell's ConvertTo-Json lays it out (CombatAbilities.json, CombatJobs.json): `"key":  value`,
+    an object's or list's contents 4 past the column its bracket opens at, and its close at that column."""
+    if isinstance(value, dict) and value:
+        lines = []
+        for key, item in value.items():
+            head = f'{" " * (column + 4)}{json.dumps(key, ensure_ascii=False)}:  '
+            lines.append(head + _ps_render(item, len(head)))
+        return "{\n" + ",\n".join(lines) + "\n" + " " * column + "}"
+    if isinstance(value, list) and value:
+        inner = column + 4
+        return "[\n" + ",\n".join(" " * inner + _ps_render(item, inner) for item in value) + "\n" + " " * column + "]"
+    return json.dumps(value, ensure_ascii=False)
+
+
+ENTRY_KEYS = ("Id", "ProfileId", "AbilityId", "Key")
+
+
+def _patch_spans(text: str, old: list, new: list) -> str | None:
+    """A top-level list of objects laid out any other way (PowerShell's ConvertTo-Json, an entry indented apart from
+    the rest): each unchanged entry keeps its text and the gap before it, and changed and new ones are written in
+    whichever layout reproduces most of the file's entries. Entries match by their id field (ENTRY_KEYS) when every
+    one has it, else by place. None if the file isn't a list of objects."""
+    if not old or not new or any(not isinstance(item, dict) for item in old + new):
+        return None
+    decoder = json.JSONDecoder()
+    spans = []
+    position = text.index("[") + 1
+    while True:
+        position = len(text) - len(text[position:].lstrip(" \n,"))
+        if text[position] == "]":
+            break
+        _, end = decoder.raw_decode(text, position)
+        spans.append((position, end))
+        position = end
+    if len(spans) != len(old):
+        return None
+    column = spans[0][0] - (text.rfind("\n", 0, spans[0][0]) + 1)
+    layouts = [lambda v: _ps_render(v, column)]
+    layouts += [lambda v, style=style: _json_styles(v)[style].replace("\n", "\n" + " " * column) for style in range(4)]
+    texts = [text[start:end] for start, end in spans]
+    render = max(layouts, key=lambda layout: sum(layout(item) == span for item, span in zip(old, texts)))
+    gaps = [text[spans[i - 1][1] : spans[i][0]] for i in range(1, len(spans))]
+    gap = Counter(gaps).most_common(1)[0][0] if gaps else ",\n" + " " * column
+    field = next((key for key in ENTRY_KEYS if all(key in item for item in old + new)), None)
+    originals = {(item[field] if field else i): i for i, item in enumerate(old)}
+    out = text[: spans[0][0]]
+    for i, item in enumerate(new):
+        before = originals.get(item[field] if field else i)
+        if i:
+            out += gaps[before - 1] if before else gap
+        out += texts[before] if before is not None and old[before] == item else render(item)
+    return out + text[spans[-1][1] :]
+
+
 def write_json(path: Path, data, keys: list | None = None) -> bool:
     """Writes data in the layout the file already has, keeping its line endings; True if anything changed.
 
@@ -185,7 +240,7 @@ def write_json(path: Path, data, keys: list | None = None) -> bool:
     elif isinstance(old, dict) and isinstance(data, dict) and keys:
         text = _patch_keys(plain, old, data, keys)
     elif isinstance(old, list) and isinstance(data, list):
-        text = _patch_items(plain, old, data)
+        text = _patch_items(plain, old, data) or _patch_spans(plain, old, data)
     if text is None:
         text = _json_styles(data)[1]
     text += ending
@@ -929,7 +984,8 @@ class Workspace:
         for build in src.glob("Sanctuary.WebAPI/bin/*/*"):
             targets.append((self.mods_dir, build / "ClientMods"))
             targets.append((patches, build / "ClientPatches"))
-        for build in src.glob("Sanctuary.Gateway/bin/*/*"):
+        # The Login server reads the same resources when it starts (new characters' jobs and titles, zones).
+        for build in [*src.glob("Sanctuary.Gateway/bin/*/*"), *src.glob("Sanctuary.Login/bin/*/*")]:
             targets.append((self.resources, build / "Resources"))
         for path in paths:
             for source_root, target_root in targets:
