@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1222,
+  "Name": "sg_mugworts_hollow",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    435.98,
+    -3.49,
+    69.18
+  ],
+  "SpawnRotation": [
+    -0.9262,
+    0,
+    0.3771,
+    0
+  ]
+}

@@ -63,6 +63,13 @@ public class PacketWriter : IDisposable
 
     #region Helpers
 
+    public void Write(Vector3 value)
+    {
+        _writer.Write(value.X);
+        _writer.Write(value.Y);
+        _writer.Write(value.Z);
+    }
+
     public void Write(Vector4 value, bool limited = false)
     {
         _writer.Write(value.X);

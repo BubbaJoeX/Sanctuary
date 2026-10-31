@@ -89,16 +89,17 @@ class Object:
     object_id: int = 0
     draw_distance: bytes = b"\0\0\0\0"       # a float when set (150, 1000, ...)
     extra: list = field(default_factory=list)
+    short_unknown: bool = False              # unknown is one byte, not an int (sg_sheep_watch's chunks)
 
     @classmethod
-    def read(cls, r: Reader, version: int) -> "Object":
-        o = cls(flags=r.unpack("i"), file_name=r.cstring(), alias=r.cstring())
+    def read(cls, r: Reader, version: int, short_unknown: bool = False) -> "Object":
+        o = cls(flags=r.unpack("i"), file_name=r.cstring(), alias=r.cstring(), short_unknown=short_unknown)
         o.position, o.rotation, o.scale = r.unpack("4f"), r.unpack("4f"), r.unpack("f")
         if version >= 6:
             o.material, o.tint_alias = r.cstring(), r.cstring()
             if o.tint_alias:
                 o.tint = r.unpack("4f")
-        o.unknown, o.object_id = r.unpack("ii")
+        o.unknown, o.object_id = r.unpack("Bi" if short_unknown else "ii")
         o.draw_distance = r.take(4)
         o.extra = [r.take(4 * r.unpack("i")) for _ in range(r.unpack("i"))]
         return o
@@ -110,7 +111,7 @@ class Object:
             out += cstring(self.material) + cstring(self.tint_alias)
             if self.tint_alias:
                 out += struct.pack("<4f", *self.tint)
-        out += struct.pack("<ii", self.unknown, self.object_id) + self.draw_distance
+        out += struct.pack("<Bi" if self.short_unknown else "<ii", self.unknown, self.object_id) + self.draw_distance
         out += struct.pack("<i", len(self.extra))
         for block in self.extra:
             out += struct.pack("<i", len(block) // 4) + block
@@ -144,7 +145,7 @@ class Tile:
     index: int = 0
 
     @classmethod
-    def read(cls, r: Reader, version: int) -> "Tile":
+    def read(cls, r: Reader, version: int, short_unknown: bool = False) -> "Tile":
         row, col, tile_id, environment = r.unpack("4i")
         if r.unpack("f") != -1000 or r.unpack("i") != 1:
             raise ValueError("unexpected tile header")
@@ -154,7 +155,7 @@ class Tile:
             raise ValueError("unexpected tile header")
         tile = cls(row, col, tile_id, environment, bounds)
         tile.ecos = [r.unpack("i") for _ in range(r.unpack("i"))]
-        tile.objects = [Object.read(r, version) for _ in range(r.unpack("i"))]
+        tile.objects = [Object.read(r, version, short_unknown) for _ in range(r.unpack("i"))]
         for name, skip in (("lights", _skip_light), ("areas", _skip_area), ("groups", _skip_group)):
             start = r.offset
             for _ in range(r.unpack("i")):
@@ -196,8 +197,14 @@ class Chunk:
         if len(r.data) != size:
             raise ValueError("payload size mismatch")
 
-        tiles = [Tile.read(r, version) for _ in range(r.unpack("i"))]
-        batches = np.frombuffer(r.take(16 * r.unpack("i")), "<i4").reshape(-1, 4).copy()
+        start = r.offset
+        try:
+            tiles = [Tile.read(r, version) for _ in range(r.unpack("i"))]
+        except ValueError:
+            # A few zones' chunks (sg_sheep_watch) store each object's unknown as a byte.
+            r.offset = start
+            tiles = [Tile.read(r, version, short_unknown=True) for _ in range(r.unpack("i"))]
+        batches =np.frombuffer(r.take(16 * r.unpack("i")), "<i4").reshape(-1, 4).copy()
         image = None
         bits = r.unpack("i")
         if bits > 0:

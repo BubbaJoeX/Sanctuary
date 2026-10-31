@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1231,
+  "Name": "sh_canyon_combat",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_snowhill24.xml",
+  "SpawnPosition": [
+    42.9,
+    21.47,
+    56.0
+  ],
+  "SpawnRotation": [
+    0.9115,
+    0,
+    0.4112,
+    0
+  ]
+}

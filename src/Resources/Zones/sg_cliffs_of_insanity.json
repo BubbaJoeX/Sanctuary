@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1235,
+  "Name": "sg_cliffs_of_insanity",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -9,
+  "StartLongitude": -9,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    154.34,
+    45.37,
+    52.42
+  ],
+  "SpawnRotation": [
+    -0.214,
+    0,
+    0.9768,
+    0
+  ]
+}

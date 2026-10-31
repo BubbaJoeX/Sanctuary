@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -387,6 +387,24 @@ public sealed class Player : ClientPcData, IEntity
         };
 
         Send(packetTunneledClientPacket);
+    }
+
+    /// <summary>
+    /// A tunneled packet that may be lost or overtaken, for state sent many times a second (a car's physics), as
+    /// live sent it.
+    /// </summary>
+    public void SendTunneledUnreliable(ISerializablePacket serializablePacket)
+    {
+        var data = new PacketTunneledClientPacket
+        {
+            Reliable = false,
+            Payload = serializablePacket.Serialize()
+        }.Serialize();
+
+        if (PacketLogger is not null)
+            PacketLogHelper.Log(PacketLogger, this, true, data);
+
+        _connection.Send(UdpChannel.Unreliable, data);
     }
 
     [Obsolete]
@@ -1024,7 +1042,7 @@ public sealed class Player : ClientPcData, IEntity
 
             // Placed objects get no idle state, which would loop their animation (and any sound in it).
             if (!npc.IsHouseFixture && !npc.IsWorldProp)
-                SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = npc.Guid, State = IdleCharacterState });
+                SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = npc.Guid, State = npc.CharacterState });
 
             // A hurt mob's health bar, which AddNpc shows as full.
             if (npc.Combat is { } combat)
@@ -1079,7 +1097,7 @@ public sealed class Player : ClientPcData, IEntity
             if (player.Scale != DefaultScale)
                 SendTunneled(new PlayerUpdatePacketUpdateScale { Guid = player.Guid, Scale = player.Scale });
 
-            SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = player.Guid, State = IdleCharacterState });
+            SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = player.Guid, State = player.WithModes(player.IsDead ? KnockedOutCharacterState : IdleCharacterState) });
 
             SendTunneled(player.GetWeaponFlairOverridePacket());
 
@@ -1857,8 +1875,8 @@ public sealed class Player : ClientPcData, IEntity
     /// </summary>
     public void SendCombatMode()
     {
-        // A battle's own zone isn't the overworld: its rules come with EncounterDataCommon instead.
-        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = Zone is not WorldZone { Battle: not null } });
+        // A battle's or a 3D game's own zone isn't the overworld: its rules come with EncounterDataCommon instead.
+        SendTunneled(new EncounterOverworldCombatPacket { InWorldCombat = Zone is not (WorldZone { Battle: not null } or WorldZone { Arena: not null }) });
         SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
     }
 
@@ -1913,7 +1931,7 @@ public sealed class Player : ClientPcData, IEntity
 
         _knockOut.KnockOut(Environment.TickCount64);
 
-        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(KnockedOutCharacterState) }, true);
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(KnockedOutCharacterState) }, true);
 
         var killerName = string.IsNullOrEmpty(killer.Name) ? "an enemy" : killer.Name;
 
@@ -1967,7 +1985,7 @@ public sealed class Player : ClientPcData, IEntity
         Hitpoints = MaxHitpoints;
         Energy = EffectiveMaxEnergy;
 
-        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(IdleCharacterState) }, true);
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(IdleCharacterState) }, true);
 
         _lastCombatAt = long.MinValue;
     }
@@ -1984,7 +2002,7 @@ public sealed class Player : ClientPcData, IEntity
 
         Hitpoints = Math.Max(1, hitpoints);
 
-        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(IdleCharacterState) }, true);
+        SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(IdleCharacterState) }, true);
 
         // Own floating number, and the bar others see over this player.
         SendTunneledToVisible(new PlayerUpdatePacketHitPointModification
@@ -2066,13 +2084,42 @@ public sealed class Player : ClientPcData, IEntity
         IsFishing = fishing;
 
         if (notify)
-            SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithFishing(IsDead ? KnockedOutCharacterState : IdleCharacterState) });
+            SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(IsDead ? KnockedOutCharacterState : IdleCharacterState) });
     }
 
     /// <summary>
-    /// The character state sends the client's flags whole, so each one keeps the fishing bit while it's set.
+    /// A 3D game's bit (0x400 kart racing, 0x800 demolition derby, 0x1000 soccer) while the player is in its zone:
+    /// set on the player's own client it starts the game there. 0 elsewhere.
     /// </summary>
-    private int WithFishing(int state) => IsFishing ? state | FishingRules.FishingCharacterState : state;
+    public int GameCharacterState { get; private set; }
+
+    /// <summary>
+    /// Sets (or with 0 clears) <see cref="GameCharacterState"/>, for the player and everyone around. Without
+    /// <paramref name="notify"/> only the server forgets it, for a player leaving the game's zone, whose client
+    /// stops the game as the zone unloads.
+    /// </summary>
+    public void SetGameCharacterState(int state, bool notify = true)
+    {
+        if (GameCharacterState == state)
+            return;
+
+        GameCharacterState = state;
+
+        if (notify)
+            SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(IsDead ? KnockedOutCharacterState : IdleCharacterState) }, true);
+    }
+
+    /// <summary>
+    /// Tells the player's own client their character state again (a game's zone left behind sends 1, as live).
+    /// </summary>
+    public void SendCharacterState() =>
+        SendTunneled(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(IsDead ? KnockedOutCharacterState : IdleCharacterState) });
+
+    /// <summary>
+    /// The character state sends the client's flags whole, so each one keeps the fishing and game bits while
+    /// they're set.
+    /// </summary>
+    private int WithModes(int state) => (IsFishing ? state | FishingRules.FishingCharacterState : state) | GameCharacterState;
 
     /// <summary>
     /// Shows friends and the group the active job and its rank.

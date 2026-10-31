@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1217,
+  "Name": "bw_snarling_hedges",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 17,
+  "EndLongitude": 17,
+  "Sky": "sky_snarling_hedges.xml",
+  "SpawnPosition": [
+    631.0,
+    -28.72,
+    207.2
+  ],
+  "SpawnRotation": [
+    0.6166,
+    0,
+    0.7873,
+    0
+  ]
+}

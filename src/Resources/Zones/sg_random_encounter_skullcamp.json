@@ -1,0 +1,23 @@
+{
+  "$type": "World",
+  "Id": 1241,
+  "Name": "sg_random_encounter_skullcamp",
+  "Type": "World",
+  "TileSize": 64,
+  "StartLatitude": -1,
+  "StartLongitude": -1,
+  "EndLatitude": 6,
+  "EndLongitude": 6,
+  "Sky": "sky_wilds24.xml",
+  "SpawnPosition": [
+    139.44,
+    7.54,
+    114.63
+  ],
+  "SpawnRotation": [
+    -0.02,
+    0,
+    0.9998,
+    0
+  ]
+}

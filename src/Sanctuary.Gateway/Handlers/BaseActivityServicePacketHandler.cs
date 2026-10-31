@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Game;
 using Sanctuary.Game.Battles;
 using Sanctuary.Game.Fishing;
+using Sanctuary.Game.VehicleGames;
 using Sanctuary.Game.Minigames;
 using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
@@ -23,6 +24,7 @@ public static class BaseActivityServicePacketHandler
     private static ILogger _logger = null!;
     private static IResourceManager _resourceManager = null!;
     private static IBattleManager _battleManager = null!;
+    private static IVehicleGameManager _vehicleGameManager = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
@@ -31,6 +33,7 @@ public static class BaseActivityServicePacketHandler
 
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
         _battleManager = serviceProvider.GetRequiredService<IBattleManager>();
+        _vehicleGameManager = serviceProvider.GetRequiredService<IVehicleGameManager>();
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -50,12 +53,14 @@ public static class BaseActivityServicePacketHandler
             var activityId = BitConverter.ToInt32(data[4..]);
             _logger.LogInformation("{player} joined activity {activity}.", connection.Player.Name.FullName, activityId);
 
-            // A fishing pond's entry takes the player there, a battle's opens its start panel; anything else is a
-            // minigame, whose start screen opens.
+            // A fishing pond's entry takes the player there, a battle's or 3D game's opens its start panel; anything
+            // else is a minigame, whose start screen opens.
             if (_resourceManager.Fishing.TryGetPondByActivity(activityId, out var pond))
                 FishingPond.GoFishing(connection.Player, pond);
             else if (_resourceManager.Battles.TryGetByActivity(activityId, out var battle))
                 _battleManager.Offer(connection.Player, battle);
+            else if (_resourceManager.VehicleGames.TryGetByActivity(activityId, out var stage))
+                _vehicleGameManager.Offer(connection.Player, stage);
             else
                 MinigameManager.Join(connection.Player, activityId);
 

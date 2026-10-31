@@ -340,3 +340,28 @@ public class MiniGameStarsEarnedPacket : ISerializablePacket
         return writer.Buffer;
     }
 }
+
+/// <summary>
+/// The game's knock out count (the minigame HUD's): live sent it as a 3D game's zone loaded (0) and each time the
+/// player's car was wrecked.
+/// </summary>
+public class MiniGameKnockOutPacket : ISerializablePacket
+{
+    public int StageId = -1;
+    public int StageGroupId = -1;
+
+    public int Count;
+
+    public int Unknown;
+
+    public byte[] Serialize()
+    {
+        using var writer = new PacketWriter();
+
+        BaseMiniGamePacket.WriteHeader(writer, BaseMiniGamePacket.KnockOut, StageId, StageGroupId);
+        writer.Write(Count);
+        writer.Write(Unknown);
+
+        return writer.Buffer;
+    }
+}

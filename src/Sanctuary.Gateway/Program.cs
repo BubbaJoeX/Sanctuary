@@ -22,6 +22,7 @@ using Sanctuary.Game.Groups;
 using Sanctuary.Game.Housing;
 using Sanctuary.Game.Quests;
 using Sanctuary.Game.Trading;
+using Sanctuary.Game.VehicleGames;
 using Sanctuary.Gateway;
 using Sanctuary.Gateway.Admin;
 using Sanctuary.Scripting;
@@ -129,6 +130,7 @@ builder.ConfigureServices((hostBuilderContext, serviceCollection) =>
     serviceCollection.AddSingleton<ITradeManager, TradeManager>();
     serviceCollection.AddSingleton<IChallengeManager, ChallengeManager>();
     serviceCollection.AddSingleton<IBattleManager, BattleManager>();
+    serviceCollection.AddSingleton<IVehicleGameManager, VehicleGameManager>();
     serviceCollection.AddSingleton<IAchievementManager, AchievementManager>();
     serviceCollection.AddSingleton<ICraftingManager, CraftingManager>();
     serviceCollection.AddSingleton<IHouseRatingManager, HouseRatingManager>();

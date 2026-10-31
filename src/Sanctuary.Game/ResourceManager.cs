@@ -55,6 +55,8 @@ public class ResourceManager : IResourceManager, IDisposable
     public static readonly string FishingFile = Path.Combine(BaseDirectory, "Fishing.json");
     public static readonly string ChallengesFile = Path.Combine(BaseDirectory, "Challenges.json");
     public static readonly string BattlesFile = Path.Combine(BaseDirectory, "Battles.json");
+    public static readonly string VehicleGamesFile = Path.Combine(BaseDirectory, "VehicleGames.json");
+    public static readonly string VehicleConfigsFile = Path.Combine(BaseDirectory, "VehicleConfigs.json");
     public static readonly string AchievementsFile = Path.Combine(BaseDirectory, "Achievements.json");
     public static readonly string RecipesFile = Path.Combine(BaseDirectory, "Recipes.json");
     public static readonly string StationsFile = Path.Combine(BaseDirectory, "Stations.json");
@@ -120,6 +122,7 @@ public class ResourceManager : IResourceManager, IDisposable
     public FishingCollection Fishing { get; }
     public ChallengeDefinitionCollection Challenges { get; }
     public BattleDefinitionCollection Battles { get; }
+    public VehicleGameCollection VehicleGames { get; }
     public AchievementDefinitionCollection Achievements { get; }
     public RecipeDefinitionCollection Recipes { get; }
     public StationDefinitionCollection Stations { get; }
@@ -194,6 +197,7 @@ public class ResourceManager : IResourceManager, IDisposable
         Fishing = new(_logger);
         Challenges = new(_logger);
         Battles = new(_logger);
+        VehicleGames = new(_logger);
         Achievements = new(_logger);
         Recipes = new(_logger);
         Stations = new(_logger);
@@ -239,6 +243,7 @@ public class ResourceManager : IResourceManager, IDisposable
             ["fishing"] = () => Fishing.Load(FishingFile),
             ["challenges"] = () => Reload(Challenges, () => Challenges.Load(ChallengesFile)),
             ["battles"] = () => Reload(Battles, () => Battles.Load(BattlesFile)),
+            ["vehiclegames"] = () => VehicleGames.Load(VehicleGamesFile, VehicleConfigsFile),
             ["achievements"] = () => Reload(Achievements, () => Achievements.Load(AchievementsFile)),
             ["recipes"] = () => Reload(Recipes, () => LoadRecipes()),
             ["stations"] = () => Reload(Stations, () => Stations.Load(StationsFile)),
@@ -527,6 +532,9 @@ public class ResourceManager : IResourceManager, IDisposable
         if (!Battles.Load(BattlesFile))
             return false;
 
+        if (!VehicleGames.Load(VehicleGamesFile, VehicleConfigsFile))
+            return false;
+
         if (!Achievements.Load(AchievementsFile))
             return false;
 
@@ -717,6 +725,8 @@ public class ResourceManager : IResourceManager, IDisposable
                 loaded = Reload(Challenges, () => Challenges.Load(ChallengesFile));
             else if (e.FullPath == BattlesFile)
                 loaded = Reload(Battles, () => Battles.Load(BattlesFile));
+            else if (e.FullPath == VehicleGamesFile || e.FullPath == VehicleConfigsFile)
+                loaded = VehicleGames.Load(VehicleGamesFile, VehicleConfigsFile);
             else if (e.FullPath == AchievementsFile)
                 loaded = Reload(Achievements, () => Achievements.Load(AchievementsFile));
             else if (e.FullPath == RecipesFile)
