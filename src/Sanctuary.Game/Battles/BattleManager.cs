@@ -350,10 +350,6 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
             player.SendTunneled(EncounterDataCommonPacket.Battle);
 
-            // The overworld combat mode too, which the client marks enemies by (red nameplates, targetable) as it does
-            // out in the world.
-            player.SendCombatMode();
-
             player.SendTunneled(new ObjectiveActivatePacket { ObjectiveId = KnockoutObjectiveId, Total = battle.Definition.MaxKnockouts });
             player.SendTunneled(new ObjectiveActivatePacket { ObjectiveId = DefeatObjectiveId, Total = battle.Total });
 
@@ -404,7 +400,7 @@ public sealed class BattleManager : IBattleManager, IDisposable
         var entry = battle.EntryPosition.ToVector3();
         var entryExitAt = BattleRules.EntryExitPosition(entry, battle.Definition.EntryHeading, battle.Zone.ClampStraightWalk);
 
-        entryExitAt = battle.Zone.GetGroundPosition(entryExitAt, 1f, 3f);
+        entryExitAt = battle.Zone.GetGroundPosition(entryExitAt, 3f, 6f);
 
         battle.EntryExit = SpawnExit(battle, new Vector4(entryExitAt, 1f));
 
@@ -754,8 +750,6 @@ public sealed class BattleManager : IBattleManager, IDisposable
 
             SendToPlayers(battle, new ObjectiveUpdatePacket { ObjectiveId = KnockoutObjectiveId, Count = battle.Knockouts });
 
-            // Out of the overworld combat mode while down, so the window offers only the respawn at the entry.
-            player.SendCombatMode();
             player.SendTunneled(new EncounterShowRespawnWindowPacket { Milliseconds = CombatRules.PlayerRespawnSeconds * 1000 });
 
             if (battle.Knockouts >= battle.Definition.MaxKnockouts)
@@ -842,10 +836,18 @@ public sealed class BattleManager : IBattleManager, IDisposable
         if (battle.Boss is { } boss && !battle.BossDefeated && participant.BossBarShown)
             player.SendTunneled(new CombatPacketEnableBossDisplay { BossGuid = boss.Guid, Enable = false });
 
+        // Out of the fight as they go, not a few seconds after.
+        player.LeaveCombat();
+
         GiveJobBack(participant);
 
-        if (ReferenceEquals(player.Zone, battle.Zone))
-            SendBack(player, participant);
+        if (!ReferenceEquals(player.Zone, battle.Zone))
+            return;
+
+        // Back by the door they went in at, which can look just like the battle (Sheep Watch's farm), so it says so.
+        ChatHelper.SendSystemMessage(player, "You left the battle.");
+
+        SendBack(player, participant);
     }
 
     /// <summary>

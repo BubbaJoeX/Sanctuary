@@ -184,6 +184,10 @@ public class Npc : IScriptableNpc, IEntity
     public bool IsMoving => _pathMoving || !_path.IsEmpty;
 
     public const int HostileDisposition = 0;
+
+    // Live's hostile nameplate (ARGB), as Display.NameColorHostileNpc in the client's StringHashToValue.txt.
+    private const int HostileNameColor = unchecked((int)0xFFFF0000);
+
     private const byte MovingPositionState = 0;
     private const byte StoppedPositionState = 1;
     private const float GroundStepHeight = 3f;
@@ -560,14 +564,16 @@ public class Npc : IScriptableNpc, IEntity
 
             Tilt = Tilt ?? default,
 
-            // 0 lets the client color it, as an enemy in combat mode (see Player.SendCombatMode).
-            NameColor = default,
+            // Left at 0 the client draws every NPC's name in its NPC blue, combat mode or not; live sent a hostile
+            // NPC's red outright (the Bandit Patrolmen, 2014 captures).
+            NameColor = Disposition == HostileDisposition ? HostileNameColor : default,
 
             AreaDefinitionId = AreaDefinitionId,
 
             ImageSetId = ImageSetId,
 
-            IsInteractable = ShowsInteractPrompt,
+            // Live sent every NPC as interactable, mobs included: one that isn't can't be clicked or targeted.
+            IsInteractable = ShowsInteractPrompt || Disposition == HostileDisposition,
 
             RiderGuid = default,
 

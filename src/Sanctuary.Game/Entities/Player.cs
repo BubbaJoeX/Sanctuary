@@ -565,6 +565,9 @@ public sealed class Player : ClientPcData, IEntity
         UpdatePortrait();
         UpdatePendingPointOfInterest();
         UpdateCombatArea();
+
+        // A fight that's over says so.
+        SendFighting();
     }
 
     public void RelayPosition(PlayerUpdatePacketUpdatePosition playerUpdatePacketUpdatePosition)
@@ -1819,7 +1822,20 @@ public sealed class Player : ClientPcData, IEntity
 
     public bool IsInCombat => Environment.TickCount64 - _lastCombatAt < CombatRules.OutOfCombatSeconds * 1000L;
 
-    public void MarkInCombat() => _lastCombatAt = Environment.TickCount64;
+    public void MarkInCombat()
+    {
+        _lastCombatAt = Environment.TickCount64;
+        SendFighting();
+    }
+
+    /// <summary>
+    /// Out of any fight now (leaving a battle, back on their feet at the zone's start), not in a few seconds.
+    /// </summary>
+    public void LeaveCombat()
+    {
+        _lastCombatAt = long.MinValue;
+        SendFighting();
+    }
 
     /// <summary>
     /// The combat job last used, which a fight switches back to.
@@ -1875,14 +1891,35 @@ public sealed class Player : ClientPcData, IEntity
     }
 
     /// <summary>
-    /// The client only treats hostile NPCs as enemies (enemy nameplate, targetable) in its overworld combat
-    /// mode, which needs both packets: a combat area (see <see cref="SendCombatArea"/>) and a combat job. Any
-    /// other job turns it off.
+    /// The client's overworld combat mode, which needs both packets: a combat area (see <see cref="SendCombatArea"/>)
+    /// and fighting (see <see cref="IsFighting"/>). While it's on the client counts the player in combat: the game
+    /// dock's combat indicator, no job change, popups held back. (A hostile NPC's red nameplate and clicks come with
+    /// its own AddNpc, see <see cref="Npc.GetAddNpcPacket"/>.)
     /// </summary>
     public void SendCombatMode()
     {
         SendCombatArea();
-        SendTunneled(new EncounterPacketIsFighting { IsFighting = IsInCombatJob });
+        SendFighting(force: true);
+    }
+
+    /// <summary>
+    /// In a fight, as the client's combat mode means it: in a combat job and hit or hitting in the last
+    /// <see cref="CombatRules.OutOfCombatSeconds"/>. Live sent it only while a fight lasted.
+    /// </summary>
+    public bool IsFighting => IsInCombatJob && IsInCombat;
+
+    // What the client was last told of IsFighting.
+    private bool _isFighting;
+
+    private void SendFighting(bool force = false)
+    {
+        var isFighting = IsFighting;
+
+        if (!force && isFighting == _isFighting)
+            return;
+
+        _isFighting = isFighting;
+        SendTunneled(new EncounterPacketIsFighting { IsFighting = isFighting });
     }
 
     /// <summary>
@@ -1893,12 +1930,9 @@ public sealed class Player : ClientPcData, IEntity
     {
         _isInCombatArea = Zone switch
         {
-            // A 3D game's own zone isn't the overworld: its rules come with EncounterDataCommon instead.
-            WorldZone { Arena: not null } => false,
-
-            // A battle's has its rules besides, and is the overworld for its enemies' sake, except to a knocked out
-            // player, whose window then offers only the respawn an instance has.
-            WorldZone { Battle: not null } => !IsDead,
+            // A battle's or a 3D game's own zone isn't the overworld: its rules come with EncounterDataCommon instead
+            // (live sent 0 in a battle, so the knocked out window offers only the respawn an instance has).
+            WorldZone { Arena: not null } or WorldZone { Battle: not null } => false,
 
             // The wilds and the hostile spots in towns. Zones without combat areas, like a fishing pond, have none.
             WorldZone worldZone => worldZone.IsCombatArea(Position, PointOfInterestId),
@@ -2026,11 +2060,7 @@ public sealed class Player : ClientPcData, IEntity
 
         SendTunneledToVisible(new PlayerUpdatePacketUpdateCharacterState { Guid = Guid, State = WithModes(IdleCharacterState) }, true);
 
-        _lastCombatAt = long.MinValue;
-
-        // A battle took the combat mode away for the knocked out window.
-        if (battle is not null)
-            SendCombatMode();
+        LeaveCombat();
     }
 
     /// <summary>
@@ -2057,9 +2087,6 @@ public sealed class Player : ClientPcData, IEntity
             CurrentHitpoints = _hitpoints,
             Delta = _hitpoints
         }, true);
-
-        if (Zone is WorldZone { Battle: not null })
-            SendCombatMode();
 
         return true;
     }
