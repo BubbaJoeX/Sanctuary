@@ -4,6 +4,7 @@ using System.Linq;
 
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Resources.Definitions.Rewards;
+using Sanctuary.Packet;
 
 namespace Sanctuary.Game.Minigames;
 
@@ -92,6 +93,15 @@ public sealed class DailyWheelGame : FlashMinigame
 
                 LastSpinDays[Player.Guid] = Today;
 
+                // The Games window greys out the wheel until the count comes back.
+                Player.SendTunneled(new RepeatingActivityStatePacket
+                {
+                    ActivityId = ActivityId,
+                    CountRemaining = 0,
+                    SecondsUntilNext = SecondsUntilReset,
+                    SecondsUntilReset = SecondsUntilReset
+                });
+
                 // The movie moves the wheel this many slots past where its own spin would stop, which lands the
                 // arrow on that slot.
                 var slot = RollSlot();
@@ -135,13 +145,21 @@ public sealed class DailyWheelGame : FlashMinigame
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
 
     /// <summary>
+    /// The wheel's repeating activity id, which the client looks up by the name "wheel".
+    /// </summary>
+    public const int ActivityId = 1;
+
+    /// <summary>
+    /// Seconds until the next spin comes back, at midnight UTC.
+    /// </summary>
+    public static int SecondsUntilReset => (int)(DateTime.UtcNow.Date.AddDays(1) - DateTime.UtcNow).TotalSeconds;
+
+    /// <summary>
     /// Sends the spins left, the consecutive days played and the seconds until the next spin.
     /// </summary>
     private void SendWheelUpdate()
     {
-        var secondsUntilTomorrow = (int)(DateTime.UtcNow.Date.AddDays(1) - DateTime.UtcNow).TotalSeconds;
-
-        Send("OnWheelUpdateMsg", WheelId, SpinsLeft(Player), 1, secondsUntilTomorrow);
+        Send("OnWheelUpdateMsg", WheelId, SpinsLeft(Player), 1, SecondsUntilReset);
     }
 
     private static int RollSlot()

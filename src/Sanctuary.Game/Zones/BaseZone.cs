@@ -316,20 +316,18 @@ public abstract class BaseZone : IZone, IDisposable
     /// </summary>
     private static void SendDailyWheel(Player player)
     {
-        var now = DateTimeOffset.UtcNow;
-        var secondsUntilReset = (int)(now.Date.AddDays(1) - now.UtcDateTime).TotalSeconds;
+        var spinsLeft = DailyWheelGame.SpinsLeft(player);
+        var secondsUntilReset = DailyWheelGame.SecondsUntilReset;
 
         player.SendTunneled(new RepeatingActivityAddPacket
         {
-            ActivityId = DailyWheelActivityId,
-            CountRemaining = 1,
-            SecondsUntil1 = secondsUntilReset,
+            ActivityId = DailyWheelGame.ActivityId,
+            CountRemaining = spinsLeft,
+            SecondsUntil1 = spinsLeft > 0 ? 0 : secondsUntilReset,
             SecondsUntil2 = secondsUntilReset,
             Name = "wheel"
         });
     }
-
-    private const int DailyWheelActivityId = 1;
 
     /// <summary>
     /// The Games window (Main Menu > Games) lists the activities of the tile's category; the client has no

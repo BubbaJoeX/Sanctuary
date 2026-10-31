@@ -80,6 +80,10 @@ public class InspectInteraction : IInteraction
         inspectProxy.Coins = otherPlayer.Coins;
 
         inspectProxy.LevelsGained = otherPlayer.Profiles.Sum(x => x.Rank - 1);
+        inspectProxy.QuestCount = otherPlayer.Quests.CompletedCount;
+
+        inspectProxy.Achievements = otherPlayer.Achievements.GetStarted(out var achievementPoints);
+        inspectProxy.AchievementPoints = achievementPoints;
 
         foreach (var stat in otherPlayer.Stats)
             inspectProxy.Stats.Add(stat.Value);

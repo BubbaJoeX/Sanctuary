@@ -41,7 +41,12 @@ public class InspectProxy
         }
     }
 
-    // TODO: Achievements
+    /// <summary>
+    /// The inspected player's started and finished achievements; the window shows their points.
+    /// </summary>
+    public List<ClientAchievement> Achievements = [];
+
+    public int AchievementPoints;
 
     public float VipRank;
     public int VipIconId;
@@ -69,9 +74,8 @@ public class InspectProxy
 
         writer.Write(Items);
 
-        // Achievements
-        writer.Write(0);
-        writer.Write(0);
+        writer.Write(Achievements);
+        writer.Write(AchievementPoints);
 
         writer.Write(VipRank);
         writer.Write(VipIconId);
