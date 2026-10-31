@@ -75,6 +75,13 @@ public static class ChallengeLayout
     }
 
     /// <summary>
+    /// How far out from the center a challenge goes: its radius, or as far as the farthest of
+    /// <paramref name="points"/> (the people a delivery goes to).
+    /// </summary>
+    public static float Reach(Vector3 center, float radius, IEnumerable<Vector3> points) =>
+        Math.Max(radius, points.Select(point => Vector3.Distance(center, point)).DefaultIfEmpty(0f).Max());
+
+    /// <summary>
     /// The index of the point nearest to <paramref name="from"/> that <paramref name="isOpen"/> keeps, or -1.
     /// </summary>
     public static int Nearest(Vector3 from, IReadOnlyList<Vector3> points, Func<int, bool> isOpen)

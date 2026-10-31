@@ -209,7 +209,7 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
     }
 
     /// <summary>
-    /// Puts out the challenge's things around its NPC: pickups, flags or animals, or picks the people to deliver to.
+    /// Puts out the challenge's things around its NPC: pickups, flags, animals or targets, or picks the people to deliver to.
     /// </summary>
     private bool SetUp(ChallengeSession session)
     {
@@ -238,6 +238,10 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
             }
 
             session.Total = session.Recipients.Count;
+
+            // Someone at the far end of town is still part of the delivery.
+            session.Reach = ChallengeLayout.Reach(center, challenge.Radius, session.Recipients.Select(npc => npc.Position.ToVector3()));
+
             return session.Total > 0;
         }
 
@@ -301,7 +305,7 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
                     var player = session.Player;
 
                     if (!ReferenceEquals(player.Zone, session.Giver.Zone)
-                        || Distance(player.Position, session.Giver.Position) > session.Challenge.Radius + AbandonMargin)
+                        || Distance(player.Position, session.Giver.Position) > session.Reach + AbandonMargin)
                     {
                         ChatHelper.SendSystemMessage(player, "You left the challenge behind.");
                         End(session, ChallengeOutcome.Cancelled);
@@ -326,7 +330,7 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
 
     /// <summary>
     /// What the player is standing at: a pickup or a flag they run through, an animal they catch, a person they
-    /// deliver to, the NPC they bring something back to.
+    /// deliver to, the NPC they bring something back to. Targets are only used by clicking them.
     /// </summary>
     private void CheckTouches(ChallengeSession session)
     {
@@ -359,6 +363,9 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
                     session.Giver.PlayEffect(DeliverEffectId);
                     Progress(session);
                 }
+                break;
+
+            case ChallengeKind.Use:
                 break;
 
             default:
@@ -400,7 +407,12 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
             }
 
             session.Taken.Add(index);
-            thing.Remove(PickupEffectId);
+
+            // A target stays where it is, and can't be used twice.
+            if (challenge.Kind == ChallengeKind.Use)
+                thing.PlayEffect(DeliverEffectId);
+            else
+                thing.Remove(PickupEffectId);
 
             if (challenge.Kind == ChallengeKind.Return)
             {
@@ -532,7 +544,7 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
 
         foreach (var (thing, index) in session.Things.Select((thing, index) => (thing, index)))
         {
-            if (!session.Taken.Contains(index))
+            if (!session.Taken.Contains(index) || session.Challenge.Kind == ChallengeKind.Use)
                 thing.Dispose();
         }
 
@@ -633,6 +645,12 @@ public sealed class ChallengeManager : IChallengeManager, IDisposable
 
         public long StartedAt { get; set; }
         public long EndsAt { get; set; }
+
+        /// <summary>
+        /// How far from the giver the challenge goes before it's left behind: its radius, or out to the farthest person
+        /// a delivery goes to.
+        /// </summary>
+        public float Reach { get; set; } = challenge.Radius;
 
         /// <summary>
         /// How many it takes to finish: what was put out, or the people found to deliver to.

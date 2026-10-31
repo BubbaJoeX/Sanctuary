@@ -70,7 +70,7 @@ public sealed class ChallengeTests
             foreach (var recipient in challenge.RecipientNpcIds)
                 Assert.IsTrue(placed.Contains(recipient), $"Challenge {challenge.Id} delivers to {recipient}, who isn't in Fabled Realms.");
 
-            if (challenge.Kind is ChallengeKind.Collect or ChallengeKind.Return or ChallengeKind.Catch)
+            if (challenge.Kind is ChallengeKind.Collect or ChallengeKind.Return or ChallengeKind.Catch or ChallengeKind.Use)
                 Assert.IsTrue(models.Contains(challenge.ModelId), $"Challenge {challenge.Id}'s model {challenge.ModelId} isn't in Models.txt.");
 
             if (challenge.ProfileId != 0)
@@ -96,6 +96,12 @@ public sealed class ChallengeTests
 
         var deliver = new ChallengeDefinition { Id = 1, NameId = 1, GiverNpcId = 1, Kind = ChallengeKind.Deliver, Count = 3, RecipientNpcIds = [5, 6] };
         Assert.IsFalse(ChallengeDefinitionCollection.IsValid(deliver, out _), "It names fewer people than it delivers to.");
+
+        var use = new ChallengeDefinition { Id = 1, NameId = 1, GiverNpcId = 1, Kind = ChallengeKind.Use, Count = 6 };
+        Assert.IsFalse(ChallengeDefinitionCollection.IsValid(use, out _), "Targets need a model.");
+
+        use.ModelId = 226;
+        Assert.IsTrue(ChallengeDefinitionCollection.IsValid(use, out _));
     }
 
     private static Func<Vector3, float, Vector3?> FlatSampler(int seed)
@@ -142,6 +148,19 @@ public sealed class ChallengeTests
         // Consecutive flags go round, not back and forth.
         var angles = flags.Take(7).Select(flag => MathF.Atan2(flag.X, flag.Z)).ToList();
         Assert.AreEqual(7, angles.Distinct().Count());
+    }
+
+    [TestMethod]
+    public void Reach_GoesOutToTheFarthestPerson()
+    {
+        var center = new Vector3(10f, 0f, 10f);
+
+        // Gorg's missive goes to Snorg and Sergeant Cargug, 151 m and 162 m away.
+        Assert.AreEqual(162f, ChallengeLayout.Reach(center, 40f, [center + new Vector3(151f, 0f, 0f), center + new Vector3(0f, 0f, -162f)]), 0.01f);
+
+        // Close by, or with nobody to go to, it's the challenge's radius.
+        Assert.AreEqual(40f, ChallengeLayout.Reach(center, 40f, [center + new Vector3(9f, 0f, 12f)]), 0.01f);
+        Assert.AreEqual(40f, ChallengeLayout.Reach(center, 40f, []), 0.01f);
     }
 
     [TestMethod]
