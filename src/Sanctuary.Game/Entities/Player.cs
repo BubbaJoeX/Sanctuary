@@ -1820,7 +1820,7 @@ public sealed class Player : ClientPcData, IEntity
     private long _lastCombatAt = long.MinValue;
     private readonly KnockOutTimer _knockOut = new();
 
-    public bool IsInCombat => Environment.TickCount64 - _lastCombatAt < CombatRules.OutOfCombatSeconds * 1000L;
+    public bool IsInCombat => CombatRules.IsInCombat(_lastCombatAt, Environment.TickCount64);
 
     public void MarkInCombat()
     {
