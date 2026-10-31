@@ -16,7 +16,9 @@ export const CHUNK = 256;
 export const TILE = 64;
 export const ECO = 512;
 export const COLOUR = 1024;
-const DETAILS = 4;
+// Detail textures a chunk draws: its ecos, heaviest first. A tile has up to 5 but a chunk's 16 together can have
+// more (FabledRealms' have up to 10); 8 covers nearly all and, with the ground's other textures, fits WebGL's 16 units.
+const DETAILS = 8;
 
 const vertexPrelude = /* glsl */ `
   varying vec2 vWorldXZ;`;
@@ -26,9 +28,9 @@ const vertexWorld = /* glsl */ `
 
 const fragmentPrelude = /* glsl */ `
   varying vec2 vWorldXZ;
-  uniform sampler2D detailWeights;
-  uniform sampler2D detail0, detail1, detail2, detail3;
-  uniform vec4 detailPeriod;
+  uniform sampler2D detailWeights, detailWeights2;
+  uniform sampler2D detail0, detail1, detail2, detail3, detail4, detail5, detail6, detail7;
+  uniform vec4 detailPeriod, detailPeriod2;
   uniform float detailStrength;
   uniform sampler2D ecoMap;
   uniform sampler2D tileEnvMap;
@@ -57,12 +59,17 @@ const fragmentPrelude = /* glsl */ `
 // After the colour map: the eco detail textures times the colour map, doubled (so mid grey leaves them as they are).
 const detailBlend = /* glsl */ `
   vec4 dw = texture2D(detailWeights, vMapUv);
-  float dsum = dw.r + dw.g + dw.b + dw.a;
+  vec4 dw2 = texture2D(detailWeights2, vMapUv);
+  float dsum = dot(dw, vec4(1.0)) + dot(dw2, vec4(1.0));
   if (dsum > 0.001 && detailStrength > 0.0) {
     vec3 detail = (dw.r * detailSample(detail0, detailPeriod.x)
                 + dw.g * detailSample(detail1, detailPeriod.y)
                 + dw.b * detailSample(detail2, detailPeriod.z)
-                + dw.a * detailSample(detail3, detailPeriod.w)) / dsum;
+                + dw.a * detailSample(detail3, detailPeriod.w)
+                + dw2.r * detailSample(detail4, detailPeriod2.x)
+                + dw2.g * detailSample(detail5, detailPeriod2.y)
+                + dw2.b * detailSample(detail6, detailPeriod2.z)
+                + dw2.a * detailSample(detail7, detailPeriod2.w)) / dsum;
     vec3 ground = toLinear(toGamma(diffuseColor.rgb) * detail * 2.0);
     diffuseColor.rgb = mix(diffuseColor.rgb, ground, detailStrength);
   }`;
@@ -165,20 +172,26 @@ export class TerrainChunk {
     this.ecoTexture = new THREE.DataTexture(this.ecoPixels, ECO, ECO, THREE.RedFormat);
     this.ecoTexture.magFilter = THREE.LinearFilter;
     this.ecoTexture.needsUpdate = true;
-    this.detailPixels = new Uint8Array(ECO * ECO * 4);
-    this.detailTexture = new THREE.DataTexture(this.detailPixels, ECO, ECO, THREE.RGBAFormat);
-    this.detailTexture.magFilter = THREE.LinearFilter;
+    // The detail textures' weights, four to a texture; filtered when seen from afar too, so blends stay smooth.
+    this.detailPixels = [0, 1].map(() => new Uint8Array(ECO * ECO * 4));
+    this.detailTextures = this.detailPixels.map((pixels) => {
+      const texture = new THREE.DataTexture(pixels, ECO, ECO, THREE.RGBAFormat);
+      texture.magFilter = texture.minFilter = THREE.LinearFilter;
+      return texture;
+    });
     this.envPixels = new Uint8Array(16 * 4);
     this.envTexture = new THREE.DataTexture(this.envPixels, 4, 4, THREE.RGBAFormat);
     this.envTexture.magFilter = this.envTexture.minFilter = THREE.NearestFilter;
     this.updateEnvironmentTexture();
 
     this.uniforms = {
-      detailWeights: { value: this.detailTexture },
+      detailWeights: { value: this.detailTextures[0] },
+      detailWeights2: { value: this.detailTextures[1] },
       ecoMap: { value: this.ecoTexture },
       tileEnvMap: { value: this.envTexture },
       pending: { value: this.isNew ? 1 : 0 },
       detailPeriod: { value: new THREE.Vector4(32, 32, 32, 32) },
+      detailPeriod2: { value: new THREE.Vector4(32, 32, 32, 32) },
     };
     for (let k = 0; k < DETAILS; k++) {
       this.uniforms[`detail${k}`] = { value: blankTexture };
@@ -204,7 +217,7 @@ export class TerrainChunk {
     this.group.add(this.mesh);
   }
 
-  // The chunk's 4 heaviest ecos as the detail textures it draws, with their weights renormalized among them.
+  // The chunk's DETAILS heaviest ecos as the detail textures it draws, with their weights renormalized among them.
   updateDetailWeights() {
     const count = this.ecos.length;
     const totals = this.ecos.map((_, k) => {
@@ -218,15 +231,16 @@ export class TerrainChunk {
       for (const k of chosen) sum += this.weights[t * count + k];
       for (let slot = 0; slot < DETAILS; slot++) {
         const k = chosen[slot];
-        this.detailPixels[t * 4 + slot] = k === undefined || !sum ? 0 : Math.round(this.weights[t * count + k] * 255 / sum);
+        this.detailPixels[slot >> 2][t * 4 + (slot & 3)] = k === undefined || !sum ? 0 : Math.round(this.weights[t * count + k] * 255 / sum);
       }
     }
+    const periods = [this.uniforms.detailPeriod.value, this.uniforms.detailPeriod2.value];
     for (let slot = 0; slot < DETAILS; slot++) {
       const detail = chosen[slot] === undefined ? null : this.manager.detail(this.ecos[chosen[slot]]);
       this.uniforms[`detail${slot}`].value = detail?.texture ?? blankTexture;
-      this.uniforms.detailPeriod.value.setComponent(slot, detail?.period ?? 32);
+      periods[slot >> 2].setComponent(slot & 3, detail?.period ?? 32);
     }
-    this.detailTexture.needsUpdate = true;
+    for (const texture of this.detailTextures) texture.needsUpdate = true;
   }
 
   get anyDirty() {
@@ -344,7 +358,7 @@ export class TerrainChunk {
     this.material.dispose();
     this.colourTexture.dispose();
     this.ecoTexture.dispose();
-    this.detailTexture.dispose();
+    for (const texture of this.detailTextures) texture.dispose();
     this.envTexture.dispose();
   }
 }
