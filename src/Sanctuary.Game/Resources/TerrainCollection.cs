@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 
@@ -26,20 +27,25 @@ public class TerrainCollection : ObservableConcurrentDictionary<string, TerrainM
             return true;
         }
 
-        foreach (var filePath in Directory.GetFiles(directoryPath, "*.terrain"))
-        {
-            var zoneName = Path.GetFileNameWithoutExtension(filePath);
+        var filePaths = Directory.GetFiles(directoryPath, "*.terrain");
+        var terrainMeshes = new TerrainMesh?[filePaths.Length];
 
-            if (!TerrainLoader.TryLoad(filePath, _logger, out var terrainMesh))
+        // The big zones take seconds each to read, so the files load side by side.
+        Parallel.For(0, filePaths.Length, index =>
+        {
+            if (!TerrainLoader.TryLoad(filePaths[index], _logger, out terrainMeshes[index]))
             {
                 _logger.LogWarning(
                     "Skipping terrain file \"{Path}\" due to a load failure (see error above). " +
                     "Zone \"{ZoneName}\" will have no ground height data available.",
-                    filePath, zoneName);
-                continue;
+                    filePaths[index], Path.GetFileNameWithoutExtension(filePaths[index]));
             }
+        });
 
-            this[zoneName] = terrainMesh!;
+        for (var index = 0; index < filePaths.Length; index++)
+        {
+            if (terrainMeshes[index] is { } terrainMesh)
+                this[Path.GetFileNameWithoutExtension(filePaths[index])] = terrainMesh;
         }
 
         _logger.LogInformation("Loaded {Count} terrain mesh(es) from \"{Path}\".", Count, directoryPath);
