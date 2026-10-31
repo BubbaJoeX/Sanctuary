@@ -9,6 +9,7 @@ namespace Sanctuary.Game.Resources.Definitions.Rewards;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "RewardType")]
 [JsonDerivedType(typeof(ItemRewardDropDefinition), "Item")]
 [JsonDerivedType(typeof(CurrencyRewardDropDefinition), "Currency")]
+[JsonDerivedType(typeof(ExperienceRewardDropDefinition), "Experience")]
 public abstract class RewardDropDefinition : IWeighted
 {
     public int Weight { get; set; } = 1;

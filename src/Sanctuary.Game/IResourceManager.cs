@@ -42,6 +42,7 @@ public interface IResourceManager
     AchievementDefinitionCollection Achievements { get; }
     RecipeDefinitionCollection Recipes { get; }
     StationDefinitionCollection Stations { get; }
+    GiftDefinitionCollection Gifts { get; }
     ZoneEnvironmentCollection ZoneEnvironments { get; }
     MountDefinitionCollection Mounts { get; }
     PetDefinitionCollection Pets { get; }
